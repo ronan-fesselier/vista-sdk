@@ -1,7 +1,7 @@
 ### DataChannelList serialization
 
-See [Transport/_files/](Transport/_files/) folder for the sample payload that is being serialized.
-Benchmark implementation: [Transport/DataChannelListSerialization.cs]
+See [Transport/_files/](Vista.SDK.Benchmarks/Transport/_files/) folder for the sample payload that is being serialized.
+Benchmark implementation: [Transport/DataChannelListSerialization.cs](Vista.SDK.Benchmarks/Transport/DataChannelListSerialization.cs)
 
 ``` ini
 
@@ -32,6 +32,7 @@ WarmupCount=3
 ### Gmod traversal
 
 Traverses through all possible paths in gmod, avoiding cycles.
+Benchmark implementation: [Gmod/GmodTraversal.cs](Vista.SDK.Benchmarks/Gmod/GmodTraversal.cs)
 
 ``` ini
 
@@ -51,6 +52,7 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 ### Gmod path parsing
 
 Parses the string representation of a gmod path (`411.1/C101.72/I101`) into the domain model object.
+Benchmark implementation: [Gmod/GmodPathParse.cs](Vista.SDK.Benchmarks/Gmod/GmodPathParse.cs)
 
 ``` ini
 

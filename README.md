@@ -11,7 +11,7 @@ users and implementers of the standards.
 Our plan is to develop SDKs for some of the most common platforms. We are starting with .NET, Python and JavaScript.
 We will be developing these SDKs as open source projects. Feel free to provide input, request changes or make contributions by creating issues in this repository.
 
-For general documentation relating to VIS and relating standard. See [vista.dnv.com/docs][https://vista.dnv.com/docs].
+For general documentation relating to VIS and relating standard. See [vista.dnv.com/docs](https://vista.dnv.com/docs).
 
 > **_NOTE:_**  These SDKs are currently being used in production at DNV, and will be open sourced and released under preview initially.
 
@@ -74,7 +74,7 @@ In the benchmark below we try to isolate the difference between Json and Avro en
 See the `Payload size` column below for an insight into size of ISO-19848 packages over the wire.
 Avro has been included as an example binary encoding - it is not currently part of the standard.
 The latency measurements in this context are less useful, as they are platform-specific.
-See [csharp/benchmarks](csharp/benchmarks) for more details on the method of the benchmarks.
+See [csharp/benchmark](csharp/benchmark) for more details on the method of the benchmarks.
 
 ``` ini
 
