@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>CS0162</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Avro" />
+    <Using Include="Avro.Specific" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.Avro" Version="1.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vista.SDK\Vista.SDK.csproj" />
+  </ItemGroup>
+
+</Project>

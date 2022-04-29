@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="BenchmarkDotNet.Attributes" />
+    <Using Include="BenchmarkDotNet.Order" />
+    <Using Include="BenchmarkDotNet.Configs" />
+    <Using Include="BenchmarkDotNet.Jobs" />
+    <Using Include="BenchmarkDotNet.Diagnosers" />
+    <Using Include="BenchmarkDotNet.Loggers" />
+    <Using Include="BenchmarkDotNet.Diagnostics.Windows.Configs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(DotNetVersion)" />
+    <PackageReference Include="SharpZipLib" Version="1.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vista.SDK.Apache.Avro\Vista.SDK.Apache.Avro.csproj" />
+    <ProjectReference Include="..\..\src\Vista.SDK.System.Text.Json\Vista.SDK.System.Text.Json.csproj" />
+    <ProjectReference Include="..\..\src\Vista.SDK.System.Xml\Vista.SDK.System.Xml.csproj" />
+    <ProjectReference Include="..\..\src\Vista.SDK\Vista.SDK.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Transport\_files\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>True</Visible>
+    </None>  
+    <None Include="$(OutDir)\Transport\_files\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(RecursiveDir)\%(Filename)%(Extension)</Link>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+
+
+</Project>

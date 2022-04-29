@@ -1,0 +1,82 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{093029D2-21CA-4470-B16A-0291ABA2109F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK", "src\Vista.SDK\Vista.SDK.csproj", "{36063914-B923-446B-ACCB-C9DFD87E48BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.Apache.Avro", "src\Vista.SDK.Apache.Avro\Vista.SDK.Apache.Avro.csproj", "{20C7791E-19BA-4711-B1E8-580394A010CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.SourceGenerator", "src\Vista.SDK.SourceGenerator\Vista.SDK.SourceGenerator.csproj", "{80707032-DEC8-4C25-9F0D-744818E706EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.System.Text.Json", "src\Vista.SDK.System.Text.Json\Vista.SDK.System.Text.Json.csproj", "{64282827-0A92-4038-A53D-8F1458993E26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.System.Xml", "src\Vista.SDK.System.Xml\Vista.SDK.System.Xml.csproj", "{3BBE2FB8-7F53-4772-9936-045F718DF73C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A70BCD8E-E1DB-49FF-855D-AD8ED1179080}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.Tests", "test\Vista.SDK.Tests\Vista.SDK.Tests.csproj", "{04C3E604-AEC3-47F0-8EF9-9E180022CD41}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_files", "_files", "{FCC919CE-0A49-40B6-8A8E-9AE11BBCD3FD}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmark", "benchmark", "{95D04DE8-37F5-4D86-9D0B-D0819DAA0E7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vista.SDK.Benchmarks", "benchmark\Vista.SDK.Benchmarks\Vista.SDK.Benchmarks.csproj", "{CBACE153-372D-479A-9663-529846C16DB9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36063914-B923-446B-ACCB-C9DFD87E48BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36063914-B923-446B-ACCB-C9DFD87E48BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36063914-B923-446B-ACCB-C9DFD87E48BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36063914-B923-446B-ACCB-C9DFD87E48BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20C7791E-19BA-4711-B1E8-580394A010CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C7791E-19BA-4711-B1E8-580394A010CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20C7791E-19BA-4711-B1E8-580394A010CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20C7791E-19BA-4711-B1E8-580394A010CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80707032-DEC8-4C25-9F0D-744818E706EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80707032-DEC8-4C25-9F0D-744818E706EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80707032-DEC8-4C25-9F0D-744818E706EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80707032-DEC8-4C25-9F0D-744818E706EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64282827-0A92-4038-A53D-8F1458993E26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64282827-0A92-4038-A53D-8F1458993E26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64282827-0A92-4038-A53D-8F1458993E26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64282827-0A92-4038-A53D-8F1458993E26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BBE2FB8-7F53-4772-9936-045F718DF73C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BBE2FB8-7F53-4772-9936-045F718DF73C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BBE2FB8-7F53-4772-9936-045F718DF73C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BBE2FB8-7F53-4772-9936-045F718DF73C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04C3E604-AEC3-47F0-8EF9-9E180022CD41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04C3E604-AEC3-47F0-8EF9-9E180022CD41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04C3E604-AEC3-47F0-8EF9-9E180022CD41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04C3E604-AEC3-47F0-8EF9-9E180022CD41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBACE153-372D-479A-9663-529846C16DB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBACE153-372D-479A-9663-529846C16DB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBACE153-372D-479A-9663-529846C16DB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBACE153-372D-479A-9663-529846C16DB9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{36063914-B923-446B-ACCB-C9DFD87E48BA} = {093029D2-21CA-4470-B16A-0291ABA2109F}
+		{20C7791E-19BA-4711-B1E8-580394A010CA} = {093029D2-21CA-4470-B16A-0291ABA2109F}
+		{80707032-DEC8-4C25-9F0D-744818E706EB} = {093029D2-21CA-4470-B16A-0291ABA2109F}
+		{64282827-0A92-4038-A53D-8F1458993E26} = {093029D2-21CA-4470-B16A-0291ABA2109F}
+		{3BBE2FB8-7F53-4772-9936-045F718DF73C} = {093029D2-21CA-4470-B16A-0291ABA2109F}
+		{04C3E604-AEC3-47F0-8EF9-9E180022CD41} = {A70BCD8E-E1DB-49FF-855D-AD8ED1179080}
+		{CBACE153-372D-479A-9663-529846C16DB9} = {95D04DE8-37F5-4D86-9D0B-D0819DAA0E7A}
+	EndGlobalSection
+EndGlobal

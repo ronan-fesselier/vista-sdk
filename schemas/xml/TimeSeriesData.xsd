@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:sdt="urn:ISO19848:SHIP_DATA_TRANSPORT" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:ISO19848:SHIP_DATA_TRANSPORT" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!--8.4.2(1) Package structure-->
+    <xs:element name="Package" type="sdt:Package" />
+    <!--8.4.2(1) Package structure-->
+    <xs:complexType name="Package">
+        <xs:sequence>
+            <!--8.4.2(2) Header structure-->
+            <xs:element name="Header" type="sdt:Header" minOccurs="0" maxOccurs="1" />
+            <!--8.4.2(5) TimeSeriesData structure -->
+            <xs:element name="TimeSeriesData" type="sdt:TimeSeriesData" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(2) Header structure-->
+    <xs:complexType name="Header">
+        <xs:sequence>
+            <!--IMO Number, HIN or other ship's identification number-->
+            <xs:element name="ShipID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <!--8.4.2(3) TimeSpan structure-->
+            <xs:element name="TimeSpan" type="sdt:TimeSpan" minOccurs="0" maxOccurs="1" />
+            <!--Date when data are created-->
+            <xs:element name="DateCreated" type="xs:dateTime" minOccurs="0" maxOccurs="1" />
+            <!--Date when data are modified-->
+            <xs:element name="DateModified" type="xs:dateTime" minOccurs="0" maxOccurs="1" />
+            <!--Author of data-->
+            <xs:element name="Author" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--8.4.2(4) Reference to system configuration -->
+            <xs:element name="SystemConfiguration" type="sdt:ConfigurationReference" minOccurs="0" maxOccurs="unbounded" />
+            <!--Extension point for custom headers-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(3) TimeSpan structure-->
+    <xs:complexType name="TimeSpan">
+        <xs:sequence>
+            <!--TimeStamp of the oldest DataSet-->
+            <xs:element name="Start" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+            <!--TimeStanp of the newest DataSet-->
+            <xs:element name="End" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(4) ConfigurationReference structure-->
+    <xs:complexType name="ConfigurationReference">
+        <xs:sequence>
+            <xs:element name="ID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="TimeStamp" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--DataChannelID structure-->
+    <!--Value must be Local ID or Shor ID strings. see 6.1 for the details.-->
+    <xs:complexType name="DataChannelID">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <!--Ordinal number of the DataChannelID array-->
+                <xs:attribute name="id" type="xs:positiveInteger" use="required" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!--8.4.2(5) TimeSeriesData structure -->
+    <xs:complexType name="TimeSeriesData">
+        <xs:sequence>
+            <!--8.4.2(4) ConfigurationReference structure -->
+            <xs:element name="DataConfiguration" type="sdt:ConfigurationReference" minOccurs="0" maxOccurs="1" />
+            <!--8.4.2(6) TabularData structure -->
+            <xs:element name="TabularData" type="sdt:TabularData" minOccurs="0" maxOccurs="unbounded" />
+            <!--8.4.2(7) EventData structure -->
+            <xs:element name="EventData" type="sdt:EventData" minOccurs="0" maxOccurs="1" />
+            <!--Extension point for custom data kinds-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(6) TabularData structure -->
+    <xs:complexType name="TabularData">
+        <xs:sequence>
+            <!--Number of DataSet elements under the hierarchy -->
+            <xs:element name="NumberOfDataSet" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <!--Number of DataChannels for each DataSources-->
+            <xs:element name="NumberOfDataChannel" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <!--8.4.2(6) Identifiers of target DataChannels-->
+            <xs:element name="DataChannelID" type="sdt:DataChannelID" minOccurs="0" maxOccurs="unbounded" />
+            <!--8.4.2(8) DataSet structure -->
+            <xs:element name="DataSet" type="sdt:DataSet_Tabular" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(7) EventData structure -->
+    <xs:complexType name="EventData">
+        <xs:sequence>
+            <!--Number of DataSet elements under the hierarchy -->
+            <xs:element name="NumberOfDataSet" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <!--8.4.2(9) DataSet structure -->
+            <xs:element name="DataSet" type="sdt:DataSet_Event" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--8.4.2(8) DataSet structure for Tabular Data -->
+    <xs:complexType name="DataSet_Tabular">
+        <xs:sequence>
+            <!--Measurement value -->
+            <!--Measurement value can be empty-->
+            <xs:element name="Value" type="sdt:Value" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+        <!--ISO 8601 date & time structure shall be used-->
+        <xs:attribute name="timeStamp" type="xs:dateTime" use="required" />
+    </xs:complexType>
+    <!--8.4.2(9) DataSet structure for Event Data-->
+    <xs:complexType name="DataSet_Event">
+        <xs:sequence>
+            <xs:element name="DataChannelID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <!--Measurement value -->
+            <!--Measurement value can be empty-->
+            <xs:element name="Value" type="xs:string" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+        <!--ISO 8601 date & time structure shall be used-->
+        <xs:attribute name="timeStamp" type="xs:dateTime" use="required" />
+        <xs:attribute name="quality" type="xs:string" use="optional" />
+    </xs:complexType>
+    <!--Value structure for Tabular Data -->
+    <xs:complexType name="Value">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <!--Ordinal number of the Value array. Order of the array shall be the same as TabularData/DataChannelID array.-->
+                <xs:attribute name="ref" type="xs:positiveInteger" use="required" />
+                <xs:attribute name="quality" type="xs:string" use="optional" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+</xs:schema>

@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:sdd="urn:ISO19848:SHIP_DATA_DEFINITION" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:ISO19848:SHIP_DATA_DEFINITION" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!--7.4.2 a) Package structure-->
+    <xs:element name="Package" type="sdd:Package" />
+    <!--7.4.2 a) Package structure-->
+    <xs:complexType name="Package">
+        <xs:sequence>
+            <!--7.4.2 b) Header structure-->
+            <xs:element name="Header" type="sdd:Header" minOccurs="1" maxOccurs="1" />
+            <!--7.4.2 d) DataChannelList structure-->
+            <xs:element name="DataChannelList" type="sdd:DataChannelList" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 b) Header structure-->
+    <xs:complexType name="Header">
+        <xs:sequence>
+            <!--IMO Number, HIN or other ship's identification number-->
+            <xs:element name="ShipID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <!--Identifier of this list-->
+            <xs:element name="DataChannelListID" type="sdd:ConfigurationReference" minOccurs="1" maxOccurs="1" />
+            <xs:element name="VersionInformation" type="sdd:VersionInformation" minOccurs="0" maxOccurs="unbounded" />
+            <!--Author of data-->
+            <xs:element name="Author" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--Date when data are created-->
+            <xs:element name="DateCreated" type="xs:dateTime" minOccurs="0" maxOccurs="1" />
+            <!--Extension point for custom headers-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 c) ConfigurationReference structure-->
+    <xs:complexType name="ConfigurationReference">
+        <xs:sequence>
+            <xs:element name="ID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="Version" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="TimeStamp" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 d) DataChannelList structure-->
+    <xs:complexType name="DataChannelList">
+        <xs:sequence>
+            <!--7.4.2 e) DataChannel structure-->
+            <xs:element name="DataChannel" type="sdd:DataChannel" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 e) DataChannel structure-->
+    <xs:complexType name="DataChannel">
+        <xs:sequence>
+            <!--7.4.2 f) DataChannelID structure-->
+            <xs:element name="DataChannelID" type="sdd:DataChannelID" minOccurs="1" maxOccurs="1" />
+            <!--7.4.2 g) Property structure-->
+            <xs:element name="Property" type="sdd:Property" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 f) DataChannelID structure-->
+    <xs:complexType name="DataChannelID">
+        <xs:sequence>
+            <xs:element name="LocalID" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="ShortID" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--7.4.2 m) NameObject structure-->
+            <xs:element name="NameObject" type="sdd:NameObject" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 g) Property structure-->
+    <xs:complexType name="Property">
+        <xs:sequence>
+            <!--5.3 a) Identifier of Data Channel Type, such as raw numericvalue, average value, alarm and status, etc.-->
+            <xs:element name="DataChannelType" type="sdd:DataChannelType" minOccurs="1" maxOccurs="1" />
+            <!--5.3 b) Formats are for describing data formats-->
+            <!--Assumed data types are "Float","Integer","Boolean","Text" and "Symbol"-->
+            <xs:element name="Format" type="sdd:Format" minOccurs="1" maxOccurs="1" />
+            <!--5.3 c) Range of measurement value-->
+            <xs:element name="Range" type="sdd:Range" minOccurs="0" maxOccurs="1" />
+            <!--5.3 d) Unit and quantity of measurement value-->
+            <xs:element name="Unit" type="sdd:Unit" minOccurs="0" maxOccurs="1" />
+            <!--5.3 e) Name of data quality evaluation scheme-->
+            <xs:element name="QualityCoding" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--5.3 f) Priority of the alert if the DataChannel represents an alert-->
+            <xs:element name="AlertPriority" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--5.3 g) Names assigned in on-board control systems and other instruments-->
+            <xs:element name="Name" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--5.3 h) Remarks shall contains location, manufacturer and type of equipment-->
+            <xs:element name="Remarks" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--Extension point for custom properties-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 h) DataChannelType structure-->
+    <!--5.3 a) Identifier of Data Channel Type, such as raw numeric value, average value, alarm and status, etc.-->
+    <xs:complexType name="DataChannelType">
+        <xs:sequence>
+            <xs:element name="Type" minOccurs="1" maxOccurs="1">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Inst" />
+                        <xs:enumeration value="Average" />
+                        <xs:enumeration value="Max" />
+                        <xs:enumeration value="Min" />
+                        <xs:enumeration value="StandardDeviation" />
+                        <xs:enumeration value="Calculated" />
+                        <xs:enumeration value="SetPoint" />
+                        <xs:enumeration value="Output" />
+                        <xs:enumeration value="Alert" />
+                        <xs:enumeration value="Status" />
+                        <xs:enumeration value="ManuallyInput" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="UpdateCycle" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+            <xs:element name="CalculationPeriod" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 i) Format structure-->
+    <!--5.3 b) Format of measurement value-->
+    <xs:complexType name="Format">
+        <xs:sequence>
+            <!--Type of the Format-->
+            <xs:element name="Type" minOccurs="1" maxOccurs="1">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Decimal" />
+                        <xs:enumeration value="Integer" />
+                        <xs:enumeration value="Boolean" />
+                        <xs:enumeration value="String" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <!--7.4.2 j) Restriction of the value-->
+            <xs:element name="Restriction" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="Enumeration" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+                        <xs:element name="FractionDigits" type="xs:integer" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="Length" type="xs:integer" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MaxExclusive" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MaxInclusive" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MaxLength" type="xs:integer" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MinExclusive" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MinInclusive" type="xs:decimal" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="MinLength" type="xs:integer" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="Pattern" type="xs:string" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="TotalDigits" type="xs:integer" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="WhiteSpace" minOccurs="0" maxOccurs="1">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="preserve" />
+                                    <xs:enumeration value="replace" />
+                                    <xs:enumeration value="collapse" />
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 k) Range structure-->
+    <!--5.3 c) Range of measurement value-->
+    <xs:complexType name="Range">
+        <xs:sequence>
+            <!--Higher limit of measurement value-->
+            <xs:element name="High" type="sdd:emptyOrDecimal" minOccurs="1" maxOccurs="1" />
+            <!--Lower limit of measurement value-->
+            <xs:element name="Low" type="sdd:emptyOrDecimal" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 l) Unit structure-->
+    <!--5.3 d) Unit and quantity of measurement value-->
+    <xs:complexType name="Unit">
+        <xs:sequence>
+            <!--Symbol of the unit-->
+            <xs:element name="UnitSymbol" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <!--Quantity name of the measurement value, that is defined in ISO80000 or Table2 -->
+            <xs:element name="QuantityName" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--Extension point for custom Unit element, such as Quantity Symbol, Scale Factor, etc.-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 m) NameObject structure-->
+    <xs:complexType name="NameObject">
+        <xs:sequence>
+            <!--Name of NamingRule, see 5.2.3-->
+            <xs:element name="NamingRule" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <!--Extension point for custom NameObjects, Definition of LocalDataName structure-->
+            <xs:any processContents="lax" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--7.4.2 n) VersionInformation structure-->
+    <xs:complexType name="VersionInformation">
+        <xs:sequence>
+            <xs:element name="NamingRule" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="NamingSchemeVersion" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="ReferenceURL" type="xs:string" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+    <!--empty value acceptable decimal-->
+    <xs:simpleType name="emptyOrDecimal">
+        <xs:union memberTypes="sdd:empty xs:decimal" />
+    </xs:simpleType>
+    <xs:simpleType name="empty">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
