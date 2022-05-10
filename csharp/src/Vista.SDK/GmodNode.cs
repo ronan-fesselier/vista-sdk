@@ -4,7 +4,7 @@ namespace Vista.SDK;
 
 public record class GmodNode
 {
-    public string Code { get; }
+    public string Code { get; init; }
 
     public string? Location { get; init; }
 

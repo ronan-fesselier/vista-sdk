@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text;
 
 using Microsoft.CodeAnalysis;
@@ -38,14 +38,14 @@ namespace Vista.SDK.SourceGenerator
                 sourceBuilder.Append(
                     @$"
         [global::System.Runtime.Serialization.EnumMember(Value = ""{version}"")]
-        v{version.Replace('-', '_')},
-    }}
-"
+        v{version.Replace('-', '_')},"
                 );
             }
 
             sourceBuilder.Append(
                 @"
+    }
+
     static partial class VisVersionExtensions
     {
         public static string ToVersionString(this VisVersion version) =>
@@ -158,7 +158,7 @@ namespace Vista.SDK.SourceGenerator
                 @"
     public static class VisVersions
     {
-        public static readonly global::System.Collections.Generic.IEnumerable<VisVersion> All = new [] 
+        public static readonly global::System.Collections.Generic.IEnumerable<VisVersion> All = new []
         {"
             );
 
@@ -177,7 +177,7 @@ namespace Vista.SDK.SourceGenerator
 
         public static VisVersion Parse(string version)
         {
-            return version switch 
+            return version switch
             {"
             );
 

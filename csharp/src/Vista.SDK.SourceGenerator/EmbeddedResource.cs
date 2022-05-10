@@ -50,7 +50,10 @@ internal static class EmbeddedResource
 
         foreach (var manifestResourceName in manifestResourceNames)
         {
-            if (manifestResourceName.Contains("gmod"))
+            if (
+                manifestResourceName.Contains("gmod")
+                && !manifestResourceName.Contains("versioning")
+            )
             {
                 var gmodJson = GetDecompressedContent(baseName, manifestResourceName);
                 var gmod =
@@ -125,5 +128,27 @@ internal static class EmbeddedResource
             stream,
             cancellationToken: cancellationToken
         );
+    }
+
+    public static async ValueTask<GmodVersioningDto?> GetGmodVersioning(
+        CancellationToken cancellationToken
+    )
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var baseName = assembly.GetName().Name;
+        var gmodVersioningResourceName = assembly
+            .GetManifestResourceNames()
+            .SingleOrDefault(x => x == $"{baseName}.resources.gmod-vis-versioning.json.gz");
+
+        if (gmodVersioningResourceName is null)
+            return null;
+
+        using var stream = GetDecompressedStream(assembly, gmodVersioningResourceName);
+
+        var dto = await JsonSerializer.DeserializeAsync<GmodVersioningDto>(
+            stream,
+            cancellationToken: cancellationToken
+        );
+        return dto;
     }
 }

@@ -33,9 +33,11 @@ public interface IVIS
 
     IEnumerable<VisVersion> GetVisVersions();
 
-    //GmodNode Convert(VisVersion sourceVersion, GmodNode sourceNode, VisVersion targetVersion);
+    ValueTask<GmodVersioningDto> GetGmodVersioningDto(
+        CancellationToken cancellationToken = default
+    );
 
-    //GmodPath Convert(VisVersion sourceVersion, GmodPath sourcePath, VisVersion targetVersion);
+    ValueTask<GmodVersioning> GetGmodVersioning(CancellationToken cancellationToken = default);
 }
 
 public static partial class VisVersionExtensions { }
@@ -46,6 +48,9 @@ public sealed class VIS : IVIS
     private readonly MemoryCache _gmodCache;
     private readonly MemoryCache _codebooksDtoCache;
     private readonly MemoryCache _codebooksCache;
+    private readonly MemoryCache _gmodVersioningDtoCache;
+    private readonly MemoryCache _gmodVersioningCache;
+    private const string _versioning = "versioning";
 
     public static IVIS Create() => new VIS();
 
@@ -73,6 +78,20 @@ public sealed class VIS : IVIS
             }
         );
         _codebooksCache = new MemoryCache(
+            new MemoryCacheOptions
+            {
+                SizeLimit = 10,
+                ExpirationScanFrequency = TimeSpan.FromHours(1),
+            }
+        );
+        _gmodVersioningDtoCache = new MemoryCache(
+            new MemoryCacheOptions
+            {
+                SizeLimit = 10,
+                ExpirationScanFrequency = TimeSpan.FromHours(1),
+            }
+        );
+        _gmodVersioningCache = new MemoryCache(
             new MemoryCacheOptions
             {
                 SizeLimit = 10,
@@ -162,6 +181,69 @@ public sealed class VIS : IVIS
         await Task.WhenAll(tasks.Select(t => t.Task));
 
         return tasks.ToDictionary(t => t.Version, t => t.Task.Result);
+    }
+
+    public ValueTask<GmodVersioningDto> GetGmodVersioningDto(
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (
+            _gmodVersioningDtoCache.TryGetValue(
+                _versioning,
+                out GmodVersioningDto gmodVersioningDto
+            )
+        )
+            return new ValueTask<GmodVersioningDto>(gmodVersioningDto);
+
+        return Get();
+
+        async ValueTask<GmodVersioningDto> Get()
+        {
+            return await _gmodVersioningDtoCache.GetOrCreateAsync(
+                _versioning,
+                async entry =>
+                {
+                    entry.Size = 1;
+                    entry.SlidingExpiration = TimeSpan.FromHours(1);
+
+                    var dto = await EmbeddedResource.GetGmodVersioning(cancellationToken);
+
+                    if (dto is null)
+                        throw new ArgumentException("Invalid state");
+
+                    return dto;
+                }
+            );
+        }
+    }
+
+    public ValueTask<GmodVersioning> GetGmodVersioning(
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (_gmodVersioningCache.TryGetValue(_versioning, out GmodVersioning gmodVersioning))
+            return new ValueTask<GmodVersioning>(gmodVersioning);
+
+        return Get();
+
+        async ValueTask<GmodVersioning> Get()
+        {
+            return await _gmodVersioningCache.GetOrCreateAsync(
+                _versioning,
+                async entry =>
+                {
+                    entry.Size = 1;
+                    entry.SlidingExpiration = TimeSpan.FromHours(1);
+
+                    var dto = await GetGmodVersioningDto(cancellationToken);
+
+                    return new GmodVersioning(
+                        dto,
+                        (VisVersion targetVisVersion) => GetGmod(targetVisVersion)
+                    );
+                }
+            );
+        }
     }
 
     public ValueTask<CodebooksDto> GetCodebooksDto(
