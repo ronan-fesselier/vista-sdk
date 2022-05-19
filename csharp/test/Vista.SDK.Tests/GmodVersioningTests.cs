@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vista.SDK;
 using Vista.SDK.Tests;
 
-namespace Vista.Tests.SDK;
+namespace Vista.SDK.Tests;
 
 public class GmodVersioningTests
 {

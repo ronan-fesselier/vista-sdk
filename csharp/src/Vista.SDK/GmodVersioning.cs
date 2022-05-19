@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using Vista.SDK.Internal;
 
@@ -38,7 +38,8 @@ public sealed class GmodVersioning
           : sourceNode.Code;
 
         var gmod = await _gmod(targetVersion);
-        if (!gmod.TryGetNode(nextCode is null ? sourceNode.Code : nextCode, out var targetNode))
+
+        if (!gmod.TryGetNode(nextCode, out var targetNode))
             throw new ArgumentException("Couldn't get target node with code: " + nextCode);
         return targetNode;
     }
@@ -49,35 +50,166 @@ public sealed class GmodVersioning
         VisVersion targetVersion
     )
     {
-        var newPathIndex = 0;
-        var newParents = new GmodNode[sourcePath.Length - 1];
-        GmodNode? newNode = null;
-        foreach (var (depth, node) in sourcePath.GetFullPath())
+        // "511.331/C221", --- > "C121.31/C221"
+        var endNode = await ConvertNode(sourceVersion, sourcePath.Node, targetVersion); // sourcePath[^1] last node
+        static bool OnlyOnePath(GmodNode node) =>
+            node.Parents.Count == 1 && OnlyOnePath(node.Parents[0]);
+
+        if (OnlyOnePath(endNode))
+            return new GmodPath(
+                endNode.Parents,
+                await ConvertNode(sourceVersion, endNode, targetVersion)
+            );
+
+        var targetNodes = new List<GmodNode>();
+
+        // var current = endNode;
+        var parentToEndNode = sourcePath.Parents[sourcePath.Parents.Count - 1];
+        var newParentToEndNode = await ConvertNode(sourceVersion, parentToEndNode, targetVersion);
+        var current = newParentToEndNode;
+        targetNodes.Add(current);
+        while (current.Code != "VE")
         {
-            var nextNode = await ConvertNode(sourceVersion, node, targetVersion);
-            var targetNode = node.Location is not null
-                ? nextNode with
-                  {
-                      Location = sourcePath[depth].Location
-                  }
-                : nextNode;
+            if (current.Parents.Count == 1)
+            {
+                current = current.Parents[0];
+                targetNodes.Add(current);
+                continue;
+            }
+            for (int i = 0; i < current.Parents.Count; i++)
+            {
+                var currentParent = current.Parents[i]; // 511.31
+                var previousTargetNode = targetNodes[targetNodes.Count - 1]; // C121.31
+                var parentToCurrentParent = currentParent.Parents[0]; // 511.3i
+                if (
+                    !TryGetVersioningNode(
+                        targetVersion.ToVersionString(),
+                        out var nextVersioningNode
+                    )
+                )
+                    throw new Exception("Invalid versioning");
+                if (
+                    !nextVersioningNode.TryGetCodeChanges(
+                        previousTargetNode.Code,
+                        out var nodeChanges
+                    )
+                )
+                    continue;
+                if (nodeChanges?.FormerParent is null)
+                    continue;
 
-            if (depth < sourcePath.Length - 1)
-                newParents[newPathIndex++] = targetNode;
-            else
-                newNode = targetNode;
+                var formerParentCode = nodeChanges.FormerParent; // 511.3i (string)
+                if (parentToCurrentParent.Code != formerParentCode)
+                    continue;
+
+                // var gmod = await _gmod(targetVersion);
+                //var targetParentNode = gmod[formerParentCode];
+                // if (!targetParentNode.IsChild(currentParent))
+                //     continue;
+                targetNodes.Add(current);
+                targetNodes.Add(currentParent);
+                //targetNodes.Add(targetParentNode); // 511.3i
+                current = currentParent;
+                break;
+            }
+            // var formerParentNode = sourcePath.Parents[^1];
+            // var newParentNode = await ConvertNode(sourceVersion, formerParentNode, targetVersion);
+            // targetNodes.Add(newParentNode);
+            // current = newParentNode;
+
         }
+        if (current.Code == "VE")
+            targetNodes.Add(current);
+        // Need to reverse targetNodes in order to have the correct direction of the path
+        return new GmodPath(targetNodes, endNode);
 
-        if (newNode is null)
-            throw new InvalidOperationException("Invalid conversion");
+        // for (int i = sourcePath.Length - 1; i >= 0; i--)
+        // {
+        //     var sourceNode = sourcePath[i];
+        //     if (sourceNode.Parents.Count == i)
+        //     {
+        //         var nextNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
+        //         targetNodes.Add(nextNode);
+        //         continue;
+        //     }
+        //
+        //     if (i == sourcePath.Length - 1)
+        //     {
+        //         endNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
+        //         continue;
+        //     }
+        //     // 511.331 -> C121.31
+        //     var nextParentNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
+        //     var targetParentNode = sourceNode.Location is not null
+        //         ? nextParentNode with
+        //           {
+        //               Location = sourcePath[i].Location
+        //           }
+        //         : nextParentNode;
+        //     if (!TryGetVersioningNode(targetVersion.ToVersionString(), out var nextVersioningNode))
+        //         throw new ArgumentException(
+        //             "Couldn't get target versioning node with VIS version"
+        //                 + targetVersion.ToVersionString()
+        //         );
+        //     if (
+        //         nextVersioningNode.TryGetCodeChanges(nextParentNode.Code, out var nodeChanges)
+        //         && nodeChanges?.FormerParent is not null
+        //     )
+        //     {
+        //         targetNodes.Add(targetParentNode);
+        //          THIS DOES NOT WORK
+        //         if (sourceNode.Parents.Select(n => n.Code).Contains(nodeChanges?.FormerParent))
+        //         {
+        //             var parent = targetParentNode.Parents[0];
+        //             targetNodes.Add(parent);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         targetNodes.Add(targetParentNode);
+        //     }
+        // }
+        //
+        // var n = targetNodes.Count;
+        // for (int i = 0; i < n / 2; i++)
+        // {
+        //     (targetNodes[i], targetNodes[n - i - 1]) = (targetNodes[n - i - 1], targetNodes[i]);
+        // }
+        //
+        // var newPath = new GmodPath(targetNodes, endNode);
 
-        return new GmodPath(newParents, newNode);
+        // return new GmodPath(targetNodes, endNode);
+
+        // var newPathIndex = 0;
+        // var newParents = new GmodNode[sourcePath.Length - 1];
+        // GmodNode? newNode = null;
+        // foreach (var (depth, node) in sourcePath.GetFullPath())
+        // {
+        //     var nextNode = await ConvertNode(sourceVersion, node, targetVersion);
+        //     var targetNode = node.Location is not null
+        //         ? nextNode with
+        //           {
+        //               Location = sourcePath[depth].Location
+        //           }
+        //         : nextNode;
+        //
+        //     if (depth < sourcePath.Length - 1)
+        //         newParents[newPathIndex++] = targetNode;
+        //     else
+        //         newNode = targetNode;
+        // }
+        //
+        // if (newNode is null)
+        //     throw new InvalidOperationException("Invalid conversion");
+        // return new GmodPath(newParents, newNode);
     }
 
     public GmodVersioningNode this[string key] => _versioningsMap[key];
 
-    public bool TryGetVersioningNode(string visVersion, out GmodVersioningNode versioningNode) =>
-        _versioningsMap.TryGetValue(visVersion, out versioningNode);
+    public bool TryGetVersioningNode(
+        string visVersion,
+        [MaybeNullWhen(false)] out GmodVersioningNode versioningNode
+    ) => _versioningsMap.TryGetValue(visVersion, out versioningNode);
 
     private void ValidateSourceAndTargetVersions(VisVersion sourceVersion, VisVersion targetVersion)
     {
@@ -118,7 +250,8 @@ public readonly record struct GmodVersioningNode
                 versioningNodeDto.Value.NextVisVersion,
                 versioningNodeDto.Value.NextCode,
                 versioningNodeDto.Value.PreviousVisVersion,
-                versioningNodeDto.Value.PreviousCode
+                versioningNodeDto.Value.PreviousCode,
+                versioningNodeDto.Value.FormerParent
             );
             _versioningNodeChanges.Add(code, versioningNodeChanges);
         }
@@ -134,5 +267,6 @@ public sealed record class GmodVersioningNodeChanges(
     string NextVisVersion,
     string NextCode,
     string PreviousVisVersion,
-    string PreviousCode
+    string PreviousCode,
+    string FormerParent
 );
