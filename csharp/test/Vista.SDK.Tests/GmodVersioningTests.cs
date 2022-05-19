@@ -28,7 +28,7 @@ public class GmodVersioningTests
             new string[] { "411.1/C101.72/I101", "411.1/C101.72/I101" },
             new string[] { "323.51/H362.1", "323.61/H362.1" },
             new string[] { "321.38/C906", "321.39/C906" },
-            new string[] { "511.331/C221", "C121.31/C221" },
+            new string[] { "511.331/C221", "511.31/C121.31/C221" },
             new string[] { "C101.22/S61", "C101.93/S61" },
             new string[] { "411.1/C101.31-5", "411.1/C101.31-5" },
             new string[] { "S203.2/S101", "S203.3/S110.1/S101" },

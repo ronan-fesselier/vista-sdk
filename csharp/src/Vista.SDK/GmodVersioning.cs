@@ -79,7 +79,11 @@ public sealed class GmodVersioning
             for (int i = 0; i < current.Parents.Count; i++)
             {
                 var currentParent = current.Parents[i]; // 511.31
-                var previousTargetNode = targetNodes[targetNodes.Count - 1]; // C121.31
+                // The number 2 within targetNodes[targetNodes.Count - 2] is used to get C121.3,
+                // but for other test cases one will get
+                // System.ArgumentOutOfRangeException
+                // Needs a fix to generalize it / make edge cases
+                var previousTargetNode = targetNodes[targetNodes.Count - 2]; // C121.3
                 var parentToCurrentParent = currentParent.Parents[0]; // 511.3i
                 if (
                     !TryGetVersioningNode(
@@ -101,12 +105,11 @@ public sealed class GmodVersioning
                 var formerParentCode = nodeChanges.FormerParent; // 511.3i (string)
                 if (parentToCurrentParent.Code != formerParentCode)
                     continue;
-
+                // Maybe uncomment these lines to double-check parent-child relationship?
                 // var gmod = await _gmod(targetVersion);
                 //var targetParentNode = gmod[formerParentCode];
                 // if (!targetParentNode.IsChild(currentParent))
                 //     continue;
-                targetNodes.Add(current);
                 targetNodes.Add(currentParent);
                 //targetNodes.Add(targetParentNode); // 511.3i
                 current = currentParent;
@@ -118,9 +121,9 @@ public sealed class GmodVersioning
             // current = newParentNode;
 
         }
-        if (current.Code == "VE")
-            targetNodes.Add(current);
-        // Need to reverse targetNodes in order to have the correct direction of the path
+
+        targetNodes.Reverse();
+
         return new GmodPath(targetNodes, endNode);
 
         // for (int i = sourcePath.Length - 1; i >= 0; i--)
@@ -170,12 +173,7 @@ public sealed class GmodVersioning
         //     }
         // }
         //
-        // var n = targetNodes.Count;
-        // for (int i = 0; i < n / 2; i++)
-        // {
-        //     (targetNodes[i], targetNodes[n - i - 1]) = (targetNodes[n - i - 1], targetNodes[i]);
-        // }
-        //
+
         // var newPath = new GmodPath(targetNodes, endNode);
 
         // return new GmodPath(targetNodes, endNode);
