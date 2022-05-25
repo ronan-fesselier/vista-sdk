@@ -50,8 +50,9 @@ public sealed class GmodVersioning
         VisVersion targetVersion
     )
     {
-        // "511.331/C221", --- > "C121.31/C221"
-        var endNode = await ConvertNode(sourceVersion, sourcePath.Node, targetVersion); // sourcePath[^1] last node
+        // { "323.51/H362.1", "323.61/H362.1" }
+        //Invalid gmod path - H362.1 not child of 323.61
+        var endNode = await ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
         static bool OnlyOnePath(GmodNode node) =>
             node.Parents.Count == 1 && OnlyOnePath(node.Parents[0]);
 
@@ -63,119 +64,80 @@ public sealed class GmodVersioning
 
         var targetNodes = new List<GmodNode>();
 
-        // var current = endNode;
-        var parentToEndNode = sourcePath.Parents[sourcePath.Parents.Count - 1];
-        var newParentToEndNode = await ConvertNode(sourceVersion, parentToEndNode, targetVersion);
-        var current = newParentToEndNode;
-        targetNodes.Add(current);
-        while (current.Code != "VE")
-        {
-            if (current.Parents.Count == 1)
+        // finds the first leaf node
+        var (depth, leafNode) = sourcePath.GetFullPath().FirstOrDefault(n => n.Node.IsLeafNode);
+        // . Edge case: There can be nodes between Leaf Node and endNode
+
+        var targetNode = await ConvertNode(sourceVersion, leafNode, targetVersion);
+
+        var gmod = await _gmod(targetVersion);
+        gmod.Traverse(
+            targetNodes,
+            rootNode: targetNode,
+            handler: (targetNodes, parents, node) =>
             {
-                current = current.Parents[0];
-                targetNodes.Add(current);
-                continue;
+                if (node.Code != endNode.Code)
+                    return TraversalHandlerResult.Continue;
+
+                targetNodes.AddRange(parents.Where(p => p.Code != targetNode.Code).ToList());
+                
+                while (targetNode.Parents.Count == 1)
+                {
+                    // Traversing upwards;
+                    targetNodes.Insert(0, targetNode);
+                    targetNode = targetNode.Parents[0];
+                }
+
+                // if (targetNode.Parents.Count > 1)
+                // {
+                //     var current = targetNode.Parents.FirstOrDefault(
+                //         n => !n.IsProductGroupLevel && !n.Code.EndsWith("99")
+                //     );
+                //     if (current is null)
+                //         throw new InvalidOperationException("Failed to get parent");
+                //     targetNodes.Insert(0, current);
+                //     targetNode = current.Parents[0];
+                //     return TraversalHandlerResult.Continue;
+                // }
+
+                targetNodes.Insert(0, gmod.RootNode);
+
+                return TraversalHandlerResult.Stop;
             }
-            for (int i = 0; i < current.Parents.Count; i++)
-            {
-                var currentParent = current.Parents[i]; // 511.31
-                // The number 2 within targetNodes[targetNodes.Count - 2] is used to get C121.3,
-                // but for other test cases one will get
-                // System.ArgumentOutOfRangeException
-                // Needs a fix to generalize it / make edge cases
-                var previousTargetNode = targetNodes[targetNodes.Count - 2]; // C121.3
-                var parentToCurrentParent = currentParent.Parents[0]; // 511.3i
-                if (
-                    !TryGetVersioningNode(
-                        targetVersion.ToVersionString(),
-                        out var nextVersioningNode
-                    )
-                )
-                    throw new Exception("Invalid versioning");
-                if (
-                    !nextVersioningNode.TryGetCodeChanges(
-                        previousTargetNode.Code,
-                        out var nodeChanges
-                    )
-                )
-                    continue;
-                if (nodeChanges?.FormerParent is null)
-                    continue;
-
-                var formerParentCode = nodeChanges.FormerParent; // 511.3i (string)
-                if (parentToCurrentParent.Code != formerParentCode)
-                    continue;
-                // Maybe uncomment these lines to double-check parent-child relationship?
-                // var gmod = await _gmod(targetVersion);
-                //var targetParentNode = gmod[formerParentCode];
-                // if (!targetParentNode.IsChild(currentParent))
-                //     continue;
-                targetNodes.Add(currentParent);
-                //targetNodes.Add(targetParentNode); // 511.3i
-                current = currentParent;
-                break;
-            }
-            // var formerParentNode = sourcePath.Parents[^1];
-            // var newParentNode = await ConvertNode(sourceVersion, formerParentNode, targetVersion);
-            // targetNodes.Add(newParentNode);
-            // current = newParentNode;
-
-        }
-
-        targetNodes.Reverse();
+        );
 
         return new GmodPath(targetNodes, endNode);
 
-        // for (int i = sourcePath.Length - 1; i >= 0; i--)
+        // var current = leafNode.Location is not null ? targetNode with {Location = sourcePath[depth].Location} : targetNode;
+        // var current = targetNode;
+        // targetNodes.Add(current);
+        // targetNodesTemp.Add(current);
+        // while (current.Code != "VE")
         // {
-        //     var sourceNode = sourcePath[i];
-        //     if (sourceNode.Parents.Count == i)
+        //     if (current.Parents.Count == 1)
         //     {
-        //         var nextNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
-        //         targetNodes.Add(nextNode);
+        //         current = current.Parents[0];
+        //         targetNodes.Add(current);
+        //         targetNodesTemp.Add(current);
         //         continue;
         //     }
         //
-        //     if (i == sourcePath.Length - 1)
+        //     var parentNode = current.Parents.FirstOrDefault(n => !n.IsProductGroupLevel);
+        //     targetNodesTemp.Add(parentNode!);
+        //
+        //     for (int i = 0; i < current.Parents.Count; i++)
         //     {
-        //         endNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
-        //         continue;
-        //     }
-        //     // 511.331 -> C121.31
-        //     var nextParentNode = await ConvertNode(sourceVersion, sourceNode, targetVersion);
-        //     var targetParentNode = sourceNode.Location is not null
-        //         ? nextParentNode with
-        //           {
-        //               Location = sourcePath[i].Location
-        //           }
-        //         : nextParentNode;
-        //     if (!TryGetVersioningNode(targetVersion.ToVersionString(), out var nextVersioningNode))
-        //         throw new ArgumentException(
-        //             "Couldn't get target versioning node with VIS version"
-        //                 + targetVersion.ToVersionString()
-        //         );
-        //     if (
-        //         nextVersioningNode.TryGetCodeChanges(nextParentNode.Code, out var nodeChanges)
-        //         && nodeChanges?.FormerParent is not null
-        //     )
-        //     {
-        //         targetNodes.Add(targetParentNode);
-        //          THIS DOES NOT WORK
-        //         if (sourceNode.Parents.Select(n => n.Code).Contains(nodeChanges?.FormerParent))
-        //         {
-        //             var parent = targetParentNode.Parents[0];
-        //             targetNodes.Add(parent);
-        //         }
-        //     }
-        //     else
-        //     {
-        //         targetNodes.Add(targetParentNode);
+        //         var parent = current.Parents[i];
+        //         if (parent.IsProductGroupLevel)
+        //             continue;
+        //         current = parent;
+        //         targetNodes.Add(current);
         //     }
         // }
         //
-
-        // var newPath = new GmodPath(targetNodes, endNode);
-
+        // targetNodes.Reverse();
+        // targetNodesTemp.Reverse();
+        // var tempPath = new GmodPath(targetNodesTemp, endNode);
         // return new GmodPath(targetNodes, endNode);
 
         // var newPathIndex = 0;

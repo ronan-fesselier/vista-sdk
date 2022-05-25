@@ -18,6 +18,18 @@ public sealed partial class Gmod
         ("PRODUCT", "GROUP LEVEL 2"),
     };
 
+    public static readonly string[] UnspecifiedCodes = new[]
+    {
+        "499",
+        "599",
+        "699",
+        "899",
+        "999",
+        "1099"
+    };
+
+    public static bool HasUnspecifiedCode(string code) => UnspecifiedCodes.Contains(code);
+
     public static bool IsLeafNode(string category, string type)
     {
         foreach (var leafType in LeafTypes)
@@ -42,6 +54,10 @@ public sealed partial class Gmod
         metadata.Category == "PRODUCT" && metadata.Type == "SELECTION";
 
     public static bool IsAsset(GmodNodeMetadata metadata) => metadata.Category == "ASSET";
+
+    public static bool IsProductGroupLevel(GmodNodeMetadata metadata) =>
+        metadata.Category == "PRODUCT" && metadata.Type == "GROUP LEVEL 1"
+        || metadata.Type == "GROUP LEVEL 2";
 
     internal Gmod(VisVersion version, GmodDto dto)
     {

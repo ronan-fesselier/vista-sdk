@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 using Vista.SDK.Internal;
@@ -155,8 +156,17 @@ public sealed record GmodPath
     public Enumerator GetFullPathFrom(int fromDepth) => new Enumerator(this, fromDepth);
 
     public struct Enumerator
+        : IEnumerable<(int Depth, GmodNode Node)>,
+          IEnumerator<(int Depth, GmodNode Node)>
     {
         private readonly GmodPath _path;
+
+        public void Reset()
+        {
+            throw new NotImplementedException();
+        }
+
+        object IEnumerator.Current => Current;
 
         public (int Depth, GmodNode Node) Current { get; private set; }
 
@@ -190,7 +200,11 @@ public sealed record GmodPath
             return false;
         }
 
-        public Enumerator GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
+
+        public IEnumerator<(int Depth, GmodNode Node)> GetEnumerator() => this;
+
+        public void Dispose() { }
     }
 
     public string? GetNormalAssignmentName(int nodeDepth)

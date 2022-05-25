@@ -58,6 +58,8 @@ public record class GmodNode
 
     public bool IsAsset => Gmod.IsAsset(Metadata);
 
+    public bool IsProductGroupLevel => Gmod.IsProductGroupLevel(Metadata);
+
     public GmodNode? ProductType
     {
         get
@@ -147,6 +149,8 @@ public record class GmodNode
     public bool IsLeafNode => Gmod.IsLeafNode(Metadata);
 
     public bool IsFunctionNode => Gmod.IsFunctionNode(Metadata);
+
+    public bool HasUnspecifiedCode => Gmod.HasUnspecifiedCode(Code);
 }
 
 public sealed record class GmodNodeMetadata(

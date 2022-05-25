@@ -40,6 +40,7 @@ public class GmodVersioningTests
     {
         var (_, vis) = VISTests.GetVis();
         var gmod = await vis.GetGmod(VisVersion.v3_4a);
+        var targetGmod = await vis.GetGmod(VisVersion.v3_5a);
 
         var sourcePath = gmod.ParsePath(inputPath);
 
@@ -50,6 +51,10 @@ public class GmodVersioningTests
             sourcePath,
             VisVersion.v3_5a
         );
+
+        var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
+        Assert.True(parsedPath);
+        Assert.Equal(expectedPath, parsedTargetPath?.ToString());
 
         Assert.NotNull(targetPath);
         Assert.Equal(expectedPath, targetPath?.ToString());
