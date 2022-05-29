@@ -14,7 +14,7 @@ public class GmodVersioningConvertPath
     private GmodVersioning _gmodVersioning;
 
     [GlobalSetup]
-    public async Task Setup()
+    public void Setup()
     {
         var services = new ServiceCollection();
 
@@ -23,18 +23,18 @@ public class GmodVersioningConvertPath
         _serviceProvider = services.BuildServiceProvider();
 
         var vis = _serviceProvider.GetRequiredService<IVIS>();
-        _gmod = await vis.GetGmod(VisVersion.v3_4a);
+        _gmod = vis.GetGmod(VisVersion.v3_4a);
         _gmodPath = _gmod.ParsePath("411.1/C101.72/I101");
-        _gmodVersioning = await vis.GetGmodVersioning();
+        _gmodVersioning = vis.GetGmodVersioning();
     }
 
     [Benchmark]
-    public async ValueTask<GmodPath> ConvertPath() =>
-        await _gmodVersioning.ConvertPath(VisVersion.v3_4a, _gmodPath, VisVersion.v3_5a);
+    public GmodPath ConvertPath() =>
+        _gmodVersioning.ConvertPath(VisVersion.v3_4a, _gmodPath, VisVersion.v3_5a);
 
     [GlobalCleanup]
-    public async Task Cleanup()
+    public void Cleanup()
     {
-        await _serviceProvider.DisposeAsync();
+        _serviceProvider.Dispose();
     }
 }

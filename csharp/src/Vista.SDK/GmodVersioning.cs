@@ -7,9 +7,9 @@ namespace Vista.SDK;
 public sealed class GmodVersioning
 {
     private readonly Dictionary<string, GmodVersioningNode> _versioningsMap = new();
-    private readonly Func<VisVersion, ValueTask<Gmod>> _gmod;
+    private readonly Func<VisVersion, Gmod> _gmod;
 
-    internal GmodVersioning(GmodVersioningDto dto, Func<VisVersion, ValueTask<Gmod>> gmod)
+    internal GmodVersioning(GmodVersioningDto dto, Func<VisVersion, Gmod> gmod)
     {
         foreach (var versioningDto in dto.Items)
         {
@@ -20,7 +20,7 @@ public sealed class GmodVersioning
         _gmod = gmod;
     }
 
-    public async ValueTask<GmodNode> ConvertNode(
+    public GmodNode ConvertNode(
         VisVersion sourceVersion,
         GmodNode sourceNode,
         VisVersion targetVersion
@@ -37,14 +37,14 @@ public sealed class GmodVersioning
           ? nodeChanges.NextCode
           : sourceNode.Code;
 
-        var gmod = await _gmod(targetVersion);
+        var gmod = _gmod(targetVersion);
 
         if (!gmod.TryGetNode(nextCode, out var targetNode))
             throw new ArgumentException("Couldn't get target node with code: " + nextCode);
         return targetNode;
     }
 
-    public async ValueTask<GmodPath> ConvertPath(
+    public GmodPath ConvertPath(
         VisVersion sourceVersion,
         GmodPath sourcePath,
         VisVersion targetVersion
@@ -52,14 +52,14 @@ public sealed class GmodVersioning
     {
         // { "323.51/H362.1", "323.61/H362.1" }
         //Invalid gmod path - H362.1 not child of 323.61
-        var endNode = await ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
+        var endNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
         static bool OnlyOnePath(GmodNode node) =>
             node.Parents.Count == 1 && OnlyOnePath(node.Parents[0]);
 
         if (OnlyOnePath(endNode))
             return new GmodPath(
                 endNode.Parents,
-                await ConvertNode(sourceVersion, endNode, targetVersion)
+                ConvertNode(sourceVersion, endNode, targetVersion)
             );
 
         var targetNodes = new List<GmodNode>();
@@ -68,9 +68,9 @@ public sealed class GmodVersioning
         var (depth, leafNode) = sourcePath.GetFullPath().FirstOrDefault(n => n.Node.IsLeafNode);
         // . Edge case: There can be nodes between Leaf Node and endNode
 
-        var targetNode = await ConvertNode(sourceVersion, leafNode, targetVersion);
+        var targetNode = ConvertNode(sourceVersion, leafNode, targetVersion);
 
-        var gmod = await _gmod(targetVersion);
+        var gmod = _gmod(targetVersion);
         gmod.Traverse(
             targetNodes,
             rootNode: targetNode,
@@ -80,7 +80,7 @@ public sealed class GmodVersioning
                     return TraversalHandlerResult.Continue;
 
                 targetNodes.AddRange(parents.Where(p => p.Code != targetNode.Code).ToList());
-                
+
                 while (targetNode.Parents.Count == 1)
                 {
                     // Traversing upwards;

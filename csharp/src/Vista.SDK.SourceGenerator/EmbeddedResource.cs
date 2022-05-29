@@ -10,40 +10,17 @@ namespace Vista.SDK;
 
 internal static class EmbeddedResource
 {
-    private static string GetDecompressedContent(string baseName, string manifestResourceName)
+    internal static List<string> GetGmodVisVersion()
     {
-        using var stream = Assembly
-            .GetExecutingAssembly()
-            .GetManifestResourceStream(manifestResourceName);
+        var assembly = Assembly.GetExecutingAssembly();
 
-        if (stream == null)
-            throw new InvalidOperationException(
-                $"Did not find required resource '{manifestResourceName}' in assembly '{baseName}'."
-            );
-
-        using var decompressionStream = new GZipStream(stream, CompressionMode.Decompress);
-
-        using var reader = new StreamReader(decompressionStream);
-        return reader.ReadToEnd();
-    }
-
-    public static List<string> GetGmodVisVersion()
-    {
-        var baseName = Assembly.GetExecutingAssembly().GetName().Name;
-        if (baseName is null)
-            throw new InvalidOperationException(
-                "Couldnt get name of assembly while loading vis versions"
-            );
-
-        var manifestResourceNames = Assembly
-            .GetExecutingAssembly()
-            .GetManifestResourceNames()
+        var manifestResourceNames = GetResourceNames(assembly)
             .Where(x => x.EndsWith(".gz"))
-            .ToList();
+            .ToArray();
 
         if (!manifestResourceNames.Any())
             throw new InvalidOperationException(
-                $"Did not find required resources in assembly '{baseName}'."
+                $"Did not find required resources in assembly '{assembly.GetName().Name}'."
             );
 
         var visVersions = new List<string>();
@@ -55,11 +32,11 @@ internal static class EmbeddedResource
                 && !manifestResourceName.Contains("versioning")
             )
             {
-                var gmodJson = GetDecompressedContent(baseName, manifestResourceName);
+                var stream = GetDecompressedStream(assembly, manifestResourceName);
                 var gmod =
-                    JsonSerializer.Deserialize<GmodDto>(gmodJson)
+                    JsonSerializer.Deserialize<GmodDto>(stream)
                     ?? throw new InvalidOperationException(
-                        $"Could not deserialize Gmod {nameof(gmodJson)}"
+                        $"Could not deserialize Gmod {nameof(stream)}"
                     );
                 visVersions.Add(gmod.VisVersion);
             }
@@ -67,29 +44,11 @@ internal static class EmbeddedResource
         return visVersions;
     }
 
-    private static GZipStream GetDecompressedStream(Assembly assembly, string resourceName)
-    {
-        var stream = assembly.GetManifestResourceStream(resourceName);
-
-        if (stream == null)
-            throw new InvalidOperationException(
-                $"Did not find required resource '{resourceName}' in assembly '{assembly.FullName}'."
-            );
-
-        return new GZipStream(stream, CompressionMode.Decompress, leaveOpen: false);
-    }
-
-    public static async ValueTask<GmodDto?> GetGmod(
-        string visVersion,
-        CancellationToken cancellationToken
-    )
+    internal static GmodDto? GetGmod(string visVersion)
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var baseName = assembly.GetName().Name;
 
-        var gmodResourceName = Assembly
-            .GetExecutingAssembly()
-            .GetManifestResourceNames()
+        var gmodResourceName = GetResourceNames(assembly)
             .Where(x => x.Contains("gmod") && x.EndsWith(".gz"))
             .Where(x => x.Contains(visVersion))
             .SingleOrDefault();
@@ -99,22 +58,14 @@ internal static class EmbeddedResource
 
         using var stream = GetDecompressedStream(assembly, gmodResourceName);
 
-        return await JsonSerializer.DeserializeAsync<GmodDto>(
-            stream,
-            cancellationToken: cancellationToken
-        );
+        return JsonSerializer.Deserialize<GmodDto>(stream);
     }
 
-    public static async ValueTask<CodebooksDto?> GetCodebooks(
-        string visVersion,
-        CancellationToken cancellationToken
-    )
+    internal static CodebooksDto? GetCodebooks(string visVersion)
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var baseName = assembly.GetName().Name;
 
-        var codebooksResourceName = assembly
-            .GetManifestResourceNames()
+        var codebooksResourceName = GetResourceNames(assembly)
             .Where(x => x.Contains("codebooks") && x.EndsWith(".gz"))
             .Where(x => x.Contains(visVersion))
             .SingleOrDefault();
@@ -124,15 +75,28 @@ internal static class EmbeddedResource
 
         using var stream = GetDecompressedStream(assembly, codebooksResourceName);
 
-        return await JsonSerializer.DeserializeAsync<CodebooksDto>(
-            stream,
-            cancellationToken: cancellationToken
-        );
+        return JsonSerializer.Deserialize<CodebooksDto>(stream);
     }
 
-    public static async ValueTask<GmodVersioningDto?> GetGmodVersioning(
-        CancellationToken cancellationToken
-    )
+    internal static UnmanagedMemoryStream GetStream(Assembly assembly, string resourceName) =>
+        (UnmanagedMemoryStream)assembly.GetManifestResourceStream(resourceName)!;
+
+    internal static string[] GetResourceNames(Assembly assembly) =>
+        assembly.GetManifestResourceNames().ToArray();
+
+    internal static GZipStream GetDecompressedStream(Assembly assembly, string resourceName)
+    {
+        var stream = GetStream(assembly, resourceName);
+
+        if (stream == null)
+            throw new InvalidOperationException(
+                $"Did not find required resource '{resourceName}' in assembly '{assembly.FullName}'."
+            );
+
+        return new GZipStream(stream, CompressionMode.Decompress, leaveOpen: false);
+    }
+
+    public static GmodVersioningDto? GetGmodVersioning()
     {
         var assembly = Assembly.GetExecutingAssembly();
         var baseName = assembly.GetName().Name;
@@ -145,10 +109,7 @@ internal static class EmbeddedResource
 
         using var stream = GetDecompressedStream(assembly, gmodVersioningResourceName);
 
-        var dto = await JsonSerializer.DeserializeAsync<GmodVersioningDto>(
-            stream,
-            cancellationToken: cancellationToken
-        );
+        var dto = JsonSerializer.Deserialize<GmodVersioningDto>(stream);
         return dto;
     }
 }

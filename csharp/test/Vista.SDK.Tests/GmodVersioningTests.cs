@@ -8,13 +8,13 @@ namespace Vista.SDK.Tests;
 public class GmodVersioningTests
 {
     [Fact]
-    public async Task Test_GmodVersioning_Loads()
+    public void Test_GmodVersioning_Loads()
     {
         // Arrange
         var (_, vis) = VISTests.GetVis();
 
         // Act
-        var gmodVersioning = await vis.GetGmodVersioning();
+        var gmodVersioning = vis.GetGmodVersioning();
 
         // Assert
         Assert.NotNull(gmodVersioning);
@@ -44,20 +44,16 @@ public class GmodVersioningTests
 
     [Theory]
     [MemberData(nameof(Valid_Test_Data_Path))]
-    public async Task Test_GmodVersioning_ConvertPath(string inputPath, string expectedPath)
+    public void Test_GmodVersioning_ConvertPath(string inputPath, string expectedPath)
     {
         var (_, vis) = VISTests.GetVis();
-        var gmod = await vis.GetGmod(VisVersion.v3_4a);
-        var targetGmod = await vis.GetGmod(VisVersion.v3_5a);
-        var gmodVersioning = await vis.GetGmodVersioning();
+        var gmod = vis.GetGmod(VisVersion.v3_4a);
+        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
+        var gmodVersioning = vis.GetGmodVersioning();
 
         var sourcePath = GmodPath.Parse(inputPath, gmod);
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
-        var targetPath = await gmodVersioning.ConvertPath(
-            VisVersion.v3_4a,
-            sourcePath,
-            VisVersion.v3_5a
-        );
+        var targetPath = gmodVersioning.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
 
         Assert.NotNull(sourcePath);
         Assert.Equal(inputPath, sourcePath?.ToString());
@@ -87,7 +83,7 @@ public class GmodVersioningTests
 
     [Theory]
     [MemberData(nameof(Valid_Test_Data_Node))]
-    public async Task Test_GmodVersioning_ConvertNode(
+    public void Test_GmodVersioning_ConvertNode(
         string inputCode,
         string location,
         string expectedCode
@@ -95,20 +91,16 @@ public class GmodVersioningTests
     {
         var (_, vis) = VISTests.GetVis();
 
-        var gmod = await vis.GetGmod(VisVersion.v3_4a);
-        var targetGmod = await vis.GetGmod(VisVersion.v3_5a);
+        var gmod = vis.GetGmod(VisVersion.v3_4a);
+        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
 
         var sourceNode = gmod[inputCode] with { Location = location };
         var expectedNode = targetGmod[expectedCode];
 
-        var gmodVersioning = await vis.GetGmodVersioning();
+        var gmodVersioning = vis.GetGmodVersioning();
         var versioningNode = gmodVersioning["3-5a"];
 
-        var targetNode = await gmodVersioning.ConvertNode(
-            VisVersion.v3_4a,
-            sourceNode,
-            VisVersion.v3_5a
-        );
+        var targetNode = gmodVersioning.ConvertNode(VisVersion.v3_4a, sourceNode, VisVersion.v3_5a);
 
         Assert.Equal(expectedNode.Code, targetNode.Code);
         Assert.Same(expectedNode, targetNode);

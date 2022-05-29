@@ -195,6 +195,27 @@ namespace Vista.SDK.SourceGenerator
             };
         }
 
+        public static VisVersion Parse(global::System.ReadOnlySpan<char> version)
+        {
+            "
+            );
+
+            foreach (var version in visVersions)
+            {
+                sourceBuilder.Append(
+                    @$"
+            if (version.SequenceEqual(""{version}"".AsSpan()))
+                return VisVersion.v{version.Replace('-', '_')};
+                "
+                );
+            }
+
+            sourceBuilder.Append(
+                @"
+
+            throw new System.ArgumentException(""Invalid VIS version input: "" + version.ToString());
+        }
+
         public static bool TryParse(string versionStr, out VisVersion version)
         {
             switch (versionStr)
@@ -218,6 +239,30 @@ namespace Vista.SDK.SourceGenerator
                     version = default;
                     return false;
             }
+        }
+
+        public static bool TryParse(global::System.ReadOnlySpan<char> versionStr, out VisVersion version)
+        {
+            "
+            );
+
+            foreach (var version in visVersions)
+            {
+                sourceBuilder.Append(
+                    @$"
+            if (versionStr.SequenceEqual(""{version}"".AsSpan()))
+            {{
+                version = VisVersion.v{version.Replace('-', '_')};
+                return true;
+            }}
+                "
+                );
+            }
+
+            sourceBuilder.Append(
+                @"
+            version = default;
+            return false;
         }
     }
 "

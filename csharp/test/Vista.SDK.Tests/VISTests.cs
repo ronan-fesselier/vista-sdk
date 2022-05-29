@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
+﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using Vista.SDK;
 
 namespace Vista.SDK.Tests;
@@ -38,5 +39,24 @@ public class VISTests
 
         Assert.Equal("3-4a", versionStr);
         Assert.Equal(version, VisVersions.Parse(versionStr));
+    }
+
+    [Fact]
+    public void Test_EmbeddedResource()
+    {
+        var assembly = typeof(EmbeddedResource).Assembly;
+        var resourceName = EmbeddedResource
+            .GetResourceNames(assembly)
+            .FirstOrDefault(n => n.Contains("gmod", StringComparison.Ordinal));
+        Assert.NotNull(resourceName);
+
+        using var stream = EmbeddedResource.GetStream(assembly, resourceName!);
+
+        var buffer = new byte[1024 * 8];
+
+        Assert.True(stream.Length > 1024);
+
+        var task = stream.ReadAsync(buffer, default);
+        Assert.True(task.IsCompletedSuccessfully);
     }
 }
