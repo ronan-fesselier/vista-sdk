@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using Vista.SDK.Internal;
@@ -52,116 +53,164 @@ public sealed class GmodVersioning
     {
         // { "323.51/H362.1", "323.61/H362.1" }
         //Invalid gmod path - H362.1 not child of 323.61
-        var endNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
-        static bool OnlyOnePath(GmodNode node) =>
-            node.Parents.Count == 1 && OnlyOnePath(node.Parents[0]);
+        var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
 
-        if (OnlyOnePath(endNode))
-            return new GmodPath(
-                endNode.Parents,
-                ConvertNode(sourceVersion, endNode, targetVersion)
-            );
+        static bool OnlyOnePathToRoot(GmodNode node) =>
+            node.IsRoot || (node.Parents.Count == 1 && OnlyOnePathToRoot(node.Parents[0]));
 
-        var targetNodes = new List<GmodNode>();
+        // If there is only 1 path to root from the converted node, we can just exit here.
+        if (OnlyOnePathToRoot(targetEndNode))
+        {
+            static void GetPath(GmodNode parent, List<GmodNode> path)
+            {
+                path.Insert(0, parent); // Really inefficient..
+                if (parent.IsRoot)
+                    return;
+                GetPath(parent.Parents[0], path);
+            }
+            var parents = new List<GmodNode>();
+            GetPath(targetEndNode.Parents[0], parents);
+            return new GmodPath(parents, targetEndNode);
+        }
+
+#if DEBUG
+        var allSourceNodes = sourcePath.GetFullPath().Select(t => t.Node).ToArray();
+        var allTargetNodes = sourcePath
+            .GetFullPath()
+            .Select(t => ConvertNode(sourceVersion, t.Node, targetVersion))
+            .ToArray();
+#endif
+
+
+        var sourceToTargetMapping = sourcePath
+            .GetFullPath()
+            .Select(
+                t =>
+                    (
+                        SourceNode: t.Node,
+                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
+                    )
+            )
+            .ToDictionary(t => t.SourceNode, t => t.TargetNode);
+
+        if (GmodPath.IsValid(sourceToTargetMapping.Values))
+            return new GmodPath(sourceToTargetMapping.Values);
+
+        var targetToSourceMapping = sourceToTargetMapping.ToDictionary(
+            kvp => kvp.Value,
+            kvp => kvp.Key
+        );
+
+        var possiblePaths = new List<GmodPath>();
 
         // finds the first leaf node
-        var (depth, leafNode) = sourcePath.GetFullPath().FirstOrDefault(n => n.Node.IsLeafNode);
-        // . Edge case: There can be nodes between Leaf Node and endNode
+        // we want the leaf node since that is the first part of the stringified path.
+        var (_, sourceBaseNode) = sourcePath.GetFullPath().FirstOrDefault(n => n.Node.IsLeafNode);
+        // Edge case: there can be multiple paths from base node (first leaf) to end node.
 
-        var targetNode = ConvertNode(sourceVersion, leafNode, targetVersion);
+        var targetGmod = _gmod(targetVersion);
 
-        var gmod = _gmod(targetVersion);
-        gmod.Traverse(
-            targetNodes,
-            rootNode: targetNode,
-            handler: (targetNodes, parents, node) =>
+        var targetBaseNode = ConvertNode(sourceVersion, sourceBaseNode, targetVersion);
+        // Edge case: source base node converted to target node may not be a base (first leaf) node anymore.
+
+        Debug.Assert(sourceBaseNode.Parents.Count == 1);
+        var olderSourceNode = sourceBaseNode.Parents[0];
+
+        // First, find the topmost node that has only 1 path to root.
+        while (!OnlyOnePathToRoot(targetBaseNode))
+        {
+            targetBaseNode = sourceToTargetMapping[olderSourceNode];
+            Debug.Assert(olderSourceNode.Parents.Count == 1);
+            olderSourceNode = olderSourceNode.Parents[0]; // Should only be 1 here.
+        }
+
+        // Now find the topmost node that is a leaf (which will be the base from which we traverse to find the target end node)
+        var tmpTargetBaseNode = targetBaseNode;
+        while (!targetBaseNode.IsLeafNode)
+        {
+            if (targetBaseNode.IsRoot)
             {
-                if (node.Code != endNode.Code)
+                targetBaseNode = tmpTargetBaseNode;
+                break;
+            }
+            Debug.Assert(targetBaseNode.Parents.Count == 1);
+            targetBaseNode = targetBaseNode.Parents[0]; // Should only be 1 here now for target too.
+        }
+
+        // We didn't find the base node upwards, so lets go downwards 1 level.
+        // TODO: is this enough? What if the target base node is 2 levels deep?
+        while (!targetBaseNode.IsLeafNode)
+        {
+            var possibleTargetLeafs = new List<GmodNode>();
+            foreach (var childTargetNode in targetBaseNode.Children)
+            {
+                if (!targetGmod.PathExistsBetween(childTargetNode, targetEndNode))
+                    continue;
+
+                if (childTargetNode.IsLeafNode)
+                    possibleTargetLeafs.Add(childTargetNode);
+            }
+
+            if (possibleTargetLeafs.Count > 0)
+            {
+                Debug.Assert(possibleTargetLeafs.Count == 1);
+                targetBaseNode = possibleTargetLeafs[0];
+                break;
+            }
+        }
+
+        // Target base node is now the topmost leaf, with only 1 path to VE root.
+        // So lets find the possible paths from the base node to the target end node.
+        targetGmod.Traverse(
+            possiblePaths,
+            rootNode: targetBaseNode,
+            handler: (possiblePaths, parents, node) =>
+            {
+                if (node.Code != targetEndNode.Code)
                     return TraversalHandlerResult.Continue;
 
-                targetNodes.AddRange(parents.Where(p => p.Code != targetNode.Code).ToList());
+                var targetParents = new List<GmodNode>(parents.Count);
+                targetParents.AddRange(parents.Where(p => p.Code != targetBaseNode.Code).ToList());
 
-                while (targetNode.Parents.Count == 1)
+                var currentTargetBaseNode = targetBaseNode;
+                while (currentTargetBaseNode.Parents.Count == 1)
                 {
-                    // Traversing upwards;
-                    targetNodes.Insert(0, targetNode);
-                    targetNode = targetNode.Parents[0];
+                    // Traversing upwards to get to VE, since we until now have traversed from first leaf node.
+                    targetParents.Insert(0, currentTargetBaseNode);
+                    currentTargetBaseNode = currentTargetBaseNode.Parents[0];
                 }
 
-                // if (targetNode.Parents.Count > 1)
-                // {
-                //     var current = targetNode.Parents.FirstOrDefault(
-                //         n => !n.IsProductGroupLevel && !n.Code.EndsWith("99")
-                //     );
-                //     if (current is null)
-                //         throw new InvalidOperationException("Failed to get parent");
-                //     targetNodes.Insert(0, current);
-                //     targetNode = current.Parents[0];
-                //     return TraversalHandlerResult.Continue;
-                // }
+                targetParents.Insert(0, targetGmod.RootNode);
 
-                targetNodes.Insert(0, gmod.RootNode);
-
-                return TraversalHandlerResult.Stop;
+                possiblePaths.Add(new GmodPath(targetParents, node));
+                return TraversalHandlerResult.Continue;
             }
         );
 
-        return new GmodPath(targetNodes, endNode);
+        // We now have a list of nodes from base to end.
+        // We need to rank them somehow/choose the correct one.
+        // TODO: expect only 1 top ranked candidate?
+        // TODO: is this ranking always accurate? Can there be a deeper, but wrong path that gets more points?
+        var rankedPossiblePaths = possiblePaths
+            .Select(
+                p =>
+                    (
+                        Score: p.GetFullPath()
+                            .Sum(n => (targetToSourceMapping.ContainsKey(n.Node) ? 1 : 0)),
+                        Path: p
+                    )
+            )
+            .OrderByDescending(t => t.Score)
+            .ToArray();
 
-        // var current = leafNode.Location is not null ? targetNode with {Location = sourcePath[depth].Location} : targetNode;
-        // var current = targetNode;
-        // targetNodes.Add(current);
-        // targetNodesTemp.Add(current);
-        // while (current.Code != "VE")
-        // {
-        //     if (current.Parents.Count == 1)
-        //     {
-        //         current = current.Parents[0];
-        //         targetNodes.Add(current);
-        //         targetNodesTemp.Add(current);
-        //         continue;
-        //     }
-        //
-        //     var parentNode = current.Parents.FirstOrDefault(n => !n.IsProductGroupLevel);
-        //     targetNodesTemp.Add(parentNode!);
-        //
-        //     for (int i = 0; i < current.Parents.Count; i++)
-        //     {
-        //         var parent = current.Parents[i];
-        //         if (parent.IsProductGroupLevel)
-        //             continue;
-        //         current = parent;
-        //         targetNodes.Add(current);
-        //     }
-        // }
-        //
-        // targetNodes.Reverse();
-        // targetNodesTemp.Reverse();
-        // var tempPath = new GmodPath(targetNodesTemp, endNode);
-        // return new GmodPath(targetNodes, endNode);
+        Debug.Assert(rankedPossiblePaths.Length > 0, "We should atleast have 1 possible path");
+        var top = rankedPossiblePaths[0];
+        Debug.Assert(
+            rankedPossiblePaths.Count(p => p.Score == top.Score) == 1,
+            "Multiple possible paths with the same score"
+        );
 
-        // var newPathIndex = 0;
-        // var newParents = new GmodNode[sourcePath.Length - 1];
-        // GmodNode? newNode = null;
-        // foreach (var (depth, node) in sourcePath.GetFullPath())
-        // {
-        //     var nextNode = await ConvertNode(sourceVersion, node, targetVersion);
-        //     var targetNode = node.Location is not null
-        //         ? nextNode with
-        //           {
-        //               Location = sourcePath[depth].Location
-        //           }
-        //         : nextNode;
-        //
-        //     if (depth < sourcePath.Length - 1)
-        //         newParents[newPathIndex++] = targetNode;
-        //     else
-        //         newNode = targetNode;
-        // }
-        //
-        // if (newNode is null)
-        //     throw new InvalidOperationException("Invalid conversion");
-        // return new GmodPath(newParents, newNode);
+        return top.Path;
     }
 
     public GmodVersioningNode this[string key] => _versioningsMap[key];

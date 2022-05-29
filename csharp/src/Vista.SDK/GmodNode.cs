@@ -151,6 +151,8 @@ public record class GmodNode
     public bool IsFunctionNode => Gmod.IsFunctionNode(Metadata);
 
     public bool HasUnspecifiedCode => Gmod.HasUnspecifiedCode(Code);
+
+    public bool IsRoot => Code == "VE";
 }
 
 public sealed record class GmodNodeMetadata(

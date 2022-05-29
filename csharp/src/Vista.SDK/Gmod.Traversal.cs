@@ -28,6 +28,26 @@ public sealed partial class Gmod
     public bool Traverse(GmodNode rootNode, TraverseHandler handler) =>
         Traverse(handler, rootNode, (handler, parents, node) => handler(parents, node));
 
+    public bool PathExistsBetween(GmodNode from, GmodNode to)
+    {
+        if (from.Code == to.Code)
+            return true;
+
+        var reachedEnd = this.Traverse(
+            to,
+            from,
+            (to, parents, node) =>
+            {
+                if (node.Code == to.Code)
+                    return TraversalHandlerResult.Stop;
+
+                return TraversalHandlerResult.Continue;
+            }
+        );
+
+        return !reachedEnd;
+    }
+
     public bool Traverse<TState>(
         TState state,
         GmodNode rootNode,

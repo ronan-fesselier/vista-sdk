@@ -33,11 +33,11 @@ public sealed record GmodPath
     {
         if (!skipVerify)
         {
-            if (parents.Count == 0 && node.Code != "VE")
+            if (parents.Count == 0 && !node.IsRoot)
                 throw new ArgumentException(
                     $"Invalid gmod path - no parents, and {node.Code} is not the root of gmod"
                 );
-            else if (parents.Count > 0 && parents[0].Code != "VE")
+            else if (parents.Count > 0 && !parents[0].IsRoot)
                 throw new ArgumentException(
                     $"Invalid gmod path - first parent should be root of gmod (VE), but was {parents[0].Code}"
                 );
@@ -56,6 +56,61 @@ public sealed record GmodPath
 
         Parents = parents;
         Node = node;
+    }
+
+    internal GmodPath(IEnumerable<GmodNode> nodes)
+    {
+        if (!IsValid(nodes))
+            throw new ArgumentException("Invalid path");
+
+        Parents = nodes.Take(nodes.Count() - 1).ToList();
+        Node = nodes.Last();
+    }
+
+    public static bool IsValid(IEnumerable<GmodNode> nodes)
+    {
+        if (nodes is null)
+            return false;
+
+        int i = 0;
+        GmodNode? prev = null;
+        foreach (var node in nodes)
+        {
+            if (i == 0)
+            {
+                if (!node.IsRoot)
+                    return false;
+            }
+            else
+            {
+                if (prev is null || !prev.IsChild(node))
+                    return false;
+            }
+
+            prev = node;
+            i++;
+        }
+
+        return i != 0;
+    }
+
+    public static bool IsValid(IReadOnlyList<GmodNode> parents, GmodNode node)
+    {
+        if (parents.Count == 0 && !node.IsRoot)
+            return false;
+        else if (parents.Count > 0 && !parents[0].IsRoot)
+            return false;
+
+        for (int i = 0; i < parents.Count; i++)
+        {
+            var parent = parents[i];
+            var nextIndex = i + 1;
+            var child = nextIndex < parents.Count ? parents[nextIndex] : node;
+            if (!parent.IsChild(child))
+                return false;
+        }
+
+        return true;
     }
 
     public GmodPath(IReadOnlyList<GmodNode> parents, GmodNode node) : this(parents, node, false) { }
