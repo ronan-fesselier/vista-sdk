@@ -150,6 +150,8 @@ public record class GmodNode
 
     public bool IsFunctionNode => Gmod.IsFunctionNode(Metadata);
 
+    public bool IsAssetFunctionNode => Gmod.IsAssetFunctionNode(Metadata);
+
     public bool IsRoot => Code == "VE";
 }
 

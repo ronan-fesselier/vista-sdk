@@ -92,9 +92,7 @@ public sealed class GmodVersioning
 
         var targetBaseNode =
             qualifyingNodes.Last(
-                n =>
-                    n.TargetNode.Metadata.Category.Contains("FUNCTION")
-                    && !n.TargetNode.Metadata.Category.Contains("PRODUCT")
+                n => n.TargetNode.IsAssetFunctionNode && !n.TargetNode.IsProductGroupLevel
             ).TargetNode;
 
         var possiblePaths = new List<GmodPath>();
@@ -107,7 +105,11 @@ public sealed class GmodVersioning
                     return TraversalHandlerResult.Continue;
 
                 var targetParents = new List<GmodNode>(parents.Count);
-                targetParents.AddRange(parents.Where(p => p.Code != targetBaseNode.Code).ToList());
+                targetParents.AddRange(
+                    parents
+                        .Where(p => p.Code != targetBaseNode.Code && !p.IsProductGroupLevel)
+                        .ToList()
+                );
 
                 var currentTargetBaseNode = targetBaseNode;
                 Debug.Assert(
