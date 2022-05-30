@@ -53,7 +53,11 @@ public class GmodVersioningTests
 
         var sourcePath = GmodPath.Parse(inputPath, gmod);
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
-        var targetPath = gmodVersioning.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
+        var targetPath = gmodVersioning.ConvertPath2(
+            VisVersion.v3_4a,
+            sourcePath,
+            VisVersion.v3_5a
+        );
 
         Assert.NotNull(sourcePath);
         Assert.Equal(inputPath, sourcePath?.ToString());

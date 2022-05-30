@@ -67,6 +67,76 @@ public sealed class GmodVersioning
           : null;
     }
 
+    public GmodPath ConvertPath2(
+        VisVersion sourceVersion,
+        GmodPath sourcePath,
+        VisVersion targetVersion
+    )
+    {
+        // "511.31/C121.31/C221" -> "511.331/C221"
+        var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
+
+        var qualifyingNodes = sourcePath
+            .GetFullPath()
+            .Select(
+                t =>
+                    (
+                        SourceNode: t.Node,
+                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
+                    )
+            )
+            .Where(t => t.TargetNode.Code != targetEndNode.Code)
+            .ToArray();
+
+        var targetGmod = _gmod(targetVersion);
+
+        var targetBaseNode =
+            qualifyingNodes.Last(
+                n =>
+                    n.TargetNode.Metadata.Category.Contains("FUNCTION")
+                    && !n.TargetNode.Metadata.Category.Contains("PRODUCT")
+            ).TargetNode;
+
+        var possiblePaths = new List<GmodPath>();
+        targetGmod.Traverse(
+            possiblePaths,
+            rootNode: targetBaseNode,
+            handler: (possiblePaths, parents, node) =>
+            {
+                if (node.Code != targetEndNode.Code)
+                    return TraversalHandlerResult.Continue;
+
+                var targetParents = new List<GmodNode>(parents.Count);
+                targetParents.AddRange(parents.Where(p => p.Code != targetBaseNode.Code).ToList());
+
+                var currentTargetBaseNode = targetBaseNode;
+                Debug.Assert(
+                    currentTargetBaseNode.Parents.Count == 1,
+                    $"More than one path to root found for: {sourcePath}"
+                );
+                while (currentTargetBaseNode.Parents.Count == 1)
+                {
+                    // Traversing upwards to get to VE, since we until now have traversed from first leaf node.
+                    targetParents.Insert(0, currentTargetBaseNode);
+                    currentTargetBaseNode = currentTargetBaseNode.Parents[0];
+                }
+
+                targetParents.Insert(0, targetGmod.RootNode);
+
+                if (
+                    !qualifyingNodes.All(cn => targetParents.Any(p => p.Code == cn.TargetNode.Code))
+                )
+                    return TraversalHandlerResult.Continue;
+
+                possiblePaths.Add(new GmodPath(targetParents, node));
+                return TraversalHandlerResult.Continue;
+            }
+        );
+
+        Debug.Assert(possiblePaths.Count == 1, $"More than one path found for: {sourcePath}");
+        return possiblePaths[0];
+    }
+
     public GmodPath ConvertPath(
         VisVersion sourceVersion,
         GmodPath sourcePath,
