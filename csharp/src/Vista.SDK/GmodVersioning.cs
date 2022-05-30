@@ -45,6 +45,28 @@ public sealed class GmodVersioning
         return targetNode;
     }
 
+    public bool HasChangedForNext(VisVersion version, GmodNode node)
+    {
+        if (!TryGetVersioningNode(version.ToVersionString(), out var versioningNode))
+            throw new ArgumentException(
+                "Couldn't get versioning node with VIS version" + version.ToVersionString()
+            );
+
+        return versioningNode.TryGetCodeChanges(node.Code, out _);
+    }
+
+    private GmodVersioningNodeChanges? GetNodeChange(VisVersion version, GmodNode node)
+    {
+        if (!TryGetVersioningNode(version.ToVersionString(), out var versioningNode))
+            throw new ArgumentException(
+                "Couldn't get versioning node with VIS version" + version.ToVersionString()
+            );
+
+        return versioningNode.TryGetCodeChanges(node.Code, out var nodeChanges)
+          ? nodeChanges
+          : null;
+    }
+
     public GmodPath ConvertPath(
         VisVersion sourceVersion,
         GmodPath sourcePath,
@@ -73,15 +95,6 @@ public sealed class GmodVersioning
             return new GmodPath(parents, targetEndNode);
         }
 
-#if DEBUG
-        var allSourceNodes = sourcePath.GetFullPath().Select(t => t.Node).ToArray();
-        var allTargetNodes = sourcePath
-            .GetFullPath()
-            .Select(t => ConvertNode(sourceVersion, t.Node, targetVersion))
-            .ToArray();
-#endif
-
-
         var sourceToTargetMapping = sourcePath
             .GetFullPath()
             .Select(
@@ -101,14 +114,53 @@ public sealed class GmodVersioning
             kvp => kvp.Key
         );
 
+        var sourceGmod = _gmod(sourceVersion);
+        var targetGmod = _gmod(targetVersion);
+
+#if DEBUG
+        var allSourceNodes = sourcePath.GetFullPath().Select(t => t.Node).ToArray();
+        var allTargetNodes = sourcePath
+            .GetFullPath()
+            .Select(t => ConvertNode(sourceVersion, t.Node, targetVersion))
+            .ToArray();
+#endif
+
+        var targetFormerParents = allTargetNodes
+            .Select(
+                n =>
+                {
+                    var nodeChanges = GetNodeChange(targetVersion, n);
+                    if (nodeChanges?.FormerParent is null)
+                        return null;
+
+                    if (
+                        !sourceToTargetMapping.TryGetValue(
+                            sourceGmod[nodeChanges.FormerParent],
+                            out var targetFormerParent
+                        )
+                    )
+                        return null;
+
+                    return targetFormerParent;
+                }
+            )
+            .Where(n => n is not null)
+            .ToArray();
+        var nonChangedNodes = sourcePath
+            .GetFullPath()
+            .Where(n => !HasChangedForNext(sourceVersion, n.Node))
+            .ToArray();
+        var changedNodes = targetToSourceMapping
+            .Where(kvp => kvp.Key.Code != kvp.Value.Code)
+            .Select(kvp => kvp.Key)
+            .ToArray();
+
         var possiblePaths = new List<GmodPath>();
 
         // finds the first leaf node
         // we want the leaf node since that is the first part of the stringified path.
         var (_, sourceBaseNode) = sourcePath.GetFullPath().FirstOrDefault(n => n.Node.IsLeafNode);
         // Edge case: there can be multiple paths from base node (first leaf) to end node.
-
-        var targetGmod = _gmod(targetVersion);
 
         var targetBaseNode = ConvertNode(sourceVersion, sourceBaseNode, targetVersion);
         // Edge case: source base node converted to target node may not be a base (first leaf) node anymore.
@@ -119,6 +171,20 @@ public sealed class GmodVersioning
         // First, find the topmost node that has only 1 path to root.
         while (!OnlyOnePathToRoot(targetBaseNode))
         {
+            var nodeChanges = GetNodeChange(targetVersion, targetBaseNode);
+            if (
+                nodeChanges?.FormerParent is not null
+                && sourceToTargetMapping.TryGetValue(
+                    sourceGmod[nodeChanges.FormerParent],
+                    out var targetFormerParent
+                )
+                && targetGmod.PathExistsBetween(targetFormerParent, targetBaseNode)
+            )
+            {
+                targetBaseNode = targetFormerParent;
+                continue;
+            }
+
             targetBaseNode = sourceToTargetMapping[olderSourceNode];
             Debug.Assert(olderSourceNode.Parents.Count == 1);
             olderSourceNode = olderSourceNode.Parents[0]; // Should only be 1 here.
@@ -159,6 +225,8 @@ public sealed class GmodVersioning
             }
         }
 
+        targetBaseNode = targetFormerParents[0]!;
+
         // Target base node is now the topmost leaf, with only 1 path to VE root.
         // So lets find the possible paths from the base node to the target end node.
         targetGmod.Traverse(
@@ -166,6 +234,9 @@ public sealed class GmodVersioning
             rootNode: targetBaseNode,
             handler: (possiblePaths, parents, node) =>
             {
+                if (!targetFormerParents.All(p => parents.Any(p2 => p2.Code == p!.Code)))
+                    return TraversalHandlerResult.Continue;
+
                 if (node.Code != targetEndNode.Code)
                     return TraversalHandlerResult.Continue;
 
@@ -201,6 +272,9 @@ public sealed class GmodVersioning
                     )
             )
             .OrderByDescending(t => t.Score)
+            .Where(
+                t => changedNodes.All(n => t.Path.GetFullPath().Any(t2 => t2.Node.Code == n.Code))
+            )
             .ToArray();
 
         Debug.Assert(rankedPossiblePaths.Length > 0, "We should atleast have 1 possible path");
