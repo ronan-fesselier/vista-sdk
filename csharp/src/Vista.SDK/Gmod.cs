@@ -18,18 +18,6 @@ public sealed partial class Gmod
         ("PRODUCT", "GROUP LEVEL 2"),
     };
 
-    public static readonly string[] UnspecifiedCodes = new[]
-    {
-        "499",
-        "599",
-        "699",
-        "899",
-        "999",
-        "1099"
-    };
-
-    public static bool HasUnspecifiedCode(string code) => UnspecifiedCodes.Contains(code);
-
     public static bool IsLeafNode(string category, string type)
     {
         foreach (var leafType in LeafTypes)
