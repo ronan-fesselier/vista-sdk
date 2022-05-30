@@ -1,0 +1,19 @@
+{
+    "name": "vista.sdk",
+    "version": "1.0.0",
+    "description": "In this repository we codify the rules and principles of VIS and related ISO-standards to enable and support users and implementers of the standards.",
+    "main": "dist/index.js",
+    "prebuild": "echo PREBUILD",
+    "scripts": {
+        "test": "jest",
+        "build": "tsc"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "types": "dist/index.d.ts",
+    "devDependencies": {
+        "jest": "^28.1.0"
+    },
+    "type": "module"
+}
