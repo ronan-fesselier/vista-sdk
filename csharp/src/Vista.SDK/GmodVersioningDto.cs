@@ -6,8 +6,7 @@ public sealed record GmodVersioningNodeChangesDto(
     [property: JsonPropertyName("nextVisVersion")] string NextVisVersion,
     [property: JsonPropertyName("nextCode")] string NextCode,
     [property: JsonPropertyName("previousVisVersion")] string PreviousVisVersion,
-    [property: JsonPropertyName("previousCode")] string PreviousCode,
-    [property: JsonPropertyName("formerParent")] string FormerParent
+    [property: JsonPropertyName("previousCode")] string PreviousCode
 );
 
 public sealed record GmodVersioningDto(
