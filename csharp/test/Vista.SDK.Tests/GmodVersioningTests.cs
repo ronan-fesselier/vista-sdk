@@ -29,17 +29,12 @@ public class GmodVersioningTests
             new string[] { "323.51/H362.1", "323.61/H362.1" },
             new string[] { "321.38/C906", "321.39/C906" },
             new string[] { "511.331/C221", "511.31/C121.31/C221" },
-            // Expected Path currently not converted
-            // new string[] { "411.1/C101.31-5", "411.1/C101.31-5" },
-            // new string[] { "1014.211/S110.1/S101", "1014.211/S110.1/S101" },
-            // new string[] { "441.1/E202", "441.1/E202" },
-            // new string[] { "621.21/S90", "621.21/S90" },
-            // new string[] { "940.1/F221.5", "940.1/F221.5" },
-            // new string[] { "411.1/C101.472/C444", "411.1/C101.472/C444" },
-            // new string[] { "411.1/E202.1/E31", "411.1/E202.1/E31" },
-            // new string[] { "411.1/E31", "411.1/E31" },
-            // new string[] { "511.11-1/C101.45/CS6d", "511.11-1/C101.45/CS6d" },
-            // new string[] { "652.31/S90.3/S61", "652.31/S90.3/S61" },
+            new string[] { "511.11-1/C101.663i/C663.5/CS6d", "511.31/C121.31/C221" },
+            // These paths doesn't change
+            new string[] { "411.1/C101.31-5", "411.1/C101.31-5" },
+            new string[] { "1014.211/S110.1/S101", "1014.211/S110.1/S101" },
+            new string[] { "441.1/E202", "441.1/E202" },
+            new string[] { "621.21/S90", "621.21/S90" }
         };
 
     [Theory]

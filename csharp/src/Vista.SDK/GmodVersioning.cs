@@ -145,8 +145,6 @@ public sealed class GmodVersioning
         VisVersion targetVersion
     )
     {
-        // { "323.51/H362.1", "323.61/H362.1" }
-        //Invalid gmod path - H362.1 not child of 323.61
         var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
 
         static bool OnlyOnePathToRoot(GmodNode node) =>
