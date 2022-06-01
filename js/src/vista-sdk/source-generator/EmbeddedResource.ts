@@ -1,12 +1,41 @@
 import * as fs from "fs-extra";
 import * as zlib from "zlib";
-import { CodebookDto } from "../types/CodebookDto";
+import { CodebooksDto } from "../types/CodebookDto";
 import { GmodDto } from "../types/GmodDto";
 
 export class EmbeddedResource {
-    private static readonly RESOURCE_DIR = "../../../resources";
+    public static readonly RESOURCE_DIR = "./resources";
 
-    public static async getGmodVisVersions(): Promise<string[]> {
+    public static async getGmodVisVersions(apiUrl?: string) {
+        return this.isNode()
+            ? this.getGmodVisVersions__node()
+            : this.getGmodVisVersions__browser(apiUrl);
+    }
+
+    public static async getGmod(
+        visVersion: string,
+        apiUrl?: string
+    ): Promise<GmodDto> {
+        if (apiUrl) {
+        }
+        return this.isNode()
+            ? this.getGmod__node(visVersion)
+            : this.getGmod__browser(apiUrl);
+    }
+
+    public static async getCodebooks(visVersion: string, apiUrl?: string) {
+        return this.isNode()
+            ? this.getCodebooks__node(visVersion)
+            : this.getCodebooks__browser(apiUrl);
+    }
+
+    public static getResourceNames() {
+        return this.isNode()
+            ? this.getResourceNames__node()
+            : this.getResourceNames__browser();
+    }
+
+    private static async getGmodVisVersions__node(): Promise<string[]> {
         const resources = this.getResourceNames().filter(
             (r) => r.endsWith(".gz") && r.includes("gmod")
         );
@@ -20,7 +49,6 @@ export class EmbeddedResource {
             const gmod = await this.readJsonGzip<GmodDto>(
                 EmbeddedResource.RESOURCE_DIR + "/" + resource
             );
-            console.log(resource, gmod.visRelease, Object.keys(gmod));
 
             versions.push(gmod.visRelease);
         }
@@ -28,7 +56,15 @@ export class EmbeddedResource {
         return versions;
     }
 
-    public static async getGmod(visVersion: string) {
+    private static async getGmodVisVersions__browser(
+        apiUrl?: string
+    ): Promise<string[]> {
+        if (!apiUrl) throw new Error("Api url required for browser usage");
+
+        return (await (await fetch(apiUrl)).json()) as string[];
+    }
+
+    private static async getGmod__node(visVersion: string): Promise<GmodDto> {
         const resource = this.getResourceNames().filter(
             (r) =>
                 r.endsWith(".gz") &&
@@ -46,7 +82,15 @@ export class EmbeddedResource {
         );
     }
 
-    public static async getCodebooks(visVersion: string) {
+    private static async getGmod__browser(apiUrl?: string): Promise<GmodDto> {
+        if (!apiUrl) throw new Error("Api url required for browser usage");
+
+        return (await (await fetch(apiUrl)).json()) as GmodDto;
+    }
+
+    private static async getCodebooks__node(
+        visVersion: string
+    ): Promise<CodebooksDto> {
         const resource = this.getResourceNames().filter(
             (r) =>
                 r.endsWith(".gz") &&
@@ -59,16 +103,32 @@ export class EmbeddedResource {
                 "Couldnt find Codebook resource for vis version: " + visVersion
             );
 
-        return this.readJsonGzip<CodebookDto>(
+        return this.readJsonGzip<CodebooksDto>(
             EmbeddedResource.RESOURCE_DIR + "/" + resource
         );
     }
 
-    public static getResourceNames() {
+    private static async getCodebooks__browser(
+        apiUrl?: string
+    ): Promise<CodebooksDto> {
+        if (!apiUrl) throw new Error("Api url required for browser usage");
+
+        return (await (await fetch(apiUrl)).json()) as CodebooksDto;
+    }
+
+    public static getResourceNames__node(): string[] {
         return fs.readdirSync(EmbeddedResource.RESOURCE_DIR);
     }
 
-    private static async readJsonGzip<T>(file: string): Promise<T> {
+    public static getResourceNames__browser(): string[] {
+        throw new Error("Not implemented");
+    }
+
+    public static isNode() {
+        return typeof window === "undefined";
+    }
+
+    public static async readJsonGzip<T>(file: string): Promise<T> {
         if (!file.endsWith(".gz")) throw new Error("Invalid resource file");
 
         const jsonStr = await new Promise<string>((res) => {

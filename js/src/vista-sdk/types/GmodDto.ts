@@ -1,12 +1,7 @@
 export interface GmodDto {
     visRelease: string;
     items: GmodNodeDto[];
-    relations: GmodRelationDto[];
-}
-
-export interface GmodRelationDto {
-    parent: string;
-    child: string;
+    relations: [string, string][];
 }
 
 export interface GmodNodeDto {

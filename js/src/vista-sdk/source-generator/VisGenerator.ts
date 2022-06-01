@@ -1,7 +1,5 @@
 export class VisGenerator {
     public static assembleVisVersionFile(versions: string[]) {
-        console.log(versions);
-
         return `
         ${this.generateVisVersionEnum(versions)}
         
@@ -105,8 +103,6 @@ export class VisGenerator {
     }
 
     private static toVersionEnumKeyString(v: string) {
-        console.log(v);
-
         return `v${v.replace("-", "_")}`;
     }
 }
