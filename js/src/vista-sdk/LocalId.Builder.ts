@@ -103,24 +103,25 @@ export class LocalIdBuilder {
             throw new Error(
                 "Cant compare local IDs from different VisVersions"
             );
+
         return !!(
-            this.primaryItem?.equals(other.primaryItem) &&
-            this.secondaryItem?.equals(other.secondaryItem) &&
-            this.quantity?.equals(other.quantity) &&
-            this.calculation?.equals(other.calculation) &&
-            this.content?.equals(other.content) &&
-            this.position?.equals(other.position) &&
-            this.state?.equals(other.state) &&
-            this.command?.equals(other.quantity) &&
-            this.type?.equals(other.type) &&
-            this.detail?.equals(other.detail)
+            (this.primaryItem?.equals(other.primaryItem) ?? true) &&
+            (this.secondaryItem?.equals(other.secondaryItem) ?? true) &&
+            (this.quantity?.equals(other.quantity) ?? true) &&
+            (this.calculation?.equals(other.calculation) ?? true) &&
+            (this.content?.equals(other.content) ?? true) &&
+            (this.position?.equals(other.position) ?? true) &&
+            (this.state?.equals(other.state) ?? true) &&
+            (this.command?.equals(other.command) ?? true) &&
+            (this.type?.equals(other.type) ?? true) &&
+            (this.detail?.equals(other.detail) ?? true)
         );
     }
 
     public toString(builder: string[] = []): string {
         if (!this.visVersion)
             throw new Error("No VisVersion configured on LocalId");
-        const namingRule = `${LocalIdBuilder.namingRule}/`;
+        const namingRule = `/${LocalIdBuilder.namingRule}/`;
 
         builder.push(namingRule);
 
@@ -140,8 +141,11 @@ export class LocalIdBuilder {
         this.type?.append(builder);
         this.detail?.append(builder);
 
-        if (builder[builder.length - 1] === "/") {
-            builder.pop();
+        if (builder[builder.length - 1].endsWith("/")) {
+            builder[builder.length - 1] = builder[builder.length - 1].slice(
+                0,
+                -1
+            );
         }
 
         return builder.join("");
