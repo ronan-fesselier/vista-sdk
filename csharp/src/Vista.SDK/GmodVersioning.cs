@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-using Vista.SDK.Internal;
-
 namespace Vista.SDK;
 
 public sealed class GmodVersioning
@@ -42,29 +40,7 @@ public sealed class GmodVersioning
 
         if (!gmod.TryGetNode(nextCode, out var targetNode))
             throw new ArgumentException("Couldn't get target node with code: " + nextCode);
-        return targetNode;
-    }
-
-    public bool HasChangedForNext(VisVersion version, GmodNode node)
-    {
-        if (!TryGetVersioningNode(version.ToVersionString(), out var versioningNode))
-            throw new ArgumentException(
-                "Couldn't get versioning node with VIS version" + version.ToVersionString()
-            );
-
-        return versioningNode.TryGetCodeChanges(node.Code, out _);
-    }
-
-    private GmodVersioningNodeChanges? GetNodeChange(VisVersion version, GmodNode node)
-    {
-        if (!TryGetVersioningNode(version.ToVersionString(), out var versioningNode))
-            throw new ArgumentException(
-                "Couldn't get versioning node with VIS version" + version.ToVersionString()
-            );
-
-        return versioningNode.TryGetCodeChanges(node.Code, out var nodeChanges)
-          ? nodeChanges
-          : null;
+        return targetNode with { Location = sourceNode.Location };
     }
 
     public GmodPath ConvertPath(
@@ -87,6 +63,11 @@ public sealed class GmodVersioning
             .Where(t => t.TargetNode.Code != targetEndNode.Code)
             .ToArray();
 
+        var locations = qualifyingNodes.ToDictionary(
+            kvp => kvp.TargetNode.Code,
+            kvp => kvp.TargetNode.Location
+        );
+
         var targetGmod = _gmod(targetVersion);
 
         var targetBaseNode =
@@ -104,9 +85,19 @@ public sealed class GmodVersioning
                     return TraversalHandlerResult.Continue;
 
                 var targetParents = new List<GmodNode>(parents.Count);
+
                 targetParents.AddRange(
                     parents
                         .Where(p => p.Code != targetBaseNode.Code && !p.IsProductGroupLevel)
+                        .Select(
+                            p =>
+                                p with
+                                {
+                                    Location = locations.TryGetValue(p.Code, out var location)
+                                      ? location
+                                      : null
+                                }
+                        )
                         .ToList()
                 );
 
@@ -196,7 +187,7 @@ public readonly record struct GmodVersioningNode
     ) => _versioningNodeChanges.TryGetValue(code, out nodeChanges);
 }
 
-public sealed record class GmodVersioningNodeChanges(
+public sealed record GmodVersioningNodeChanges(
     string NextVisVersion,
     string NextCode,
     string PreviousVisVersion,

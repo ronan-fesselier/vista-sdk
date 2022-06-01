@@ -24,12 +24,12 @@ public class GmodVersioningTests
             new string[] { "323.51/H362.1", "323.61/H362.1" },
             new string[] { "321.38/C906", "321.39/C906" },
             new string[] { "511.331/C221", "511.31/C121.31/C221" },
-            new string[] { "511.11-1/C101.663i/C663.5/CS6d", "511.31/C121.31/C221" },
-            // These paths doesn't change
-            new string[] { "411.1/C101.31-5", "411.1/C101.31-5" },
-            new string[] { "1014.211/S110.1/S101", "1014.211/S110.1/S101" },
-            new string[] { "441.1/E202", "441.1/E202" },
-            new string[] { "621.21/S90", "621.21/S90" }
+            new string[] { "511.11/C101.663i/C663.5/CS6d", "511.11/C101.663i/C663.6/CS6d" },
+            new string[] { "511.11-1/C101.663i/C663.5/CS6d", "511.11-1/C101.663i/C663.6/CS6d" },
+            new string[] { "511.11-2/C101.663i/C663.5/CS6d", "511.11-2/C101.663i/C663.6/CS6d" },
+            new string[] { "511.11-3/C101.663i/C663.5/CS6d", "511.11-3/C101.663i/C663.6/CS6d" },
+            new string[] { "511.11-4/C101.663i/C663.5/CS6d", "511.11-4/C101.663i/C663.6/CS6d" },
+            new string[] { "511.11/C101.663i/C663.5-4/CS6d", "511.11/C101.663i/C663.6-4/CS6d" },
         };
 
     [Theory]
@@ -45,37 +45,49 @@ public class GmodVersioningTests
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
         var targetPath = gmodVersioning.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
 
+        var nodesWithLocation = sourcePath
+            .GetFullPath()
+            .Where(n => n.Node.Location is not null)
+            .Select(n => n.Node.Code)
+            .ToArray();
+        targetGmod.Traverse(
+            (parents, node) =>
+            {
+                Assert.Null(node.Location);
+                return TraversalHandlerResult.Continue;
+            }
+        );
+
         Assert.NotNull(sourcePath);
         Assert.Equal(inputPath, sourcePath?.ToString());
 
         Assert.True(parsedPath);
         Assert.Equal(expectedPath, parsedTargetPath?.ToString());
 
-        // Assert.NotNull(targetPath);
-        // Assert.Equal(expectedPath, targetPath?.ToString());
+        Assert.NotNull(targetPath);
+        Assert.Equal(expectedPath, targetPath?.ToString());
     }
 
-    public static IEnumerable<string[]> Valid_Test_Data_Node =>
-        new string[][]
+    public static IEnumerable<string?[]> Valid_Test_Data_Node =>
+        new string?[][]
         {
-            new string[] { "1014.211", String.Empty, "1014.211" },
-            new string[] { "323.5", String.Empty, "323.6" },
-            new string[] { "412.72", String.Empty, "412.7i" },
-            new string[] { "323.4", String.Empty, "323.5" },
-            new string[] { "323.5", String.Empty, "323.6" },
-            new string[] { "323.51", String.Empty, "323.61" },
-            new string[] { "323.6", String.Empty, "323.7" },
-            new string[] { "C101.212", String.Empty, "C101.22" },
-            new string[] { "C101.22", String.Empty, "C101.93" },
-            new string[] { "511.31", String.Empty, "C121.1" },
-            new string[] { "C101.31", "5", "C101.31" }
+            new string?[] { "1014.211", null, "1014.211" },
+            new string?[] { "323.5", null, "323.6" },
+            new string?[] { "412.72", null, "412.7i" },
+            new string?[] { "323.4", null, "323.5" },
+            new string?[] { "323.51", null, "323.61" },
+            new string?[] { "323.6", null, "323.7" },
+            new string?[] { "C101.212", null, "C101.22" },
+            new string?[] { "C101.22", null, "C101.93" },
+            new string?[] { "511.31", null, "C121.1" },
+            new string?[] { "C101.31", "5", "C101.31" }
         };
 
     [Theory]
     [MemberData(nameof(Valid_Test_Data_Node))]
     public void Test_GmodVersioning_ConvertNode(
         string inputCode,
-        string location,
+        string? location,
         string expectedCode
     )
     {
@@ -85,14 +97,14 @@ public class GmodVersioningTests
         var targetGmod = vis.GetGmod(VisVersion.v3_5a);
 
         var sourceNode = gmod[inputCode] with { Location = location };
-        var expectedNode = targetGmod[expectedCode];
+        var expectedNode = targetGmod[expectedCode] with { Location = location };
 
         var gmodVersioning = vis.GetGmodVersioning();
-        var versioningNode = gmodVersioning["3-5a"];
 
         var targetNode = gmodVersioning.ConvertNode(VisVersion.v3_4a, sourceNode, VisVersion.v3_5a);
 
         Assert.Equal(expectedNode.Code, targetNode.Code);
-        Assert.Same(expectedNode, targetNode);
+        Assert.Equal(expectedNode.Location, targetNode.Location);
+        Assert.Equal(expectedNode, targetNode);
     }
 }
