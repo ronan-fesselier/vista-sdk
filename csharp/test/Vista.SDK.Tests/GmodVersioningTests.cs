@@ -26,10 +26,16 @@ public class GmodVersioningTests
             new string[] { "511.331/C221", "511.31/C121.31/C221" },
             new string[] { "511.11/C101.663i/C663.5/CS6d", "511.11/C101.663i/C663.6/CS6d" },
             new string[] { "511.11-1/C101.663i/C663.5/CS6d", "511.11-1/C101.663i/C663.6/CS6d" },
-            new string[] { "511.11-2/C101.663i/C663.5/CS6d", "511.11-2/C101.663i/C663.6/CS6d" },
-            new string[] { "511.11-3/C101.663i/C663.5/CS6d", "511.11-3/C101.663i/C663.6/CS6d" },
-            new string[] { "511.11-4/C101.663i/C663.5/CS6d", "511.11-4/C101.663i/C663.6/CS6d" },
-            new string[] { "511.11/C101.663i/C663.5-4/CS6d", "511.11/C101.663i/C663.6-4/CS6d" },
+            new string[]
+            {
+                "1012.21/C1147.221/C1051.7/C101.22",
+                "1012.21/C1147.221/C1051.7/C101.93"
+            },
+            new string[]
+            {
+                "1012.21/C1147.221/C1051.7/C101.61/S203.6",
+                "1012.21/C1147.221/C1051.7/C101.61/S203.6"
+            },
         };
 
     [Theory]
@@ -66,6 +72,43 @@ public class GmodVersioningTests
 
         Assert.NotNull(targetPath);
         Assert.Equal(expectedPath, targetPath?.ToString());
+    }
+
+    [Fact]
+    public void SmokeTest_GmodVersioning_ConvertPath()
+    {
+        var (_, vis) = VISTests.GetVis();
+
+        var gmod = vis.GetGmod(VisVersion.v3_4a);
+        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
+        var gmodVersioning = vis.GetGmodVersioning();
+
+        var counter = 0;
+        GmodPath? targetPath;
+        var completed = gmod.Traverse(
+            (parents, node) =>
+            {
+                counter++;
+
+                if (!GmodPath.IsValid(parents, node))
+                    return TraversalHandlerResult.Continue;
+
+                var path = new GmodPath(parents, node);
+
+                targetPath = gmodVersioning.ConvertPath(VisVersion.v3_4a, path, VisVersion.v3_5a);
+                Assert.NotNull(targetPath);
+                var parsedPath = targetGmod.TryParsePath(
+                    targetPath.ToString(),
+                    out var parsedTargetPath
+                );
+                Assert.True(parsedPath);
+                Assert.Equal(parsedTargetPath?.ToString(), targetPath.ToString());
+
+                return TraversalHandlerResult.Continue;
+            }
+        );
+
+        Assert.True(completed);
     }
 
     public static IEnumerable<string?[]> Valid_Test_Data_Node =>

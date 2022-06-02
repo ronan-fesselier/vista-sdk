@@ -50,30 +50,44 @@ public sealed class GmodVersioning
     )
     {
         var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
+        if (targetEndNode.IsRoot)
+            return new GmodPath(targetEndNode.Parents, targetEndNode);
+
+        var targetGmod = _gmod(targetVersion);
 
         var qualifyingNodes = sourcePath
             .GetFullPath()
             .Select(
                 t =>
-                    (
-                        SourceNode: t.Node,
-                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
-                    )
+                (
+                    SourceNode: t.Node,
+                    TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
+                )
             )
             .Where(t => t.TargetNode.Code != targetEndNode.Code)
             .ToArray();
 
-        var locations = qualifyingNodes.ToDictionary(
-            kvp => kvp.TargetNode.Code,
-            kvp => kvp.TargetNode.Location
-        );
+        // one solution for qualifyingNodes.Take(i + 1) is to use a loop
+        //var qualifyingNodesWithCorrectPath = new List<(GmodNode, GmodNode)[]>();
+        //foreach (var (sn, tn) in qualifyingNodes)
+        //{
 
-        var targetGmod = _gmod(targetVersion);
+        //}
+
+        qualifyingNodes = qualifyingNodes
+            .Where((t, i) => targetGmod.PathExistsBetween(qualifyingNodes.Take(i + 1), targetEndNode))
+            .ToArray();
+
+        var locations = qualifyingNodes
+            .Select(kvp => (Code: kvp.TargetNode.Code, Location: kvp.TargetNode.Location))
+            .GroupBy(t => t.Code)
+            .Select(grp => grp.First())
+            .ToDictionary(kvp => kvp.Code, kvp => kvp.Location);
 
         var targetBaseNode =
-            qualifyingNodes.Last(
+            qualifyingNodes.LastOrDefault(
                 n => n.TargetNode.IsAssetFunctionNode && !n.TargetNode.IsProductGroupLevel
-            ).TargetNode;
+            ).TargetNode ?? targetGmod.RootNode;
 
         var possiblePaths = new List<GmodPath>();
         targetGmod.Traverse(
@@ -114,6 +128,11 @@ public sealed class GmodVersioning
                 }
 
                 targetParents.Insert(0, targetGmod.RootNode);
+
+                // used for debug purposes
+                var qualifiedParents = qualifyingNodes
+                    .Where(n => !targetParents.Any(t => t.Code == n.TargetNode.Code))
+                    .ToList();
 
                 if (
                     !qualifyingNodes.All(cn => targetParents.Any(p => p.Code == cn.TargetNode.Code))

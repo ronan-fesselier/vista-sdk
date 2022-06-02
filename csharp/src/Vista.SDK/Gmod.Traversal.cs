@@ -1,4 +1,4 @@
-﻿namespace Vista.SDK;
+namespace Vista.SDK;
 
 public delegate TraversalHandlerResult TraverseHandler(
     IReadOnlyList<GmodNode> parents,
@@ -39,6 +39,31 @@ public sealed partial class Gmod
             (to, parents, node) =>
             {
                 if (node.Code == to.Code)
+                    return TraversalHandlerResult.Stop;
+
+                return TraversalHandlerResult.Continue;
+            }
+        );
+
+        return !reachedEnd;
+    }
+
+    public bool PathExistsBetween(
+        IEnumerable<(GmodNode sourceNode, GmodNode targetNode)> fromPath,
+        GmodNode to
+    )
+    {
+        var lastNode = fromPath.Last().targetNode;
+
+        var reachedEnd = this.Traverse(
+            to,
+            lastNode,
+            (to, parents, node) =>
+            {
+                if (
+                    node.Code == to.Code
+                    && fromPath.All(qn => parents.Any(p => p.Code == qn.targetNode.Code))
+                )
                     return TraversalHandlerResult.Stop;
 
                 return TraversalHandlerResult.Continue;

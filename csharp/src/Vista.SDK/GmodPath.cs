@@ -33,14 +33,17 @@ public sealed record GmodPath
     {
         if (!skipVerify)
         {
-            if (parents.Count == 0 && !node.IsRoot)
+            if (parents.Count == 0)
                 throw new ArgumentException(
                     $"Invalid gmod path - no parents, and {node.Code} is not the root of gmod"
                 );
-            else if (parents.Count > 0 && !parents[0].IsRoot)
+            if (parents.Count > 0 && !parents[0].IsRoot)
                 throw new ArgumentException(
                     $"Invalid gmod path - first parent should be root of gmod (VE), but was {parents[0].Code}"
                 );
+
+            if (!parents.Any(p => p.IsLeafNode) && !node.IsLeafNode)
+                throw new ArgumentException($"Invalid gmod path - no leaf node found.");
 
             for (int i = 0; i < parents.Count; i++)
             {
@@ -69,6 +72,8 @@ public sealed record GmodPath
 
     public static bool IsValid(IEnumerable<GmodNode> nodes)
     {
+        // Have at least one leaf node
+
         if (nodes is null)
             return false;
 
@@ -96,9 +101,16 @@ public sealed record GmodPath
 
     public static bool IsValid(IReadOnlyList<GmodNode> parents, GmodNode node)
     {
+        if (parents.Count == 0)
+            return false;
+
         if (parents.Count == 0 && !node.IsRoot)
             return false;
-        else if (parents.Count > 0 && !parents[0].IsRoot)
+
+        if (parents.Count > 0 && !parents[0].IsRoot)
+            return false;
+
+        if (!parents.Any(p => p.IsLeafNode) && !node.IsLeafNode)
             return false;
 
         for (int i = 0; i < parents.Count; i++)
