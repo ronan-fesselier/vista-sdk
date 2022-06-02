@@ -31,4 +31,4 @@ jobs:
       - run: npm ci
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{NPM_API_KEY}}
+          NODE_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
