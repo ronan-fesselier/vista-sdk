@@ -221,7 +221,7 @@ export class LocalIdBuilder {
     }
 
     public withDetail(metadataTag: MetadataTag): LocalIdBuilder {
-        return this.with((s) => (s.quantity = metadataTag));
+        return this.with((s) => (s.detail = metadataTag));
     }
 
     public tryWithMetadataTag(metadataTag?: MetadataTag): LocalIdBuilder {
