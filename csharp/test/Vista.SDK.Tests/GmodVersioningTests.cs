@@ -34,7 +34,7 @@ public class GmodVersioningTests
             new string[]
             {
                 "1012.21/C1147.221/C1051.7/C101.61/S203.6",
-                "1012.21/C1147.221/C1051.7/C101.61/S203.6"
+                "1012.21/C1147.221/C1051.7/C101.311/C467.5"
             },
         };
 
@@ -84,6 +84,8 @@ public class GmodVersioningTests
         var gmodVersioning = vis.GetGmodVersioning();
 
         var counter = 0;
+        // Add all errors in a list
+        // Find count of all converted paths
         GmodPath? targetPath;
         var completed = gmod.Traverse(
             (parents, node) =>

@@ -48,22 +48,18 @@ public sealed partial class Gmod
         return !reachedEnd;
     }
 
-    public bool PathExistsBetween(
-        IEnumerable<(GmodNode sourceNode, GmodNode targetNode)> fromPath,
-        GmodNode to
-    )
+    public bool PathExistsBetween(IEnumerable<GmodNode> fromPath, GmodNode to)
     {
-        var lastNode = fromPath.Last().targetNode;
+        var lastNode = fromPath.Last();
 
         var reachedEnd = this.Traverse(
             to,
-            lastNode,
             (to, parents, node) =>
             {
-                if (
-                    node.Code == to.Code
-                    && fromPath.All(qn => parents.Any(p => p.Code == qn.targetNode.Code))
-                )
+                if (node.Code != to.Code)
+                    return TraversalHandlerResult.Continue;
+
+                if (fromPath.All(qn => parents.Any(p => p.Code == qn.Code)))
                     return TraversalHandlerResult.Stop;
 
                 return TraversalHandlerResult.Continue;

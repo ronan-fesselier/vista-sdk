@@ -59,33 +59,36 @@ public sealed class GmodVersioning
             .GetFullPath()
             .Select(
                 t =>
-                (
-                    SourceNode: t.Node,
-                    TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
-                )
+                    (
+                        SourceNode: t.Node,
+                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
+                    )
             )
             .Where(t => t.TargetNode.Code != targetEndNode.Code)
             .ToArray();
 
-        // one solution for qualifyingNodes.Take(i + 1) is to use a loop
-        //var qualifyingNodesWithCorrectPath = new List<(GmodNode, GmodNode)[]>();
-        //foreach (var (sn, tn) in qualifyingNodes)
-        //{
+        var qualifyingNodesWithCorrectPath = new List<(GmodNode SourceNode, GmodNode TargetNode)>();
+        for (int i = 0; i < qualifyingNodes.Length - 1; i++)
+        {
+            var qualifyingNode = qualifyingNodes[i];
+            qualifyingNodesWithCorrectPath.Add(qualifyingNode);
+            if (
+                !targetGmod.PathExistsBetween(
+                    qualifyingNodesWithCorrectPath.Select(n => n.TargetNode),
+                    targetEndNode
+                )
+            )
+                qualifyingNodesWithCorrectPath.RemoveAt(qualifyingNodesWithCorrectPath.Count - 1);
+        }
 
-        //}
-
-        qualifyingNodes = qualifyingNodes
-            .Where((t, i) => targetGmod.PathExistsBetween(qualifyingNodes.Take(i + 1), targetEndNode))
-            .ToArray();
-
-        var locations = qualifyingNodes
+        var locations = qualifyingNodesWithCorrectPath
             .Select(kvp => (Code: kvp.TargetNode.Code, Location: kvp.TargetNode.Location))
             .GroupBy(t => t.Code)
             .Select(grp => grp.First())
             .ToDictionary(kvp => kvp.Code, kvp => kvp.Location);
 
         var targetBaseNode =
-            qualifyingNodes.LastOrDefault(
+            qualifyingNodesWithCorrectPath.LastOrDefault(
                 n => n.TargetNode.IsAssetFunctionNode && !n.TargetNode.IsProductGroupLevel
             ).TargetNode ?? targetGmod.RootNode;
 
@@ -130,12 +133,14 @@ public sealed class GmodVersioning
                 targetParents.Insert(0, targetGmod.RootNode);
 
                 // used for debug purposes
-                var qualifiedParents = qualifyingNodes
+                var qualifiedParents = qualifyingNodesWithCorrectPath
                     .Where(n => !targetParents.Any(t => t.Code == n.TargetNode.Code))
                     .ToList();
 
                 if (
-                    !qualifyingNodes.All(cn => targetParents.Any(p => p.Code == cn.TargetNode.Code))
+                    !qualifyingNodesWithCorrectPath.All(
+                        cn => targetParents.Any(p => p.Code == cn.TargetNode.Code)
+                    )
                 )
                     return TraversalHandlerResult.Continue;
 
