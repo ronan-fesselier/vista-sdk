@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Gmod, GmodDto, GmodNodeDto, ImoNumber } from ".";
 import { PmodInfo } from "./types/Pmod";
 import { PmodDto } from "./types/PmodDto";
@@ -7,12 +6,10 @@ export class Pmod {
     private _model: Gmod;
     private _info?: PmodInfo;
 
-
     private constructor(model: Gmod, info?: PmodInfo) {
         this._model = model;
         this._info = info;
     }
-
 
     public static createFromDto(pmodDto: PmodDto, gmod: Gmod) {
         const gmodDto: GmodDto = {
@@ -34,7 +31,7 @@ export class Pmod {
                     id: item.id,
                 } as GmodNodeDto;
             }),
-            relations: pmodDto.relations.map((r) =>([r[0],r[1]])),
+            relations: pmodDto.relations.map((r) => [r[0], r[1]]),
             visRelease: gmod.visVersion,
         };
         return new Pmod(new Gmod(gmod.visVersion, gmodDto), {
