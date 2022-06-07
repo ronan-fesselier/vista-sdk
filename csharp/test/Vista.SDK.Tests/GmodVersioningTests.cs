@@ -1,7 +1,17 @@
+using System.Diagnostics;
+using Xunit.Abstractions;
+
 namespace Vista.SDK.Tests;
 
 public class GmodVersioningTests
 {
+    private readonly ITestOutputHelper testOutputHelper;
+
+    public GmodVersioningTests(ITestOutputHelper testOutputHelper)
+    {
+        this.testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void Test_GmodVersioning_Loads()
     {
@@ -36,6 +46,8 @@ public class GmodVersioningTests
                 "1012.21/C1147.221/C1051.7/C101.61/S203.6",
                 "1012.21/C1147.221/C1051.7/C101.311/C467.5"
             },
+            new string[] { "001", "001", },
+            new string[] { "038.7/F101.2/F71", "038.7/F101.2/F71", },
         };
 
     [Theory]
@@ -63,7 +75,7 @@ public class GmodVersioningTests
                 return TraversalHandlerResult.Continue;
             }
         );
-
+        testOutputHelper.WriteLine(sourcePath.ToString());
         Assert.NotNull(sourcePath);
         Assert.Equal(inputPath, sourcePath?.ToString());
 
@@ -84,9 +96,9 @@ public class GmodVersioningTests
         var gmodVersioning = vis.GetGmodVersioning();
 
         var counter = 0;
-        // Add all errors in a list
-        // Find count of all converted paths
         GmodPath? targetPath;
+        var failedPaths = new List<Exception>();
+
         var completed = gmod.Traverse(
             (parents, node) =>
             {
@@ -94,22 +106,31 @@ public class GmodVersioningTests
 
                 if (!GmodPath.IsValid(parents, node))
                     return TraversalHandlerResult.Continue;
+                try
+                {
+                    var path = new GmodPath(parents, node);
 
-                var path = new GmodPath(parents, node);
-
-                targetPath = gmodVersioning.ConvertPath(VisVersion.v3_4a, path, VisVersion.v3_5a);
-                Assert.NotNull(targetPath);
-                var parsedPath = targetGmod.TryParsePath(
-                    targetPath.ToString(),
-                    out var parsedTargetPath
-                );
-                Assert.True(parsedPath);
-                Assert.Equal(parsedTargetPath?.ToString(), targetPath.ToString());
-
+                    targetPath = gmodVersioning.ConvertPath(
+                        VisVersion.v3_4a,
+                        path,
+                        VisVersion.v3_5a
+                    );
+                    Assert.NotNull(targetPath);
+                    var parsedPath = targetGmod.TryParsePath(
+                        targetPath.ToString(),
+                        out var parsedTargetPath
+                    );
+                    Assert.True(parsedPath);
+                    Assert.Equal(parsedTargetPath?.ToString(), targetPath.ToString());
+                }
+                catch (Exception e)
+                {
+                    testOutputHelper.WriteLine(e.ToString());
+                    failedPaths.Add(e);
+                }
                 return TraversalHandlerResult.Continue;
             }
         );
-
         Assert.True(completed);
     }
 

@@ -68,7 +68,7 @@ public sealed class GmodVersioning
             .ToArray();
 
         var qualifyingNodesWithCorrectPath = new List<(GmodNode SourceNode, GmodNode TargetNode)>();
-        for (int i = 0; i < qualifyingNodes.Length - 1; i++)
+        for (int i = 0; i <= qualifyingNodes.Length - 1; i++)
         {
             var qualifyingNode = qualifyingNodes[i];
             qualifyingNodesWithCorrectPath.Add(qualifyingNode);
@@ -132,7 +132,6 @@ public sealed class GmodVersioning
 
                 targetParents.Insert(0, targetGmod.RootNode);
 
-                // used for debug purposes
                 var qualifiedParents = qualifyingNodesWithCorrectPath
                     .Where(n => !targetParents.Any(t => t.Code == n.TargetNode.Code))
                     .ToList();
