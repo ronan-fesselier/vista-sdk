@@ -1,0 +1,50 @@
+name: .NET Package
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ csharp/** ]
+  pull_request:
+    branches: [ main ]
+    paths: [ csharp/** ]
+
+env:
+  CI_BUILD: true
+
+jobs:
+  build:
+    name: Build, test and publish
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: csharp/
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+            global-json-file: csharp/global.json
+
+      - name: Install dependencies
+        run: dotnet restore Build.csproj
+
+      - name: Prebuild
+        run: dotnet build ./src/Vista.SDK.SourceGenerator/Vista.SDK.SourceGenerator.csproj --no-restore -c Release
+
+      - name: Build
+        run: dotnet build Build.csproj --no-restore -c Release
+
+      - name: Test
+        run: dotnet test Build.csproj --no-build --verbosity normal -c Release
+
+      - name: Context
+        run: echo echo "$(pwd)" && find . -path "src/*/*.*sproj"
+
+      - name: Pack
+        run: find . -path "./src/*/*.*sproj" | xargs -n 1 -t dotnet pack --no-build --verbosity normal -c Release -o artifacts/ /p:Version=0.0.1-preview-$GITHUB_RUN_NUMBER
+
+      - name: Push
+        if: ${{ success() && !github.base_ref }}
+        run: dotnet nuget push artifacts/**.nupkg -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}

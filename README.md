@@ -1,5 +1,4 @@
 ## Vista SDK
-
 The Vista team at DNV are working on tooling related to
 * DNV Vessel Information Structure (VIS)
 * ISO 19847 - Ships and marine technology — Shipboard data servers to share field data at sea
