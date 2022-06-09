@@ -1,8 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Vista.SDK;
 
-public sealed partial class Gmod
+public sealed partial class Gmod : IEnumerable<GmodNode>
 {
     public VisVersion VisVersion { get; }
 
@@ -11,14 +12,13 @@ public sealed partial class Gmod
 
     public GmodNode RootNode => _rootNode;
 
-    public static readonly (string Category, string Type)[] LeafTypes = new[]
+    private static readonly (string Category, string Type)[] LeafTypes = new[]
     {
         ("ASSET FUNCTION", "LEAF"),
         ("PRODUCT FUNCTION", "LEAF"),
-        ("PRODUCT", "GROUP LEVEL 2"),
     };
 
-    public static bool IsLeafNode(string category, string type)
+    private static bool IsLeafNode(string category, string type)
     {
         foreach (var leafType in LeafTypes)
         {
@@ -32,7 +32,7 @@ public sealed partial class Gmod
     public static bool IsLeafNode(GmodNodeMetadata metadata) =>
         IsLeafNode(metadata.Category, metadata.Type);
 
-    public static bool IsFunctionNode(string category) =>
+    private static bool IsFunctionNode(string category) =>
         category != "PRODUCT" && category != "ASSET";
 
     public static bool IsFunctionNode(GmodNodeMetadata metadata) =>
@@ -44,11 +44,7 @@ public sealed partial class Gmod
     public static bool IsAsset(GmodNodeMetadata metadata) => metadata.Category == "ASSET";
 
     public static bool IsAssetFunctionNode(GmodNodeMetadata metadata) =>
-        metadata.Category.Contains("FUNCTION") && !metadata.Category.Contains("PRODUCT");
-
-    public static bool IsProductGroupLevel(GmodNodeMetadata metadata) =>
-        metadata.Category == "PRODUCT" && metadata.Type == "GROUP LEVEL 1"
-        || metadata.Type == "GROUP LEVEL 2";
+        metadata.Category == "ASSET FUNCTION";
 
     internal Gmod(VisVersion version, GmodDto dto)
     {
@@ -95,4 +91,8 @@ public sealed partial class Gmod
 
     public Dictionary<string, GmodNode>.ValueCollection.Enumerator GetEnumerator() =>
         _nodeMap.Values.GetEnumerator();
+
+    IEnumerator<GmodNode> IEnumerable<GmodNode>.GetEnumerator() => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
