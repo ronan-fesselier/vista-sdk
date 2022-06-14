@@ -104,6 +104,24 @@ public sealed record GmodPath
         Node.ToString(builder);
     }
 
+    public string ToFullPathString()
+    {
+        using var lease = StringBuilderPool.Get();
+        ToFullPathString(lease.Builder);
+        return lease.ToString();
+    }
+
+    public void ToFullPathString(StringBuilder builder)
+    {
+        foreach (var (depth, pathNode) in GetFullPath())
+        {
+            pathNode.ToString(builder);
+
+            if (depth != (Length - 1))
+                builder.Append('/');
+        }
+    }
+
     public string ToStringDump()
     {
         using var lease = StringBuilderPool.Get();
