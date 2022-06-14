@@ -32,6 +32,19 @@ public class CodebookTests
         Assert.True(positions.HasStandardValue(validStandardValue));
     }
 
+    [Fact]
+    public void Test_Standard_Values()
+    {
+        var codebooks = VIS.Instance.GetCodebooks(VisVersion.v3_4a);
+
+        var positions = codebooks[CodebookName.Position];
+
+        Assert.True(positions.HasStandardValue("upper"));
+        var rawData = positions.RawData;
+        Assert.True(rawData.ContainsKey("Vertical"));
+        Assert.Contains("upper", rawData["Vertical"]);
+    }
+
     [Theory]
     [MemberData(nameof(VistaSDKTestData.AddStatesData), MemberType = typeof(VistaSDKTestData))]
     public void Test_States(
@@ -108,6 +121,42 @@ public class CodebookTests
 
         var groups = codebooks[CodebookName.Position].Groups;
         Assert.True(groups.Count > 1);
+
+        Assert.True(groups.Contains("Vertical"));
+        var rawData = codebooks[CodebookName.Position].RawData;
+
+        Assert.Equal(groups.Count, rawData.Count - 1); // -1 because we drop <number> as a group
+        Assert.True(rawData.ContainsKey("Vertical"));
+    }
+
+    [Fact]
+    public void Test_Iterate_Groups()
+    {
+        var codebooks = VIS.Instance.GetCodebooks(VisVersion.v3_4a);
+        var groups = codebooks[CodebookName.Position].Groups;
+        var count = 0;
+        foreach (var _ in groups)
+            count++;
+
+        Assert.Equal(11, count);
+
+        var enumerator = groups.GetEnumerator();
+        Assert.IsType<CodebookGroups.Enumerator>(enumerator);
+    }
+
+    [Fact]
+    public void Test_Iterate_Values()
+    {
+        var codebooks = VIS.Instance.GetCodebooks(VisVersion.v3_4a);
+        var values = codebooks[CodebookName.Position].StandardValues;
+        var count = 0;
+        foreach (var _ in values)
+            count++;
+
+        Assert.Equal(28, count);
+
+        var enumerator = values.GetEnumerator();
+        Assert.IsType<CodebookStandardValues.Enumerator>(enumerator);
     }
 
     [Theory]

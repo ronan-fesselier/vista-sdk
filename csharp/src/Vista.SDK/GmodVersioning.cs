@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Vista.SDK;
 
-public sealed class GmodVersioning
+internal sealed class GmodVersioning
 {
     private readonly Dictionary<string, GmodVersioningNode> _versioningsMap = new();
 
@@ -65,6 +65,10 @@ public sealed class GmodVersioning
             .Where(t => t.TargetNode.Code != targetEndNode.Code)
             .ToArray();
 
+        var potentialParents = qualifyingNodes.Select(n => n.TargetNode).ToArray();
+        if (GmodPath.IsValid(potentialParents, targetEndNode))
+            return new GmodPath(potentialParents, targetEndNode);
+
         var qualifyingNodesWithCorrectPath = new List<(GmodNode SourceNode, GmodNode TargetNode)>();
         for (int i = 0; i <= qualifyingNodes.Length - 1; i++)
         {
@@ -88,7 +92,9 @@ public sealed class GmodVersioning
         var targetBaseNode =
             qualifyingNodesWithCorrectPath.LastOrDefault(
                 n => n.TargetNode.IsAssetFunctionNode
-            ).TargetNode;
+            ).TargetNode
+            ?? qualifyingNodesWithCorrectPath.LastOrDefault().TargetNode
+            ?? targetGmod.RootNode;
 
         var possiblePaths = new List<GmodPath>();
         targetGmod.Traverse(
@@ -146,7 +152,10 @@ public sealed class GmodVersioning
             }
         );
 
-        Debug.Assert(possiblePaths.Count == 1, $"More than one path found for: {sourcePath}");
+        Debug.Assert(
+            possiblePaths.Count == 1,
+            $"Expected exactly one possible target path for: {sourcePath}. Got: {(possiblePaths.Count == 0 ? "0" : string.Join("\n", possiblePaths))}"
+        );
         return possiblePaths[0];
     }
 

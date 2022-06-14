@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Vista.SDK;
 
@@ -14,7 +14,9 @@ public interface IVIS
 
     IEnumerable<VisVersion> GetVisVersions();
 
-    GmodVersioning GetGmodVersioning();
+    GmodNode ConvertNode(VisVersion sourceVersion, GmodNode sourceNode, VisVersion targetVersion);
+
+    GmodPath ConvertPath(VisVersion sourceVersion, GmodPath sourcePath, VisVersion targetVersion);
 }
 
 /// <summary>
@@ -151,7 +153,7 @@ public sealed class VIS : IVIS
         );
     }
 
-    public GmodVersioning GetGmodVersioning()
+    private GmodVersioning GetGmodVersioning()
     {
         return _gmodVersioningCache.GetOrCreate(
             _versioning,
@@ -222,4 +224,16 @@ public sealed class VIS : IVIS
     {
         return (VisVersion[])Enum.GetValues(typeof(VisVersion));
     }
+
+    public GmodNode ConvertNode(
+        VisVersion sourceVersion,
+        GmodNode sourceNode,
+        VisVersion targetVersion
+    ) => GetGmodVersioning().ConvertNode(sourceVersion, sourceNode, targetVersion);
+
+    public GmodPath ConvertPath(
+        VisVersion sourceVersion,
+        GmodPath sourcePath,
+        VisVersion targetVersion
+    ) => GetGmodVersioning().ConvertPath(sourceVersion, sourcePath, targetVersion);
 }

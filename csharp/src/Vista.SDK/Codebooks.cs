@@ -1,6 +1,8 @@
-﻿namespace Vista.SDK;
+using System.Collections;
 
-public sealed class Codebooks
+namespace Vista.SDK;
+
+public sealed class Codebooks : IEnumerable<(CodebookName Name, Codebook Codebook)>
 {
     public VisVersion VisVersion { get; }
 
@@ -47,5 +49,33 @@ public sealed class Codebooks
             throw new ArgumentException("Invalid codebook name: " + name);
 
         return codebook;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator(this);
+
+    IEnumerator<(CodebookName Name, Codebook Codebook)> IEnumerable<(CodebookName Name, Codebook Codebook)>.GetEnumerator() =>
+        new Enumerator(this);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
+
+    public struct Enumerator : IEnumerator<(CodebookName Name, Codebook Codebook)>
+    {
+        private Dictionary<CodebookName, Codebook>.Enumerator _inner;
+
+        public Enumerator(Codebooks parent)
+        {
+            _inner = parent._codebooks.GetEnumerator();
+        }
+
+        public (CodebookName Name, Codebook Codebook) Current =>
+            (_inner.Current.Key, _inner.Current.Value);
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() => _inner.Dispose();
+
+        public bool MoveNext() => _inner.MoveNext();
+
+        public void Reset() { }
     }
 }

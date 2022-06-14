@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Vista.SDK;
 
 public sealed record class Codebook
@@ -9,6 +11,8 @@ public sealed record class Codebook
 
     private const string TagAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789.";
     private const string PositionTagAlphabet = TagAlphabet + "-";
+
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> RawData { get; }
 
     internal Codebook(CodebookDto dto)
     {
@@ -32,13 +36,18 @@ public sealed record class Codebook
             .Where(v => v.Value != "<number>")
             .ToArray();
 
+        RawData = dto.Values.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (IReadOnlyList<string>)kvp.Value.ToList()
+        );
+
         foreach (var t in data)
             _groupMap[t.Value] = t.Group;
 
         var valueSet = new HashSet<string>(data.Select(t => t.Value));
         var groupSet = new HashSet<string>(data.Select(t => t.Group));
         _standardValues = new CodebookStandardValues(Name, valueSet);
-        _groups = new CodebookGroups(Name, groupSet);
+        _groups = new CodebookGroups(groupSet);
     }
 
     public CodebookGroups Groups => _groups;
@@ -169,10 +178,12 @@ public enum PositionValidationResult
     Custom = 101
 }
 
-public sealed class CodebookStandardValues
+public sealed class CodebookStandardValues : IEnumerable<string>
 {
     private readonly CodebookName _name;
     private readonly HashSet<string> _standardValues;
+
+    public int Count => _standardValues.Count;
 
     internal CodebookStandardValues(CodebookName name, HashSet<string> standardValues)
     {
@@ -187,20 +198,70 @@ public sealed class CodebookStandardValues
 
         return _standardValues.Contains(tagValue);
     }
+
+    public Enumerator GetEnumerator() => new Enumerator(this);
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => new Enumerator(this);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
+
+    public struct Enumerator : IEnumerator<string>
+    {
+        private HashSet<string>.Enumerator _inner;
+
+        public Enumerator(CodebookStandardValues parent)
+        {
+            _inner = parent._standardValues.GetEnumerator();
+        }
+
+        public string Current => _inner.Current;
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() => _inner.Dispose();
+
+        public bool MoveNext() => _inner.MoveNext();
+
+        public void Reset() { }
+    }
 }
 
-public sealed class CodebookGroups
+public sealed class CodebookGroups : IEnumerable<string>
 {
-    private readonly CodebookName _name;
     private readonly HashSet<string> _groups;
 
-    internal CodebookGroups(CodebookName name, HashSet<string> groups)
+    internal CodebookGroups(HashSet<string> groups)
     {
-        _name = name;
         _groups = groups;
     }
 
     public int Count => _groups.Count;
 
     public bool Contains(string group) => _groups.Contains(group);
+
+    public Enumerator GetEnumerator() => new Enumerator(this);
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => new Enumerator(this);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
+
+    public struct Enumerator : IEnumerator<string>
+    {
+        private HashSet<string>.Enumerator _inner;
+
+        public Enumerator(CodebookGroups parent)
+        {
+            _inner = parent._groups.GetEnumerator();
+        }
+
+        public string Current => _inner.Current;
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() => _inner.Dispose();
+
+        public bool MoveNext() => _inner.MoveNext();
+
+        public void Reset() { }
+    }
 }
