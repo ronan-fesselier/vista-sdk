@@ -107,6 +107,7 @@ export class GmodNode {
         if (!!this.productType) return false;
         if (!!this.productSelection) return false;
         if (this.isProductSelection) return false;
+        if (this.isAsset) return false;
 
         const lastChar = this.code.charAt(this.code.length - 1);
         return lastChar !== "a" && lastChar !== "s";
