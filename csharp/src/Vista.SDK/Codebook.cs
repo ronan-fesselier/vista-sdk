@@ -1,5 +1,4 @@
 using System.Collections;
-
 namespace Vista.SDK;
 
 public sealed record class Codebook
