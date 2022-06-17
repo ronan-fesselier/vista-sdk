@@ -3,7 +3,7 @@ import * as zlib from "zlib";
 import { GmodDto } from "..";
 import { CodebooksDto } from "../types/CodebookDto";
 
-export class EmbeddedResource { 
+export class EmbeddedResource {
     public static readonly RESOURCE_DIR = "./resources";
 
     public static async getGmodVisVersions(apiUrl?: string) {
@@ -38,7 +38,10 @@ export class EmbeddedResource {
 
     private static async getGmodVisVersions__node(): Promise<string[]> {
         const resources = this.getResourceNames().filter(
-            (r) => r.endsWith(".gz") && r.includes("gmod")
+            (r) =>
+                r.endsWith(".gz") &&
+                r.includes("gmod") &&
+                !r.includes("versioning")
         );
 
         if (resources.length === 0)
