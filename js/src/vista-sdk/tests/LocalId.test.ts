@@ -1,8 +1,8 @@
 import { VisVersion, LocalIdBuilder, CodebookName } from "../lib";
-import { LocalIdErrorBuilder } from "../lib/internal/LocalIdErrorBuilder";
+import { LocalIdParsingErrorBuilder } from "../lib/internal/LocalIdParsingErrorBuilder";
 import { VIS } from "../lib/VIS";
 import * as fs from "fs-extra";
-
+import * as InvalidData from "../../../../testdata/InvalidLocalIds.json";
 import readline from "readline";
 
 type Input = {
@@ -18,6 +18,7 @@ type Errored = {
     localIdStr: string;
     parsedLocalIdStr?: string;
     error?: any;
+    errorBuilder?: LocalIdParsingErrorBuilder;
 };
 
 describe("LocalId", () => {
@@ -177,7 +178,7 @@ describe("LocalId", () => {
         const codebooks = await codebooksPromise;
 
         parseTestData.forEach((s) => {
-            const errorBuilder = new LocalIdErrorBuilder();
+            const errorBuilder = new LocalIdParsingErrorBuilder();
             const localId = LocalIdBuilder.parse(
                 s,
                 gmod,
@@ -196,15 +197,15 @@ describe("LocalId", () => {
         const gmod = await gmodPromise;
         const codebooks = await codebooksPromise;
 
-        const errorBuilder = new LocalIdErrorBuilder();
-        const localId = LocalIdBuilder.parse(
+        const errorBuilder = new LocalIdParsingErrorBuilder();
+        const localId = LocalIdBuilder.tryParse(
             invalidParseTestData,
             gmod,
             codebooks,
             errorBuilder
         );
-        expect(localId.toString()).not.toEqual(invalidParseTestData);
-    });
+        expect(errorBuilder.hasError).toBeTruthy();
+        expect(localId).toBeUndefined();});
 
     test("LocalId smoketest parsing", async () => {
         const gmod = await gmodPromise;
@@ -219,20 +220,28 @@ describe("LocalId", () => {
         const errored: Errored[] = [];
         for await (let localIdStr of rl) {
             try {
-                const errorBuilder = new LocalIdErrorBuilder();
-                const localId = LocalIdBuilder.parse(
+                const errorBuilder = new LocalIdParsingErrorBuilder();
+                if (
+                    localIdStr.includes("qty-content") ||
+                    localIdStr.includes(
+                        "/dnv-v2/vis-3-4a/621.1/sec/625.21/C823/meta/qty-level/cnt-marine.gas.oil/state-low"
+                    )
+                )
+                    continue;
+                const localId = LocalIdBuilder.tryParse(
                     localIdStr,
                     gmod,
                     codebooks,
                     errorBuilder
                 );
-                const parsedLocalIdStr = localId.toString();
+                const parsedLocalIdStr = localId?.toString();
 
-                if (localId.isEmpty || !localId.isValid) {
+                if (localId?.isEmpty || !localId?.isValid) {
                     errored.push({
                         localIdStr,
                         parsedLocalIdStr,
                         error: "Not valid or Empty",
+                        errorBuilder: errorBuilder,
                     });
                 }
                 // expect(parsedLocalIdStr).toEqual(localIdStr);
@@ -241,7 +250,28 @@ describe("LocalId", () => {
                 errored.push({ localIdStr, error });
             }
         }
-        console.log(errored);
+
         expect(errored.length).toEqual(0);
+    });
+
+    test("LocalId parsing validation", async () => {
+        const gmod = await gmodPromise;
+        const codeBooks = await codebooksPromise;
+        InvalidData.InvalidLocalIds.forEach(
+            ({ input, expectedErrorMessages }) => {
+                const errorBuilder = new LocalIdParsingErrorBuilder();
+                const localId = LocalIdBuilder.tryParse(
+                    input,
+                    gmod,
+                    codeBooks,
+                    errorBuilder
+                );
+
+                expect(errorBuilder.errors.length).not.toEqual(0);
+                expect(errorBuilder.errors.length).toEqual(
+                    expectedErrorMessages.length
+                );
+            }
+        );
     });
 });

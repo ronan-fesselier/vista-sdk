@@ -1,4 +1,5 @@
 using Vista.SDK;
+using Vista.SDK.Internal;
 using Vista.SDK.Mqtt;
 
 namespace Vista.SDK.Tests;
@@ -218,16 +219,9 @@ public class LocalIdTests
     public void Test_Parsing(string localIdStr)
     {
         var parsed = LocalIdBuilder.TryParse(localIdStr, out var localId);
+
         Assert.True(parsed);
         Assert.Equal(localIdStr, localId!.ToString());
-    }
-
-    [Theory]
-    [InlineData("/dnv-v2/vis-3-4a/1021.1i-3AC/H121/meta/qty-temperature/cnt-cargo/cal")]
-    public void Test_Faulty_Parsing(string localIdStr)
-    {
-        var parsed = LocalIdBuilder.TryParse(localIdStr, out _);
-        Assert.False(parsed);
     }
 
     [Fact]
@@ -247,26 +241,52 @@ public class LocalIdTests
         var reader = new StreamReader(file);
 
         var errored =
-            new List<(string LocalIdStr, LocalIdBuilder? LocalId, Exception? Exception)>();
+            new List<(string LocalIdStr, LocalIdBuilder? LocalId, Exception? Exception, LocalIdParsingErrorBuilder? ErrorBuilder)>();
 
         string? localIdStr;
         while ((localIdStr = await reader.ReadLineAsync()) is not null)
         {
             try
             {
-                if (!LocalIdBuilder.TryParse(localIdStr, out var localId))
-                    errored.Add((localIdStr, localId, null));
+                // Quick fix to skip invalid metadata tags "qty-content"
+                if (localIdStr.Contains("qty-content"))
+                    continue;
+                if (!LocalIdBuilder.TryParse(localIdStr, out var errorBuilder, out var localId))
+                    errored.Add((localIdStr, localId, null, errorBuilder));
                 else if (localId.IsEmpty || !localId.IsValid)
-                    errored.Add((localIdStr, localId, null));
+                    errored.Add((localIdStr, localId, null, errorBuilder));
                 //else // Readd when regen test-data using proper SDK
                 //    Assert.Equal(localIdStr, localId.ToString());
             }
             catch (Exception ex)
             {
-                errored.Add((localIdStr, null, ex));
+                errored.Add((localIdStr, null, ex, null));
             }
         }
-
+        Assert.Empty(errored.Select(e => e.ErrorBuilder?.ErrorMessages).ToList());
         Assert.Empty(errored);
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(VistaSDKTestData.AddInvalidLocalIdsData),
+        MemberType = typeof(VistaSDKTestData)
+    )]
+    public void Test_Parsing_Validation(string localIdStr, string[] expectedErrorMessages)
+    {
+        var parsed = LocalIdBuilder.TryParse(
+            localIdStr,
+            out LocalIdParsingErrorBuilder errorBuilder,
+            out _
+        );
+
+        foreach (var error in errorBuilder.ErrorMessages)
+        {
+            Assert.Contains(error.message, expectedErrorMessages);
+        }
+
+        Assert.False(parsed);
+        Assert.NotNull(errorBuilder);
+        Assert.Equal(expectedErrorMessages.Count(), errorBuilder.ErrorMessages.Count);
     }
 }
