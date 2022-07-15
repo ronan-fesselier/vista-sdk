@@ -100,5 +100,5 @@
     },
 
     "exclude": ["node_modules"],
-    "include": ["lib", "tests"]
+    "include": ["lib"]
 }

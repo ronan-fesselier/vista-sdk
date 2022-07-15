@@ -15,8 +15,6 @@ public class LocalIdTests
         bool Verbose = false
     );
 
-    //public static readonly Gmod TestGmod =
-
     //public static readonly Input TestInput = new Input("411.1/C101.31-2", null, "temperature", "exhaust.gas", "inlet");
 
     //public static readonly LocalId TestLocalId = LocalId
