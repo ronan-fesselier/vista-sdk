@@ -12,7 +12,7 @@ import { LocalIdParser } from "./LocalId.Parsing";
 import { MetadataTag } from "./MetadataTag";
 import { UniversalId } from "./UniversalId";
 import { UniversalIdBuilder } from "./UniversalId.Builder";
-import { VisVersion } from "./VisVersion";
+import { VisVersion, VisVersionExtension, VisVersions } from "./VisVersion";
 import { VIS } from "./VIS";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 import { GmodNodeMetadata } from "./types/GmodNode";
@@ -21,7 +21,7 @@ import { PmodInfo } from "./types/Pmod";
 // Types
 export type { GmodNodeMetadata, ParsingState, PmodInfo  };
 // VisVersion
-export { VisVersion };
+export { VisVersion, VisVersionExtension, VisVersions };
 // VIS
 export { VIS };
 // Codebooks and metadata
