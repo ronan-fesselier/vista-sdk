@@ -12,9 +12,12 @@ export class Client {
         )}.json`;
         const options: RequestInit = {
             method: "GET",
+            mode: "no-cors",
             headers: {
-                "Content-Type": "application/json"
-            }
+                "Content-Type": "application/json",
+                // "Cache-Control": "public, max-age=3600, must-revalidate"
+            },
+            cache: "force-cache",
         };
         const response = await fetch(url, options);
         if (response.ok) {
