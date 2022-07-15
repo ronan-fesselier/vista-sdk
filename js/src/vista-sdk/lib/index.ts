@@ -19,6 +19,7 @@ import { GmodNodeMetadata } from "./types/GmodNode";
 import { ParsingState } from "./types/LocalId";
 import { PmodInfo } from "./types/Pmod";
 import { Client } from "./Client";
+import { Defaults } from "./Defaults";
 // Types
 export type { GmodNodeMetadata, ParsingState, PmodInfo  };
 // VisVersion
@@ -35,3 +36,5 @@ export { Gmod, GmodNode, GmodPath };
 export { Pmod };
 // CLient
 export {Client}
+// Defaults
+export {Defaults}
