@@ -10,16 +10,8 @@ export class Client {
         const url = `${this.API_URL}gmod-vis-${VisVersionExtension.toString(
             version
         )}.json`;
-        const options: RequestInit = {
-            method: "GET",
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json",
-                // "Cache-Control": "public, max-age=3600, must-revalidate"
-            },
-            cache: "force-cache",
-        };
-        const response = await fetch(url, options);
+
+        const response = await fetch(url);
         if (response.ok) {
             return (await response.json()) as GmodDto;
         }
