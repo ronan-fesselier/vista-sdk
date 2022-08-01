@@ -29,13 +29,8 @@ export class Client {
         const url = `${
             this.API_URL
         }codebooks-vis-${VisVersionExtension.toString(version)}.json`;
-        const options: RequestInit = {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        };
-        const response = await fetch(url, options);
+
+        const response = await fetch(url);
         if (response.ok) {
             return (await response.json()) as CodebooksDto;
         }
