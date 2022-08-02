@@ -68,21 +68,17 @@ export class Pmod {
             for (const fullPath of paths) {
                 for (let i = 0; i < fullPath.length; i++) {
                     const node = fullPath[i];
-                    if (!nodeMap.has(node.toString()))
-                        nodeMap.set(node.toString(), node);
+                    const nodeId = node.toString();
+                    if (!nodeMap.has(nodeId)) nodeMap.set(nodeId, node);
 
                     if (node.code === "VE" || i === 0) continue;
 
                     const parent = fullPath[i - 1];
                     if (!parent) continue;
-
-                    const relationId =
-                        parent.toString() + "-" + node.toString();
-                    if (!nodeMap.has(relationId))
-                        relations.set(relationId, [
-                            parent.toString(),
-                            node.toString(),
-                        ]);
+                    const parentId = parent.toString();
+                    const relationId = parentId + "-" + nodeId;
+                    if (!relations.has(relationId))
+                        relations.set(relationId, [parentId, nodeId]);
                 }
             }
         }
