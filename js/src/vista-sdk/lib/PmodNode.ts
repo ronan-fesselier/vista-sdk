@@ -15,6 +15,10 @@ export class PmodNode {
         return node.parents.length <= 1;
     }
 
+    public get id() {
+        return this._node.id;
+    }
+
     public get depth() {
         return this._depth;
     }
@@ -28,11 +32,11 @@ export class PmodNode {
     }
 
     public get children() {
-        return this._node.children;
+        return this._node.children.map((c) => new PmodNode(c, this._depth + 1));
     }
 
     public get parents() {
-        return this._node.parents;
+        return this._node.parents.map((p) => new PmodNode(p, this._depth - 1));
     }
 
     public get isValid() {
