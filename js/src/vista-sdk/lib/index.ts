@@ -20,8 +20,9 @@ import { ParsingState } from "./types/LocalId";
 import { PmodInfo } from "./types/Pmod";
 import { Client } from "./Client";
 import { Defaults } from "./Defaults";
+import { PmodNode } from "./PmodNode";
 // Types
-export type { GmodNodeMetadata, ParsingState, PmodInfo  };
+export type { GmodNodeMetadata, ParsingState, PmodInfo };
 // VisVersion
 export { VisVersion, VisVersionExtension, VisVersions };
 // VIS
@@ -29,12 +30,21 @@ export { VIS };
 // Codebooks and metadata
 export { CodebookName, CodebookNames, Codebook, Codebooks, MetadataTag };
 // LocalId
-export { LocalId, LocalIdBuilder, UniversalIdBuilder, UniversalId, ImoNumber, LocalIdParser, LocalIdParsingErrorBuilder };
+export {
+    LocalId,
+    LocalIdBuilder,
+    UniversalIdBuilder,
+    UniversalId,
+    ImoNumber,
+    LocalIdParser,
+    LocalIdParsingErrorBuilder,
+};
 // Gmod
 export { Gmod, GmodNode, GmodPath };
 // Pmod
-export { Pmod };
+
+export { Pmod, PmodNode };
 // CLient
-export {Client}
+export { Client };
 // Defaults
-export {Defaults}
+export { Defaults };

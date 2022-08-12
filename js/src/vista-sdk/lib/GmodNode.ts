@@ -84,6 +84,17 @@ export class GmodNode {
         );
     }
 
+    public withEmptyRelations(): GmodNode {
+        return new GmodNode(
+            this._id,
+            this.code,
+            this.metadata,
+            this.location,
+            [],
+            []
+        );
+    }
+
     public get id() {
         return this._id;
     }

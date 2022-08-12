@@ -10,7 +10,8 @@ export class LocalId {
     protected _builder: LocalIdBuilder;
 
     public constructor(builder: LocalIdBuilder) {
-        if (!builder.isValid) throw new Error("Invalid LocalId state");
+        if (!builder.isValid)
+            throw new Error("Invalid LocalId state:" + builder.toString());
         this._builder = builder;
     }
 
@@ -43,7 +44,7 @@ export class LocalId {
         return this._builder;
     }
 
-public static parse(
+    public static parse(
         localIdStr: string,
         gmod: Gmod,
         codebooks: Codebooks,
