@@ -1502,5 +1502,6 @@ describe("Pmod", () => {
         expect(pmod.rootNode.toString()).toEqual("VE");
         expect(pmod.rootNode.node.children.length).toBeGreaterThan(0);
         expect(pmod.maxDepth).toEqual(maxDepth);
+        expect(pmod.isValid).toBeTruthy();
     });
 });

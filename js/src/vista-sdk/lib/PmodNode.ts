@@ -5,19 +5,38 @@ export class PmodNode {
     private _depth: number;
 
     public constructor(node: GmodNode, depth: number) {
+        if (!this.hasValidInput(node))
+            throw new Error("Invalid GmodNode with code: " + node.toString());
         this._node = node;
         this._depth = depth;
+    }
+
+    private hasValidInput(node: GmodNode) {
+        return node.parents.length <= 1;
+    }
+
+    public get depth() {
+        return this._depth;
     }
 
     public get node() {
         return this._node;
     }
-    public get depth() {
-        return this._depth;
-    }
 
     public get code() {
         return this._node.code;
+    }
+
+    public get children() {
+        return this._node.children;
+    }
+
+    public get parents() {
+        return this._node.parents;
+    }
+
+    public get isValid() {
+        return this._node.parents.length <= 1;
     }
 
     public addChild(child: PmodNode) {

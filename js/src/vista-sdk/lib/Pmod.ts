@@ -1,4 +1,4 @@
-import { GmodPath, VisVersion } from ".";
+import { GmodNode, GmodPath, VisVersion } from ".";
 import { LocalId } from "./LocalId";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { PmodNode } from "./PmodNode";
@@ -30,10 +30,9 @@ export class Pmod {
     ) {
         const nodeMap = new Map<string, PmodNode>();
 
-        const addToNodeMap = (key: string, node: PmodNode) => {
-            if (nodeMap.has(key)) return;
-
-            nodeMap.set(key, node.withEmptyRelations());
+        const addToNodeMap = (key: string, node: GmodNode, depth: number) => {
+            const pmodNode = new PmodNode(node.withEmptyRelations(), depth);
+            nodeMap.set(key, pmodNode);
         };
 
         const paths = localIds
@@ -44,13 +43,12 @@ export class Pmod {
             const fullPath = path.getFullPath();
 
             for (let i = 0; i < fullPath.length; i++) {
-                const node = fullPath[i];
-                const pathNode = new PmodNode(node, i);
+                const pathNode = fullPath[i].withEmptyRelations();
                 if (i === 0 && pathNode.code !== "VE")
                     throw new Error("Root node is not VE");
 
                 if (pathNode.code === "VE") {
-                    addToNodeMap("VE", pathNode);
+                    if (!nodeMap.has("VE")) addToNodeMap("VE", pathNode, 0);
                     continue;
                 }
 
@@ -70,7 +68,9 @@ export class Pmod {
                             pathNode.toString()
                     );
 
-                addToNodeMap(nodeId, pathNode);
+                if (nodeMap.has(nodeId)) continue;
+
+                addToNodeMap(nodeId, pathNode, i);
 
                 const childNode = nodeMap.get(nodeId);
                 const parentNode = nodeMap.get(parentId);
@@ -105,10 +105,18 @@ export class Pmod {
         return this._rootNode;
     }
 
+    public get isValid() {
+        return !Array.from(this._nodeMap.values()).find((n) => !n.isValid);
+    }
+
     public get maxDepth() {
         return Math.max(
             ...Array.from(this._nodeMap.values()).map((n) => n.depth)
         );
+    }
+
+    public get numNodes() {
+        return this._nodeMap.size;
     }
 
     public getNodesByCode(code: string) {
