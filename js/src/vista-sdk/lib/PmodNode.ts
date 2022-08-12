@@ -16,7 +16,7 @@ export class PmodNode {
     }
 
     public get id() {
-        return this._node;
+        return this._node.id;
     }
 
     public get depth() {
