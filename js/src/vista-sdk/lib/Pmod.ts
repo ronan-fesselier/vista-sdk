@@ -31,7 +31,9 @@ export class Pmod {
         const nodeMap = new Map<string, PmodNode>();
 
         const addToNodeMap = (key: string, node: GmodNode, depth: number) => {
-            const pmodNode = new PmodNode(node.withEmptyRelations(), depth);
+            const pmodNode = new PmodNode(node, depth)
+                .withEmptyRelations()
+                .withId(key);
             nodeMap.set(key, pmodNode);
         };
 

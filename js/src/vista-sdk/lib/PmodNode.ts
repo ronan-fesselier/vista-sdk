@@ -16,7 +16,7 @@ export class PmodNode {
     }
 
     public get id() {
-        return this._node.toString();
+        return this._node;
     }
 
     public get depth() {
@@ -57,5 +57,19 @@ export class PmodNode {
 
     public toString() {
         return this._node.toString();
+    }
+
+    public withId(id: string) {
+        return new PmodNode(
+            GmodNode.create(
+                id,
+                this._node.code,
+                this._node.metadata,
+                this._node.location,
+                this._node.parents,
+                this._node.children
+            ),
+            this._depth
+        );
     }
 }

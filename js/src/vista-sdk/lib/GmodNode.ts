@@ -62,6 +62,17 @@ export class GmodNode {
         );
     }
 
+    public static create(
+        id: string,
+        code: string,
+        metadata: GmodNodeMetadata,
+        location?: string,
+        parents?: GmodNode[],
+        children?: GmodNode[]
+    ) {
+        return new GmodNode(id, code, metadata, location, parents, children);
+    }
+
     public withLocation(_location: string) {
         return new GmodNode(
             this._id,
