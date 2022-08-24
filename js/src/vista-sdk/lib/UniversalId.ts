@@ -1,4 +1,4 @@
-import { Gmod, Codebooks, LocalIdParsingErrorBuilder } from ".";
+import { Gmod, Codebooks, LocalIdParsingErrorBuilder, LocalId } from ".";
 import { UniversalIdBuilder } from "./UniversalId.Builder";
 
 export class UniversalId {
@@ -6,6 +6,12 @@ export class UniversalId {
     public constructor(builder: UniversalIdBuilder) {
         if (!builder.isValid) throw new Error("Invalid UniversalId state");
         this._builder = builder;
+    }
+
+    public get localId(): LocalId {
+        if (!this._builder.localId)
+            throw new Error("Instance does not contain LocalId");
+        return this._builder.localId?.build();
     }
 
     public get builder(): UniversalIdBuilder {
