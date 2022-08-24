@@ -1,3 +1,4 @@
+import { Gmod, Codebooks, LocalIdParsingErrorBuilder } from ".";
 import { UniversalIdBuilder } from "./UniversalId.Builder";
 
 export class UniversalId {
@@ -12,7 +13,7 @@ export class UniversalId {
     }
 
     public get imoNumber() {
-        return this._builder.imoNumber;
+        return this._builder.imoNumber!;
     }
 
     public equals(other?: UniversalId): boolean {
@@ -22,5 +23,16 @@ export class UniversalId {
 
     public toString() {
         return this._builder.toString();
+    }
+
+    public static parse(
+        universalId: string,
+        gmod: Gmod,
+        codebooks: Codebooks,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return new UniversalId(
+            UniversalIdBuilder.parse(universalId, gmod, codebooks, errorBuilder)
+        );
     }
 }
