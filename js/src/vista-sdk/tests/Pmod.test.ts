@@ -10,7 +10,6 @@ describe("Pmod", () => {
     test("From LocalIds", async () => {
         const gmod = await gmodPromise;
         const codeBooks = await codebooksPromise;
-        console.log(testData);
 
         const localIds = testData.localIds.map((localIdStr) =>
             LocalId.parse(localIdStr, gmod, codeBooks)
