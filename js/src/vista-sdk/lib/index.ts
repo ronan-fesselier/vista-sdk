@@ -22,6 +22,7 @@ import { Client } from "./Client";
 import { Defaults } from "./Defaults";
 import { PmodNode } from "./PmodNode";
 import { UniversalIdParser } from "./UniversalId.Parsing";
+
 // Types
 export type { GmodNodeMetadata, PmodInfo };
 // VisVersion
@@ -45,9 +46,8 @@ export { UniversalIdParser, UniversalIdBuilder, UniversalId };
 // Gmod
 export { Gmod, GmodNode, GmodPath };
 // Pmod
-
 export { Pmod, PmodNode };
-// CLient
+// Client
 export { Client };
 // Defaults
 export { Defaults };
