@@ -5,10 +5,10 @@ namespace Vista.SDK;
 public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
 {
     public static readonly string NamingEntity = "data.dnv.com";
-    internal LocalIdBuilder? _localId;
+    private LocalIdBuilder? _localId;
     public ImoNumber? ImoNumber { get; private init; }
 
-    public LocalIdBuilder? LocalId { get; private init; }
+    public LocalIdBuilder? LocalId => _localId;
 
     public bool IsValid => ImoNumber is not null && _localId is not null && _localId.IsValid;
 

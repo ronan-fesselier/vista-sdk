@@ -11,8 +11,14 @@ public class UniversalId : IUniversalId, IEquatable<UniversalId>
         _builder = builder;
     }
 
-    public ImoNumber ImoNumber => _builder.ImoNumber!.Value;
-    public LocalId LocalId => _builder.LocalId!.Build();
+    public ImoNumber ImoNumber =>
+        _builder.ImoNumber is not null
+            ? _builder.ImoNumber.Value
+            : throw new Exception("Invalid ImoNumber");
+    public LocalId LocalId =>
+        _builder.LocalId is not null
+            ? _builder.LocalId.Build()
+            : throw new Exception("Invalid LocalId");
 
     public sealed override bool Equals(object? obj) => Equals(obj as UniversalId);
 
