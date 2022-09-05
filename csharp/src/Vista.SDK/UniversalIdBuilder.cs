@@ -2,7 +2,7 @@ using Vista.SDK.Internal;
 
 namespace Vista.SDK;
 
-public sealed record class UniversalIdBuilder : IUniversalIdBuilder
+public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
 {
     public static readonly string NamingEntity = "data.dnv.com";
     internal LocalIdBuilder? _localId;
@@ -22,10 +22,15 @@ public sealed record class UniversalIdBuilder : IUniversalIdBuilder
         return ImoNumber == other.ImoNumber && LocalId == other.LocalId;
     }
 
+    public UniversalId Build()
+    {
+        return new UniversalId(this);
+    }
+
     public UniversalIdBuilder WithLocalId(LocalIdBuilder localId) =>
         this with
         {
-            LocalId = localId
+            _localId = localId
         };
 
     public UniversalIdBuilder WithImoNumber(ImoNumber? imoNumber) =>
