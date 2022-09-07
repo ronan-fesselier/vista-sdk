@@ -63,8 +63,8 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
         builder.Append("/");
         builder.Append("IMO");
         builder.Append(ImoNumber.ToString());
-        builder.Append("/");
-        LocalId.ToString();
+
+        LocalId.ToString(builder);
 
         return lease.ToString();
     }

@@ -27,4 +27,15 @@ public class UniversalIdTests
         Assert.NotNull(universalId);
         Assert.True(universalId.ImoNumber.Equals(new ImoNumber(1234567)));
     }
+
+    [Theory]
+    [MemberData(nameof(Test_Data))]
+    public void Test_ToString(string testCase)
+    {
+        var universalId = UniversalIdBuilder.Parse(testCase);
+
+        var universalIdString = universalId.ToString();
+        Assert.NotNull(universalId);
+        Assert.True(testCase == universalIdString);
+    }
 }

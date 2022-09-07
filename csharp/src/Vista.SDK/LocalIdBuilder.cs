@@ -1,3 +1,4 @@
+using System.Text;
 using Vista.SDK.Internal;
 
 namespace Vista.SDK;
@@ -188,15 +189,12 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         return hashCode.ToHashCode();
     }
 
-    public override string ToString()
+    public void ToString(StringBuilder builder)
     {
         if (VisVersion is null)
             throw new InvalidOperationException("No VisVersion configured on LocalId");
 
         string namingRule = $"/{NamingRule}/";
-        using var lease = StringBuilderPool.Get();
-
-        var builder = lease.Builder;
 
         builder.Append(namingRule);
 
@@ -221,6 +219,14 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
         if (builder[builder.Length - 1] == '/')
             builder.Remove(builder.Length - 1, 1);
+    }
+
+    public override string ToString()
+    {
+        using var lease = StringBuilderPool.Get();
+        var builder = lease.Builder;
+
+        ToString(builder);
 
         return lease.ToString();
     }

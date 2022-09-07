@@ -94,7 +94,6 @@ export class UniversalIdBuilder {
         builder.push("/");
         builder.push("IMO");
         builder.push(this.imoNumber.toString());
-        builder.push("/");
         this.localId.toString(builder);
 
         return builder.join("");
