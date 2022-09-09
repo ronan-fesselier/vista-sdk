@@ -1,3 +1,5 @@
+﻿using System.Diagnostics.CodeAnalysis;
+
 namespace Vista.SDK;
 
 public readonly record struct ImoNumber
@@ -13,17 +15,31 @@ public readonly record struct ImoNumber
 
     public ImoNumber(string value)
     {
-        if (!value.StartsWith("IMO"))
-            throw new ArgumentException("Value does not start with IMO");
-
-        int? num = int.TryParse(value.Substring(3), out var n) ? n : null;
-
-        if (num is null)
-            throw new ArgumentException("Failed to retreive number from value");
-        if (!IsValid(num.Value))
+        if (!TryParse(value, out this))
             throw new ArgumentException("Invalid IMO number");
+    }
 
-        _value = num.Value;
+    public static ImoNumber Parse(string value)
+    {
+        if (!TryParse(value, out var imo))
+            throw new ArgumentException("Failed to parse ImoNumber " + value);
+        return imo;
+    }
+
+    public static bool TryParse(string value, out ImoNumber imoNumber)
+    {
+        imoNumber = default;
+        if (!value.StartsWith("IMO"))
+            return false;
+
+        int num = int.TryParse(value.Substring(3), out var n) ? n : 0;
+
+        if (num == 0 || !IsValid(num))
+            return false;
+
+        imoNumber = new ImoNumber(num);
+
+        return true;
     }
 
     public static bool IsValid(int imoNumber)

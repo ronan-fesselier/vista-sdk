@@ -3,15 +3,16 @@ import { UniversalIdBuilder } from "./UniversalId.Builder";
 
 export class UniversalId {
     private _builder: UniversalIdBuilder;
+    private _localId: LocalId;
+
     public constructor(builder: UniversalIdBuilder) {
         if (!builder.isValid) throw new Error("Invalid UniversalId state");
         this._builder = builder;
+        this._localId = builder.localId!.build();
     }
 
     public get localId(): LocalId {
-        if (!this._builder.localId)
-            throw new Error("Instance does not contain LocalId");
-        return this._builder.localId?.build();
+        return this._localId;
     }
 
     public get builder(): UniversalIdBuilder {
