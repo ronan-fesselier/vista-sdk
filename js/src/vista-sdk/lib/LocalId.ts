@@ -1,6 +1,7 @@
 import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
+import { GmodPath } from "./GmodPath";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { LocalIdParser } from "./LocalId.Parsing";
@@ -32,8 +33,8 @@ export class LocalId {
         return this._builder.verboseMode;
     }
 
-    public get primaryItem() {
-        return this._builder.primaryItem;
+    public get primaryItem(): GmodPath {
+        return this._builder.primaryItem!;
     }
 
     public get secondaryItem() {
