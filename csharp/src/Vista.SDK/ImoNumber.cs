@@ -99,4 +99,8 @@ public readonly record struct ImoNumber
     }
 
     public override string ToString() => $"IMO{_value}";
+
+    public static explicit operator int(ImoNumber n) => n._value;
+
+    public static explicit operator ImoNumber(int n) => new ImoNumber(n);
 }
