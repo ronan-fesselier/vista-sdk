@@ -65,4 +65,6 @@ public readonly record struct DataChannelId
         else
             return new DataChannelId(value);
     }
+
+    public static implicit operator DataChannelId(LocalId id) => new DataChannelId(id);
 }

@@ -86,4 +86,6 @@ public readonly record struct ShipId
         else
             return new ShipId(value);
     }
+
+    public static implicit operator ShipId(ImoNumber id) => new ShipId(id);
 }
