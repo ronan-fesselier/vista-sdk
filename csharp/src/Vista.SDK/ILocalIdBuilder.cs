@@ -26,6 +26,8 @@ public interface ILocalIdBuilder
 
     MetadataTag? Detail { get; }
 
+    bool HasCustomTag { get; }
+
     LocalIdBuilder WithVisVersion(string visVersion);
 
     LocalIdBuilder WithVisVersion(VisVersion version);

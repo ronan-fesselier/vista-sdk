@@ -43,6 +43,8 @@ public class LocalId : ILocalId, IEquatable<LocalId>
 
     public MetadataTag? Detail => _builder.Detail;
 
+    public bool HasCustomTag => _builder.HasCustomTag;
+
     public sealed override bool Equals(object? obj) => Equals(obj as LocalId);
 
     public bool Equals(LocalId? other)

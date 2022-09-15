@@ -123,6 +123,16 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         return new LocalId(this);
     }
 
+    public bool HasCustomTag =>
+        (Quantity?.IsCustom ?? false)
+        || (Calculation?.IsCustom ?? false)
+        || (Content?.IsCustom ?? false)
+        || (Position?.IsCustom ?? false)
+        || (State?.IsCustom ?? false)
+        || (Command?.IsCustom ?? false)
+        || (Type?.IsCustom ?? false)
+        || (Detail?.IsCustom ?? false);
+
     public bool IsValid =>
         VisVersion is not null
         && Items.PrimaryItem is not null

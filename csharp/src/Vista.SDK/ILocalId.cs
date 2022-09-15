@@ -26,5 +26,7 @@ public interface ILocalId
 
     MetadataTag? Detail { get; }
 
+    bool HasCustomTag { get; }
+
     string ToString();
 }

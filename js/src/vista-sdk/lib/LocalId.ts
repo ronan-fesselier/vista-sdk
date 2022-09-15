@@ -33,6 +33,10 @@ export class LocalId {
         return this._builder.verboseMode;
     }
 
+    public get hasCustomTag(): boolean {
+        return this._builder.hasCustomTag;
+    }
+
     public get primaryItem(): GmodPath {
         return this._builder.primaryItem!;
     }

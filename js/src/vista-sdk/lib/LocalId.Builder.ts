@@ -54,6 +54,10 @@ export class LocalIdBuilder {
         return !!this._items.primaryItem && !this.isEmptyMetadata;
     }
 
+    public get hasCustomTag(): boolean {
+        return this.metadataTags.some(t => t.isCustom);
+    }
+
     public get isEmpty(): boolean {
         return (
             !this._items.primaryItem &&
