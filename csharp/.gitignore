@@ -13,6 +13,9 @@ nupkg/
 *.userosscache
 *.sln.docstates
 
+test/*/test*.txt
+test/*/changed-*-paths*.txt
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

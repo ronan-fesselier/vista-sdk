@@ -8,7 +8,7 @@ public delegate TraversalHandlerResult TraverseHandlerWithState<TState>(
     TState state,
     IReadOnlyList<GmodNode> parents,
     GmodNode node
-) where TState : class;
+);
 
 public enum TraversalHandlerResult
 {
@@ -22,58 +22,74 @@ public sealed partial class Gmod
     public bool Traverse(TraverseHandler handler) =>
         Traverse(handler, _rootNode, (handler, parents, node) => handler(parents, node));
 
-    public bool Traverse<TState>(TState state, TraverseHandlerWithState<TState> handler)
-        where TState : class => Traverse(state, _rootNode, handler);
+    public bool Traverse<TState>(TState state, TraverseHandlerWithState<TState> handler) =>
+        Traverse(state, _rootNode, handler);
 
     public bool Traverse(GmodNode rootNode, TraverseHandler handler) =>
         Traverse(handler, rootNode, (handler, parents, node) => handler(parents, node));
 
-    public bool PathExistsBetween(GmodNode from, GmodNode to)
+    internal bool PathExistsBetween(
+        IEnumerable<GmodNode> fromPath,
+        GmodNode to,
+        out IEnumerable<GmodNode> remainingParents
+    )
     {
-        if (from.Code == to.Code)
-            return true;
+        var lastAssetFunction = fromPath.LastOrDefault(n => n.IsAssetFunctionNode);
+        remainingParents = Enumerable.Empty<GmodNode>();
+
+        var state = new PathExistsContext(to) { RemainingParents = remainingParents, };
 
         var reachedEnd = this.Traverse(
-            to,
-            from,
-            (to, parents, node) =>
+            state,
+            lastAssetFunction ?? RootNode,
+            (state, parents, node) =>
             {
-                if (node.Code == to.Code)
+                if (node.Code != state.To.Code)
+                    return TraversalHandlerResult.Continue;
+
+                List<GmodNode>? actualParents = null;
+                while (!parents[0].IsRoot)
+                {
+                    if (actualParents is null)
+                    {
+                        actualParents = new(parents);
+                        parents = actualParents;
+                    }
+
+                    var parent = parents[0];
+                    if (parent.Parents.Count != 1)
+                        throw new Exception("Invalid state - expected one parent");
+
+                    actualParents.Insert(0, parent.Parents[0]);
+                }
+
+                if (fromPath.All(qn => parents.Any(p => p.Code == qn.Code)))
+                {
+                    state.RemainingParents = parents
+                        .Where(p => !fromPath.Any(pp => pp.Code == p.Code))
+                        .ToArray();
                     return TraversalHandlerResult.Stop;
+                }
 
                 return TraversalHandlerResult.Continue;
             }
         );
+
+        remainingParents = state.RemainingParents;
 
         return !reachedEnd;
     }
 
-    public bool PathExistsBetween(IEnumerable<GmodNode> fromPath, GmodNode to)
+    record PathExistsContext(GmodNode To)
     {
-        var lastNode = fromPath.Last();
-
-        var reachedEnd = this.Traverse(
-            to,
-            (to, parents, node) =>
-            {
-                if (node.Code != to.Code)
-                    return TraversalHandlerResult.Continue;
-
-                if (fromPath.All(qn => parents.Any(p => p.Code == qn.Code)))
-                    return TraversalHandlerResult.Stop;
-
-                return TraversalHandlerResult.Continue;
-            }
-        );
-
-        return !reachedEnd;
+        public IEnumerable<GmodNode> RemainingParents = Enumerable.Empty<GmodNode>();
     }
 
     public bool Traverse<TState>(
         TState state,
         GmodNode rootNode,
         TraverseHandlerWithState<TState> handler
-    ) where TState : class
+    )
     {
         var context = new TraversalContext<TState>(new Parents(), handler, state);
         return TraverseNode(in context, rootNode) == TraversalHandlerResult.Continue;
@@ -82,7 +98,7 @@ public sealed partial class Gmod
     private TraversalHandlerResult TraverseNode<TState>(
         in TraversalContext<TState> context,
         GmodNode node
-    ) where TState : class
+    )
     {
         if (context.Parents.Has(node))
             // Avoid cycles
@@ -113,7 +129,7 @@ public sealed partial class Gmod
         Parents Parents,
         TraverseHandlerWithState<TState> Handler,
         TState State
-    ) where TState : class;
+    );
 
     private readonly struct Parents
     {

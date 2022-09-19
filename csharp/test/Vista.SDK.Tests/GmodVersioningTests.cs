@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Xunit.Abstractions;
 
 namespace Vista.SDK.Tests;
@@ -33,19 +32,63 @@ public class GmodVersioningTests
             },
             new string[] { "001", "001", },
             new string[] { "038.7/F101.2/F71", "038.7/F101.2/F71", },
+            new string[]
+            {
+                "1012.21/C1147.221/C1051.7/C101.61/S203.6/S61",
+                "1012.21/C1147.221/C1051.7/C101.311/C467.5/S61",
+            },
+            new string[] { "000a", "000a", },
+            new string[]
+            {
+                "1012.21/C1147.221/C1051.7/C101.61/S203.2/S101",
+                "1012.21/C1147.221/C1051.7/C101.61/S203.3/S110.1/S101",
+            },
+            new string[] // Normal assignment change
+            {
+                "1012.21/C1147.221/C1051.7/C101.661i/C624",
+                "1012.21/C1147.221/C1051.7/C101.661i/C621",
+            },
+            //new string[] // Parent code change and different depth, which introduced cycle
+            //{
+            //    "1012.22/S201.1/C151.2/S110.2/C101.61/S203.2/S101",
+            //    "1012.22/S201.1/C151.2/S110.2/C101.61/S203.3/S110.1/S101",
+            //},
+            new string[]
+            {
+                "1012.22/S201.1/C151.2/S110.2/C101.64i",
+                "1012.22/S201.1/C151.2/S110.2/C101.64",
+            },
+            new string[]
+            {
+                "632.32i/S110.2/C111.42/G203.31/S90.5/C401",
+                "632.32i/S110.2/C111.42/G203.31/S90.5/C401",
+            },
+            new string[]
+            {
+                "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51",
+                "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51",
+            },
+            new string[]
+            {
+                "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401",
+                "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401",
+            },
+            new string[] { "221.31/C1141.41/C664.2/C471", "221.31/C1141.41/C664.2/C471", },
+            //new string[] { "354.2/C1096", "354.2/C1096" }, // Was deleted, as path to root is gone
+            new string[] { "514/E15", "514" },
         };
 
     [Theory]
     [MemberData(nameof(Valid_Test_Data_Path))]
     public void Test_GmodVersioning_ConvertPath(string inputPath, string expectedPath)
     {
-        var (_, vis) = VISTests.GetVis();
-        var gmod = vis.GetGmod(VisVersion.v3_4a);
-        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
+        var gmod = VIS.Instance.GetGmod(VisVersion.v3_4a);
+        var targetGmod = VIS.Instance.GetGmod(VisVersion.v3_5a);
 
         var sourcePath = GmodPath.Parse(inputPath, gmod);
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
-        var targetPath = vis.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
+        var targetPath = VIS.Instance.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
+        Assert.NotNull(targetPath);
 
         var nodesWithLocation = sourcePath
             .GetFullPath()
@@ -70,47 +113,44 @@ public class GmodVersioningTests
         Assert.Equal(expectedPath, targetPath?.ToString());
     }
 
-    [Fact(Skip = "Under development")]
-    public void SmokeTest_GmodVersioning_ConvertPath()
+    [Fact]
+    public void Test_Finds_Path()
     {
-        var (_, vis) = VISTests.GetVis();
-
-        var gmod = vis.GetGmod(VisVersion.v3_4a);
-        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
-
-        var counter = 0;
-        GmodPath? targetPath;
-        var failedPaths = new List<Exception>();
-
+        var gmod = VIS.Instance.GetGmod(VisVersion.v3_4a);
         var completed = gmod.Traverse(
             (parents, node) =>
             {
-                counter++;
-
-                if (!GmodPath.IsValid(parents, node))
+                if (parents.Count == 0)
                     return TraversalHandlerResult.Continue;
-                try
-                {
-                    var path = new GmodPath(parents, node);
 
-                    targetPath = vis.ConvertPath(VisVersion.v3_4a, path, VisVersion.v3_5a);
-                    Assert.NotNull(targetPath);
-                    var parsedPath = targetGmod.TryParsePath(
-                        targetPath.ToString(),
-                        out var parsedTargetPath
-                    );
-                    Assert.True(parsedPath);
-                    Assert.Equal(parsedTargetPath?.ToString(), targetPath.ToString());
-                }
-                catch (Exception e)
-                {
-                    testOutputHelper.WriteLine(e.ToString());
-                    failedPaths.Add(e);
-                }
+                var path = new GmodPath(parents.ToArray(), node);
+                if (path.ToString() == "1012.22/S201.1/C151.2/S110.2/C101.61/S203.2/S101")
+                    return TraversalHandlerResult.Stop;
+
                 return TraversalHandlerResult.Continue;
             }
         );
-        Assert.True(completed);
+
+        Assert.False(completed);
+    }
+
+    [Fact]
+    public void Test_One_Path_To_Root_For_Asset_Functions()
+    {
+        static bool OnePathToRoot(GmodNode node) =>
+            node.IsRoot || (node.Parents.Count == 1 && OnePathToRoot(node.Parents[0]));
+
+        foreach (var version in VisVersions.All)
+        {
+            var gmod = VIS.Instance.GetGmod(version);
+            foreach (var node in gmod)
+            {
+                if (!node.IsAssetFunctionNode)
+                    continue;
+
+                Assert.True(OnePathToRoot(node));
+            }
+        }
     }
 
     public static IEnumerable<string?[]> Valid_Test_Data_Node =>
@@ -146,8 +186,8 @@ public class GmodVersioningTests
 
         var targetNode = vis.ConvertNode(VisVersion.v3_4a, sourceNode, VisVersion.v3_5a);
 
-        Assert.Equal(expectedNode.Code, targetNode.Code);
-        Assert.Equal(expectedNode.Location, targetNode.Location);
+        Assert.Equal(expectedNode.Code, targetNode?.Code);
+        Assert.Equal(expectedNode.Location, targetNode?.Location);
         Assert.Equal(expectedNode, targetNode);
     }
 }

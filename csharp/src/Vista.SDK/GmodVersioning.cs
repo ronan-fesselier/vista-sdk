@@ -5,7 +5,7 @@ namespace Vista.SDK;
 
 internal sealed class GmodVersioning
 {
-    private readonly Dictionary<string, GmodVersioningNode> _versioningsMap = new();
+    private readonly Dictionary<VisVersion, GmodVersioningNode> _versioningsMap = new();
 
     internal GmodVersioning(GmodVersioningDto dto)
     {
@@ -13,11 +13,11 @@ internal sealed class GmodVersioning
         {
             var visVersion = versioningDto.Key;
             var gmodVersioningNode = new GmodVersioningNode(versioningDto.Value);
-            _versioningsMap.Add(visVersion, gmodVersioningNode);
+            _versioningsMap.Add(VisVersions.Parse(visVersion), gmodVersioningNode);
         }
     }
 
-    public GmodNode ConvertNode(
+    public GmodNode? ConvertNode(
         VisVersion sourceVersion,
         GmodNode sourceNode,
         VisVersion targetVersion
@@ -25,142 +25,177 @@ internal sealed class GmodVersioning
     {
         ValidateSourceAndTargetVersions(sourceVersion, targetVersion);
 
-        if (!TryGetVersioningNode(sourceVersion.ToVersionString(), out var versioningNode))
+        if (!TryGetVersioningNode(sourceVersion, out var versioningNode))
             throw new ArgumentException(
                 "Couldn't get versioning node with VIS version" + sourceVersion.ToVersionString()
             );
 
-        var nextCode = versioningNode.TryGetCodeChanges(sourceNode.Code, out var nodeChanges)
-          ? nodeChanges.NextCode
-          : sourceNode.Code;
+        var nextCode = sourceNode.Code;
+        if (versioningNode.TryGetCodeChanges(sourceNode.Code, out var change))
+        {
+            if (targetVersion == change.NextVisVersion)
+                nextCode = change.NextCode!;
+            else if (targetVersion == change.PreviousVisVersion)
+                nextCode = change.PreviousCode!;
+            else
+                throw new Exception("Invalid conversion");
+        }
 
         var gmod = VIS.Instance.GetGmod(targetVersion);
 
         if (!gmod.TryGetNode(nextCode, out var targetNode))
-            throw new ArgumentException("Couldn't get target node with code: " + nextCode);
-        return targetNode with { Location = sourceNode.Location };
+            return null;
+
+        return targetNode with
+        {
+            Location = sourceNode.Location
+        };
     }
 
-    public GmodPath ConvertPath(
+    public GmodPath? ConvertPath(
         VisVersion sourceVersion,
         GmodPath sourcePath,
         VisVersion targetVersion
     )
     {
         var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
+        if (targetEndNode is null)
+            return null;
+
         if (targetEndNode.IsRoot)
-            return new GmodPath(targetEndNode.Parents, targetEndNode);
+            return new GmodPath(targetEndNode.Parents, targetEndNode, skipVerify: true);
 
         var targetGmod = VIS.Instance.GetGmod(targetVersion);
+        var sourceGmod = VIS.Instance.GetGmod(sourceVersion);
 
         var qualifyingNodes = sourcePath
             .GetFullPath()
             .Select(
-                t =>
+                (t, i) =>
                     (
                         SourceNode: t.Node,
-                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)
+                        TargetNode: ConvertNode(sourceVersion, t.Node, targetVersion)!
                     )
             )
-            .Where(t => t.TargetNode.Code != targetEndNode.Code)
             .ToArray();
+        if (qualifyingNodes.Any(t => t.TargetNode is null))
+            throw new Exception("Could convert node forward");
 
-        var potentialParents = qualifyingNodes.Select(n => n.TargetNode).ToArray();
+        var potentialParents = qualifyingNodes
+            .Select(n => n.TargetNode)
+            .Take(qualifyingNodes.Length - 1)
+            .ToArray();
         if (GmodPath.IsValid(potentialParents, targetEndNode))
-            return new GmodPath(potentialParents, targetEndNode);
+            return new GmodPath(potentialParents, targetEndNode, skipVerify: true);
 
-        var qualifyingNodesWithCorrectPath = new List<(GmodNode SourceNode, GmodNode TargetNode)>();
+        var path = new List<GmodNode>();
         for (int i = 0; i <= qualifyingNodes.Length - 1; i++)
         {
             var qualifyingNode = qualifyingNodes[i];
-            qualifyingNodesWithCorrectPath.Add(qualifyingNode);
-            if (
-                !targetGmod.PathExistsBetween(
-                    qualifyingNodesWithCorrectPath.Select(n => n.TargetNode),
-                    targetEndNode
-                )
-            )
-                qualifyingNodesWithCorrectPath.RemoveAt(qualifyingNodesWithCorrectPath.Count - 1);
-        }
 
-        var locations = qualifyingNodesWithCorrectPath
-            .Select(kvp => (Code: kvp.TargetNode.Code, Location: kvp.TargetNode.Location))
-            .GroupBy(t => t.Code)
-            .Select(grp => grp.First())
-            .ToDictionary(kvp => kvp.Code, kvp => kvp.Location);
+            if (i > 0 && qualifyingNode.TargetNode.Code == qualifyingNodes[i - 1].TargetNode.Code)
+                continue;
 
-        var targetBaseNode =
-            qualifyingNodesWithCorrectPath.LastOrDefault(
-                n => n.TargetNode.IsAssetFunctionNode
-            ).TargetNode
-            ?? qualifyingNodesWithCorrectPath.LastOrDefault().TargetNode
-            ?? targetGmod.RootNode;
+            var codeChanged = qualifyingNode.SourceNode.Code != qualifyingNode.TargetNode.Code;
 
-        var possiblePaths = new List<GmodPath>();
-        targetGmod.Traverse(
-            possiblePaths,
-            rootNode: targetBaseNode,
-            handler: (possiblePaths, parents, node) =>
+            var sourceNormalAssignment = qualifyingNode.SourceNode.ProductType;
+            var targetNormalAssignment = qualifyingNode.TargetNode.ProductType;
+
+            var normalAssignmentChanged =
+                sourceNormalAssignment?.Code != targetNormalAssignment?.Code;
+
+            var selectionChanged = false;
+
+            static void AddToPath(Gmod targetGmod, List<GmodNode> path, GmodNode node)
             {
-                if (node.Code != targetEndNode.Code)
-                    return TraversalHandlerResult.Continue;
-
-                var targetParents = new List<GmodNode>(parents.Count);
-
-                targetParents.AddRange(
-                    parents
-                        .Where(p => p.Code != targetBaseNode.Code)
-                        .Select(
-                            p =>
-                                p with
-                                {
-                                    Location = locations.TryGetValue(p.Code, out var location)
-                                      ? location
-                                      : null
-                                }
-                        )
-                        .ToList()
-                );
-
-                var currentTargetBaseNode = targetBaseNode;
-                Debug.Assert(
-                    currentTargetBaseNode.Parents.Count == 1,
-                    $"More than one path to root found for: {sourcePath}"
-                );
-                while (currentTargetBaseNode.Parents.Count == 1)
+                if (path.Count > 0)
                 {
-                    // Traversing upwards to get to VE, since we until now have traversed from first leaf node.
-                    targetParents.Insert(0, currentTargetBaseNode);
-                    currentTargetBaseNode = currentTargetBaseNode.Parents[0];
+                    var prev = path[path.Count - 1];
+                    if (!prev.IsChild(node))
+                    {
+                        for (int j = path.Count - 1; j >= 0; j--)
+                        {
+                            var parent = path[j];
+                            var currentParents = path.Take(j + 1).ToArray();
+                            if (
+                                !targetGmod.PathExistsBetween(
+                                    currentParents,
+                                    node,
+                                    out var remaining
+                                )
+                            )
+                            {
+                                if (
+                                    !currentParents.Any(
+                                        n => n.IsAssetFunctionNode && n.Code != parent.Code
+                                    )
+                                )
+                                    throw new Exception("Tried to remove last asset function node");
+                                path.RemoveAt(j);
+                            }
+                            else
+                            {
+                                path.AddRange(remaining);
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                targetParents.Insert(0, targetGmod.RootNode);
-
-                var qualifiedParents = qualifyingNodesWithCorrectPath
-                    .Where(n => !targetParents.Any(t => t.Code == n.TargetNode.Code))
-                    .ToList();
-
-                if (
-                    !qualifyingNodesWithCorrectPath.All(
-                        cn => targetParents.Any(p => p.Code == cn.TargetNode.Code)
-                    )
-                )
-                    return TraversalHandlerResult.Continue;
-
-                possiblePaths.Add(new GmodPath(targetParents, node));
-                return TraversalHandlerResult.Continue;
+                path.Add(node);
             }
-        );
 
-        Debug.Assert(
-            possiblePaths.Count == 1,
-            $"Expected exactly one possible target path for: {sourcePath}. Got: {(possiblePaths.Count == 0 ? "0" : string.Join("\n", possiblePaths))}"
-        );
-        return possiblePaths[0];
+            if (codeChanged)
+            {
+                AddToPath(targetGmod, path, qualifyingNode.TargetNode);
+            }
+            else if (normalAssignmentChanged) // AC || AN || AD
+            {
+                var wasDeleted =
+                    sourceNormalAssignment is not null && targetNormalAssignment is null;
+
+                if (!codeChanged)
+                    AddToPath(targetGmod, path, qualifyingNode.TargetNode);
+
+                if (wasDeleted)
+                {
+                    if (qualifyingNode.TargetNode.Code == targetEndNode.Code)
+                    {
+                        var next = qualifyingNodes[i + 1];
+                        if (next.TargetNode.Code != qualifyingNode.TargetNode.Code)
+                            throw new Exception("Normal assignment end node was deleted");
+                    }
+                    i++;
+                }
+                else if (qualifyingNode.TargetNode.Code != targetEndNode.Code)
+                {
+                    AddToPath(targetGmod, path, targetNormalAssignment!);
+                    i++; // Holy moly
+                }
+            }
+            if (selectionChanged) // SC || SN || SD
+            { }
+
+            if (!codeChanged && !normalAssignmentChanged)
+            {
+                AddToPath(targetGmod, path, qualifyingNode.TargetNode);
+            }
+
+            if (path[path.Count - 1].Code == targetEndNode.Code)
+                break;
+        }
+
+        potentialParents = path.Take(path.Count - 1).ToArray();
+        targetEndNode = path.Last();
+
+        if (!GmodPath.IsValid(potentialParents, targetEndNode, out var missinkLinkAt))
+            throw new Exception($"Didnt end up with valid path for {sourcePath}");
+
+        return new GmodPath(potentialParents, targetEndNode);
     }
 
     private bool TryGetVersioningNode(
-        string visVersion,
+        VisVersion visVersion,
         [MaybeNullWhen(false)] out GmodVersioningNode versioningNode
     ) => _versioningsMap.TryGetValue(visVersion, out versioningNode);
 
@@ -176,13 +211,13 @@ internal sealed class GmodVersioning
                 "Invalid target VISVersion: " + targetVersion.ToVersionString()
             );
 
-        if (!_versioningsMap.ContainsKey(sourceVersion.ToVersionString()))
+        if (!_versioningsMap.ContainsKey(sourceVersion))
             throw new ArgumentException(
                 "Source VIS Version does not exist in versionings: "
                     + sourceVersion.ToVersionString()
             );
 
-        if (!_versioningsMap.ContainsKey(targetVersion.ToVersionString()))
+        if (!_versioningsMap.ContainsKey(targetVersion))
             throw new ArgumentException(
                 "Target VIS Version does not exist in versionings: "
                     + targetVersion.ToVersionString()
@@ -198,11 +233,30 @@ internal sealed class GmodVersioning
         {
             foreach (var versioningNodeDto in dto)
             {
+                if (
+                    versioningNodeDto.Value is null
+                    || (
+                        versioningNodeDto.Value.PreviousCode is null
+                        && versioningNodeDto.Value.NextCode is null
+                    )
+                )
+                    continue;
+
                 var code = versioningNodeDto.Key;
                 var versioningNodeChanges = new GmodVersioningNodeChanges(
-                    versioningNodeDto.Value.NextVisVersion,
+                    VisVersions.TryParse(
+                        versioningNodeDto.Value.NextVisVersion,
+                        out var nextVisVersion
+                    )
+                      ? nextVisVersion
+                      : null,
                     versioningNodeDto.Value.NextCode,
-                    versioningNodeDto.Value.PreviousVisVersion,
+                    VisVersions.TryParse(
+                        versioningNodeDto.Value.PreviousVisVersion,
+                        out var previoiusVisVersion
+                    )
+                      ? previoiusVisVersion
+                      : null,
                     versioningNodeDto.Value.PreviousCode
                 );
                 _versioningNodeChanges.Add(code, versioningNodeChanges);
@@ -216,9 +270,9 @@ internal sealed class GmodVersioning
     }
 
     private sealed record GmodVersioningNodeChanges(
-        string NextVisVersion,
-        string NextCode,
-        string PreviousVisVersion,
-        string PreviousCode
+        VisVersion? NextVisVersion,
+        string? NextCode,
+        VisVersion? PreviousVisVersion,
+        string? PreviousCode
     );
 }
