@@ -23,8 +23,6 @@ describe("DataChannel", () => {
         const namingRule = LocalIdBuilder.namingRule;
         const version = Version.parse(VisVersion.v3_5a);
 
-        console.log(DataChannel.WhiteSpace.Collapse);
-
         const dataChannelListPackage: DataChannel.ListPackage = {
             package: {
                 header: {

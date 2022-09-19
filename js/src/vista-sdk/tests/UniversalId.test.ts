@@ -80,8 +80,6 @@ describe("UniversalId", () => {
                 errorBuilder
             );
 
-            // console.log(errorBuilder.errors);
-
             expect(universalIdBuilder).toBeTruthy();
             expect(universalIdBuilder?.localId?.isValid).toBe(
                 data.validLocalId
