@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
-import { Extensions as DataChannelListExtensions } from "../../lib/transport/json/data-channel";
-import { Extensions as TimeSeriesExtensions } from "../../lib/transport/json/time-series-data";
-import { Serializer } from "../../lib/transport/json";
+import { JSONExtensions } from "../../lib";
+import { VistaJSONSerializer } from "../../lib";
 
 describe("Transport JSON", () => {
     test("DataChannelList Extensions", async () => {
@@ -11,11 +10,13 @@ describe("Transport JSON", () => {
             .readFile(testDataPath)
             .then((res) => res.toString());
 
-        const initDto = Serializer.deserializeDataChannelList(sample);
+        const initDto = VistaJSONSerializer.deserializeDataChannelList(sample);
 
-        const domain = await DataChannelListExtensions.toDomainModel(initDto);
+        const domain = await JSONExtensions.DataChannelList.toDomainModel(
+            initDto
+        );
 
-        const dto = DataChannelListExtensions.toJsonDto(domain);
+        const dto = JSONExtensions.DataChannelList.toJsonDto(domain);
 
         expect(domain.package.header.shipId.imoNumber!.value).toEqual(1234567);
         expect(dto.Package.Header.ShipID).toEqual("IMO1234567");
@@ -27,11 +28,11 @@ describe("Transport JSON", () => {
             .readFile(testDataPath)
             .then((res) => res.toString());
 
-        const initDto = Serializer.deserializeTimeSeriesData(sample);
+        const initDto = VistaJSONSerializer.deserializeTimeSeriesData(sample);
 
-        const domain = await TimeSeriesExtensions.toDomainModel(initDto);
+        const domain = await JSONExtensions.TimeSeries.toDomainModel(initDto);
 
-        const dto = TimeSeriesExtensions.toJsonDto(domain);
+        const dto = JSONExtensions.TimeSeries.toJsonDto(domain);
 
         expect(domain.package.header!.shipId.imoNumber!.value).toEqual(1234567);
         expect(dto.Package.Header!.ShipID).toEqual("IMO1234567");

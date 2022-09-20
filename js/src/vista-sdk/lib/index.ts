@@ -22,6 +22,18 @@ import { Client } from "./Client";
 import { Defaults } from "./Defaults";
 import { PmodNode } from "./PmodNode";
 import { UniversalIdParser } from "./UniversalId.Parsing";
+import {
+    JSONExtensions,
+    VistaJSONSerializer,
+    DataChannelListDto,
+    TimeSeriesDto,
+} from "./transport/json";
+import {
+    TimeSeries,
+    DataChannelId,
+    DataChannelList,
+    ShipId,
+} from "./transport/domain";
 
 // Types
 export type { GmodNodeMetadata, PmodInfo };
@@ -51,3 +63,15 @@ export { Pmod, PmodNode };
 export { Client };
 // Defaults
 export { Defaults };
+
+// Transport
+export {
+    JSONExtensions,
+    VistaJSONSerializer,
+    DataChannelListDto,
+    TimeSeriesDto,
+    TimeSeries,
+    DataChannelId,
+    DataChannelList,
+    ShipId,
+};

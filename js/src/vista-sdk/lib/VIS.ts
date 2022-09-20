@@ -10,9 +10,12 @@ import { Codebooks } from "./Codebooks";
 export class VIS {
     public static readonly instance = new VIS();
 
-    private readonly _gmodDtoCache: LRUCache<VisVersion, GmodDto>;
+    private readonly _gmodDtoCache: LRUCache<VisVersion, Promise<GmodDto>>;
     private readonly _gmodCache: LRUCache<VisVersion, Gmod>;
-    private readonly _codebooksDtoCache: LRUCache<VisVersion, CodebooksDto>;
+    private readonly _codebooksDtoCache: LRUCache<
+        VisVersion,
+        Promise<CodebooksDto>
+    >;
     private readonly _codebooksCache: LRUCache<VisVersion, Codebooks>;
 
     public constructor() {
@@ -28,13 +31,14 @@ export class VIS {
     };
 
     private async getGmodDto(visVersion: VisVersion): Promise<GmodDto> {
-        let gmodDto: GmodDto | undefined = this._gmodDtoCache.get(visVersion);
+        let gmodDto: Promise<GmodDto> | undefined =
+            this._gmodDtoCache.get(visVersion);
 
         if (gmodDto) {
-            return gmodDto;
+            return await gmodDto;
         }
 
-        gmodDto = await Client.visGetGmod(visVersion);
+        gmodDto = Client.visGetGmod(visVersion);
         this._gmodDtoCache.set(visVersion, gmodDto);
 
         return gmodDto;
@@ -90,11 +94,12 @@ export class VIS {
     private async getCodebooksDto(
         visVersion: VisVersion
     ): Promise<CodebooksDto> {
-        let codebooksDto: CodebooksDto | undefined =
+        let codebooksDto: Promise<CodebooksDto> | undefined =
             this._codebooksDtoCache.get(visVersion);
-        if (codebooksDto) return codebooksDto;
+        if (codebooksDto) return await codebooksDto;
 
-        codebooksDto = await Client.visGetCodebooks(visVersion);
+        codebooksDto = Client.visGetCodebooks(visVersion);
+
         this._codebooksDtoCache.set(visVersion, codebooksDto);
         return codebooksDto;
     }
