@@ -191,6 +191,16 @@ describe("LocalId", () => {
         });
     });
 
+    test("LocalId async parsing", async () => {
+        for (const s of parseTestData) {
+            const errorBuilder = new LocalIdParsingErrorBuilder();
+            const localId = await LocalIdBuilder.parseAsync(s, errorBuilder);
+
+            expect(localId).toBeTruthy();
+            expect(localId.toString()).toEqual(s);
+        }
+    });
+
     const invalidParseTestData: string =
         "/dnv-v2/vis-3-4a/1021.1i-3AC/H121/meta/qty-temperature/cnt-cargo/cal";
     test("LocalId invalid parsing", async () => {
@@ -205,7 +215,8 @@ describe("LocalId", () => {
             errorBuilder
         );
         expect(errorBuilder.hasError).toBeTruthy();
-        expect(localId).toBeUndefined();});
+        expect(localId).toBeUndefined();
+    });
 
     test("LocalId smoketest parsing", async () => {
         const gmod = await gmodPromise;

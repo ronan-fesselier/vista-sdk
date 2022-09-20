@@ -2,8 +2,8 @@ import { ShipId } from "..";
 import { LocalId } from "../../..";
 import { Version } from "./Version";
 
-export namespace DataChannel {
-    export type ListPackage = {
+export namespace DataChannelList {
+    export type DataChannelListPackage = {
         package: Package;
     };
 
@@ -17,7 +17,7 @@ export namespace DataChannel {
         dataChannelListId: ConfigurationReference;
         versionInformation?: VersionInformation;
         author?: string;
-        dateCreated: Date;
+        dateCreated?: Date;
         customHeaders?: { [k: string]: object };
     };
 

@@ -1,7 +1,7 @@
 import { ShipId, DataChannelId } from "..";
 
 export namespace TimeSeries {
-    export type DataPackage = {
+    export type TimeSeriesDataPackage = {
         package: Package;
     };
 
@@ -29,7 +29,7 @@ export namespace TimeSeries {
 
     export type TimeSeriesData = {
         dataConfiguration?: ConfigurationReference;
-        tabularData?: TabularData;
+        tabularData?: TabularData[];
         eventData?: EventData;
         customProperties?: { [k: string]: object };
     };
@@ -37,8 +37,8 @@ export namespace TimeSeries {
     export type TabularData = {
         numberOfDataSet?: string;
         numberOfDataChannel?: string;
-        dataChannelId?: DataChannelId;
-        dataSet?: TabularDataSet;
+        dataChannelId?: DataChannelId[];
+        dataSet?: TabularDataSet[];
     };
 
     export type TabularDataSet = {
@@ -49,7 +49,7 @@ export namespace TimeSeries {
 
     export type EventData = {
         numberOfDataSet?: string;
-        dataSet?: EventDataSet;
+        dataSet?: EventDataSet[];
     };
 
     export type EventDataSet = {

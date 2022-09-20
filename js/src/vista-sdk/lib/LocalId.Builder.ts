@@ -1,4 +1,3 @@
-
 import { CodebookName, CodebookNames } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
@@ -55,7 +54,7 @@ export class LocalIdBuilder {
     }
 
     public get hasCustomTag(): boolean {
-        return this.metadataTags.some(t => t.isCustom);
+        return this.metadataTags.some((t) => t.isCustom);
     }
 
     public get isEmpty(): boolean {
@@ -258,11 +257,12 @@ export class LocalIdBuilder {
     }
 
     public withoutMetadataTag(tagName: CodebookName): LocalIdBuilder {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        return this.with((s) => (s[CodebookNames.toString(tagName)] = undefined));
+        return this.with(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            (s) => (s[CodebookNames.toString(tagName)] = undefined)
+        );
     }
-
 
     public with(u: { (state: LocalIdBuilder): void }): LocalIdBuilder {
         const n = this.clone();
@@ -279,6 +279,13 @@ export class LocalIdBuilder {
         return LocalIdParser.parse(localIdStr, gmod, codebooks, errorBuilder);
     }
 
+    public static async parseAsync(
+        localIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return LocalIdParser.parseAsync(localIdString, errorBuilder);
+    }
+
     public static tryParse(
         localIdStr: string | undefined,
         gmod: Gmod,
@@ -291,5 +298,12 @@ export class LocalIdBuilder {
             codebooks,
             errorBuilder
         );
+    }
+
+    public static async tryParseAsync(
+        localIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return LocalIdParser.tryParseAsync(localIdString, errorBuilder);
     }
 }

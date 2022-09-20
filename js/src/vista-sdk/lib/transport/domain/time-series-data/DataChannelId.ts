@@ -88,12 +88,11 @@ export class DataChannelId {
         if (isNullOrWhiteSpace(value))
             throw new Error(`${this.parse.name}: value is null`);
 
-        const val = value!;
         let localId: LocalIdBuilder | undefined = undefined;
 
         if (
             (localId = LocalIdBuilder.tryParse(
-                val,
+                value,
                 gmod,
                 codebooks,
                 errorBuilder
@@ -101,7 +100,25 @@ export class DataChannelId {
         ) {
             return new DataChannelId(localId.build());
         } else {
-            return new DataChannelId(val);
+            return new DataChannelId(value);
+        }
+    }
+
+    public static async parseAsync(
+        value: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        if (isNullOrWhiteSpace(value))
+            throw new Error(`${this.parse.name}: value is null`);
+
+        let localId: LocalIdBuilder | undefined = undefined;
+
+        if (
+            (localId = await LocalIdBuilder.tryParseAsync(value, errorBuilder))
+        ) {
+            return new DataChannelId(localId.build());
+        } else {
+            return new DataChannelId(value);
         }
     }
 }

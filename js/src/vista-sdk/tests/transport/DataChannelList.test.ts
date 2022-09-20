@@ -1,21 +1,13 @@
-import { LocalId, LocalIdBuilder, VIS, VisVersion } from "../../lib";
-import { ShipId, DataChannel } from "../../lib/transport/domain";
+import { LocalId, LocalIdBuilder, VisVersion } from "../../lib";
+import { DataChannelList, ShipId } from "../../lib/transport/domain";
 import { Version } from "../../lib/transport/domain/data-channel/Version";
 
 describe("DataChannel", () => {
-    const vis = VIS.instance;
-    const visVersion = VisVersion.v3_4a;
-    const gmodPromise = vis.getGmod(visVersion);
-    const codebooksPromise = vis.getCodebooks(visVersion);
-
     const validLocalIdStr =
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/meta/qty-temperature/cnt-cooling.water/pos-inlet";
 
     test("Model", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-
-        const localId = LocalId.parse(validLocalIdStr, gmod, codebooks);
+        const localId = await LocalId.parseAsync(validLocalIdStr);
 
         const shipId = ShipId.parse("IMO1234567");
         const now = new Date();
@@ -23,7 +15,7 @@ describe("DataChannel", () => {
         const namingRule = LocalIdBuilder.namingRule;
         const version = Version.parse(VisVersion.v3_5a);
 
-        const dataChannelListPackage: DataChannel.ListPackage = {
+        const dataChannelListPackage: DataChannelList.DataChannelListPackage = {
             package: {
                 header: {
                     dataChannelListId: {
@@ -69,7 +61,7 @@ describe("DataChannel", () => {
                                         pattern: "pattern",
                                         totalDigits: "totalDigits",
                                         whiteSpace:
-                                            DataChannel.WhiteSpace.Collapse,
+                                            DataChannelList.WhiteSpace.Collapse,
                                     },
                                 },
                                 alertPriority: "alertPriority",

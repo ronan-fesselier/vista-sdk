@@ -1,3 +1,4 @@
+import { VIS, VisVersion, VisVersionExtension } from ".";
 import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
@@ -34,6 +35,17 @@ export class LocalIdParser {
             codebooks,
             errorBuilder
         );
+        if (!localId)
+            throw new Error("Couldn't parse local ID from: " + localIdStr);
+        return localId;
+    }
+
+    public static async parseAsync(
+        localIdStr: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ): Promise<LocalIdBuilder> {
+        const localId = await this.tryParseAsync(localIdStr, errorBuilder);
+
         if (!localId)
             throw new Error("Couldn't parse local ID from: " + localIdStr);
         return localId;
@@ -639,6 +651,56 @@ export class LocalIdParser {
         return !errorBuilder?.hasError && !invalidSecondaryItem
             ? builder
             : undefined;
+    }
+
+    public static async tryParseAsync(
+        localIdStr: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ): Promise<LocalIdBuilder | undefined> {
+        if (isNullOrWhiteSpace(localIdStr)) {
+            errorBuilder?.push(ParsingState.EmptyState);
+            return;
+        }
+
+        const versionSegmentStart = localIdStr.indexOf("vis-");
+        if (versionSegmentStart === -1) {
+            errorBuilder?.push({
+                message: "Failed to find version signature start 'vis-'",
+                type: ParsingState.VisVersion,
+            });
+            return;
+        }
+        const versionSegmentEnd = localIdStr
+            .slice(versionSegmentStart)
+            .indexOf("/");
+        if (versionSegmentStart === -1) {
+            errorBuilder?.push({
+                message: "Failed to find version signature end '/'",
+                type: ParsingState.VisVersion,
+            });
+            return;
+        }
+
+        const segment = localIdStr.slice(
+            versionSegmentStart,
+            versionSegmentStart + versionSegmentEnd
+        );
+
+        const version = VisVersions.tryParse(segment.replace("vis-", ""));
+
+        if (!version) {
+            errorBuilder?.push({
+                message:
+                    "Failed to parse VisVersion from segment found: " + segment,
+                type: ParsingState.VisVersion,
+            });
+            return;
+        }
+
+        const gmod = await VIS.instance.getGmod(version);
+        const codebooks = await VIS.instance.getCodebooks(version);
+
+        return this.tryParse(localIdStr, gmod, codebooks, errorBuilder);
     }
 
     private static parseMetatag(

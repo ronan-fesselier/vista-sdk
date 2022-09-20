@@ -62,4 +62,12 @@ export class LocalId {
             errorBuilder
         ).build();
     }
+    public static async parseAsync(
+        localIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return (
+            await LocalIdParser.parseAsync(localIdString, errorBuilder)
+        ).build();
+    }
 }
