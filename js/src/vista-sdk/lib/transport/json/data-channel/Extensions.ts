@@ -3,34 +3,13 @@ import { DataChannelList, ShipId } from "../../domain";
 import { Version } from "../../domain/data-channel/Version";
 import { DataChannelListDto } from "./DataChannelList";
 
-export class Extensions {
+abstract class IExtension {
+    public static toJsonDto: <Domain, Dto>(domain: Domain) => Dto;
+    public static toDomainModel: <Domain, Dto>(dto: Dto) => Domain;
+}
+
+export class Extensions implements IExtension {
     public static toJsonDto(
-        domain:
-            | DataChannelList.DataChannelListPackage
-            | DataChannelList.DataChannel
-    ) {
-        if ("package" in domain) {
-            return this.toDataChannelListPackageDtoModel(domain);
-        }
-        if ("dataChannelId" in domain) {
-            return this.toDataChannelDtoModel(domain);
-        }
-    }
-
-    public static toDomainModel(
-        dto:
-            | DataChannelListDto.DataChannelListPackage
-            | DataChannelListDto.DataChannel
-    ) {
-        if ("Package" in dto) {
-            return this.toDataChannelListPackageDomainModel(dto);
-        }
-        if ("DataChannelID" in dto) {
-            return this.toDataChannelDomainModel(dto);
-        }
-    }
-
-    private static toDataChannelListPackageDtoModel(
         domain: DataChannelList.DataChannelListPackage
     ): DataChannelListDto.DataChannelListPackage {
         const p = domain.package;
@@ -58,13 +37,14 @@ export class Extensions {
                 },
                 DataChannelList: {
                     DataChannel: p.dataChannelList.dataChannel.map(
-                        this.toDataChannelDtoModel
+                        DataChannelExtension.toJsonDto
                     ),
                 },
             },
         };
     }
-    private static async toDataChannelListPackageDomainModel(
+
+    public static async toDomainModel(
         dto: DataChannelListDto.DataChannelListPackage
     ): Promise<DataChannelList.DataChannelListPackage> {
         const p = dto.Package;
@@ -73,7 +53,7 @@ export class Extensions {
         const dataChannels: DataChannelList.DataChannel[] = [];
 
         for (let c of p.DataChannelList.DataChannel) {
-            const dc = await this.toDataChannelDomainModel(c);
+            const dc = await DataChannelExtension.toDomainModel(c);
             dataChannels.push(dc);
         }
 
@@ -104,8 +84,10 @@ export class Extensions {
             },
         };
     }
+}
 
-    private static toDataChannelDtoModel(
+export class DataChannelExtension {
+    public static toJsonDto(
         c: DataChannelList.DataChannel
     ): DataChannelListDto.DataChannel {
         return {
@@ -174,7 +156,7 @@ export class Extensions {
         };
     }
 
-    private static async toDataChannelDomainModel(
+    public static async toDomainModel(
         c: DataChannelListDto.DataChannel
     ): Promise<DataChannelList.DataChannel> {
         const localId = await LocalId.parseAsync(c.DataChannelID.LocalID);

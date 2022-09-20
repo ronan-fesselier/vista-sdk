@@ -1,2 +1,2 @@
 export { DataChannelListDto } from "./DataChannelList";
-export { Extensions } from "./Extensions";
+export { Extensions, DataChannelExtension } from "./Extensions";

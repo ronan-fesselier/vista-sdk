@@ -1,6 +1,7 @@
 import {
     Extensions as DataChannelListExtensions,
     DataChannelListDto,
+    DataChannelExtension,
 } from "./data-channel";
 import {
     Extensions as TimeSeriesExtensions,
@@ -10,6 +11,7 @@ import {
 class JSONExtensions {
     static TimeSeries = TimeSeriesExtensions;
     static DataChannelList = DataChannelListExtensions;
+    static DataChannel = DataChannelExtension;
 }
 
 export { JSONExtensions };
