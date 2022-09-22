@@ -37,6 +37,10 @@ export class LocalId {
         return this._builder.hasCustomTag;
     }
 
+    public get visVersion() {
+        return this._builder.visVersion!;
+    }
+
     public get primaryItem(): GmodPath {
         return this._builder.primaryItem!;
     }

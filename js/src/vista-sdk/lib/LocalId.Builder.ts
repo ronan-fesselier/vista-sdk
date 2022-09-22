@@ -99,7 +99,7 @@ export class LocalIdBuilder {
         return errorBuilder;
     }
 
-    public equals(other?: LocalIdBuilder): boolean {
+    public equals(other?: LocalIdBuilder, skipOther = false): boolean {
         if (!other) return false;
         if (this.visVersion !== other.visVersion)
             throw new Error(
@@ -116,7 +116,8 @@ export class LocalIdBuilder {
             (this.state?.equals(other.state) ?? true) &&
             (this.command?.equals(other.command) ?? true) &&
             (this.type?.equals(other.type) ?? true) &&
-            (this.detail?.equals(other.detail) ?? true)
+            (this.detail?.equals(other.detail) ?? true) &&
+            (skipOther ? true : other.equals(this, true))
         );
     }
 

@@ -285,4 +285,16 @@ describe("LocalId", () => {
             }
         );
     });
+
+    test("LocalId Metadata Equality", async () => {
+        const t1 = await LocalIdBuilder.parseAsync(
+            "/dnv-v2/vis-3-4a/087/meta/qty-time/detail-one.more"
+        );
+        const t2 = await LocalIdBuilder.parseAsync(
+            "/dnv-v2/vis-3-4a/087/meta/qty-time"
+        );
+
+        expect(t1.equals(t2)).toEqual(false);
+        expect(t2.equals(t1)).toEqual(false);
+    });
 });
