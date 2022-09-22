@@ -111,7 +111,7 @@ export class DataChannelExtension {
                 },
                 Format: {
                     Type: c.property.format.type,
-                    Restriction: {
+                    Restriction: c.property.format.restriction && {
                         Enumeration: c.property.format.restriction.enumeration,
                         FractionDigits:
                             c.property.format.restriction.fractionDigits,
@@ -179,25 +179,25 @@ export class DataChannelExtension {
                 },
                 format: {
                     type: c.Property.Format.Type,
-                    restriction: {
-                        enumeration: c.Property.Format.Restriction?.Enumeration,
+                    restriction: c.Property.Format.Restriction && {
+                        enumeration: c.Property.Format.Restriction.Enumeration,
                         fractionDigits:
-                            c.Property.Format.Restriction?.FractionDigits,
-                        length: c.Property.Format.Restriction?.Length,
+                            c.Property.Format.Restriction.FractionDigits,
+                        length: c.Property.Format.Restriction.Length,
                         maxExclusive:
-                            c.Property.Format.Restriction?.MaxExclusive,
+                            c.Property.Format.Restriction.MaxExclusive,
                         maxInclusive:
-                            c.Property.Format.Restriction?.MaxInclusive,
+                            c.Property.Format.Restriction.MaxInclusive,
                         maxLength: c.Property.Format.Restriction?.MaxLength,
                         minExclusive:
-                            c.Property.Format.Restriction?.MinExclusive,
+                            c.Property.Format.Restriction.MinExclusive,
                         minInclusive:
-                            c.Property.Format.Restriction?.MinInclusive,
-                        minLength: c.Property.Format.Restriction?.MinLength,
-                        pattern: c.Property.Format.Restriction?.Pattern,
-                        totalDigits: c.Property.Format.Restriction?.TotalDigits,
+                            c.Property.Format.Restriction.MinInclusive,
+                        minLength: c.Property.Format.Restriction.MinLength,
+                        pattern: c.Property.Format.Restriction.Pattern,
+                        totalDigits: c.Property.Format.Restriction.TotalDigits,
                         whiteSpace: c.Property.Format.Restriction
-                            ?.WhiteSpace as unknown as DataChannelList.WhiteSpace,
+                            .WhiteSpace as unknown as DataChannelList.WhiteSpace,
                     },
                 },
                 range: c.Property.Range && {

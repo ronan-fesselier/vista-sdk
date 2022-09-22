@@ -67,7 +67,7 @@ export namespace DataChannelList {
 
     export type Format = {
         type: string;
-        restriction: Restriction;
+        restriction?: Restriction;
     };
 
     export type Range = {
