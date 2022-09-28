@@ -236,4 +236,7 @@ public sealed class VIS : IVIS
         GmodPath sourcePath,
         VisVersion targetVersion
     ) => GetGmodVersioning().ConvertPath(sourceVersion, sourcePath, targetVersion);
+
+    public LocalIdBuilder? ConvertLocalId(LocalIdBuilder sourceLocalId, VisVersion targetVersion) =>
+        GetGmodVersioning().ConvertLocalId(sourceLocalId, targetVersion);
 }

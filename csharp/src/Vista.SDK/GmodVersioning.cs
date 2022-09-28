@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Vista.SDK;
@@ -50,6 +49,50 @@ internal sealed class GmodVersioning
         {
             Location = sourceNode.Location
         };
+    }
+
+    public LocalIdBuilder? ConvertLocalId(LocalIdBuilder sourceLocalId, VisVersion targetVersion)
+    {
+        if (sourceLocalId.VisVersion is null)
+            throw new InvalidOperationException(
+                "Cant convert local ID without a specific VIS version"
+            );
+
+        var targetLocalId = LocalIdBuilder.Create(targetVersion);
+
+        if (sourceLocalId.PrimaryItem is not null)
+        {
+            var targetPrimaryitem = ConvertPath(
+                sourceLocalId.VisVersion.Value,
+                sourceLocalId.PrimaryItem,
+                targetVersion
+            );
+            if (targetPrimaryitem is null)
+                return null;
+            targetLocalId = targetLocalId.WithPrimaryItem(targetPrimaryitem);
+        }
+        if (sourceLocalId.SecondaryItem is not null)
+        {
+            var targetSecondaryitem = ConvertPath(
+                sourceLocalId.VisVersion.Value,
+                sourceLocalId.SecondaryItem,
+                targetVersion
+            );
+            if (targetSecondaryitem is null)
+                return null;
+            targetLocalId = targetLocalId.WithSecondaryItem(targetSecondaryitem);
+        }
+
+        return targetLocalId
+            .WithVerboseMode(sourceLocalId.VerboseMode)
+            .TryWithMetadataTag(sourceLocalId.Quantity)
+            .TryWithMetadataTag(sourceLocalId.Content)
+            .TryWithMetadataTag(sourceLocalId.Calculation)
+            .TryWithMetadataTag(sourceLocalId.State)
+            .TryWithMetadataTag(sourceLocalId.Command)
+            .TryWithMetadataTag(sourceLocalId.Type)
+            .TryWithMetadataTag(sourceLocalId.Position)
+            .TryWithMetadataTag(sourceLocalId.Detail);
     }
 
     public GmodPath? ConvertPath(

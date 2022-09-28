@@ -190,4 +190,22 @@ public class GmodVersioningTests
         Assert.Equal(expectedNode.Location, targetNode?.Location);
         Assert.Equal(expectedNode, targetNode);
     }
+
+    [Theory]
+    [InlineData(
+        "/dnv-v2/vis-3-4a/411.1/C101/sec/411.1/C101.64i/S201/meta/cnt-condensate",
+        "/dnv-v2/vis-3-5a/411.1/C101/sec/411.1/C101.64/S201/meta/cnt-condensate"
+    )]
+    public void ConvertLocalId(string sourceLocalIdStr, string targetLocalIdStr)
+    {
+        var sourceLocalId = LocalIdBuilder.Parse(sourceLocalIdStr);
+        var targetLocalId = LocalIdBuilder.Parse(targetLocalIdStr);
+
+        var convertedLocalId = VIS.Instance.ConvertLocalId(
+            sourceLocalId,
+            targetLocalId.VisVersion!.Value
+        );
+        Assert.Equal(targetLocalId, convertedLocalId);
+        Assert.Equal(targetLocalIdStr, convertedLocalId!.ToString());
+    }
 }
