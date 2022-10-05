@@ -10,7 +10,7 @@ import { Codebooks } from "./Codebooks";
 export class VIS {
     public static readonly instance = new VIS();
 
-    public static readonly LatestVisVersion: VisVersion = VisVersion.v3_5a;
+    public static readonly latestVisVersion: VisVersion = VisVersion.v3_5a;
 
     private readonly _gmodDtoCache: LRUCache<VisVersion, Promise<GmodDto>>;
     private readonly _gmodCache: LRUCache<VisVersion, Gmod>;
