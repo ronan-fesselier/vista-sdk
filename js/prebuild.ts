@@ -4,7 +4,7 @@ import { VisGenerator } from "./lib/source-generator/VisGenerator";
 
 module.exports = (async () => {
     /* Copy resources */
-    const resourceDir = "../../../resources";
+    const resourceDir = "../resources";
     if (fs.existsSync(resourceDir)) {
         console.log("> Copy resource dir");
         fs.copySync(resourceDir, EmbeddedResource.RESOURCE_DIR, {
@@ -24,6 +24,3 @@ module.exports = (async () => {
 
     fs.writeFileSync(out_path, file);
 })();
-
-
-
