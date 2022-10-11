@@ -1,3 +1,4 @@
+import { VIS, VisVersion } from ".";
 import { Gmod } from "./Gmod";
 import { GmodNode } from "./GmodNode";
 import { TraversalHandlerResult } from "./types/Gmod";
@@ -280,6 +281,32 @@ export class GmodPath {
         return path;
     }
 
+    public static async parseAsync(
+        item: string,
+        visVersion: VisVersion
+    ): Promise<GmodPath> {
+        const path = await this.tryParseAsync(item, visVersion);
+
+        if (!path) {
+            throw new Error("Couldn't parse path from full path");
+        }
+
+        return path;
+    }
+
+    public static async parseAsyncFromFullPath(
+        item: string,
+        visVersion: VisVersion
+    ): Promise<GmodPath> {
+        const path = await this.tryParseFromFullPathAsync(item, visVersion);
+
+        if (!path) {
+            throw new Error("Couldn't parse path from full path");
+        }
+
+        return path;
+    }
+
     public static tryParseFromFullPath(
         item: string,
         gmod: Gmod
@@ -303,6 +330,21 @@ export class GmodPath {
             parts.map((p) => gmod.getNode(p)),
             endNode
         );
+    }
+
+    public static async tryParseAsync(item: string, visVersion: VisVersion) {
+        const gmod = await VIS.instance.getGmod(visVersion);
+
+        return this.tryParse(item, gmod);
+    }
+
+    public static async tryParseFromFullPathAsync(
+        item: string,
+        visVersion: VisVersion
+    ) {
+        const gmod = await VIS.instance.getGmod(visVersion);
+
+        return this.tryParseFromFullPath(item, gmod);
     }
 
     public isValid(): boolean {

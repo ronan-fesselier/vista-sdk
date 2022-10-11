@@ -1,3 +1,4 @@
+import { VIS } from ".";
 import { Codebook } from "./Codebook";
 import { CodebookName } from "./CodebookName";
 import { MetadataTag } from "./MetadataTag";
@@ -43,5 +44,27 @@ export class Codebooks {
 
     public createTag(name: CodebookName, value?: string): MetadataTag {
         return this.getCodebook(name).createTag(value);
+    }
+
+    public static async tryCreateTagAsync(
+        name: CodebookName,
+        value: string,
+        visVersion: VisVersion
+    ) {
+        const codebook = await VIS.instance.getCodebooks(visVersion);
+
+        return codebook.tryCreateTag(name, value);
+    }
+
+    public static async createTagAsync(
+        name: CodebookName,
+        value: string,
+        visVersion: VisVersion
+    ) {
+        const tag = await this.tryCreateTagAsync(name, value, visVersion);
+
+        if (!tag) throw new Error("Failed to create metadata tag");
+
+        return tag;
     }
 }
