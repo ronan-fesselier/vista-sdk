@@ -1,5 +1,5 @@
 import { ImoNumber, LocalId, Pmod, VIS, VisVersion } from "../lib";
-import * as testData from "../../../../testdata/ImoNumbers.json";
+import * as testData from "../../testdata/ImoNumbers.json";
 
 describe("ImoNumbers", () => {
     it.each(testData.imoNumbers)('validate', ({ value, success, output }) => {

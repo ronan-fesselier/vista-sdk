@@ -1,5 +1,5 @@
 import { ImoNumber, LocalId, Pmod, VIS, VisVersion } from "../lib";
-import * as testData from "../../../../testdata/PmodData.json";
+import * as testData from "../../testdata/PmodData.json";
 
 describe("Pmod", () => {
     const vis = VIS.instance;

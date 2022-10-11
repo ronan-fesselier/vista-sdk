@@ -64,6 +64,13 @@ export class UniversalIdBuilder {
         );
     }
 
+    public static async parseAsync(
+        universalIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return UniversalIdParser.parseAsync(universalIdString, errorBuilder);
+    }
+
     public static tryParse(
         universalId: string,
         gmod: Gmod,
@@ -76,6 +83,13 @@ export class UniversalIdBuilder {
             codebooks,
             errorBuilder
         );
+    }
+
+    public static async tryParseAsync(
+        universalIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return UniversalIdParser.tryParseAsync(universalIdString, errorBuilder);
     }
 
     public build(): UniversalId {

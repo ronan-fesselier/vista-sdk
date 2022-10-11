@@ -2,7 +2,7 @@ import { VisVersion, LocalIdBuilder, CodebookName } from "../lib";
 import { LocalIdParsingErrorBuilder } from "../lib/internal/LocalIdParsingErrorBuilder";
 import { VIS } from "../lib/VIS";
 import * as fs from "fs-extra";
-import * as InvalidData from "../../../../testdata/InvalidLocalIds.json";
+import * as InvalidData from "../../testdata/InvalidLocalIds.json";
 import readline from "readline";
 
 type Input = {
@@ -26,7 +26,7 @@ describe("LocalId", () => {
     const visVersion = VisVersion.v3_4a;
     const gmodPromise = vis.getGmod(visVersion);
     const codebooksPromise = vis.getCodebooks(visVersion);
-    const testDataPath = "../../../testdata/LocalIds.txt";
+    const testDataPath = "../testdata/LocalIds.txt";
 
     const createInput = (
         primaryItem: string,

@@ -4,6 +4,7 @@ import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
 import { GmodPath } from "./GmodPath";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
+import { parseVisVersion } from "./internal/Parsing";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { MetadataTag } from "./MetadataTag";
 import { ParsingState } from "./types/LocalId";
@@ -657,45 +658,9 @@ export class LocalIdParser {
         localIdStr: string | undefined,
         errorBuilder?: LocalIdParsingErrorBuilder
     ): Promise<LocalIdBuilder | undefined> {
-        if (isNullOrWhiteSpace(localIdStr)) {
-            errorBuilder?.push(ParsingState.EmptyState);
+        const version = parseVisVersion(localIdStr, errorBuilder);
+        if (!version)
             return;
-        }
-
-        const versionSegmentStart = localIdStr.indexOf("vis-");
-        if (versionSegmentStart === -1) {
-            errorBuilder?.push({
-                message: "Failed to find version signature start 'vis-'",
-                type: ParsingState.VisVersion,
-            });
-            return;
-        }
-        const versionSegmentEnd = localIdStr
-            .slice(versionSegmentStart)
-            .indexOf("/");
-        if (versionSegmentStart === -1) {
-            errorBuilder?.push({
-                message: "Failed to find version signature end '/'",
-                type: ParsingState.VisVersion,
-            });
-            return;
-        }
-
-        const segment = localIdStr.slice(
-            versionSegmentStart,
-            versionSegmentStart + versionSegmentEnd
-        );
-
-        const version = VisVersions.tryParse(segment.replace("vis-", ""));
-
-        if (!version) {
-            errorBuilder?.push({
-                message:
-                    "Failed to parse VisVersion from segment found: " + segment,
-                type: ParsingState.VisVersion,
-            });
-            return;
-        }
 
         const gmod = await VIS.instance.getGmod(version);
         const codebooks = await VIS.instance.getCodebooks(version);
