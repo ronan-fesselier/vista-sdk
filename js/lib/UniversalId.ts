@@ -42,4 +42,13 @@ export class UniversalId {
             UniversalIdBuilder.parse(universalId, gmod, codebooks, errorBuilder)
         );
     }
+
+    public static async parseAsync(
+        universalIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        return (
+            await UniversalIdBuilder.parseAsync(universalIdString, errorBuilder)
+        ).build();
+    }
 }

@@ -6,7 +6,9 @@ import {
     ParsingState,
     ImoNumber,
     LocalIdBuilder,
+    VIS,
 } from ".";
+import { parseVisVersion } from "./internal/Parsing";
 
 export class UniversalIdParser {
     public static parse(
@@ -106,5 +108,31 @@ export class UniversalIdParser {
             .withLocalId(localIdBuilder);
 
         return builder;
+    }
+
+    public static async parseAsync(
+        universalIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        var universalId = await this.tryParseAsync(universalIdString, errorBuilder);
+
+        if (!universalId)
+            throw new Error("Couldn't parse local ID from: " + universalIdString);
+
+        return universalId;
+    }
+
+    public static async tryParseAsync(
+        universalIdString: string | undefined,
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ) {
+        const version = parseVisVersion(universalIdString, errorBuilder);
+        if (!version)
+            return;
+
+        const gmod = await VIS.instance.getGmod(version);
+        const codebooks = await VIS.instance.getCodebooks(version);
+
+        return this.tryParse(universalIdString!, gmod, codebooks, errorBuilder);
     }
 }

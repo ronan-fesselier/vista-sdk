@@ -5,7 +5,7 @@ import { VistaJSONSerializer } from "../../lib";
 describe("Transport JSON", () => {
     test("DataChannelList Extensions", async () => {
         const testDataPath =
-            "../../../schemas/json/DataChannelList.sample.json";
+            "../schemas/json/DataChannelList.sample.json";
         const sample = await fs
             .readFile(testDataPath)
             .then((res) => res.toString());
@@ -23,7 +23,7 @@ describe("Transport JSON", () => {
     });
 
     test("TimeSeries Extensions", async () => {
-        const testDataPath = "../../../schemas/json/TimeSeriesData.sample.json";
+        const testDataPath = "../schemas/json/TimeSeriesData.sample.json";
         const sample = await fs
             .readFile(testDataPath)
             .then((res) => res.toString());
