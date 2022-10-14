@@ -15,6 +15,7 @@ export enum ParsingState {
     // For "other" errors
     EmptyState = 100,
     Formatting = 101,
+    Completeness = 102,
     // UniversalId parsing states
     NamingEntity = 200,
     IMONumber = 201,

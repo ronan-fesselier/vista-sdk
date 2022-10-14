@@ -164,7 +164,6 @@ describe("LocalId", () => {
     });
 
     const parseTestData = [
-        "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta",
         "/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking",
         "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         "/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
@@ -278,6 +277,7 @@ describe("LocalId", () => {
                     errorBuilder
                 );
 
+                expect(localId).toBeUndefined();
                 expect(errorBuilder.errors.length).not.toEqual(0);
                 expect(errorBuilder.errors.length).toEqual(
                     expectedErrorMessages.length

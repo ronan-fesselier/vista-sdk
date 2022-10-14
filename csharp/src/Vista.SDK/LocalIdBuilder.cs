@@ -161,6 +161,16 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             && Detail is null
         );
 
+    public bool IsEmptyMetadata =>
+        Quantity is null
+        && Calculation is null
+        && Content is null
+        && Position is null
+        && State is null
+        && Command is null
+        && Type is null
+        && Detail is null;
+
     public bool Equals(LocalIdBuilder? other)
     {
         if (other is null)

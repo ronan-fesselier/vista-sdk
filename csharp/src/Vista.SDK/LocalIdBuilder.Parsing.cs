@@ -515,6 +515,15 @@ public sealed partial record class LocalIdBuilder
             .TryWithMetadataTag(in pos)
             .TryWithMetadataTag(in detail);
 
+        if (localId.IsEmptyMetadata)
+        {
+            AddError(
+                ref errorBuilder,
+                ParsingState.Completeness,
+                "No metadata tags specified. Local IDs require atleast 1 metadata tag."
+            );
+        }
+
         return (!errorBuilder.HasError && !invalidSecondaryItem);
 
         static bool ParseMetatag(

@@ -15,17 +15,6 @@ public class LocalIdTests
         bool Verbose = false
     );
 
-    //public static readonly Input TestInput = new Input("411.1/C101.31-2", null, "temperature", "exhaust.gas", "inlet");
-
-    //public static readonly LocalId TestLocalId = LocalId
-    //        .Create(visVersion)
-    //        .WithPrimaryItem(primaryItem)
-    //        .WithSecondaryItem(secondaryItem)
-    //        .WithVerboseMode(TestInput.Verbose)
-    //        .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, TestInput.Quantity))
-    //        .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, TestInput.Content))
-    //        .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, TestInput.Position));
-
     public static IEnumerable<object[]> Valid_Test_Data =>
         new object[][]
         {
@@ -203,7 +192,6 @@ public class LocalIdTests
     }
 
     [Theory]
-    [InlineData("/dnv-v2/vis-3-4a/411.1/C101.31-2/meta")]
     [InlineData("/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking")]
     [InlineData("/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage")]
     [InlineData("/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened")]

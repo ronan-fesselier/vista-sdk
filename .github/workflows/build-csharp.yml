@@ -2,11 +2,11 @@ name: .NET Package
 
 on:
   push:
-    branches: [ main ]
-    paths: [ csharp/** ]
+    branches: [main]
+    paths: [csharp/**]
   pull_request:
-    branches: [ main ]
-    paths: [ csharp/** ]
+    branches: [main]
+    paths: [csharp/**]
 
 env:
   CI_BUILD: true
@@ -25,7 +25,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v2
         with:
-            global-json-file: csharp/global.json
+          global-json-file: csharp/global.json
 
       - name: Install dependencies
         run: dotnet restore Build.csproj

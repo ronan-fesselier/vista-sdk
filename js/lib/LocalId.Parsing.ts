@@ -649,6 +649,14 @@ export class LocalIdParser {
             .tryWithMetadataTag(pos)
             .tryWithMetadataTag(detail);
 
+        if (builder.isEmptyMetadata) {
+            errorBuilder?.push({
+                type: ParsingState.Completeness,
+                message:
+                "No metadata tags specified. Local IDs require atleast 1 metadata tag.",
+            });
+        }
+
         return !errorBuilder?.hasError && !invalidSecondaryItem
             ? builder
             : undefined;

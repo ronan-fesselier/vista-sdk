@@ -98,6 +98,18 @@
             "expectedErrorMessages": [
                 "Invalid Quantity metadata tag: 'content'. Use prefix '~' for custom values"
             ]
+        },
+        {
+            "input": "/dnv-v2/vis-3-4a/411.1/C101/meta/",
+            "expectedErrorMessages": [
+                "No metadata tags specified. Local IDs require atleast 1 metadata tag."
+            ]
+        },
+        {
+            "input": "/dnv-v2/vis-3-4a/411.1/C101/meta",
+            "expectedErrorMessages": [
+                "No metadata tags specified. Local IDs require atleast 1 metadata tag."
+            ]
         }
     ]
 }
