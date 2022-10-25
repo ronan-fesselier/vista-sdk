@@ -43,6 +43,10 @@ export class Codebook {
         return this._standardValues;
     }
 
+    public get groupMap() {
+        return this._groupMap;
+    }
+
     public hasGroup(group: string): boolean {
         return this._groups.contains(group);
     }
@@ -83,7 +87,30 @@ export class Codebook {
         return tag;
     }
 
-    public validatePosition(position: string): PositionValidationResult {
+    public static isValidTag(
+        name: CodebookName,
+        value: string,
+        codebook: Codebook
+    ) {
+        if (!value || isNullOrWhiteSpace(value)) return false;
+
+        if (name === CodebookName.Position) {
+            if (this.validatePositionInternal(value, codebook) < 100)
+                return false;
+        } else {
+            if (![...value].every((c) => Codebook.tagAlphabet.includes(c)))
+                return false;
+        }
+        return true;
+    }
+
+    public validatePosition(position: string) {
+        return Codebook.validatePositionInternal(position, this);
+    }
+    private static validatePositionInternal(
+        position: string,
+        codebook: Codebook
+    ): PositionValidationResult {
         if (isNullOrWhiteSpace(position))
             return PositionValidationResult.Invalid;
 
@@ -97,7 +124,7 @@ export class Codebook {
         )
             return PositionValidationResult.Invalid;
 
-        if (this._standardValues.contains(position))
+        if (codebook.standardValues.contains(position))
             return PositionValidationResult.Valid;
 
         if (typeof tryParseInt(position) === "number")
@@ -108,7 +135,9 @@ export class Codebook {
         const positions = position.split("-");
         const validations: PositionValidationResult[] = [];
         for (const positionStr of positions) {
-            validations.push(this.validatePosition(positionStr));
+            validations.push(
+                this.validatePositionInternal(positionStr, codebook)
+            );
         }
 
         if (!!validations.find((v) => v < 100)) return Math.max(...validations);
@@ -128,7 +157,7 @@ export class Codebook {
 
         if (validations.every((v) => v === PositionValidationResult.Valid)) {
             const groups = positions.map((p) =>
-                tryParseInt(p) ? "<number>" : this._groupMap.get(p) ?? ""
+                tryParseInt(p) ? "<number>" : codebook.groupMap.get(p) ?? ""
             );
 
             const groupsSet = new Set<string>(groups);

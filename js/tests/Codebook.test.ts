@@ -1,5 +1,5 @@
 import { VisVersion, CodebookName } from "../lib";
-import { PositionValidationResult } from "../lib/Codebook";
+import { Codebook, PositionValidationResult } from "../lib/Codebook";
 import { VIS } from "../lib/VIS";
 
 describe("Codebooks", () => {
@@ -128,5 +128,17 @@ describe("Codebooks", () => {
 
         expect(() => codebook.createTag("something!")).toThrow();
         expect(() => codebook.createTag("something<")).toThrow();
+    });
+
+    const testCases: [CodebookName, string, boolean][] = [
+        [CodebookName.Position, "aft", true],
+        [CodebookName.Quantity, "test", true],
+        [CodebookName.Position, "Aft", false],
+    ];
+    test.each(testCases)("IsValid", async (name, value, valid) => {
+        const codebooks = await codebooksPromise;
+        const codebook = codebooks.getCodebook(name);
+
+        expect(Codebook.isValidTag(name, value, codebook)).toEqual(valid);
     });
 });
