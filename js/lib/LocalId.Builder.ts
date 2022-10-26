@@ -72,12 +72,12 @@ export class LocalIdBuilder {
     public get metadataTags(): MetadataTag[] {
         const metaDataList = [
             this.quantity,
-            this.position,
             this.content,
             this.calculation,
+            this.state,
             this.command,
             this.type,
-            this.state,
+            this.position,
             this.detail,
         ];
         return metaDataList.filter((m) => m) as MetadataTag[];
