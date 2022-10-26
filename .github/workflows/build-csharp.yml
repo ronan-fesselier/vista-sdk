@@ -3,10 +3,10 @@ name: .NET Package
 on:
   push:
     branches: [main]
-    paths: [csharp/**]
+    paths: ["csharp/**", ".github/workflows/build-csharp.yml"]
   pull_request:
     branches: [main]
-    paths: [csharp/**]
+    paths: ["csharp/**", ".github/workflows/build-csharp.yml"]
 
 env:
   CI_BUILD: true
