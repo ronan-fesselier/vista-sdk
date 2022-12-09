@@ -39,6 +39,7 @@ export class UniversalIdBuilder {
     }
 
     public validate(
+        locations: Locations,
         errorBuilder = new LocalIdParsingErrorBuilder()
     ): LocalIdParsingErrorBuilder {
         if (!this.imoNumber?.isValid) {
@@ -47,7 +48,7 @@ export class UniversalIdBuilder {
                 message: "Missing or invalid IMO number",
             });
         }
-        this._localId?.validate(errorBuilder);
+        this._localId?.validate(locations, errorBuilder);
         return errorBuilder;
     }
 

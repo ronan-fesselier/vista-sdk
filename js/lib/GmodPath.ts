@@ -162,6 +162,15 @@ export class GmodPath {
         }
         return commonNames;
     }
+
+    public isValid(locations: Locations): boolean {
+        // so far only validates the location
+        return (
+            locations.isValid(this.node.location) &&
+            this.parents.every((p) => locations.isValid(p.location))
+        );
+    }
+
     public static parse(
         item: string,
         locations: Locations,

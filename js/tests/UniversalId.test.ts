@@ -30,7 +30,6 @@ describe("UniversalId", () => {
         const locations = await locationsPromise;
 
         validTestData.forEach((testData) => {
-            console.log(testData);
             const errorBuilder = new LocalIdParsingErrorBuilder();
             const universalId = UniversalId.parse(
                 testData,
@@ -39,9 +38,8 @@ describe("UniversalId", () => {
                 locations,
                 errorBuilder
             );
-
             expect(universalId.imoNumber.value).toBe(1234567);
-            expect(universalId.builder.localId?.isValid).toBe(true);
+            expect(universalId.builder.localId?.isValid(locations)).toBe(true);
             expect(universalId.builder.isValid).toBe(true);
             expect(errorBuilder.errors.length).toBe(0);
         });
@@ -88,7 +86,7 @@ describe("UniversalId", () => {
             );
 
             expect(universalIdBuilder).toBeTruthy();
-            expect(universalIdBuilder?.localId?.isValid).toBe(
+            expect(universalIdBuilder?.localId?.isValid(locations)).toBe(
                 data.validLocalId
             );
             expect(errorBuilder.errors).toHaveLength(data.numErrors);

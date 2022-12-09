@@ -80,4 +80,16 @@ export class LocalIdItems {
             builder.push(location);
         }
     }
+
+    public map<T>(func: (item: GmodPath | undefined) => T) {
+        return [this.primaryItem, this.secondaryItem].map(func);
+    }
+
+    public every(func: (item: GmodPath | undefined) => boolean) {
+        return [this.primaryItem, this.secondaryItem].every(func);
+    }
+
+    public some(func: (item: GmodPath | undefined) => boolean) {
+        return [this.primaryItem, this.secondaryItem].some(func);
+    }
 }

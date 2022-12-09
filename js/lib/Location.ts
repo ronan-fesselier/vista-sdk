@@ -39,8 +39,12 @@ export class Locations {
         }
     }
 
-    public isValid(location: string | undefined): boolean {
-        if (!location || isNullOrWhiteSpace(location)) return false;
+    public isValid(nodeLocation: Location | string | undefined): boolean {
+        const location =
+            typeof nodeLocation === "string"
+                ? nodeLocation
+                : nodeLocation?.toString();
+        if (!location || isNullOrWhiteSpace(location)) return true;
         if (location.trim().length !== location.length) return false;
         const locationWithoutNumber = [...location].filter(
             (l) => !(typeof tryParseInt(l) === "number")
