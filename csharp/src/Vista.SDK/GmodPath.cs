@@ -412,10 +412,15 @@ public sealed record GmodPath
                 if (startNode is null)
                     throw new Exception("Found invalid place");
 
+                if (startNode.Parents.Count > 1)
+                    return TraversalHandlerResult.Stop;
+
                 while (startNode.Parents.Count == 1)
                 {
                     pathParents.Insert(0, startNode);
                     startNode = startNode.Parents[0];
+                    if (startNode.Parents.Count > 1)
+                        return TraversalHandlerResult.Stop;
                 }
 
                 pathParents.Insert(0, gmod.RootNode);

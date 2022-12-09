@@ -257,11 +257,17 @@ export class GmodPath {
                         : endNode.parents.length === 1
                         ? endNode.parents[0]
                         : undefined;
+
                 if (!startNode) throw new Error("Couldnt find start node");
+
+                if (startNode.parents.length > 1)
+                    return TraversalHandlerResult.Stop;
 
                 while (startNode.parents.length === 1) {
                     pathParents.unshift(startNode);
                     startNode = startNode.parents[0];
+                    if (startNode.parents.length > 1)
+                        return TraversalHandlerResult.Stop;
                 }
 
                 pathParents.unshift(gmod.rootNode);

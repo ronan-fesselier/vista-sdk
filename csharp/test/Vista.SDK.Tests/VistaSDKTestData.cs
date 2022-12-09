@@ -21,8 +21,15 @@ public class VistaSDKTestData
     public static IEnumerable<object[]> AddInvalidLocalIdsData() =>
         AddInvalidLocalId(LocalIdTestData);
 
+    public static IEnumerable<object[]> AddValidGmodPathsData() =>
+        AddValidGmodPathsData(GmodPathTestData);
+
+    public static IEnumerable<object[]> AddInvalidGmodPathsData() =>
+        AddInvalidGmodPathsData(GmodPathTestData);
+
     private static CodebookTestData CodebookTestData => GetData<CodebookTestData>("Codebook");
     private static LocalIdTestData LocalIdTestData => GetData<LocalIdTestData>("InvalidLocalIds");
+    private static GmodPathTestData GmodPathTestData => GetData<GmodPathTestData>("GmodPaths");
 
     private static T GetData<T>(string testName)
     {
@@ -51,6 +58,22 @@ public class VistaSDKTestData
             };
         }
     }
+
+    public static IEnumerable<object[]> AddValidGmodPathsData(GmodPathTestData data)
+    {
+        foreach (var inputPath in data.Valid)
+        {
+            yield return new object[] { inputPath };
+        }
+    }
+
+    public static IEnumerable<object[]> AddInvalidGmodPathsData(GmodPathTestData data)
+    {
+        foreach (var inputPath in data.Invalid)
+        {
+            yield return new object[] { inputPath };
+        }
+    }
 }
 
 public record InvalidLocalIds(
@@ -60,6 +83,11 @@ public record InvalidLocalIds(
 
 public record LocalIdTestData(
     [property: JsonPropertyName("InvalidLocalIds")] InvalidLocalIds[] InvalidLocalIds
+);
+
+public record GmodPathTestData(
+    [property: JsonPropertyName("Valid")] string[] Valid,
+    [property: JsonPropertyName("Invalid")] string[] Invalid
 );
 
 public record CodebookTestData(
