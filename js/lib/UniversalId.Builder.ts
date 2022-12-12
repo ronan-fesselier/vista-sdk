@@ -16,8 +16,8 @@ export class UniversalIdBuilder {
         return this._localId;
     }
 
-    public get isValid(): boolean {
-        return !!this.imoNumber?.isValid && !!this.localId?.isValid;
+    public isValid(locations: Locations): boolean {
+        return !!this.imoNumber?.isValid && !!this.localId?.isValid(locations);
     }
 
     public static create(visVersion: VisVersion) {
