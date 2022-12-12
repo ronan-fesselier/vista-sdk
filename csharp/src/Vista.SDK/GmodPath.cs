@@ -409,10 +409,8 @@ public sealed record GmodPath
                         : endNode.Parents.Count == 1
                             ? endNode.Parents[0]
                             : null;
-                if (startNode is null)
-                    throw new Exception("Found invalid place");
 
-                if (startNode.Parents.Count > 1)
+                if (startNode is null || startNode.Parents.Count > 1)
                     return TraversalHandlerResult.Stop;
 
                 while (startNode.Parents.Count == 1)
