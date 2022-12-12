@@ -259,17 +259,19 @@ export class GmodPath {
                     ? current.tryWithLocation(toFind.location, locations)
                     : current;
 
-                let startNode =
+                const firstParentHasSingleParent =
                     pathParents.length > 0 &&
-                    pathParents[0].parents.length === 1
-                        ? pathParents[0].parents[0]
-                        : endNode.parents.length === 1
-                        ? endNode.parents[0]
-                        : undefined;
+                    pathParents[0].parents.length === 1;
+                const currentNodeHasSingleParent = endNode.parents.length === 1;
 
-                if (!startNode) throw new Error("Couldnt find start node");
+                let startNode = firstParentHasSingleParent
+                    ? pathParents[0].parents[0]
+                    : currentNodeHasSingleParent
+                    ? endNode.parents[0]
+                    : undefined;
 
-                if (startNode.parents.length > 1)
+                // Stop if there is no startNode or the parent doesnt have a direct path to root.
+                if (!startNode || startNode.parents.length > 1)
                     return TraversalHandlerResult.Stop;
 
                 while (startNode.parents.length === 1) {
