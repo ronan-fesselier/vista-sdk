@@ -40,7 +40,7 @@ describe("UniversalId", () => {
             );
             expect(universalId.imoNumber.value).toBe(1234567);
             expect(universalId.builder.localId?.isValid(locations)).toBe(true);
-            expect(universalId.builder.isValid).toBe(true);
+            expect(universalId.builder.isValid(locations)).toBe(true);
             expect(errorBuilder.errors.length).toBe(0);
         });
     });
