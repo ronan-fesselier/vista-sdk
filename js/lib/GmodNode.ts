@@ -199,8 +199,10 @@ export class GmodNode {
 
     public equals(other?: GmodNode): boolean {
         if (!other) return false;
+        if (!!this.location !== !!other.location) return false;
         return (
-            this.code === other.code && !!this.location?.equals(other.location)
+            this.code === other.code &&
+            (this.location?.equals(other.location) ?? true)
         );
     }
 
