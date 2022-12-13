@@ -16,6 +16,10 @@ export class Location {
     public clone() {
         return new Location(this.value);
     }
+    public equals(other?: Location) {
+        if (!other) return false;
+        return this.value === other.value;
+    }
 }
 
 export class Locations {
