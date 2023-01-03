@@ -39,25 +39,74 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             VisVersion = VisVersions.Parse(visVersion)
         };
 
-    public LocalIdBuilder WithVisVersion(VisVersion version) => this with { VisVersion = version };
+    public LocalIdBuilder WithoutVisVersion() =>
+        this with
+        {
+            VisVersion = default
+        };
 
-    public LocalIdBuilder WithVerboseMode(bool verboseMode) =>
+    public bool TryWithVisVersion(string? visVersionStr, out VisVersion visVersion)
+    {
+        if (VisVersions.TryParse(visVersionStr, out VisVersion v) == true)
+        {
+            visVersion = v;
+            return true;
+        }
+        visVersion = default;
+        return false;
+    }
+
+    public LocalIdBuilder WithVisVersion(in VisVersion version) => this with { VisVersion = version };
+
+    public LocalIdBuilder WithVerboseMode(in bool verboseMode) =>
         this with
         {
             VerboseMode = verboseMode
         };
 
-    public LocalIdBuilder WithPrimaryItem(GmodPath? item) =>
+    public LocalIdBuilder WithoutVerboseMode() =>
+        this with
+        {
+            VerboseMode = false
+        };
+
+    public LocalIdBuilder WithPrimaryItem(in GmodPath item) =>
         this with
         {
             Items = this.Items with { PrimaryItem = item }
         };
 
-    public LocalIdBuilder WithSecondaryItem(GmodPath? item) =>
+    public LocalIdBuilder WithoutPrimaryItem() =>
+        this with
+        {
+            Items = this.Items with { PrimaryItem = default }
+        };
+
+    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item)
+    {
+        if (item is null)
+            return this;
+        return WithPrimaryItem(item);
+    }
+
+    public LocalIdBuilder WithSecondaryItem(in GmodPath item) =>
         this with
         {
             Items = this.Items with { SecondaryItem = item }
         };
+
+    public LocalIdBuilder WithoutSecondaryItem() =>
+        this with
+        {
+            Items = this.Items with { SecondaryItem = default }
+        };
+
+    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item)
+    {
+        if (item is null)
+            return this;
+        return WithSecondaryItem(item);
+    }
 
     public LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag) =>
         metadataTag.Name switch
@@ -73,12 +122,82 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
         };
 
+    public LocalIdBuilder WithoutMedatadaTag(in MetadataTag metadataTag) =>
+        metadataTag.Name switch
+        {
+            CodebookName.Quantity => WithoutQuantity(),
+            CodebookName.Content => WithoutContent(),
+            CodebookName.Calculation => WithoutCalculcation(),
+            CodebookName.State => WithoutState(),
+            CodebookName.Command => WithoutCommand(),
+            CodebookName.Type => WithoutType(),
+            CodebookName.Position => WithoutPosition(),
+            CodebookName.Detail => WithoutDetail(),
+            _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
+        };
+
     public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag)
     {
         if (metadataTag is null)
             return this;
-        return WithMetadataTag(metadataTag.Value);
+
+        try
+        {
+            return WithMetadataTag(metadataTag.Value);
+        }
+        catch (ArgumentException)
+        {
+            return this;
+        }
     }
+
+    private LocalIdBuilder WithoutQuantity() =>
+        this with
+        {
+            Quantity = default
+        };
+
+    private LocalIdBuilder WithoutContent() =>
+        this with
+        {
+            Quantity = default
+        };
+
+    private LocalIdBuilder WithoutCalculcation() =>
+        this with
+        {
+            Calculation = default
+        };
+
+    private LocalIdBuilder WithoutState() =>
+        this with
+        {
+            State = default
+        };
+
+    private LocalIdBuilder WithoutCommand() =>
+        this with
+        {
+            Command = default
+        };
+
+    private LocalIdBuilder WithoutType() =>
+        this with
+        {
+            Type = default
+        };
+
+    private LocalIdBuilder WithoutPosition() =>
+        this with
+        {
+            Position = default
+        };
+
+    private LocalIdBuilder WithoutDetail() =>
+        this with
+        {
+            Detail = default
+        };
 
     private LocalIdBuilder WithQuantity(in MetadataTag quantity) =>
         this with

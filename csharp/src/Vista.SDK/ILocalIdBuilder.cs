@@ -30,17 +30,24 @@ public interface ILocalIdBuilder
 
     LocalIdBuilder WithVisVersion(string visVersion);
 
-    LocalIdBuilder WithVisVersion(VisVersion version);
+    LocalIdBuilder WithVisVersion(in VisVersion version);
+    bool TryWithVisVersion(string? visVersionStr, out VisVersion visVersion);
+    LocalIdBuilder WithoutVisVersion();
 
-    LocalIdBuilder WithVerboseMode(bool verboseMode);
+    LocalIdBuilder WithVerboseMode(in bool verboseMode);
+    LocalIdBuilder WithoutVerboseMode();
 
-    LocalIdBuilder WithPrimaryItem(GmodPath? item);
+    LocalIdBuilder WithPrimaryItem(in GmodPath item);
+    LocalIdBuilder TryWithPrimaryItem(in GmodPath? item);
+    LocalIdBuilder WithoutPrimaryItem();
 
-    LocalIdBuilder WithSecondaryItem(GmodPath? item);
+    LocalIdBuilder WithSecondaryItem(in GmodPath item);
+    LocalIdBuilder TryWithSecondaryItem(in GmodPath? item);
+    LocalIdBuilder WithoutSecondaryItem();
 
     LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag);
-
     LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag);
+    LocalIdBuilder WithoutMedatadaTag(in MetadataTag metadataTag);
 
     LocalId Build();
 
