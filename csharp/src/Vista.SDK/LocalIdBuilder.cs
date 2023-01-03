@@ -1,3 +1,4 @@
+using System.Runtime.Loader;
 using System.Text;
 using Vista.SDK.Internal;
 
@@ -53,14 +54,14 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         return WithVisVersion(visVersion.Value);
     }
 
-    public bool TryWithVisVersion(in string? visVersionStr, out VisVersion visVersion)
+    public bool TryWithVisVersion(in string? visVersionStr, out LocalIdBuilder localIdBuilder)
     {
         if (VisVersions.TryParse(visVersionStr, out VisVersion v) == true)
         {
-            visVersion = v;
+            localIdBuilder = this with { VisVersion = v };
             return true;
         }
-        visVersion = default;
+        localIdBuilder = this;
         return false;
     }
 
