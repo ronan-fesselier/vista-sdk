@@ -119,7 +119,7 @@ export class UniversalIdBuilder {
     }
 
     public tryWithLocalId(localId?: LocalIdBuilder) {
-        if(!localId) return this;
+        if (!localId) return this;
         return this.with((s) => (s._localId = localId));
     }
 
@@ -133,12 +133,12 @@ export class UniversalIdBuilder {
         );
     }
 
-    public tryWithImoNumber(imoNumber?: ImoNumber) {
-        if(!imoNumber) return this;
+    public withImoNumber(imoNumber: ImoNumber) {
         return this.with((s) => (s.imoNumber = imoNumber));
     }
 
-    public withImoNumber(imoNumber: ImoNumber) {
+    public tryWithImoNumber(imoNumber?: ImoNumber) {
+        if (!imoNumber) return this;
         return this.with((s) => (s.imoNumber = imoNumber));
     }
 
