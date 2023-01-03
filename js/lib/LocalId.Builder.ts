@@ -189,16 +189,47 @@ export class LocalIdBuilder {
         return this.with((s) => (s.visVersion = visVersion));
     }
 
+    public withoutVisVersion(): LocalIdBuilder {
+        return this.with((s) => (s.visVersion = undefined));
+    }
+
+    public tryWithVisVersion(visVersion: VisVersion): LocalIdBuilder {
+        if(!visVersion) return this;
+        return this.withVisVersion(visVersion);
+    }
+
     public withVerboseMode(verboseMode: boolean): LocalIdBuilder {
         return this.with((s) => (s.verboseMode = verboseMode));
     }
 
-    public withPrimaryItem(item?: GmodPath): LocalIdBuilder {
+    public withoutVerboseMode(): LocalIdBuilder {
+        return this.with((s) => (s.verboseMode = false));
+    }
+
+    public withPrimaryItem(item: GmodPath): LocalIdBuilder {
         return this.with((s) => (s._items.primaryItem = item));
     }
 
-    public withSecondaryItem(item?: GmodPath): LocalIdBuilder {
+    public withoutPrimaryItem(): LocalIdBuilder {
+        return this.with((s) => (s._items.primaryItem = undefined));
+    }
+
+    public tryWithPrimaryItem(item?: GmodPath): LocalIdBuilder {
+        if(!item) return this;
+        return this.withPrimaryItem(item);
+    }
+ 
+    public withSecondaryItem(item: GmodPath): LocalIdBuilder {
         return this.with((s) => (s._items.secondaryItem = item));
+    }
+
+    public withoutSecondaryItem(): LocalIdBuilder {
+        return this.with((s) => (s._items.secondaryItem = undefined));
+    }
+
+    public tryWithSecondaryItem(item?: GmodPath): LocalIdBuilder {
+        if(!item) return this;
+        return this.withSecondaryItem(item);
     }
 
     public withQuantity(metadataTag: MetadataTag): LocalIdBuilder {

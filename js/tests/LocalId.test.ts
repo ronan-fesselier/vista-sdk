@@ -88,7 +88,7 @@ describe("LocalId", () => {
 
             const localId = LocalIdBuilder.create(visVersion)
                 .withPrimaryItem(primaryItem)
-                .withSecondaryItem(secondaryItem)
+                .tryWithSecondaryItem(secondaryItem)
                 .withVerboseMode(input.verbose)
                 .tryWithMetadataTag(
                     codebooks.tryCreateTag(
@@ -124,7 +124,7 @@ describe("LocalId", () => {
 
             const localId = LocalIdBuilder.create(visVersion)
                 .withPrimaryItem(primaryItem)
-                .withSecondaryItem(secondaryItem)
+                .tryWithSecondaryItem(secondaryItem)
                 .withVerboseMode(input.verbose)
                 .tryWithMetadataTag(
                     codebooks.tryCreateTag(
@@ -153,7 +153,7 @@ describe("LocalId", () => {
             expect(localId).not.toBe(otherLocalId);
 
             otherLocalId = localId
-                .withPrimaryItem(localId.primaryItem?.clone())
+                .tryWithPrimaryItem(localId.primaryItem?.clone())
                 .tryWithMetadataTag(
                     codebooks.tryCreateTag(
                         CodebookName.Position,
