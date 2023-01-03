@@ -95,7 +95,7 @@ public class LocalIdTests
         var localId = LocalIdBuilder
             .Create(visVersion)
             .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .WithVerboseMode(input.Verbose)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
@@ -125,7 +125,7 @@ public class LocalIdTests
         var localIdBuilder = LocalIdBuilder
             .Create(visVersion)
             .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .WithVerboseMode(input.Verbose)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
@@ -158,7 +158,7 @@ public class LocalIdTests
         var localId = LocalIdBuilder
             .Create(visVersion)
             .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, input.Position));
@@ -181,7 +181,7 @@ public class LocalIdTests
         Assert.NotSame(localId, otherLocalId);
 
         otherLocalId = localId
-            .WithPrimaryItem(localId.PrimaryItem is null ? null : localId.PrimaryItem with { })
+            .TryWithPrimaryItem(localId.PrimaryItem is null ? null : localId.PrimaryItem with { })
             .TryWithMetadataTag(
                 codebooks.TryCreateTag(CodebookName.Position, localId.Position?.Value)
             );
