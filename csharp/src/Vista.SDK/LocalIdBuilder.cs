@@ -39,11 +39,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             VisVersion = VisVersions.Parse(visVersion)
         };
 
-    public LocalIdBuilder WithoutVisVersion() =>
-        this with
-        {
-            VisVersion = default
-        };
+    public LocalIdBuilder WithoutVisVersion() => this with { VisVersion = default };
 
     public bool TryWithVisVersion(string? visVersionStr, out VisVersion visVersion)
     {
@@ -56,7 +52,11 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         return false;
     }
 
-    public LocalIdBuilder WithVisVersion(in VisVersion version) => this with { VisVersion = version };
+    public LocalIdBuilder WithVisVersion(in VisVersion version) =>
+        this with
+        {
+            VisVersion = version
+        };
 
     public LocalIdBuilder WithVerboseMode(in bool verboseMode) =>
         this with
@@ -64,11 +64,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             VerboseMode = verboseMode
         };
 
-    public LocalIdBuilder WithoutVerboseMode() =>
-        this with
-        {
-            VerboseMode = false
-        };
+    public LocalIdBuilder WithoutVerboseMode() => this with { VerboseMode = false };
 
     public LocalIdBuilder WithPrimaryItem(in GmodPath item) =>
         this with
@@ -151,53 +147,21 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         }
     }
 
-    private LocalIdBuilder WithoutQuantity() =>
-        this with
-        {
-            Quantity = default
-        };
+    private LocalIdBuilder WithoutQuantity() => this with { Quantity = default };
 
-    private LocalIdBuilder WithoutContent() =>
-        this with
-        {
-            Quantity = default
-        };
+    private LocalIdBuilder WithoutContent() => this with { Quantity = default };
 
-    private LocalIdBuilder WithoutCalculcation() =>
-        this with
-        {
-            Calculation = default
-        };
+    private LocalIdBuilder WithoutCalculcation() => this with { Calculation = default };
 
-    private LocalIdBuilder WithoutState() =>
-        this with
-        {
-            State = default
-        };
+    private LocalIdBuilder WithoutState() => this with { State = default };
 
-    private LocalIdBuilder WithoutCommand() =>
-        this with
-        {
-            Command = default
-        };
+    private LocalIdBuilder WithoutCommand() => this with { Command = default };
 
-    private LocalIdBuilder WithoutType() =>
-        this with
-        {
-            Type = default
-        };
+    private LocalIdBuilder WithoutType() => this with { Type = default };
 
-    private LocalIdBuilder WithoutPosition() =>
-        this with
-        {
-            Position = default
-        };
+    private LocalIdBuilder WithoutPosition() => this with { Position = default };
 
-    private LocalIdBuilder WithoutDetail() =>
-        this with
-        {
-            Detail = default
-        };
+    private LocalIdBuilder WithoutDetail() => this with { Detail = default };
 
     private LocalIdBuilder WithQuantity(in MetadataTag quantity) =>
         this with
