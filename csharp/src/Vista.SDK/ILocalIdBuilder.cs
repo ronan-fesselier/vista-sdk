@@ -28,26 +28,28 @@ public interface ILocalIdBuilder
 
     bool HasCustomTag { get; }
 
-    LocalIdBuilder WithVisVersion(string visVersion);
-
+    LocalIdBuilder WithVisVersion(in string visVersion);
     LocalIdBuilder WithVisVersion(in VisVersion version);
-    bool TryWithVisVersion(string? visVersionStr, out VisVersion visVersion);
+    LocalIdBuilder TryWithVisVersion(in VisVersion? version);
+    bool TryWithVisVersion(in string? visVersionStr, out VisVersion visVersion);
     LocalIdBuilder WithoutVisVersion();
 
     LocalIdBuilder WithVerboseMode(in bool verboseMode);
-    LocalIdBuilder WithoutVerboseMode();
 
     LocalIdBuilder WithPrimaryItem(in GmodPath item);
     LocalIdBuilder TryWithPrimaryItem(in GmodPath? item);
+    bool TryWithPrimaryItem(in GmodPath? item, out LocalIdBuilder localIdbuilder);
     LocalIdBuilder WithoutPrimaryItem();
 
     LocalIdBuilder WithSecondaryItem(in GmodPath item);
     LocalIdBuilder TryWithSecondaryItem(in GmodPath? item);
+    bool TryWithSecondaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder);
     LocalIdBuilder WithoutSecondaryItem();
 
     LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag);
     LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag);
-    LocalIdBuilder WithoutMedatadaTag(in MetadataTag metadataTag);
+    bool TryWithMetadataTag(in MetadataTag? metadataTag, out LocalIdBuilder localIdBuilder);
+    LocalIdBuilder WithoutMetadataTag(in MetadataTag metadataTag);
 
     LocalId Build();
 

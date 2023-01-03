@@ -7,14 +7,15 @@ public interface IUniversalIdBuilder
     ImoNumber? ImoNumber { get; }
     LocalIdBuilder? LocalId { get; }
 
-    UniversalIdBuilder WithLocalId(LocalIdBuilder localId);
+    UniversalIdBuilder WithLocalId(in LocalIdBuilder localId);
     UniversalIdBuilder WithoutLocalId();
-    bool TryWithLocalId(LocalIdBuilder? localId, out UniversalIdBuilder universalIdBuilder);
+    UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId);
+    bool TryWithLocalId(in LocalIdBuilder? localId, out UniversalIdBuilder universalIdBuilder);
 
-    UniversalIdBuilder WithImoNumber(ImoNumber imoNumber);
+    UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber);
     UniversalIdBuilder WithoutImoNumber();
-    UniversalIdBuilder TryWithImoNumber(ImoNumber? imoNumber);
-    bool TryWithImoNumber(ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder);
+    UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber);
+    bool TryWithImoNumber(in ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder);
 
     string ToString();
 }

@@ -27,34 +27,44 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
         return new UniversalId(this);
     }
 
-    public UniversalIdBuilder WithLocalId(LocalIdBuilder localId) =>
+    public UniversalIdBuilder WithLocalId(in LocalIdBuilder localId) =>
         this with
         {
             _localId = localId
         };
 
-    public UniversalIdBuilder WithoutLocalId() => this with { _localId = default };
+    public UniversalIdBuilder WithoutLocalId() => this with { _localId = null };
 
-    public bool TryWithLocalId(LocalIdBuilder? localId, out UniversalIdBuilder universalIdBuilder)
+    public bool TryWithLocalId(
+        in LocalIdBuilder? localId,
+        out UniversalIdBuilder universalIdBuilder
+    )
     {
         if (localId == null)
         {
-            universalIdBuilder = this with { _localId = default };
+            universalIdBuilder = this;
             return false;
         }
         universalIdBuilder = this with { _localId = localId };
         return true;
     }
 
-    public UniversalIdBuilder WithImoNumber(ImoNumber imoNumber) =>
+    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId)
+    {
+        if (localId == null)
+            return this;
+        return this with { _localId = localId };
+    }
+
+    public UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber) =>
         this with
         {
             ImoNumber = imoNumber
         };
 
-    public UniversalIdBuilder WithoutImoNumber() => this with { ImoNumber = default };
+    public UniversalIdBuilder WithoutImoNumber() => this with { ImoNumber = null };
 
-    public UniversalIdBuilder TryWithImoNumber(ImoNumber? imoNumber)
+    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber)
     {
         if (imoNumber == null)
             return this;
@@ -65,11 +75,11 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
         };
     }
 
-    public bool TryWithImoNumber(ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder)
+    public bool TryWithImoNumber(in ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder)
     {
         if (imoNumber == null)
         {
-            universalIdBuilder = this with { ImoNumber = default };
+            universalIdBuilder = this;
             return false;
         }
         universalIdBuilder = this with { ImoNumber = imoNumber };

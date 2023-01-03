@@ -106,6 +106,46 @@ public class LocalIdTests
         Assert.Equal(expectedOutput, localIdStr);
     }
 
+    [Fact]
+    public void Test_LocalId_Build_AllWithout()
+    {
+        var (_, vis) = VISTests.GetVis();
+
+        var visVersion = VisVersion.v3_4a;
+
+        var gmod = vis.GetGmod(visVersion);
+        var codebooks = vis.GetCodebooks(visVersion);
+
+        var primaryItem = gmod.ParsePath("411.1/C101.31-2");
+        var secondaryItem = gmod.ParsePath("411.1/C101.31-5");
+
+        var localId = LocalIdBuilder
+            .Create(visVersion)
+            .WithPrimaryItem(primaryItem)
+            .TryWithSecondaryItem(secondaryItem)
+            .WithVerboseMode(true)
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, "quantity"))
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, "content"))
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, "position"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.State, "state"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.Content, "content"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.Calculation, "calculate"));
+
+        Assert.True(localId.IsValid);
+
+        var allWithout = localId
+            .WithoutPrimaryItem()
+            .WithoutSecondaryItem()
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Quantity, "dummy1"))
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Content, "dummy2"))
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Position, "dummy3"))
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.State, "state"))
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Content, "content"))
+            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Calculation, "calculate"));
+
+        Assert.True(allWithout.IsEmpty);
+    }
+
     [Theory]
     [MemberData(nameof(Valid_Mqtt_Test_Data))]
     public void Test_Mqtt_LocalId_Build_Valid(Input input, string expectedOutput)
@@ -124,7 +164,7 @@ public class LocalIdTests
 
         var localIdBuilder = LocalIdBuilder
             .Create(visVersion)
-            .WithPrimaryItem(primaryItem)
+            .TryWithPrimaryItem(primaryItem)
             .TryWithSecondaryItem(secondaryItem)
             .WithVerboseMode(input.Verbose)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
