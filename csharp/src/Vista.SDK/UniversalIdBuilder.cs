@@ -33,11 +33,48 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
             _localId = localId
         };
 
-    public UniversalIdBuilder WithImoNumber(ImoNumber? imoNumber) =>
+    public UniversalIdBuilder WithoutLocalId() => this with { _localId = default };
+
+    public bool TryWithLocalId(LocalIdBuilder? localId, out UniversalIdBuilder universalIdBuilder)
+    {
+        if (localId == null)
+        {
+            universalIdBuilder = this with { _localId = default };
+            return false;
+        }
+        universalIdBuilder = this with { _localId = localId };
+        return true;
+    }
+
+    public UniversalIdBuilder WithImoNumber(ImoNumber imoNumber) =>
         this with
         {
             ImoNumber = imoNumber
         };
+
+    public UniversalIdBuilder WithoutImoNumber() => this with { ImoNumber = default };
+
+    public UniversalIdBuilder TryWithImoNumber(ImoNumber? imoNumber)
+    {
+        if (imoNumber == null)
+            return this;
+
+        return this with
+        {
+            ImoNumber = imoNumber
+        };
+    }
+
+    public bool TryWithImoNumber(ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder)
+    {
+        if (imoNumber == null)
+        {
+            universalIdBuilder = this with { ImoNumber = default };
+            return false;
+        }
+        universalIdBuilder = this with { ImoNumber = imoNumber };
+        return true;
+    }
 
     public sealed override int GetHashCode()
     {

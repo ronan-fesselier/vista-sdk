@@ -126,7 +126,8 @@ public sealed partial record UniversalIdBuilder
 
         universalIdBuilder = Create(visVersion.Value)
             .WithLocalId(localIdBuilder)
-            .WithImoNumber(imoNumber);
+            .TryWithImoNumber(imoNumber);
+
         return true;
     }
 
