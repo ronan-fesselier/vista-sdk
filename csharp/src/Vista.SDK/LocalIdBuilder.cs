@@ -33,35 +33,43 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
     public MetadataTag? Detail { get; private init; }
 
-    public LocalIdBuilder WithVisVersion(in string visVersion) =>
-        this with
-        {
-            VisVersion = VisVersions.Parse(visVersion)
-        };
-
-    public LocalIdBuilder WithVisVersion(in VisVersion version) =>
-        this with
-        {
-            VisVersion = version
-        };
-
-    public LocalIdBuilder TryWithVisVersion(in VisVersion? visVersion)
+    public LocalIdBuilder WithVisVersion(in string visVersion)
     {
-        if (visVersion == null)
-            return this;
+        var localIdbuilder = TryWithVisVersion(visVersion, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(visVersion));
 
-        return WithVisVersion(visVersion.Value);
+        return localIdbuilder;
     }
 
-    public bool TryWithVisVersion(in string? visVersionStr, out LocalIdBuilder localIdBuilder)
+    public LocalIdBuilder WithVisVersion(in VisVersion version)
+    {
+        var localIdbuilder = TryWithVisVersion(version, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithVisVersion));
+
+        return localIdbuilder;
+    }
+
+    public LocalIdBuilder TryWithVisVersion(in VisVersion? visVersion) =>
+        TryWithVisVersion(visVersion, out _);
+
+    public LocalIdBuilder TryWithVisVersion(in string? visVersionStr, out bool succeeded)
     {
         if (VisVersions.TryParse(visVersionStr, out VisVersion v) == true)
         {
-            localIdBuilder = this with { VisVersion = v };
-            return true;
+            var localIdbuilder = TryWithVisVersion(v, out var succeededInner);
+            succeeded = succeededInner;
+            return localIdbuilder;
         }
-        localIdBuilder = this;
-        return false;
+        succeeded = false;
+        return this;
+    }
+
+    public LocalIdBuilder TryWithVisVersion(in VisVersion? visVersion, out bool succeeded)
+    {
+        succeeded = true;
+        return this with { VisVersion = visVersion };
     }
 
     public LocalIdBuilder WithoutVisVersion() => this with { VisVersion = null };
@@ -72,11 +80,28 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             VerboseMode = verboseMode
         };
 
-    public LocalIdBuilder WithPrimaryItem(in GmodPath item) =>
-        this with
+    public LocalIdBuilder WithPrimaryItem(in GmodPath item)
+    {
+        var localIdbuilder = TryWithPrimaryItem(item, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithPrimaryItem));
+
+        return localIdbuilder;
+    }
+
+    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item) => TryWithPrimaryItem(item, out _);
+
+    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item, out bool succeeded)
+    {
+        if (item is null)
         {
-            Items = this.Items with { PrimaryItem = item }
-        };
+            succeeded = false;
+            return this;
+        }
+
+        succeeded = true;
+        return this with { Items = this.Items with { PrimaryItem = item } };
+    }
 
     public LocalIdBuilder WithoutPrimaryItem() =>
         this with
@@ -84,30 +109,29 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             Items = this.Items with { PrimaryItem = null }
         };
 
-    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item)
+    public LocalIdBuilder WithSecondaryItem(in GmodPath item)
     {
-        if (item is null)
-            return this;
-        return WithPrimaryItem(item);
+        var localIdBuilder = TryWithSecondaryItem(item, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithSecondaryItem));
+
+        return localIdBuilder;
     }
 
-    public bool TryWithPrimaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder)
+    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item) =>
+        TryWithSecondaryItem(in item, out _);
+
+    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item, out bool succeeded)
     {
         if (item is null)
         {
-            localIdBuilder = this;
-            return false;
+            succeeded = false;
+            return this;
         }
 
-        localIdBuilder = WithPrimaryItem(item);
-        return true;
+        succeeded = false;
+        return WithSecondaryItem(item);
     }
-
-    public LocalIdBuilder WithSecondaryItem(in GmodPath item) =>
-        this with
-        {
-            Items = this.Items with { SecondaryItem = item }
-        };
 
     public LocalIdBuilder WithoutSecondaryItem() =>
         this with
@@ -115,38 +139,56 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             Items = this.Items with { SecondaryItem = null }
         };
 
-    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item)
+    public LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag)
     {
-        if (item is null)
-            return this;
-        return WithSecondaryItem(item);
+        var localIdBuilder = TryWithMetadataTag(metadataTag, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException("invalid metadata codebook name: " + metadataTag.Name);
+        return localIdBuilder;
     }
 
-    public bool TryWithSecondaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder)
+    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag) =>
+        TryWithMetadataTag(metadataTag, out _);
+
+    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag, out bool succeeded)
     {
-        if (item is null)
+        if (metadataTag is null)
         {
-            localIdBuilder = this;
-            return false;
+            succeeded = false;
+            return this;
         }
 
-        localIdBuilder = WithSecondaryItem(item);
-        return true;
-    }
-
-    public LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag) =>
-        metadataTag.Name switch
+        switch (metadataTag.Value.Name)
         {
-            CodebookName.Quantity => WithQuantity(in metadataTag),
-            CodebookName.Content => WithContent(in metadataTag),
-            CodebookName.Calculation => WithCalculation(in metadataTag),
-            CodebookName.State => WithState(in metadataTag),
-            CodebookName.Command => WithCommand(in metadataTag),
-            CodebookName.Type => WithType(in metadataTag),
-            CodebookName.Position => WithPosition(in metadataTag),
-            CodebookName.Detail => WithDetail(in metadataTag),
-            _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
-        };
+            case CodebookName.Quantity:
+                succeeded = true;
+                return WithQuantity(metadataTag.Value);
+            case CodebookName.Content:
+                succeeded = true;
+                return WithContent(metadataTag.Value);
+            case CodebookName.Calculation:
+                succeeded = true;
+                return WithCalculation(metadataTag.Value);
+            case CodebookName.State:
+                succeeded = true;
+                return WithState(metadataTag.Value);
+            case CodebookName.Command:
+                succeeded = true;
+                return WithCommand(metadataTag.Value);
+            case CodebookName.Type:
+                succeeded = true;
+                return WithType(metadataTag.Value);
+            case CodebookName.Position:
+                succeeded = true;
+                return WithPosition(metadataTag.Value);
+            case CodebookName.Detail:
+                succeeded = true;
+                return WithDetail(metadataTag.Value);
+            default:
+                succeeded = false;
+                return this;
+        }
+    }
 
     public LocalIdBuilder WithoutMetadataTag(in CodebookName name) =>
         name switch
@@ -159,43 +201,8 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             CodebookName.Type => WithoutType(),
             CodebookName.Position => WithoutPosition(),
             CodebookName.Detail => WithoutDetail(),
-            _ => throw new ArgumentException("invalid metadata codebook name: " + name),
+            _ => this
         };
-
-    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag)
-    {
-        if (metadataTag is null)
-            return this;
-
-        try
-        {
-            return WithMetadataTag(metadataTag.Value);
-        }
-        catch (ArgumentException)
-        {
-            return this;
-        }
-    }
-
-    public bool TryWithMetadataTag(in MetadataTag? metadataTag, out LocalIdBuilder localIdBuilder)
-    {
-        if (metadataTag is null)
-        {
-            localIdBuilder = this;
-            return false;
-        }
-
-        try
-        {
-            localIdBuilder = WithMetadataTag(metadataTag.Value);
-            return true;
-        }
-        catch (ArgumentException)
-        {
-            localIdBuilder = this;
-            return false;
-        }
-    }
 
     public LocalIdBuilder WithoutQuantity() => this with { Quantity = null };
 

@@ -31,24 +31,24 @@ public interface ILocalIdBuilder
     LocalIdBuilder WithVisVersion(in string visVersion);
     LocalIdBuilder WithVisVersion(in VisVersion version);
     LocalIdBuilder TryWithVisVersion(in VisVersion? version);
-    bool TryWithVisVersion(in string? visVersionStr, out LocalIdBuilder visVersion);
+    LocalIdBuilder TryWithVisVersion(in string? visVersionStr, out bool succeeded);
     LocalIdBuilder WithoutVisVersion();
 
     LocalIdBuilder WithVerboseMode(in bool verboseMode);
 
     LocalIdBuilder WithPrimaryItem(in GmodPath item);
     LocalIdBuilder TryWithPrimaryItem(in GmodPath? item);
-    bool TryWithPrimaryItem(in GmodPath? item, out LocalIdBuilder localIdbuilder);
+    LocalIdBuilder TryWithPrimaryItem(in GmodPath? item, out bool succeeded);
     LocalIdBuilder WithoutPrimaryItem();
 
     LocalIdBuilder WithSecondaryItem(in GmodPath item);
     LocalIdBuilder TryWithSecondaryItem(in GmodPath? item);
-    bool TryWithSecondaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder);
+    LocalIdBuilder TryWithSecondaryItem(in GmodPath? item, out bool succeeded);
     LocalIdBuilder WithoutSecondaryItem();
 
     LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag);
     LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag);
-    bool TryWithMetadataTag(in MetadataTag? metadataTag, out LocalIdBuilder localIdBuilder);
+    LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag, out bool succeeded);
     LocalIdBuilder WithoutMetadataTag(in CodebookName name);
 
     LocalId Build();
