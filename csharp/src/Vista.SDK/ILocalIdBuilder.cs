@@ -31,7 +31,7 @@ public interface ILocalIdBuilder
     LocalIdBuilder WithVisVersion(in string visVersion);
     LocalIdBuilder WithVisVersion(in VisVersion version);
     LocalIdBuilder TryWithVisVersion(in VisVersion? version);
-    bool TryWithVisVersion(in string? visVersionStr, out VisVersion visVersion);
+    bool TryWithVisVersion(in string? visVersionStr, out LocalIdBuilder visVersion);
     LocalIdBuilder WithoutVisVersion();
 
     LocalIdBuilder WithVerboseMode(in bool verboseMode);
@@ -49,7 +49,7 @@ public interface ILocalIdBuilder
     LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag);
     LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag);
     bool TryWithMetadataTag(in MetadataTag? metadataTag, out LocalIdBuilder localIdBuilder);
-    LocalIdBuilder WithoutMetadataTag(in MetadataTag metadataTag);
+    LocalIdBuilder WithoutMetadataTag(in CodebookName name);
 
     LocalId Build();
 

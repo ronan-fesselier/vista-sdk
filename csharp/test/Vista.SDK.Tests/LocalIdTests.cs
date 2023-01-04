@@ -136,12 +136,11 @@ public class LocalIdTests
         var allWithout = localId
             .WithoutPrimaryItem()
             .WithoutSecondaryItem()
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Quantity, "dummy1"))
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Content, "dummy2"))
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Position, "dummy3"))
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.State, "state"))
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Content, "content"))
-            .WithoutMetadataTag(codebooks.CreateTag(CodebookName.Calculation, "calculate"));
+            .WithoutQuantity()
+            .WithoutPosition()
+            .WithoutState()
+            .WithoutContent()
+            .WithoutCalculcation();
 
         Assert.True(allWithout.IsEmpty);
     }

@@ -51,7 +51,7 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
 
     public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId)
     {
-        if (localId == null)
+        if (localId is null)
             return this;
         return this with { _localId = localId };
     }
@@ -66,7 +66,7 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
 
     public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber)
     {
-        if (imoNumber == null)
+        if (imoNumber is null)
             return this;
 
         return this with
@@ -77,7 +77,7 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
 
     public bool TryWithImoNumber(in ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder)
     {
-        if (imoNumber == null)
+        if (imoNumber is null)
         {
             universalIdBuilder = this;
             return false;

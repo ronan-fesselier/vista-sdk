@@ -1,4 +1,3 @@
-using System.Runtime.Loader;
 using System.Text;
 using Vista.SDK.Internal;
 
@@ -94,7 +93,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
     public bool TryWithPrimaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder)
     {
-        if (item == null)
+        if (item is null)
         {
             localIdBuilder = this;
             return false;
@@ -125,7 +124,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
     public bool TryWithSecondaryItem(in GmodPath? item, out LocalIdBuilder localIdBuilder)
     {
-        if (item == null)
+        if (item is null)
         {
             localIdBuilder = this;
             return false;
@@ -149,8 +148,8 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
         };
 
-    public LocalIdBuilder WithoutMetadataTag(in MetadataTag metadataTag) =>
-        metadataTag.Name switch
+    public LocalIdBuilder WithoutMetadataTag(in CodebookName name) =>
+        name switch
         {
             CodebookName.Quantity => WithoutQuantity(),
             CodebookName.Content => WithoutContent(),
@@ -160,7 +159,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             CodebookName.Type => WithoutType(),
             CodebookName.Position => WithoutPosition(),
             CodebookName.Detail => WithoutDetail(),
-            _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
+            _ => throw new ArgumentException("invalid metadata codebook name: " + name),
         };
 
     public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag)
@@ -180,7 +179,7 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
     public bool TryWithMetadataTag(in MetadataTag? metadataTag, out LocalIdBuilder localIdBuilder)
     {
-        if (metadataTag == null)
+        if (metadataTag is null)
         {
             localIdBuilder = this;
             return false;
@@ -198,21 +197,21 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
         }
     }
 
-    private LocalIdBuilder WithoutQuantity() => this with { Quantity = null };
+    public LocalIdBuilder WithoutQuantity() => this with { Quantity = null };
 
-    private LocalIdBuilder WithoutContent() => this with { Content = null };
+    public LocalIdBuilder WithoutContent() => this with { Content = null };
 
-    private LocalIdBuilder WithoutCalculcation() => this with { Calculation = null };
+    public LocalIdBuilder WithoutCalculcation() => this with { Calculation = null };
 
-    private LocalIdBuilder WithoutState() => this with { State = null };
+    public LocalIdBuilder WithoutState() => this with { State = null };
 
-    private LocalIdBuilder WithoutCommand() => this with { Command = null };
+    public LocalIdBuilder WithoutCommand() => this with { Command = null };
 
-    private LocalIdBuilder WithoutType() => this with { Type = null };
+    public LocalIdBuilder WithoutType() => this with { Type = null };
 
-    private LocalIdBuilder WithoutPosition() => this with { Position = null };
+    public LocalIdBuilder WithoutPosition() => this with { Position = null };
 
-    private LocalIdBuilder WithoutDetail() => this with { Detail = null };
+    public LocalIdBuilder WithoutDetail() => this with { Detail = null };
 
     private LocalIdBuilder WithQuantity(in MetadataTag quantity) =>
         this with
