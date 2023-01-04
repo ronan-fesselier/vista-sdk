@@ -100,3 +100,18 @@ WarmupCount=3
 |   **Json** |        **Bzip2** |                **9** |  **48,419.8 μs** |  **16,895.3 μs** |    **926.09 μs** |     **19.19 KB** |
 |   Avro |        Bzip2 |                9 |  13,762.6 μs |   2,310.1 μs |    126.62 μs |      19.5 KB |
 
+
+## Builder pattern
+Typically, when the SDK provides code for building classes, it does so in a Builder Pattern. It provides possibility to chain using With, TryWith and Without methods. 
+```
+        builder = Create(someIntro)
+            .WithSomeValue(in someValue)
+            .TryWithSomeOtherValue(in someOtherValue)
+            .WithoutSomeThirdValue() // usually without/limited arguments
+        builder.TryWithValue(item, out var success)
+        if(!success)
+          throw
+```
+* `With` should be used when the operation is expected to receive non-nullable values and succeed without further checking. It will throw error if provided with wrong arguments.
+* `TryWith` should be used in two cases: When you don't want to be bothered by failures behind the scene, and when you want to know if it went ok, but without exceptions. If you want to check if the opration went as expected, you can use the try do out param - "succeeded" e.g. TryWithSomething(intput, out bool succeeded).
+* `Without` provides functionality for removing certain elements from the chain. Typically without arguments/limited arguments
