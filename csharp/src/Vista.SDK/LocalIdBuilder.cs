@@ -129,8 +129,8 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
             return this;
         }
 
-        succeeded = false;
-        return WithSecondaryItem(item);
+        succeeded = true;
+        return this with { Items = this.Items with { SecondaryItem = item } };
     }
 
     public LocalIdBuilder WithoutSecondaryItem() =>

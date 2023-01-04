@@ -10,12 +10,12 @@ public interface IUniversalIdBuilder
     UniversalIdBuilder WithLocalId(in LocalIdBuilder localId);
     UniversalIdBuilder WithoutLocalId();
     UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId);
-    bool TryWithLocalId(in LocalIdBuilder? localId, out UniversalIdBuilder universalIdBuilder);
+    UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId, out bool succeeded);
 
     UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber);
-    UniversalIdBuilder WithoutImoNumber();
     UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber);
-    bool TryWithImoNumber(in ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder);
+    UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber, out bool succeeded);
+    UniversalIdBuilder WithoutImoNumber();
 
     string ToString();
 }

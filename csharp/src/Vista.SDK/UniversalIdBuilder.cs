@@ -27,64 +27,54 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
         return new UniversalId(this);
     }
 
-    public UniversalIdBuilder WithLocalId(in LocalIdBuilder localId) =>
-        this with
-        {
-            _localId = localId
-        };
+    public UniversalIdBuilder WithLocalId(in LocalIdBuilder localId)
+    {
+        var universalIdbuilder = TryWithLocalId(localId, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithLocalId));
+
+        return universalIdbuilder;
+    }
 
     public UniversalIdBuilder WithoutLocalId() => this with { _localId = null };
 
-    public bool TryWithLocalId(
-        in LocalIdBuilder? localId,
-        out UniversalIdBuilder universalIdBuilder
-    )
+    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId, out bool succeeded)
     {
         if (localId == null)
         {
-            universalIdBuilder = this;
-            return false;
-        }
-        universalIdBuilder = this with { _localId = localId };
-        return true;
-    }
-
-    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId)
-    {
-        if (localId is null)
+            succeeded = false;
             return this;
+        }
+        succeeded = true;
         return this with { _localId = localId };
     }
 
-    public UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber) =>
-        this with
+    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId) =>
+        TryWithLocalId(localId, out _);
+
+    public UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber)
+    {
+        var universalIdBuilder = TryWithImoNumber(imoNumber, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(imoNumber));
+        return universalIdBuilder;
+    }
+
+    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber) =>
+        TryWithImoNumber(imoNumber, out _);
+
+    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber, out bool succeeded)
+    {
+        if (imoNumber is null)
         {
-            ImoNumber = imoNumber
-        };
+            succeeded = false;
+            return this;
+        }
+        succeeded = true;
+        return this with { ImoNumber = imoNumber };
+    }
 
     public UniversalIdBuilder WithoutImoNumber() => this with { ImoNumber = null };
-
-    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber)
-    {
-        if (imoNumber is null)
-            return this;
-
-        return this with
-        {
-            ImoNumber = imoNumber
-        };
-    }
-
-    public bool TryWithImoNumber(in ImoNumber? imoNumber, out UniversalIdBuilder universalIdBuilder)
-    {
-        if (imoNumber is null)
-        {
-            universalIdBuilder = this;
-            return false;
-        }
-        universalIdBuilder = this with { ImoNumber = imoNumber };
-        return true;
-    }
 
     public sealed override int GetHashCode()
     {
