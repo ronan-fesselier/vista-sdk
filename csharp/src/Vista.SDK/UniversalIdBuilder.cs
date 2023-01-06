@@ -27,17 +27,54 @@ public sealed partial record class UniversalIdBuilder : IUniversalIdBuilder
         return new UniversalId(this);
     }
 
-    public UniversalIdBuilder WithLocalId(LocalIdBuilder localId) =>
-        this with
-        {
-            _localId = localId
-        };
+    public UniversalIdBuilder WithLocalId(in LocalIdBuilder localId)
+    {
+        var universalIdbuilder = TryWithLocalId(localId, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithLocalId));
 
-    public UniversalIdBuilder WithImoNumber(ImoNumber? imoNumber) =>
-        this with
+        return universalIdbuilder;
+    }
+
+    public UniversalIdBuilder WithoutLocalId() => this with { _localId = null };
+
+    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId, out bool succeeded)
+    {
+        if (localId == null)
         {
-            ImoNumber = imoNumber
-        };
+            succeeded = false;
+            return this;
+        }
+        succeeded = true;
+        return this with { _localId = localId };
+    }
+
+    public UniversalIdBuilder TryWithLocalId(in LocalIdBuilder? localId) =>
+        TryWithLocalId(localId, out _);
+
+    public UniversalIdBuilder WithImoNumber(in ImoNumber imoNumber)
+    {
+        var universalIdBuilder = TryWithImoNumber(imoNumber, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(imoNumber));
+        return universalIdBuilder;
+    }
+
+    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber) =>
+        TryWithImoNumber(imoNumber, out _);
+
+    public UniversalIdBuilder TryWithImoNumber(in ImoNumber? imoNumber, out bool succeeded)
+    {
+        if (imoNumber is null)
+        {
+            succeeded = false;
+            return this;
+        }
+        succeeded = true;
+        return this with { ImoNumber = imoNumber };
+    }
+
+    public UniversalIdBuilder WithoutImoNumber() => this with { ImoNumber = null };
 
     public sealed override int GetHashCode()
     {

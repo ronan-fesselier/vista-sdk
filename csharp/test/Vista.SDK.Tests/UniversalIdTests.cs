@@ -1,3 +1,5 @@
+using System.Reflection.Emit;
+
 namespace Vista.SDK.Tests;
 
 public class UniversalIdTests
@@ -37,5 +39,32 @@ public class UniversalIdTests
         var universalIdString = universalId.ToString();
         Assert.NotNull(universalId);
         Assert.True(testCase == universalIdString);
+    }
+
+    [Theory]
+    [MemberData(nameof(Test_Data))]
+    public void Test_UniversalBuilder_Add_And_RemoveAll(string testCase)
+    {
+        UniversalIdBuilder.TryParse(testCase, out var universalIdBuilder);
+
+        Assert.NotNull(universalIdBuilder);
+        Assert.NotNull(universalIdBuilder!.LocalId);
+        Assert.NotNull(universalIdBuilder.ImoNumber);
+
+        var id = universalIdBuilder.WithoutImoNumber().WithoutLocalId();
+
+        Assert.Null(id.LocalId);
+        Assert.Null(id.ImoNumber);
+    }
+
+    [Fact]
+    public void Test_UniversalBuilder_TryWith()
+    {
+        var universalBuilder = new UniversalIdBuilder();
+        universalBuilder.TryWithLocalId(null);
+        universalBuilder.TryWithImoNumber(null);
+
+        Assert.Null(universalBuilder.LocalId);
+        Assert.Null(universalBuilder.ImoNumber);
     }
 }

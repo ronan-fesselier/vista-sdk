@@ -647,8 +647,8 @@ export class LocalIdParser {
         }
 
         const builder = LocalIdBuilder.create(visVersion)
-            .withPrimaryItem(primaryItem)
-            .withSecondaryItem(secondaryItem)
+            .tryWithPrimaryItem(primaryItem)
+            .tryWithSecondaryItem(secondaryItem)
             .withVerboseMode(verbose)
             .tryWithMetadataTag(qty)
             .tryWithMetadataTag(cnt)

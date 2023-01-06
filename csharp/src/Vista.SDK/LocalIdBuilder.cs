@@ -33,52 +33,192 @@ public partial record class LocalIdBuilder : ILocalIdBuilder
 
     public MetadataTag? Detail { get; private init; }
 
-    public LocalIdBuilder WithVisVersion(string visVersion) =>
-        this with
+    public LocalIdBuilder WithVisVersion(in string visVersion)
+    {
+        var localIdbuilder = TryWithVisVersion(visVersion, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(visVersion));
+
+        return localIdbuilder;
+    }
+
+    public LocalIdBuilder WithVisVersion(in VisVersion version)
+    {
+        var localIdbuilder = TryWithVisVersion(version, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithVisVersion));
+
+        return localIdbuilder;
+    }
+
+    public LocalIdBuilder TryWithVisVersion(in VisVersion? visVersion) =>
+        TryWithVisVersion(visVersion, out _);
+
+    public LocalIdBuilder TryWithVisVersion(in string? visVersionStr, out bool succeeded)
+    {
+        if (VisVersions.TryParse(visVersionStr, out VisVersion v) == true)
         {
-            VisVersion = VisVersions.Parse(visVersion)
-        };
+            var localIdbuilder = TryWithVisVersion(v, out var succeededInner);
+            succeeded = succeededInner;
+            return localIdbuilder;
+        }
+        succeeded = false;
+        return this;
+    }
 
-    public LocalIdBuilder WithVisVersion(VisVersion version) => this with { VisVersion = version };
+    public LocalIdBuilder TryWithVisVersion(in VisVersion? visVersion, out bool succeeded)
+    {
+        succeeded = true;
+        return this with { VisVersion = visVersion };
+    }
 
-    public LocalIdBuilder WithVerboseMode(bool verboseMode) =>
+    public LocalIdBuilder WithoutVisVersion() => this with { VisVersion = null };
+
+    public LocalIdBuilder WithVerboseMode(in bool verboseMode) =>
         this with
         {
             VerboseMode = verboseMode
         };
 
-    public LocalIdBuilder WithPrimaryItem(GmodPath? item) =>
+    public LocalIdBuilder WithPrimaryItem(in GmodPath item)
+    {
+        var localIdbuilder = TryWithPrimaryItem(item, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithPrimaryItem));
+
+        return localIdbuilder;
+    }
+
+    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item) => TryWithPrimaryItem(item, out _);
+
+    public LocalIdBuilder TryWithPrimaryItem(in GmodPath? item, out bool succeeded)
+    {
+        if (item is null)
+        {
+            succeeded = false;
+            return this;
+        }
+
+        succeeded = true;
+        return this with { Items = this.Items with { PrimaryItem = item } };
+    }
+
+    public LocalIdBuilder WithoutPrimaryItem() =>
         this with
         {
-            Items = this.Items with { PrimaryItem = item }
+            Items = this.Items with { PrimaryItem = null }
         };
 
-    public LocalIdBuilder WithSecondaryItem(GmodPath? item) =>
+    public LocalIdBuilder WithSecondaryItem(in GmodPath item)
+    {
+        var localIdBuilder = TryWithSecondaryItem(item, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException(nameof(WithSecondaryItem));
+
+        return localIdBuilder;
+    }
+
+    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item) =>
+        TryWithSecondaryItem(in item, out _);
+
+    public LocalIdBuilder TryWithSecondaryItem(in GmodPath? item, out bool succeeded)
+    {
+        if (item is null)
+        {
+            succeeded = false;
+            return this;
+        }
+
+        succeeded = true;
+        return this with { Items = this.Items with { SecondaryItem = item } };
+    }
+
+    public LocalIdBuilder WithoutSecondaryItem() =>
         this with
         {
-            Items = this.Items with { SecondaryItem = item }
+            Items = this.Items with { SecondaryItem = null }
         };
 
-    public LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag) =>
-        metadataTag.Name switch
-        {
-            CodebookName.Quantity => WithQuantity(in metadataTag),
-            CodebookName.Content => WithContent(in metadataTag),
-            CodebookName.Calculation => WithCalculation(in metadataTag),
-            CodebookName.State => WithState(in metadataTag),
-            CodebookName.Command => WithCommand(in metadataTag),
-            CodebookName.Type => WithType(in metadataTag),
-            CodebookName.Position => WithPosition(in metadataTag),
-            CodebookName.Detail => WithDetail(in metadataTag),
-            _ => throw new ArgumentException("Invalid metadata tag: " + metadataTag),
-        };
+    public LocalIdBuilder WithMetadataTag(in MetadataTag metadataTag)
+    {
+        var localIdBuilder = TryWithMetadataTag(metadataTag, out var succeeded);
+        if (!succeeded)
+            throw new ArgumentException("invalid metadata codebook name: " + metadataTag.Name);
+        return localIdBuilder;
+    }
 
-    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag)
+    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag) =>
+        TryWithMetadataTag(metadataTag, out _);
+
+    public LocalIdBuilder TryWithMetadataTag(in MetadataTag? metadataTag, out bool succeeded)
     {
         if (metadataTag is null)
+        {
+            succeeded = false;
             return this;
-        return WithMetadataTag(metadataTag.Value);
+        }
+
+        switch (metadataTag.Value.Name)
+        {
+            case CodebookName.Quantity:
+                succeeded = true;
+                return WithQuantity(metadataTag.Value);
+            case CodebookName.Content:
+                succeeded = true;
+                return WithContent(metadataTag.Value);
+            case CodebookName.Calculation:
+                succeeded = true;
+                return WithCalculation(metadataTag.Value);
+            case CodebookName.State:
+                succeeded = true;
+                return WithState(metadataTag.Value);
+            case CodebookName.Command:
+                succeeded = true;
+                return WithCommand(metadataTag.Value);
+            case CodebookName.Type:
+                succeeded = true;
+                return WithType(metadataTag.Value);
+            case CodebookName.Position:
+                succeeded = true;
+                return WithPosition(metadataTag.Value);
+            case CodebookName.Detail:
+                succeeded = true;
+                return WithDetail(metadataTag.Value);
+            default:
+                succeeded = false;
+                return this;
+        }
     }
+
+    public LocalIdBuilder WithoutMetadataTag(in CodebookName name) =>
+        name switch
+        {
+            CodebookName.Quantity => WithoutQuantity(),
+            CodebookName.Content => WithoutContent(),
+            CodebookName.Calculation => WithoutCalculcation(),
+            CodebookName.State => WithoutState(),
+            CodebookName.Command => WithoutCommand(),
+            CodebookName.Type => WithoutType(),
+            CodebookName.Position => WithoutPosition(),
+            CodebookName.Detail => WithoutDetail(),
+            _ => this
+        };
+
+    public LocalIdBuilder WithoutQuantity() => this with { Quantity = null };
+
+    public LocalIdBuilder WithoutContent() => this with { Content = null };
+
+    public LocalIdBuilder WithoutCalculcation() => this with { Calculation = null };
+
+    public LocalIdBuilder WithoutState() => this with { State = null };
+
+    public LocalIdBuilder WithoutCommand() => this with { Command = null };
+
+    public LocalIdBuilder WithoutType() => this with { Type = null };
+
+    public LocalIdBuilder WithoutPosition() => this with { Position = null };
+
+    public LocalIdBuilder WithoutDetail() => this with { Detail = null };
 
     private LocalIdBuilder WithQuantity(in MetadataTag quantity) =>
         this with

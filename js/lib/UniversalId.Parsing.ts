@@ -109,8 +109,8 @@ export class UniversalIdParser {
         }
 
         const builder = UniversalIdBuilder.create(gmod.visVersion)
-            .withImoNumber(imoNumber)
-            .withLocalId(localIdBuilder);
+            .tryWithImoNumber(imoNumber)
+            .tryWithLocalId(localIdBuilder);
 
         return builder;
     }

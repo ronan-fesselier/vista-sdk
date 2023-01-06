@@ -95,7 +95,7 @@ public class LocalIdTests
         var localId = LocalIdBuilder
             .Create(visVersion)
             .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .WithVerboseMode(input.Verbose)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
@@ -104,6 +104,45 @@ public class LocalIdTests
         var localIdStr = localId.ToString();
 
         Assert.Equal(expectedOutput, localIdStr);
+    }
+
+    [Fact]
+    public void Test_LocalId_Build_AllWithout()
+    {
+        var (_, vis) = VISTests.GetVis();
+
+        var visVersion = VisVersion.v3_4a;
+
+        var gmod = vis.GetGmod(visVersion);
+        var codebooks = vis.GetCodebooks(visVersion);
+
+        var primaryItem = gmod.ParsePath("411.1/C101.31-2");
+        var secondaryItem = gmod.ParsePath("411.1/C101.31-5");
+
+        var localId = LocalIdBuilder
+            .Create(visVersion)
+            .WithPrimaryItem(primaryItem)
+            .TryWithSecondaryItem(secondaryItem)
+            .WithVerboseMode(true)
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, "quantity"))
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, "content"))
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, "position"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.State, "state"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.Content, "content"))
+            .TryWithMetadataTag(codebooks.CreateTag(CodebookName.Calculation, "calculate"));
+
+        Assert.True(localId.IsValid);
+
+        var allWithout = localId
+            .WithoutPrimaryItem()
+            .WithoutSecondaryItem()
+            .WithoutQuantity()
+            .WithoutPosition()
+            .WithoutState()
+            .WithoutContent()
+            .WithoutCalculcation();
+
+        Assert.True(allWithout.IsEmpty);
     }
 
     [Theory]
@@ -124,8 +163,8 @@ public class LocalIdTests
 
         var localIdBuilder = LocalIdBuilder
             .Create(visVersion)
-            .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithPrimaryItem(primaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .WithVerboseMode(input.Verbose)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
@@ -158,7 +197,7 @@ public class LocalIdTests
         var localId = LocalIdBuilder
             .Create(visVersion)
             .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
+            .TryWithSecondaryItem(secondaryItem)
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Quantity, input.Quantity))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Content, input.Content))
             .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, input.Position));
@@ -181,7 +220,7 @@ public class LocalIdTests
         Assert.NotSame(localId, otherLocalId);
 
         otherLocalId = localId
-            .WithPrimaryItem(localId.PrimaryItem is null ? null : localId.PrimaryItem with { })
+            .TryWithPrimaryItem(localId.PrimaryItem is null ? null : localId.PrimaryItem with { })
             .TryWithMetadataTag(
                 codebooks.TryCreateTag(CodebookName.Position, localId.Position?.Value)
             );

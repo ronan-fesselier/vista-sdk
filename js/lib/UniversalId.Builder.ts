@@ -118,12 +118,34 @@ export class UniversalIdBuilder {
         return builder.join("");
     }
 
-    public withLocalId(localId?: LocalIdBuilder) {
+    public tryWithLocalId(localId?: LocalIdBuilder) {
+        if (!localId) return this;
         return this.with((s) => (s._localId = localId));
     }
 
-    public withImoNumber(imoNumber?: ImoNumber) {
+    public withLocalId(localId: LocalIdBuilder) {
+        return this.with((s) => (s._localId = localId));
+    }
+
+    public withoutLocalId() {
+        return this.with(
+            (s) => (s._localId = undefined)
+        );
+    }
+
+    public withImoNumber(imoNumber: ImoNumber) {
         return this.with((s) => (s.imoNumber = imoNumber));
+    }
+
+    public tryWithImoNumber(imoNumber?: ImoNumber) {
+        if (!imoNumber) return this;
+        return this.with((s) => (s.imoNumber = imoNumber));
+    }
+
+    public withoutImoNumber() {
+        return this.with(
+            (s) => (s.imoNumber = undefined)
+        );
     }
 
     public with(u: (state: UniversalIdBuilder) => void): UniversalIdBuilder {

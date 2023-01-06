@@ -503,9 +503,9 @@ public sealed partial record class LocalIdBuilder
         }
 
         localId = Create(visVersion)
-            .WithPrimaryItem(primaryItem)
-            .WithSecondaryItem(secondaryItem)
-            .WithVerboseMode(verbose)
+            .TryWithPrimaryItem(in primaryItem)
+            .TryWithSecondaryItem(in secondaryItem)
+            .WithVerboseMode(in verbose)
             .TryWithMetadataTag(in qty)
             .TryWithMetadataTag(in cnt)
             .TryWithMetadataTag(in calc)
