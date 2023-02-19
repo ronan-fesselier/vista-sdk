@@ -1,5 +1,6 @@
 import { VIS, VisVersion } from "../lib";
 import * as testData from "../../testdata/Locations.json";
+import { LocationParsingErrorBuilder } from "../lib/internal/LocationParsingErrorBuilder";
 
 describe("Location", () => {
     const vis = VIS.instance;
@@ -12,15 +13,28 @@ describe("Location", () => {
         expect(location).toBeTruthy();
     });
 
-    test("Location validation", async () => {
-        const locations = await locationPromise;
+    test.each(testData.locations.map((l) => [l]))(
+        "Location parsing - %s",
+        async ({ value, success, output, expectedErrorMessages }) => {
+            const locations = await locationPromise;
 
-        testData.locations.forEach(({ value, success, output }) => {
-            const createdLocation = locations.tryParse(value);
-            if (success) expect(createdLocation).toBeDefined();
-            else expect(createdLocation).toBeUndefined();
-
-            if (output) expect(createdLocation!.toString()).toBe(output);
-        });
-    });
+            const errorBuilder = new LocationParsingErrorBuilder();
+            const createdLocation = locations.tryParse(value, errorBuilder);
+            if (!success) {
+                expect(createdLocation).toBeUndefined();
+                if (expectedErrorMessages.length > 0) {
+                    expect(errorBuilder).toBeDefined();
+                    expect(errorBuilder.hasError).toBe(true);
+                    const actualErrors = errorBuilder.errors.map(
+                        (e) => e.message
+                    );
+                    expect(actualErrors).toEqual(expectedErrorMessages);
+                }
+            } else {
+                expect(errorBuilder.hasError).toBe(false);
+                expect(createdLocation).toBeTruthy();
+                expect(createdLocation!.toString()).toBe(output);
+            }
+        }
+    );
 });
