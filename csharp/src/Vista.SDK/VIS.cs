@@ -276,6 +276,23 @@ public sealed class VIS : IVIS
         );
     }
 
+    public IReadOnlyDictionary<VisVersion, Locations> GetLocationsMap(
+        IEnumerable<VisVersion> visVersions
+    )
+    {
+        var invalidVisVersions = visVersions.Where(v => !v.IsValid());
+        if (invalidVisVersions.Any())
+            throw new ArgumentException(
+                "Invalid VIS versions provided: " + string.Join(", ", invalidVisVersions)
+            );
+
+        var versions = new HashSet<VisVersion>(visVersions);
+
+        var locations = versions.Select(v => (Version: v, Locations: GetLocations(v))).ToArray();
+
+        return locations.ToDictionary(t => t.Version, t => t.Locations);
+    }
+
     public IEnumerable<VisVersion> GetVisVersions()
     {
         return (VisVersion[])Enum.GetValues(typeof(VisVersion));
