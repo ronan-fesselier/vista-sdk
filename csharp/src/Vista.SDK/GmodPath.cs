@@ -335,12 +335,34 @@ public sealed record GmodPath
         [NotNullWhen(true)] out GmodPath? path
     )
     {
+        var gmod = VIS.Instance.GetGmod(visVersion);
+        var locations = VIS.Instance.GetLocations(visVersion);
+        return TryParse(item, gmod, locations, out path);
+    }
+
+    public static GmodPath Parse(string item, Gmod gmod, Locations locations)
+    {
+        if (!TryParse(item, gmod, locations, out var path))
+            throw new ArgumentException("Couldnt parse path");
+
+        return path;
+    }
+
+    public static bool TryParse(
+        string item,
+        Gmod gmod,
+        Locations locations,
+        [NotNullWhen(true)] out GmodPath? path
+    )
+    {
+        if (gmod.VisVersion != locations.VisVersion)
+            throw new ArgumentException(
+                "Got different VIS versions for Gmod and Locations arguments"
+            );
+
         path = null;
         if (string.IsNullOrWhiteSpace(item))
             return false;
-
-        var gmod = VIS.Instance.GetGmod(visVersion);
-        var locations = VIS.Instance.GetLocations(visVersion);
 
         item = item.Trim().TrimStart('/');
 

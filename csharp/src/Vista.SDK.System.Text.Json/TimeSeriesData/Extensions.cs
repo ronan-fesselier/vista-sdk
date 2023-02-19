@@ -62,7 +62,7 @@ public static class Extensions
                                                     ?.Select(
                                                         td =>
                                                             new TabularDataSet(
-                                                                td.Quality.ToList(),
+                                                                td.Quality?.ToList(),
                                                                 td.TimeStamp,
                                                                 td.Value
                                                             )
@@ -129,7 +129,7 @@ public static class Extensions
                                                             new Domain.TabularDataSet(
                                                                 tds.TimeStamp,
                                                                 tds.Value.ToList(),
-                                                                tds.Quality.ToList()
+                                                                tds.Quality?.ToList()
                                                             )
                                                     )
                                                     .ToList()
