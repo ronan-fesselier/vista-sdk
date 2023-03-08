@@ -19,42 +19,6 @@ export class CodebookNames {
             .map((v) => +v as CodebookName);
     }
 
-    public static fromString(name?: string): CodebookName {
-        switch (name?.toLocaleLowerCase()) {
-            case "position":
-            case "positions":
-                return CodebookName.Position;
-            case "calculation":
-            case "calculations":
-                return CodebookName.Calculation;
-            case "quantity":
-            case "quantities":
-                return CodebookName.Quantity;
-            case "state":
-            case "states":
-                return CodebookName.State;
-            case "content":
-            case "contents":
-                return CodebookName.Content;
-            case "command":
-            case "commands":
-                return CodebookName.Command;
-            case "type":
-            case "types":
-                return CodebookName.Type;
-            case "detail":
-                return CodebookName.Detail;
-            case "functionalService":
-                return CodebookName.FunctionalServices;
-            case "maintenanceCategories":
-                return CodebookName.MaintenanceCategory;
-            case "activityType":
-                return CodebookName.ActivityType;
-            default:
-                throw new Error(`Unknown or invalid metadata tag: ${name}`);
-        }
-    }
-
     public static fromPrefix(prefix?: string): CodebookName {
         switch (prefix) {
             case "pos":

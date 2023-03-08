@@ -1,4 +1,4 @@
-import { CodebookName, CodebookNames } from "./CodebookName";
+import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
 import { GmodPath } from "./GmodPath";
@@ -13,6 +13,17 @@ import { VisVersion } from "./VisVersion";
 
 export class LocalIdBuilder {
     public static readonly namingRule = "dnv-v2";
+    public static readonly usedCodebooks = [
+        CodebookName.Quantity,
+        CodebookName.Content,
+        CodebookName.Calculation,
+        CodebookName.State,
+        CodebookName.Command,
+        CodebookName.Type,
+        CodebookName.Position,
+        CodebookName.Detail,
+    ];
+
     public visVersion?: VisVersion;
     public verboseMode = false;
     private _items: LocalIdItems;

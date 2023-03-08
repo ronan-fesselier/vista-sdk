@@ -10,6 +10,18 @@ import { LocalIdItems } from "../LocalId.Items";
 
 export class PMSLocalIdBuilder {
     public static readonly namingRule = "dnv-v2-experimental";
+    public static readonly usedCodebooks = [
+        CodebookName.Quantity,
+        CodebookName.Content,
+        CodebookName.State,
+        CodebookName.Command,
+        CodebookName.FunctionalServices,
+        CodebookName.MaintenanceCategory,
+        CodebookName.ActivityType,
+        CodebookName.Position,
+        CodebookName.Detail,
+    ];
+
     public visVersion?: VisVersion;
     public verboseMode = false;
     private _items: LocalIdItems;

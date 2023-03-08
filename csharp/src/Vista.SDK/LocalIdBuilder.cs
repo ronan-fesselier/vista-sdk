@@ -6,7 +6,18 @@ namespace Vista.SDK;
 public partial record class LocalIdBuilder : ILocalIdBuilder
 {
     public static readonly string NamingRule = "dnv-v2";
-
+    public static readonly CodebookName[] UsedCodebooks = new[]
+    {
+        CodebookName.Quantity,
+        CodebookName.Content,
+        CodebookName.State,
+        CodebookName.Command,
+        CodebookName.FunctionalServices,
+        CodebookName.MaintenanceCategory,
+        CodebookName.ActivityType,
+        CodebookName.Position,
+        CodebookName.Detail,
+    };
     public VisVersion? VisVersion { get; private init; }
 
     public bool VerboseMode { get; private init; } = false;

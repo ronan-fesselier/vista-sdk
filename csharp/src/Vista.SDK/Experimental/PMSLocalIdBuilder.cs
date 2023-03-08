@@ -6,7 +6,17 @@ namespace Vista.SDK.Experimental;
 public sealed record class PMSLocalIdBuilder
 {
     public static readonly string NamingRule = "dnv-v2-experimental";
-
+    public static readonly CodebookName[] UsedCodebooks = new[]
+    {
+        CodebookName.Quantity,
+        CodebookName.Content,
+        CodebookName.Calculation,
+        CodebookName.State,
+        CodebookName.Command,
+        CodebookName.Type,
+        CodebookName.Position,
+        CodebookName.Detail,
+    };
     public VisVersion? VisVersion { get; private init; }
 
     public bool VerboseMode { get; private init; } = false;

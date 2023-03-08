@@ -17,23 +17,6 @@ public enum CodebookName
 
 public static class CodebookNames
 {
-    public static CodebookName FromString(string name) =>
-        name switch
-        {
-            "positions" => CodebookName.Position,
-            "calculations" => CodebookName.Calculation,
-            "quantities" => CodebookName.Quantity,
-            "states" => CodebookName.State,
-            "contents" => CodebookName.Content,
-            "commands" => CodebookName.Command,
-            "types" => CodebookName.Type,
-            "functionalservice" => CodebookName.Type,
-            "maintenancecategories" => CodebookName.Type,
-            "activitytype" => CodebookName.Type,
-            "detail" => CodebookName.Detail,
-            _ => throw new ArgumentException("Unknown metadata tag: " + name, nameof(name)),
-        };
-
     public static CodebookName FromPrefix(string? prefix) =>
         prefix switch
         {
