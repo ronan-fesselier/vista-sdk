@@ -1,15 +1,18 @@
-﻿namespace Vista.SDK;
+namespace Vista.SDK;
 
 public enum CodebookName
 {
-    Position = 1,
-    Quantity = 2,
+    Quantity = 1,
+    Content = 2,
     Calculation = 3,
     State = 4,
-    Content = 5,
-    Command = 6,
-    Type = 7,
-    Detail = 8
+    Command = 5,
+    Type = 6,
+    FunctionalServices = 7,
+    MaintenanceCategory = 8,
+    ActivityType = 9,
+    Position = 10,
+    Detail = 11
 }
 
 public static class CodebookNames
@@ -24,6 +27,9 @@ public static class CodebookNames
             "contents" => CodebookName.Content,
             "commands" => CodebookName.Command,
             "types" => CodebookName.Type,
+            "functionalservice" => CodebookName.Type,
+            "maintenancecategories" => CodebookName.Type,
+            "activitytype" => CodebookName.Type,
             "detail" => CodebookName.Detail,
             _ => throw new ArgumentException("Unknown metadata tag: " + name, nameof(name)),
         };
@@ -38,6 +44,9 @@ public static class CodebookNames
             "cnt" => CodebookName.Content,
             "cmd" => CodebookName.Command,
             "type" => CodebookName.Type,
+            "funct.svc" => CodebookName.FunctionalServices,
+            "maint.cat" => CodebookName.MaintenanceCategory,
+            "act.type" => CodebookName.ActivityType,
             "detail" => CodebookName.Detail,
             null => throw new ArgumentException(nameof(prefix)),
             _ => throw new ArgumentException("unknown prefix: " + prefix, nameof(prefix)),

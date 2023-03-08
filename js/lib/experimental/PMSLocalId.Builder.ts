@@ -1,45 +1,39 @@
-import { CodebookName, CodebookNames } from "./CodebookName";
-import { Codebooks } from "./Codebooks";
-import { Gmod } from "./Gmod";
-import { GmodPath } from "./GmodPath";
-import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
-import { LocalId } from "./LocalId";
-import { LocalIdItems } from "./LocalId.Items";
-import { LocalIdParser } from "./LocalId.Parsing";
-import { Locations } from "./Location";
-import { MetadataTag } from "./MetadataTag";
-import { ParsingState } from "./types/LocalId";
-import { VisVersion } from "./VisVersion";
+import {
+    CodebookName,
+    GmodPath,
+    LocalIdParsingErrorBuilder,
+    MetadataTag,
+    ParsingState,
+    VisVersion,
+} from "..";
+import { LocalIdItems } from "../LocalId.Items";
 
-export class LocalIdBuilder {
-    public static readonly namingRule = "dnv-v2";
+export class PMSLocalIdBuilder {
+    public static readonly namingRule = "dnv-v2-experimental";
     public visVersion?: VisVersion;
     public verboseMode = false;
     private _items: LocalIdItems;
 
     public quantity?: MetadataTag;
     public content?: MetadataTag;
-    public calculation?: MetadataTag;
     public state?: MetadataTag;
     public command?: MetadataTag;
-    public type?: MetadataTag;
+    public functionalServices?: MetadataTag;
+    public maintenanceCategory?: MetadataTag;
+    public activityType?: MetadataTag;
     public position?: MetadataTag;
     public detail?: MetadataTag;
 
-    private constructor() {
+    protected constructor() {
         this._items = new LocalIdItems();
     }
 
-    public static create(visVersion: VisVersion): LocalIdBuilder {
-        return new LocalIdBuilder().withVisVersion(visVersion);
+    public static create(visVersion: VisVersion): PMSLocalIdBuilder {
+        return new PMSLocalIdBuilder().withVisVersion(visVersion);
     }
 
     public clone() {
-        return Object.assign(new LocalIdBuilder(), this);
-    }
-
-    public build(): LocalId {
-        return new LocalId(this);
+        return Object.assign(new PMSLocalIdBuilder(), this);
     }
 
     public get primaryItem() {
@@ -54,6 +48,7 @@ export class LocalIdBuilder {
         return (
             !!this._items.primaryItem &&
             !!this.visVersion &&
+            !!this.activityType &&
             !this.isEmptyMetadata
         );
     }
@@ -78,10 +73,11 @@ export class LocalIdBuilder {
         const metaDataList = [
             this.quantity,
             this.content,
-            this.calculation,
+            this.functionalServices,
             this.state,
             this.command,
-            this.type,
+            this.maintenanceCategory,
+            this.activityType,
             this.position,
             this.detail,
         ];
@@ -95,17 +91,17 @@ export class LocalIdBuilder {
         if (!this.primaryItem) {
             errorBuilder.push(ParsingState.PrimaryItem);
         }
-        if (this.isEmptyMetadata) {
+        if (!this.activityType) {
             errorBuilder.push({
-                type: ParsingState.EmptyState,
-                message: "Missing any metadata tag",
+                type: ParsingState.MetaActivityType,
+                message: "Missing activity type",
             });
         }
 
         return errorBuilder;
     }
 
-    public equals(other?: LocalIdBuilder, skipOther = false): boolean {
+    public equals(other?: PMSLocalIdBuilder, skipOther = false): boolean {
         if (!other) return false;
         if (this.visVersion !== other.visVersion)
             throw new Error(
@@ -116,12 +112,15 @@ export class LocalIdBuilder {
             (this.primaryItem?.equals(other.primaryItem) ?? true) &&
             (this.secondaryItem?.equals(other.secondaryItem) ?? true) &&
             (this.quantity?.equals(other.quantity) ?? true) &&
-            (this.calculation?.equals(other.calculation) ?? true) &&
+            (this.functionalServices?.equals(other.functionalServices) ??
+                true) &&
             (this.content?.equals(other.content) ?? true) &&
             (this.position?.equals(other.position) ?? true) &&
             (this.state?.equals(other.state) ?? true) &&
             (this.command?.equals(other.command) ?? true) &&
-            (this.type?.equals(other.type) ?? true) &&
+            (this.maintenanceCategory?.equals(other.maintenanceCategory) ??
+                true) &&
+            (this.activityType?.equals(other.activityType) ?? true) &&
             (this.detail?.equals(other.detail) ?? true) &&
             (skipOther ? true : other.equals(this, true))
         );
@@ -130,7 +129,7 @@ export class LocalIdBuilder {
     public toString(builder: string[] = []): string {
         if (!this.visVersion)
             throw new Error("No VisVersion configured on LocalId");
-        const namingRule = `/${LocalIdBuilder.namingRule}/`;
+        const namingRule = `/${PMSLocalIdBuilder.namingRule}/`;
 
         builder.push(namingRule);
 
@@ -143,10 +142,11 @@ export class LocalIdBuilder {
         builder.push("meta/");
         this.quantity?.append(builder);
         this.content?.append(builder);
-        this.calculation?.append(builder);
+        this.functionalServices?.append(builder);
         this.state?.append(builder);
         this.command?.append(builder);
-        this.type?.append(builder);
+        this.maintenanceCategory?.append(builder);
+        this.activityType?.append(builder);
         this.position?.append(builder);
         this.detail?.append(builder);
 
@@ -164,8 +164,8 @@ export class LocalIdBuilder {
         switch (name) {
             case CodebookName.Position:
                 return this.position;
-            case CodebookName.Calculation:
-                return this.calculation;
+            case CodebookName.FunctionalServices:
+                return this.functionalServices;
             case CodebookName.Quantity:
                 return this.quantity;
             case CodebookName.State:
@@ -174,8 +174,10 @@ export class LocalIdBuilder {
                 return this.content;
             case CodebookName.Command:
                 return this.command;
-            case CodebookName.Type:
-                return this.type;
+            case CodebookName.MaintenanceCategory:
+                return this.maintenanceCategory;
+            case CodebookName.ActivityType:
+                return this.activityType;
             case CodebookName.Detail:
                 return this.detail;
             default:
@@ -185,96 +187,102 @@ export class LocalIdBuilder {
         }
     }
 
-    public withVisVersion(visVersion: VisVersion): LocalIdBuilder {
+    public withVisVersion(visVersion: VisVersion): PMSLocalIdBuilder {
         return this.with((s) => (s.visVersion = visVersion));
     }
 
-    public withoutVisVersion(): LocalIdBuilder {
+    public withoutVisVersion(): PMSLocalIdBuilder {
         return this.with((s) => (s.visVersion = undefined));
     }
 
-    public tryWithVisVersion(visVersion?: VisVersion): LocalIdBuilder {
-        if (visVersion === undefined) return this;
+    public tryWithVisVersion(visVersion: VisVersion): PMSLocalIdBuilder {
+        if (!visVersion) return this;
         return this.withVisVersion(visVersion);
     }
 
-    public withVerboseMode(verboseMode: boolean): LocalIdBuilder {
+    public withVerboseMode(verboseMode: boolean): PMSLocalIdBuilder {
         return this.with((s) => (s.verboseMode = verboseMode));
     }
 
-    public withoutVerboseMode(): LocalIdBuilder {
+    public withoutVerboseMode(): PMSLocalIdBuilder {
         return this.with((s) => (s.verboseMode = false));
     }
 
-    public withPrimaryItem(item: GmodPath): LocalIdBuilder {
+    public withPrimaryItem(item: GmodPath): PMSLocalIdBuilder {
         return this.with((s) => (s._items.primaryItem = item));
     }
 
-    public withoutPrimaryItem(): LocalIdBuilder {
+    public withoutPrimaryItem(): PMSLocalIdBuilder {
         return this.with((s) => (s._items.primaryItem = undefined));
     }
 
-    public tryWithPrimaryItem(item?: GmodPath): LocalIdBuilder {
+    public tryWithPrimaryItem(item?: GmodPath): PMSLocalIdBuilder {
         if (!item) return this;
         return this.withPrimaryItem(item);
     }
 
-    public withSecondaryItem(item: GmodPath): LocalIdBuilder {
+    public withSecondaryItem(item: GmodPath): PMSLocalIdBuilder {
         return this.with((s) => (s._items.secondaryItem = item));
     }
 
-    public withoutSecondaryItem(): LocalIdBuilder {
+    public withoutSecondaryItem(): PMSLocalIdBuilder {
         return this.with((s) => (s._items.secondaryItem = undefined));
     }
 
-    public tryWithSecondaryItem(item?: GmodPath): LocalIdBuilder {
+    public tryWithSecondaryItem(item?: GmodPath): PMSLocalIdBuilder {
         if (!item) return this;
         return this.withSecondaryItem(item);
     }
 
-    public withQuantity(metadataTag: MetadataTag): LocalIdBuilder {
+    public withQuantity(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.quantity = metadataTag));
     }
 
-    public withCalculation(metadataTag: MetadataTag): LocalIdBuilder {
-        return this.with((s) => (s.calculation = metadataTag));
+    public withFunctionalServices(metadataTag: MetadataTag): PMSLocalIdBuilder {
+        return this.with((s) => (s.functionalServices = metadataTag));
     }
 
-    public withContent(metadataTag: MetadataTag): LocalIdBuilder {
+    public withContent(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.content = metadataTag));
     }
 
-    public withPosition(metadataTag: MetadataTag): LocalIdBuilder {
+    public withPosition(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.position = metadataTag));
     }
 
-    public withState(metadataTag: MetadataTag): LocalIdBuilder {
+    public withState(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.state = metadataTag));
     }
 
-    public withCommand(metadataTag: MetadataTag): LocalIdBuilder {
+    public withCommand(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.command = metadataTag));
     }
 
-    public withType(metadataTag: MetadataTag): LocalIdBuilder {
-        return this.with((s) => (s.type = metadataTag));
+    public withMaintenanceCategory(
+        metadataTag: MetadataTag
+    ): PMSLocalIdBuilder {
+        return this.with((s) => (s.maintenanceCategory = metadataTag));
     }
 
-    public withDetail(metadataTag: MetadataTag): LocalIdBuilder {
+    public withActivityType(metadataTag: MetadataTag): PMSLocalIdBuilder {
+        return this.with((s) => (s.activityType = metadataTag));
+    }
+
+    public withDetail(metadataTag: MetadataTag): PMSLocalIdBuilder {
         return this.with((s) => (s.detail = metadataTag));
     }
 
-    public tryWithMetadataTag(metadataTag?: MetadataTag): LocalIdBuilder {
+    public tryWithMetadataTag(metadataTag?: MetadataTag): PMSLocalIdBuilder {
         if (!metadataTag) return this;
         return this.withMetadataTag(metadataTag);
     }
 
-    public withMetadataTag(metadataTag: MetadataTag): LocalIdBuilder {
+    public withMetadataTag(metadataTag: MetadataTag): PMSLocalIdBuilder {
         switch (metadataTag.name) {
             case CodebookName.Position:
                 return this.withPosition(metadataTag);
-            case CodebookName.Calculation:
-                return this.withCalculation(metadataTag);
+            case CodebookName.FunctionalServices:
+                return this.withFunctionalServices(metadataTag);
             case CodebookName.Quantity:
                 return this.withQuantity(metadataTag);
             case CodebookName.State:
@@ -283,8 +291,10 @@ export class LocalIdBuilder {
                 return this.withContent(metadataTag);
             case CodebookName.Command:
                 return this.withCommand(metadataTag);
-            case CodebookName.Type:
-                return this.withType(metadataTag);
+            case CodebookName.MaintenanceCategory:
+                return this.withMaintenanceCategory(metadataTag);
+            case CodebookName.ActivityType:
+                return this.withActivityType(metadataTag);
             case CodebookName.Detail:
                 return this.withDetail(metadataTag);
             default:
@@ -294,12 +304,12 @@ export class LocalIdBuilder {
         }
     }
 
-    public withoutMetadataTag(name: CodebookName): LocalIdBuilder {
+    public withoutMetadataTag(name: CodebookName): PMSLocalIdBuilder {
         switch (name) {
             case CodebookName.Position:
                 return this.withoutPosition();
-            case CodebookName.Calculation:
-                return this.withoutCalculation();
+            case CodebookName.FunctionalServices:
+                return this.withoutFunctionalServices();
             case CodebookName.Quantity:
                 return this.withoutQuantity();
             case CodebookName.State:
@@ -308,8 +318,10 @@ export class LocalIdBuilder {
                 return this.withoutContent();
             case CodebookName.Command:
                 return this.withoutCommand();
-            case CodebookName.Type:
-                return this.withoutType();
+            case CodebookName.MaintenanceCategory:
+                return this.withoutMaintenanceCategory();
+            case CodebookName.ActivityType:
+                return this.withoutActivityType();
             case CodebookName.Detail:
                 return this.withoutDetail();
             default:
@@ -335,66 +347,22 @@ export class LocalIdBuilder {
     private withoutState() {
         return this.with((s) => (s.state = undefined));
     }
-    private withoutCalculation() {
-        return this.with((s) => (s.calculation = undefined));
+    private withoutFunctionalServices() {
+        return this.with((s) => (s.functionalServices = undefined));
     }
-    private withoutType() {
-        return this.with((s) => (s.type = undefined));
+    private withoutMaintenanceCategory() {
+        return this.with((s) => (s.maintenanceCategory = undefined));
     }
-
+    private withoutActivityType() {
+        return this.with((s) => (s.activityType = undefined));
+    }
     private withoutDetail() {
         return this.with((s) => (s.detail = undefined));
     }
 
-    public with(u: { (state: LocalIdBuilder): void }): LocalIdBuilder {
+    public with(u: { (state: PMSLocalIdBuilder): void }): PMSLocalIdBuilder {
         const n = this.clone();
         u && u(n);
         return n;
-    }
-
-    public static parse(
-        localIdStr: string | undefined,
-        gmod: Gmod,
-        codebooks: Codebooks,
-        locations: Locations,
-        errorBuilder?: LocalIdParsingErrorBuilder
-    ) {
-        return LocalIdParser.parse(
-            localIdStr,
-            gmod,
-            codebooks,
-            locations,
-            errorBuilder
-        );
-    }
-
-    public static async parseAsync(
-        localIdString: string | undefined,
-        errorBuilder?: LocalIdParsingErrorBuilder
-    ) {
-        return LocalIdParser.parseAsync(localIdString, errorBuilder);
-    }
-
-    public static tryParse(
-        localIdStr: string | undefined,
-        gmod: Gmod,
-        codebooks: Codebooks,
-        locations: Locations,
-        errorBuilder?: LocalIdParsingErrorBuilder
-    ) {
-        return LocalIdParser.tryParse(
-            localIdStr,
-            gmod,
-            codebooks,
-            locations,
-            errorBuilder
-        );
-    }
-
-    public static async tryParseAsync(
-        localIdString: string | undefined,
-        errorBuilder?: LocalIdParsingErrorBuilder
-    ) {
-        return LocalIdParser.tryParseAsync(localIdString, errorBuilder);
     }
 }

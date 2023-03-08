@@ -1,12 +1,15 @@
 export enum CodebookName {
-    Position = 1,
-    Quantity = 2,
+    Quantity = 1,
+    Content = 2,
     Calculation = 3,
     State = 4,
-    Content = 5,
-    Command = 6,
-    Type = 7,
-    Detail = 8,
+    Command = 5,
+    Type = 6,
+    FunctionalServices = 7,
+    MaintenanceCategory = 8,
+    ActivityType = 9,
+    Position = 10,
+    Detail = 11,
 }
 
 export class CodebookNames {
@@ -41,6 +44,12 @@ export class CodebookNames {
                 return CodebookName.Type;
             case "detail":
                 return CodebookName.Detail;
+            case "functionalService":
+                return CodebookName.FunctionalServices;
+            case "maintenanceCategories":
+                return CodebookName.MaintenanceCategory;
+            case "activityType":
+                return CodebookName.ActivityType;
             default:
                 throw new Error(`Unknown or invalid metadata tag: ${name}`);
         }
@@ -64,6 +73,13 @@ export class CodebookNames {
                 return CodebookName.Type;
             case "detail":
                 return CodebookName.Detail;
+            case "funct.svc":
+                return CodebookName.FunctionalServices;
+            case "maint.cat":
+                return CodebookName.MaintenanceCategory;
+            case "act.type":
+                return CodebookName.ActivityType;
+
             default:
                 throw new Error(`Unknown or invalid prefix: ${prefix}`);
         }
@@ -87,6 +103,12 @@ export class CodebookNames {
                 return "type";
             case CodebookName.Detail:
                 return "detail";
+            case CodebookName.FunctionalServices:
+                return "functionalService";
+            case CodebookName.MaintenanceCategory:
+                return "maintenanceCategory";
+            case CodebookName.ActivityType:
+                return "activityType";
             default:
                 throw new Error(
                     `Unknown or invalid metadata tag name: ${name}`
@@ -112,6 +134,12 @@ export class CodebookNames {
                 return "type";
             case CodebookName.Detail:
                 return "detail";
+            case CodebookName.FunctionalServices:
+                return "funct.svc";
+            case CodebookName.MaintenanceCategory:
+                return "maint.cat";
+            case CodebookName.ActivityType:
+                return "act.type";
             default:
                 throw new Error(
                     "Unknown or invalid metadata tag name: " + name

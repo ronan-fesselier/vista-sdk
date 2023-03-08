@@ -44,6 +44,9 @@ public readonly record struct MetadataTag
             CodebookName.Content => "cnt",
             CodebookName.Command => "cmd",
             CodebookName.Type => "type",
+            CodebookName.FunctionalServices => "funct.svc",
+            CodebookName.MaintenanceCategory => "maint.cat",
+            CodebookName.ActivityType => "act.type",
             CodebookName.Detail => "detail",
             _ => throw new InvalidOperationException("Unknown metadata tag: " + Name),
         };

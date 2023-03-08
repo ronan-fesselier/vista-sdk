@@ -1,6 +1,7 @@
 export enum VisVersion {
     v3_4a = "3-4a",
     v3_5a = "3-5a",
+    v3_6a = "3-6a",
 }
 
 export class VisVersionExtension {
@@ -15,6 +16,9 @@ export class VisVersionExtension {
                 break;
             case VisVersion.v3_5a:
                 v = "3-5a";
+                break;
+            case VisVersion.v3_6a:
+                v = "3-6a";
                 break;
             default:
                 throw new Error("Invalid VisVersion enum value: " + version);
@@ -35,6 +39,9 @@ export class VisVersionExtension {
             case VisVersion.v3_5a:
                 v = "3-5a";
                 break;
+            case VisVersion.v3_6a:
+                v = "3-6a";
+                break;
             default:
                 throw new Error("Invalid VisVersion enum value: " + version);
         }
@@ -50,6 +57,8 @@ export class VisVersionExtension {
             case VisVersion.v3_4a:
                 return true;
             case VisVersion.v3_5a:
+                return true;
+            case VisVersion.v3_6a:
                 return true;
 
             default:
@@ -80,6 +89,8 @@ export class VisVersions {
                 return VisVersion.v3_4a;
             case "3-5a":
                 return VisVersion.v3_5a;
+            case "3-6a":
+                return VisVersion.v3_6a;
 
             default:
                 return;

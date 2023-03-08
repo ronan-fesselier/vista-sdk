@@ -14,7 +14,43 @@ export class Codebook {
     private static readonly positionTagAlphabet = this.tagAlphabet + "-";
 
     public constructor(dto: CodebookDto) {
-        this.name = CodebookNames.fromString(dto.name);
+        switch (dto.name) {
+            case "positions":
+                this.name = CodebookName.Position;
+                break;
+            case "calculations":
+                this.name = CodebookName.Calculation;
+                break;
+            case "quantities":
+                this.name = CodebookName.Quantity;
+                break;
+            case "states":
+                this.name = CodebookName.State;
+                break;
+            case "contents":
+                this.name = CodebookName.Content;
+                break;
+            case "commands":
+                this.name = CodebookName.Command;
+                break;
+            case "types":
+                this.name = CodebookName.Type;
+                break;
+            case "functional_services":
+                this.name = CodebookName.FunctionalServices;
+                break;
+            case "maintenance_category":
+                this.name = CodebookName.MaintenanceCategory;
+                break;
+            case "activity_type":
+                this.name = CodebookName.ActivityType;
+                break;
+            case "detail":
+                this.name = CodebookName.Detail;
+                break;
+            default:
+                throw new Error("Invalid codebook name");
+        }
 
         this._groupMap = new Map<string, string>();
 

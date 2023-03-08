@@ -33,6 +33,7 @@ import {
     DataChannelList,
     ShipId,
 } from "./transport/domain";
+import * as Experimental from "./experimental";
 
 // Types
 export type { GmodNodeMetadata, PmodInfo };
@@ -51,6 +52,10 @@ export {
     LocalIdParser,
     LocalIdParsingErrorBuilder,
 };
+
+// Experimental
+export { Experimental };
+
 // UniversalId
 export { UniversalIdParser, UniversalIdBuilder, UniversalId };
 

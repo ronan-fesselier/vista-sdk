@@ -25,6 +25,9 @@ public sealed record class Codebook
             "contents" => CodebookName.Content,
             "commands" => CodebookName.Command,
             "types" => CodebookName.Type,
+            "functional_services" => CodebookName.FunctionalServices,
+            "maintenance_category" => CodebookName.MaintenanceCategory,
+            "activity_type" => CodebookName.ActivityType,
             "detail" => CodebookName.Detail,
             _ => throw new ArgumentException("Unknown metadata tag: " + dto.Name, nameof(dto.Name)),
         };

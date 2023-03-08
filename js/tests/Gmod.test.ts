@@ -1,14 +1,19 @@
-import { GmodPath, VisVersion } from "../lib";
+import { Gmod, GmodPath, VisVersion } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
 import { VIS } from "../lib/VIS";
 
 describe("Gmod", () => {
     const vis = VIS.instance;
     const version = VisVersion.v3_4a;
+    const testVersions = [VisVersion.v3_4a, VisVersion.v3_5a, VisVersion.v3_6a];
     const gmodPromise = vis.getGmod(version);
     const locationsPromise = vis.getLocations(version);
 
-    test("Gmod loads", async () => {
+    test.each(
+        testVersions.map(
+            (v) => [v, vis.getGmod(v)] as [VisVersion, Promise<Gmod>]
+        )
+    )("Gmod loads %s", async (_, gmodPromise) => {
         const gmod = await gmodPromise;
 
         expect(gmod).toBeTruthy();
@@ -34,7 +39,11 @@ describe("Gmod", () => {
         expect(node1).not.toBe(node4);
     });
 
-    test("Gmod rootnode children", async () => {
+    test.each(
+        testVersions.map(
+            (v) => [v, vis.getGmod(v)] as [VisVersion, Promise<Gmod>]
+        )
+    )("Gmod rootnode children", async (_, gmodPromise) => {
         const gmod = await gmodPromise;
 
         const node = gmod.rootNode;

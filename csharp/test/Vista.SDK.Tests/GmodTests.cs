@@ -4,12 +4,21 @@ namespace Vista.SDK.Tests;
 
 public class GmodTests
 {
-    [Fact]
-    public void Test_Gmod_Loads()
+    public static IEnumerable<object[]> Test_Vis_Versions =>
+        new object[][]
+        {
+            new object[] { VisVersion.v3_4a },
+            new object[] { VisVersion.v3_5a },
+            new object[] { VisVersion.v3_6a },
+        };
+
+    [Theory]
+    [MemberData(nameof(Test_Vis_Versions))]
+    public void Test_Gmod_Loads(VisVersion visVersion)
     {
         var (_, vis) = VISTests.GetVis();
 
-        var gmod = vis.GetGmod(VisVersion.v3_4a);
+        var gmod = vis.GetGmod(visVersion);
         Assert.NotNull(gmod);
 
         Assert.True(gmod.TryGetNode("400a", out _));
@@ -52,12 +61,13 @@ public class GmodTests
         Assert.NotEmpty(set);
     }
 
-    [Fact]
-    public void Test_Gmod_RootNode_Children()
+    [Theory]
+    [MemberData(nameof(Test_Vis_Versions))]
+    public void Test_Gmod_RootNode_Children(VisVersion visVersion)
     {
         var (_, vis) = VISTests.GetVis();
 
-        var gmod = vis.GetGmod(VisVersion.v3_4a);
+        var gmod = vis.GetGmod(visVersion);
 
         var node = gmod.RootNode;
 

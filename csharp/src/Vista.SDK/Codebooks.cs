@@ -38,7 +38,7 @@ public sealed class Codebooks : IEnumerable<(CodebookName Name, Codebook Codeboo
     }
 
     public MetadataTag? TryCreateTag(CodebookName name, string? value) =>
-        _codebooks[name].TryCreateTag(value);
+        _codebooks.GetValueOrDefault(name)?.TryCreateTag(value);
 
     public MetadataTag CreateTag(CodebookName name, string value) =>
         _codebooks[name].CreateTag(value);
