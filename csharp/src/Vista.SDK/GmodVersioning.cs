@@ -24,25 +24,49 @@ internal sealed class GmodVersioning
     {
         ValidateSourceAndTargetVersions(sourceVersion, targetVersion);
 
-        if (!TryGetVersioningNode(sourceVersion, out var versioningNode))
-            throw new ArgumentException(
-                "Couldn't get versioning node with VIS version" + sourceVersion.ToVersionString()
-            );
+        GmodNode? node = sourceNode;
+        var source = sourceVersion;
 
-        var nextCode = sourceNode.Code;
-        if (versioningNode.TryGetCodeChanges(sourceNode.Code, out var change))
+        while (source <= targetVersion - 1)
         {
-            if (targetVersion == change.NextVisVersion)
-                nextCode = change.NextCode!;
-            else if (targetVersion == change.PreviousVisVersion)
-                nextCode = change.PreviousCode!;
-            else
-                throw new Exception("Invalid conversion");
+            if (node is null)
+                break;
+
+            var target = source + 1;
+
+            node = ConvertNodeInternal(source, node, target);
+            source++;
         }
 
-        var gmod = VIS.Instance.GetGmod(targetVersion);
+        return node;
+    }
 
-        if (!gmod.TryGetNode(nextCode, out var targetNode))
+    public GmodNode? ConvertNodeInternal(
+        VisVersion sourceVersion,
+        GmodNode sourceNode,
+        VisVersion targetVersion
+    )
+    {
+        var nextCode = sourceNode.Code;
+
+        if (TryGetVersioningNode(sourceVersion, out var versioningNode))
+        {
+            if (versioningNode.TryGetCodeChanges(sourceNode.Code, out var change))
+            {
+                if (targetVersion == change.NextVisVersion)
+                    nextCode =
+                        change.NextCode
+                        ?? throw new InvalidOperationException("failed to set next code");
+                else if (targetVersion == change.PreviousVisVersion)
+                    nextCode =
+                        change.PreviousCode
+                        ?? throw new InvalidOperationException("failed to set previous code");
+            }
+        }
+
+        var targetGmod = VIS.Instance.GetGmod(targetVersion);
+
+        if (!targetGmod.TryGetNode(nextCode, out var targetNode))
             return null;
         return targetNode.TryWithLocation(sourceNode.Location);
     }
@@ -233,6 +257,13 @@ internal sealed class GmodVersioning
         return new GmodPath(potentialParents, targetEndNode);
     }
 
+    private bool HasChangesInNextVisVersion(VisVersion source)
+    {
+        var target = source + 1;
+
+        return TryGetVersioningNode(target, out _);
+    }
+
     private bool TryGetVersioningNode(
         VisVersion visVersion,
         [MaybeNullWhen(false)] out GmodVersioningNode versioningNode
@@ -248,18 +279,6 @@ internal sealed class GmodVersioning
         if (string.IsNullOrWhiteSpace(targetVersion.ToVersionString()))
             throw new ArgumentException(
                 "Invalid target VISVersion: " + targetVersion.ToVersionString()
-            );
-
-        if (!_versioningsMap.ContainsKey(sourceVersion))
-            throw new ArgumentException(
-                "Source VIS Version does not exist in versionings: "
-                    + sourceVersion.ToVersionString()
-            );
-
-        if (!_versioningsMap.ContainsKey(targetVersion))
-            throw new ArgumentException(
-                "Target VIS Version does not exist in versionings: "
-                    + targetVersion.ToVersionString()
             );
     }
 

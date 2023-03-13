@@ -82,11 +82,16 @@ public class GmodVersioningTests
     [MemberData(nameof(Valid_Test_Data_Path))]
     public void Test_GmodVersioning_ConvertPath(string inputPath, string expectedPath)
     {
-        var targetGmod = VIS.Instance.GetGmod(VisVersion.v3_5a);
+        var targetGmod = VIS.Instance.GetGmod(VisVersion.v3_6a);
 
         var sourcePath = GmodPath.Parse(inputPath, VisVersion.v3_4a);
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
-        var targetPath = VIS.Instance.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
+
+        var targetPath = VIS.Instance.ConvertPath(
+            VisVersion.v3_4a,
+            sourcePath,
+            targetGmod.VisVersion
+        );
         Assert.NotNull(targetPath);
 
         var nodesWithLocation = sourcePath
@@ -178,12 +183,12 @@ public class GmodVersioningTests
         var (_, vis) = VISTests.GetVis();
 
         var gmod = vis.GetGmod(VisVersion.v3_4a);
-        var targetGmod = vis.GetGmod(VisVersion.v3_5a);
+        var targetGmod = vis.GetGmod(VisVersion.v3_6a);
 
         var sourceNode = gmod[inputCode].TryWithLocation(location);
         var expectedNode = targetGmod[expectedCode].TryWithLocation(location);
 
-        var targetNode = vis.ConvertNode(VisVersion.v3_4a, sourceNode, VisVersion.v3_5a);
+        var targetNode = vis.ConvertNode(VisVersion.v3_4a, sourceNode, targetGmod.VisVersion);
 
         Assert.Equal(expectedNode.Code, targetNode?.Code);
         Assert.Equal(expectedNode.Location, targetNode?.Location);
