@@ -10,10 +10,11 @@ public sealed record class PMSLocalIdBuilder
     {
         CodebookName.Quantity,
         CodebookName.Content,
-        CodebookName.Calculation,
         CodebookName.State,
         CodebookName.Command,
-        CodebookName.Type,
+        CodebookName.FunctionalServices,
+        CodebookName.MaintenanceCategory,
+        CodebookName.ActivityType,
         CodebookName.Position,
         CodebookName.Detail,
     };
