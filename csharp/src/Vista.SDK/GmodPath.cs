@@ -515,6 +515,9 @@ public sealed record GmodPath
         if (span.IsEmpty || span.IsWhiteSpace())
             return false;
 
+        if (!span.StartsWith(gmod.RootNode.Code.AsSpan(), StringComparison.Ordinal))
+            return false;
+
         var nodes = new List<GmodNode>(1);
         foreach (ReadOnlySpan<char> nodeStr in span.Split('/'))
         {

@@ -349,14 +349,9 @@ export class GmodPath {
         gmod: Gmod,
         locations: Locations
     ): GmodPath | undefined {
-        if (!item || !gmod) return;
         if (isNullOrWhiteSpace(item)) return;
 
-        item = item.trim();
-
-        if (item[0] === "/") {
-            item.slice(1);
-        }
+        if (!item.startsWith(gmod.rootNode.code)) return;
 
         const parts: string[] = item.split("/");
 
