@@ -331,7 +331,7 @@ public sealed record GmodPath
     }
 
     public static bool TryParse(
-        string item,
+        string? item,
         VisVersion visVersion,
         [NotNullWhen(true)] out GmodPath? path
     )
@@ -350,7 +350,7 @@ public sealed record GmodPath
     }
 
     public static bool TryParse(
-        string item,
+        string? item,
         Gmod gmod,
         Locations locations,
         [NotNullWhen(true)] out GmodPath? path
@@ -365,7 +365,7 @@ public sealed record GmodPath
         if (string.IsNullOrWhiteSpace(item))
             return false;
 
-        item = item.Trim().TrimStart('/');
+        item = item!.Trim().TrimStart('/');
 
         var parts = new Queue<PathNode>();
         foreach (var partStr in item.Split('/'))
@@ -465,7 +465,7 @@ public sealed record GmodPath
     }
 
     public static bool TryParseFullPath(
-        string pathStr,
+        string? pathStr,
         VisVersion visVersion,
         [MaybeNullWhen(false)] out GmodPath path
     )
@@ -489,7 +489,7 @@ public sealed record GmodPath
     }
 
     public static bool TryParseFullPath(
-        string pathStr,
+        string? pathStr,
         Gmod gmod,
         Locations locations,
         [MaybeNullWhen(false)] out GmodPath path
