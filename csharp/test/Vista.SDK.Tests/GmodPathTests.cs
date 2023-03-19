@@ -97,4 +97,24 @@ public class GmodPathTests
 
         Assert.True(expectation.Keys.OrderBy(x => x).SequenceEqual(seen.OrderBy(x => x)));
     }
+
+    [Theory]
+    [InlineData("411.1/C101.72/I101")]
+    [InlineData("612.21-1/C701.13/S93")]
+    public void Test_FullPathParsing(string shortPathStr)
+    {
+        var version = VisVersion.v3_4a;
+
+        var path = GmodPath.Parse(shortPathStr, version);
+        var fullString = path.ToFullPathString();
+
+        var parsed = GmodPath.TryParseFullPath(fullString, version, out var parsedPath);
+        Assert.NotNull(parsedPath);
+        Assert.True(parsed);
+        Assert.StrictEqual(path, parsedPath);
+        Assert.Equal(fullString, path.ToFullPathString());
+        Assert.Equal(fullString, parsedPath.ToFullPathString());
+        Assert.Equal(shortPathStr, path.ToString());
+        Assert.Equal(shortPathStr, parsedPath.ToString());
+    }
 }

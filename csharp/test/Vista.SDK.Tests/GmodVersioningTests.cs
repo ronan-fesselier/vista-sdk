@@ -157,8 +157,8 @@ public class GmodVersioningTests
         }
     }
 
-    public static IEnumerable<string?[]> Valid_Test_Data_Node =>
-        new string?[][]
+    public static IEnumerable<object?[]> Valid_Test_Data_Node =>
+        new object?[][]
         {
             new string?[] { "1014.211", null, "1014.211" },
             new string?[] { "323.5", null, "323.6" },

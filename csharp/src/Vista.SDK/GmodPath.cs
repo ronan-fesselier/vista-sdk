@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Vista.SDK.Internal;
@@ -460,6 +461,93 @@ public sealed record GmodPath
             return false;
 
         path = context.Path;
+        return true;
+    }
+
+    public static bool TryParseFullPath(
+        string pathStr,
+        VisVersion visVersion,
+        [MaybeNullWhen(false)] out GmodPath path
+    )
+    {
+        var vis = VIS.Instance;
+        var gmod = vis.GetGmod(visVersion);
+        var locations = vis.GetLocations(visVersion);
+        return TryParseFullPathInternal(pathStr.AsSpan(), gmod, locations, out path);
+    }
+
+    public static bool TryParseFullPath(
+        ReadOnlySpan<char> pathStr,
+        VisVersion visVersion,
+        [MaybeNullWhen(false)] out GmodPath path
+    )
+    {
+        var vis = VIS.Instance;
+        var gmod = vis.GetGmod(visVersion);
+        var locations = vis.GetLocations(visVersion);
+        return TryParseFullPathInternal(pathStr, gmod, locations, out path);
+    }
+
+    public static bool TryParseFullPath(
+        string pathStr,
+        Gmod gmod,
+        Locations locations,
+        [MaybeNullWhen(false)] out GmodPath path
+    ) => TryParseFullPathInternal(pathStr.AsSpan(), gmod, locations, out path);
+
+    public static bool TryParseFullPath(
+        ReadOnlySpan<char> pathStr,
+        Gmod gmod,
+        Locations locations,
+        [MaybeNullWhen(false)] out GmodPath path
+    ) => TryParseFullPathInternal(pathStr, gmod, locations, out path);
+
+    private static bool TryParseFullPathInternal(
+        ReadOnlySpan<char> span,
+        Gmod gmod,
+        Locations locations,
+        [MaybeNullWhen(false)] out GmodPath path
+    )
+    {
+        Debug.Assert(gmod.VisVersion == locations.VisVersion);
+
+        path = default;
+        if (span.IsEmpty || span.IsWhiteSpace())
+            return false;
+
+        var nodes = new List<GmodNode>(1);
+        foreach (ReadOnlySpan<char> nodeStr in span.Split('/'))
+        {
+            var dashIndex = nodeStr.IndexOf('-');
+            if (dashIndex == -1)
+            {
+                if (!gmod.TryGetNode(nodeStr, out var node))
+                    return false;
+
+                nodes.Add(node);
+            }
+            else
+            {
+                if (!gmod.TryGetNode(nodeStr.Slice(0, dashIndex), out var node))
+                    return false;
+
+                var locationStr = nodeStr.Slice(dashIndex + 1);
+                if (!locations.TryParse(locationStr, out var location))
+                    return false;
+
+                nodes.Add(node.WithLocation(location));
+            }
+        }
+
+        if (nodes.Count == 0)
+            return false;
+
+        var endNode = nodes[nodes.Count - 1];
+        nodes.RemoveAt(nodes.Count - 1);
+        if (!IsValid(nodes, endNode))
+            return false;
+
+        path = new GmodPath(nodes, endNode, skipVerify: true);
         return true;
     }
 }

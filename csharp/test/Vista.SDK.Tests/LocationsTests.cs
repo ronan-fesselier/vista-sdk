@@ -1,6 +1,4 @@
 using FluentAssertions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Vista.SDK.Internal;
 
 namespace Vista.SDK.Tests;
@@ -27,31 +25,56 @@ public class LocationsTests
     {
         var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
 
-        var succeeded = locations.TryParse(
+        var stringSuccess = locations.TryParse(
             value,
-            out var parsedLocation,
-            out LocationParsingErrorBuilder errorBuilder
+            out var stringParsedLocation,
+            out var stringErrorBuilder
         );
-        if (!success)
-        {
-            Assert.False(succeeded);
-            Assert.Equal(default, parsedLocation);
+        var spanSuccess = locations.TryParse(
+            value.AsSpan(),
+            out var spanParsedLocation,
+            out var spanErrorBuilder
+        );
+        Verify(stringSuccess, stringErrorBuilder, stringParsedLocation);
+        Verify(spanSuccess, spanErrorBuilder, spanParsedLocation);
 
-            if (expectedErrorMessages.Length > 0)
+        void Verify(
+            bool succeeded,
+            LocationParsingErrorBuilder errorBuilder,
+            Location parsedLocation
+        )
+        {
+            if (!success)
             {
-                Assert.NotNull(errorBuilder);
-                Assert.True(errorBuilder.HasError);
-                var actualErrors = errorBuilder.ErrorMessages.Select(e => e.message).ToArray();
-                actualErrors.Should().Equal(expectedErrorMessages);
+                Assert.False(succeeded);
+                Assert.Equal(default, parsedLocation);
+
+                if (expectedErrorMessages.Length > 0)
+                {
+                    Assert.NotNull(errorBuilder);
+                    Assert.True(errorBuilder.HasError);
+                    var actualErrors = errorBuilder.ErrorMessages.Select(e => e.message).ToArray();
+                    actualErrors.Should().Equal(expectedErrorMessages);
+                }
+            }
+            else
+            {
+                Assert.True(succeeded);
+                Assert.False(errorBuilder.HasError);
+                Assert.NotEqual(default, parsedLocation);
+                Assert.Equal(output, parsedLocation.ToString());
             }
         }
-        else
-        {
-            Assert.True(succeeded);
-            Assert.False(errorBuilder.HasError);
-            Assert.NotEqual(default, parsedLocation);
-            Assert.Equal(output, parsedLocation.ToString());
-        }
+    }
+
+    [Fact]
+    public void Test_Location_Parse_Throwing()
+    {
+        var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
+        Assert.Throws<ArgumentException>(() => locations.Parse(null!));
+        Assert.Throws<ArgumentException>(() => locations.Parse(null!, out _));
+        Assert.Throws<ArgumentException>(() => locations.Parse(ReadOnlySpan<char>.Empty));
+        Assert.Throws<ArgumentException>(() => locations.Parse(ReadOnlySpan<char>.Empty, out _));
     }
 
     [Fact]

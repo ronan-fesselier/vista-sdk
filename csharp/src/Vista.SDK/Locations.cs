@@ -48,7 +48,10 @@ public sealed class Locations
 
     public Location Parse(string locationStr)
     {
-        if (!TryParse(locationStr, out var location))
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+
+        var span = locationStr is null ? ReadOnlySpan<char>.Empty : locationStr.AsSpan();
+        if (!TryParseInternal(span, locationStr, out var location, ref errorBuilder))
             throw new ArgumentException($"Invalid value for location: {locationStr}");
 
         return location;
@@ -56,15 +59,43 @@ public sealed class Locations
 
     public Location Parse(string locationStr, out LocationParsingErrorBuilder errorBuilder)
     {
-        if (!TryParse(locationStr, out var location, out errorBuilder))
+        errorBuilder = LocationParsingErrorBuilder.Empty;
+
+        var span = locationStr is null ? ReadOnlySpan<char>.Empty : locationStr.AsSpan();
+        if (!TryParseInternal(span, locationStr, out var location, ref errorBuilder))
             throw new ArgumentException($"Invalid value for location: {locationStr}");
+
+        return location;
+    }
+
+    public Location Parse(ReadOnlySpan<char> locationStr)
+    {
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+
+        if (!TryParseInternal(locationStr, null, out var location, ref errorBuilder))
+            throw new ArgumentException($"Invalid value for location: {locationStr.ToString()}");
+
+        return location;
+    }
+
+    public Location Parse(
+        ReadOnlySpan<char> locationStr,
+        out LocationParsingErrorBuilder errorBuilder
+    )
+    {
+        errorBuilder = LocationParsingErrorBuilder.Empty;
+
+        if (!TryParseInternal(locationStr, null, out var location, ref errorBuilder))
+            throw new ArgumentException($"Invalid value for location: {locationStr.ToString()}");
 
         return location;
     }
 
     public bool TryParse(string? value, out Location location)
     {
-        return TryParse(value, out location, out _);
+        var span = value is null ? ReadOnlySpan<char>.Empty : value.AsSpan();
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+        return TryParseInternal(span, value, out location, ref errorBuilder);
     }
 
     public bool TryParse(
@@ -73,22 +104,40 @@ public sealed class Locations
         out LocationParsingErrorBuilder errorBuilder
     )
     {
+        var span = value is null ? ReadOnlySpan<char>.Empty : value.AsSpan();
         errorBuilder = LocationParsingErrorBuilder.Empty;
-        return TryParseInternal(value, out location, ref errorBuilder);
+        return TryParseInternal(span, value, out location, ref errorBuilder);
+    }
+
+    public bool TryParse(ReadOnlySpan<char> value, out Location location)
+    {
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+        return TryParseInternal(value, null, out location, ref errorBuilder);
+    }
+
+    public bool TryParse(
+        ReadOnlySpan<char> value,
+        out Location location,
+        out LocationParsingErrorBuilder errorBuilder
+    )
+    {
+        errorBuilder = LocationParsingErrorBuilder.Empty;
+        return TryParseInternal(value, null, out location, ref errorBuilder);
     }
 
     private bool TryParseInternal(
-        string? locationStr,
+        ReadOnlySpan<char> span,
+        string? originalStr,
         out Location location,
         ref LocationParsingErrorBuilder errorBuilder
     )
     {
         location = default;
 
-        if (locationStr is null)
+        if (span.IsEmpty)
             return false;
 
-        if (string.IsNullOrWhiteSpace(locationStr))
+        if (span.IsWhiteSpace())
         {
             AddError(
                 ref errorBuilder,
@@ -98,7 +147,7 @@ public sealed class Locations
             return false;
         }
 
-        var span = locationStr.AsSpan();
+        var originalSpan = span;
 
         int? digitStartIndex = null;
         int? lastLetterIndex = null;
@@ -119,7 +168,7 @@ public sealed class Locations
                         AddError(
                             ref errorBuilder,
                             LocationValidationResult.Invalid,
-                            $"Invalid location: numeric location should start before location code(s) in location: '{locationStr}'"
+                            $"Invalid location: numeric location should start before location code(s) in location: '{originalStr ?? originalSpan.ToString()}'"
                         );
                         return false;
                     }
@@ -133,7 +182,7 @@ public sealed class Locations
                             AddError(
                                 ref errorBuilder,
                                 LocationValidationResult.Invalid,
-                                $"Invalid location: numeric location should start before location code(s) in location: '{locationStr}'"
+                                $"Invalid location: numeric location should start before location code(s) in location: '{originalStr ?? originalSpan.ToString()}'"
                             );
                             return false;
                         }
@@ -142,7 +191,7 @@ public sealed class Locations
                             AddError(
                                 ref errorBuilder,
                                 LocationValidationResult.Invalid,
-                                $"Invalid location: cannot have multiple separated digits in location: '{locationStr}'"
+                                $"Invalid location: cannot have multiple separated digits in location: '{originalStr ?? originalSpan.ToString()}'"
                             );
                             return false;
                         }
@@ -167,7 +216,7 @@ public sealed class Locations
                         AddError(
                             ref errorBuilder,
                             LocationValidationResult.Invalid,
-                            $"Invalid location: negative numeric location is not allowed: '{locationStr}'"
+                            $"Invalid location: negative numeric location is not allowed: '{originalStr ?? originalSpan.ToString()}'"
                         );
                         return false;
                     }
@@ -179,7 +228,7 @@ public sealed class Locations
                 {
                     var invalidChars = string.Join(
                         ",",
-                        locationStr
+                        (originalStr ?? originalSpan.ToString())
                             .Where(
                                 c => !char.IsDigit(c) && (c == 'N' || !_locationCodes.Contains(c))
                             )
@@ -188,7 +237,7 @@ public sealed class Locations
                     AddError(
                         ref errorBuilder,
                         LocationValidationResult.InvalidCode,
-                        $"Invalid location code: '{locationStr}' with invalid location code(s): {invalidChars}"
+                        $"Invalid location code: '{originalStr ?? originalSpan.ToString()}' with invalid location code(s): {invalidChars}"
                     );
                     return false;
                 }
@@ -205,7 +254,7 @@ public sealed class Locations
                         AddError(
                             ref errorBuilder,
                             LocationValidationResult.InvalidOrder,
-                            $"Invalid location: '{locationStr}' not alphabetically sorted"
+                            $"Invalid location: '{originalStr ?? originalSpan.ToString()}' not alphabetically sorted"
                         );
                         return false;
                     }
@@ -215,7 +264,7 @@ public sealed class Locations
             }
         }
 
-        location = new Location(locationStr);
+        location = new Location(originalStr ?? originalSpan.ToString());
         return true;
     }
 
