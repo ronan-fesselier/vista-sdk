@@ -41,6 +41,24 @@ export class GmodPath {
         this.node = node;
     }
 
+    private static isValid(parents: GmodNode[], node: GmodNode): boolean {
+        if (parents.length === 0 && node.code !== "VE")
+            return false;
+        if (parents.length > 0 && parents[0].code !== "VE")
+            return false;
+
+        for (let i = 0; i < parents.length; i++) {
+            const parent = parents[i];
+            const nextIndex = i + 1;
+            const child =
+                nextIndex < parents.length ? parents[nextIndex] : node;
+            if (!parent.isChild(child))
+                return false;
+        }
+
+        return true;
+    }
+
     public static create(parents: GmodNode[], node: GmodNode) {
         return new GmodPath(parents, node, false);
     }
@@ -290,8 +308,8 @@ export class GmodPath {
         return context.path;
     }
 
-    public static parseFromFullPath(item: string, gmod: Gmod): GmodPath {
-        const path = this.tryParseFromFullPath(item, gmod);
+    public static parseFromFullPath(item: string, gmod: Gmod, locations: Locations): GmodPath {
+        const path = this.tryParseFromFullPath(item, gmod, locations);
 
         if (!path) {
             throw new Error("Couldn't parse path from full path");
@@ -328,7 +346,8 @@ export class GmodPath {
 
     public static tryParseFromFullPath(
         item: string,
-        gmod: Gmod
+        gmod: Gmod,
+        locations: Locations
     ): GmodPath | undefined {
         if (!item || !gmod) return;
         if (isNullOrWhiteSpace(item)) return;
@@ -344,10 +363,32 @@ export class GmodPath {
         const endPathNode = parts.pop();
         if (!endPathNode) return;
 
-        const endNode = gmod.getNode(endPathNode);
+        const getNode = (code: string, gmod: Gmod, locations: Locations): GmodNode | undefined => {
+            const dashIndex = code.indexOf('-');
+            if (dashIndex === -1 ) {
+                const node = gmod.tryGetNode(code);
+                if (!node) return;
+                return node;
+            } else {
+                const node = gmod.tryGetNode(code.substring(0, dashIndex));
+                if (!node) return;
+                const location = locations.tryParse(code.substring(dashIndex + 1));
+                if (!location) return;
+                return node.withLocation(location);
+            }
+        }
+
+        const endNode = getNode(endPathNode, gmod, locations);
+        if (!endNode) return;
+
+        const parents = parts.map(code => getNode(code, gmod, locations));
+        if (parents.some(n => !n)) return;
+
+        if (!GmodPath.isValid(parents as GmodNode[], endNode)) return;
         return new GmodPath(
-            parts.map((p) => gmod.getNode(p)),
-            endNode
+            parents as GmodNode[],
+            endNode,
+            true
         );
     }
 
@@ -363,8 +404,9 @@ export class GmodPath {
         visVersion: VisVersion
     ) {
         const gmod = await VIS.instance.getGmod(visVersion);
+        const locations = await VIS.instance.getLocations(visVersion);
 
-        return this.tryParseFromFullPath(item, gmod);
+        return this.tryParseFromFullPath(item, gmod, locations);
     }
 
     public clone(): GmodPath {

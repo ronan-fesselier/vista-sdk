@@ -37,4 +37,11 @@ describe("Location", () => {
             }
         }
     );
+
+    test('Location parsing throws', async () => {
+        const locations = await locationPromise;
+
+        expect(() => locations.parse(null!)).toThrowError();
+        expect(() => locations.parse(undefined!)).toThrowError();
+    });
 });
