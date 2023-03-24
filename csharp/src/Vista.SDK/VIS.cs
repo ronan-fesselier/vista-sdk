@@ -13,6 +13,7 @@ public interface IVIS
     IReadOnlyDictionary<VisVersion, Codebooks> GetCodebooksMap(IEnumerable<VisVersion> visVersions);
 
     IReadOnlyDictionary<VisVersion, Gmod> GetGmodsMap(IEnumerable<VisVersion> visVersions);
+    IReadOnlyDictionary<VisVersion, Locations> GetLocationsMap(IEnumerable<VisVersion> visVersions);
 
     IEnumerable<VisVersion> GetVisVersions();
 
