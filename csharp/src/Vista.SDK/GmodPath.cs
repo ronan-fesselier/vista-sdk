@@ -42,9 +42,13 @@ public sealed record GmodPath
                     $"Invalid gmod path - first parent should be root of gmod (VE), but was {parents[0].Code}"
                 );
 
+#if NETCOREAPP3_1_OR_GREATER
+            var set = new HashSet<string>(parents.Count);
+#else
             var set = new HashSet<string>();
-
+#endif
             set.Add("VE");
+
             for (int i = 0; i < parents.Count; i++)
             {
                 var parent = parents[i];
@@ -83,7 +87,12 @@ public sealed record GmodPath
         if (parents.Count > 0 && !parents[0].IsRoot)
             return false;
 
-        var set = new HashSet<string> { "VE" };
+#if NETCOREAPP3_1_OR_GREATER
+        var set = new HashSet<string>(parents.Count);
+#else
+        var set = new HashSet<string>();
+#endif
+        set.Add("VE");
 
         for (int i = 0; i < parents.Count; i++)
         {
@@ -518,28 +527,30 @@ public sealed record GmodPath
         if (!span.StartsWith(gmod.RootNode.Code.AsSpan(), StringComparison.Ordinal))
             return false;
 
-        var nodes = new List<GmodNode>(1);
+        var nodes = new List<GmodNode>(span.Length / 3);
         foreach (ReadOnlySpan<char> nodeStr in span.Split('/'))
         {
             var dashIndex = nodeStr.IndexOf('-');
+
+            GmodNode? node;
             if (dashIndex == -1)
             {
-                if (!gmod.TryGetNode(nodeStr, out var node))
+                if (!gmod.TryGetNode(nodeStr, out node))
                     return false;
-
-                nodes.Add(node);
             }
             else
             {
-                if (!gmod.TryGetNode(nodeStr.Slice(0, dashIndex), out var node))
+                if (!gmod.TryGetNode(nodeStr.Slice(0, dashIndex), out node))
                     return false;
 
                 var locationStr = nodeStr.Slice(dashIndex + 1);
                 if (!locations.TryParse(locationStr, out var location))
                     return false;
 
-                nodes.Add(node.WithLocation(location));
+                node = node.WithLocation(location);
             }
+
+            nodes.Add(node);
         }
 
         if (nodes.Count == 0)
