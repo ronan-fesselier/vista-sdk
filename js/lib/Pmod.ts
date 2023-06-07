@@ -2,7 +2,14 @@ import { GmodNode, GmodPath, VisVersion } from ".";
 import { LocalId } from "./LocalId";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { PmodNode } from "./PmodNode";
-import { PmodInfo } from "./types/Pmod";
+import { TraversalHandlerResult } from "./types/Gmod";
+import {
+    Parents,
+    PmodInfo,
+    TraversalContext,
+    TraversalHandler,
+    TraversalHandlerWithState,
+} from "./types/Pmod";
 import { isNullOrWhiteSpace } from "./util/util";
 
 export class Pmod {
@@ -133,5 +140,76 @@ export class Pmod {
         return Array.from(this._nodeMap.values()).filter(
             (n) => n.node.code === code
         );
+    }
+
+    // Traversal
+    public traverse<T>(
+        handler: TraversalHandler | TraversalHandlerWithState<T>,
+        params?: {
+            rootNode?: PmodNode;
+            state?: T;
+        }
+    ): boolean {
+        const { rootNode = this._rootNode, state } = params || {};
+
+        if (!state) {
+            return this.traverseFromNodeWithState(
+                handler as TraversalHandler,
+                rootNode,
+                (parents, node, handler) => handler(parents, node)
+            );
+        }
+
+        return this.traverseFromNodeWithState(
+            state,
+            rootNode,
+            handler as TraversalHandlerWithState<T>
+        );
+    }
+
+    public traverseFromNodeWithState<T>(
+        state: T,
+        rootNode: PmodNode,
+        handler: TraversalHandlerWithState<T>
+    ): boolean {
+        const context: TraversalContext<T> = {
+            parents: new Parents(),
+            handler,
+            state,
+        };
+        return (
+            this.traverseNode<T>(context, rootNode) ===
+            TraversalHandlerResult.Continue
+        );
+    }
+
+    private traverseNode<T>(
+        context: TraversalContext<T>,
+        node: PmodNode
+    ): TraversalHandlerResult {
+        if (context.parents.has(node)) return TraversalHandlerResult.Continue;
+
+        let result = context.handler(
+            context.parents.asList,
+            node,
+            context.state
+        );
+
+        if (
+            result === TraversalHandlerResult.Stop ||
+            result === TraversalHandlerResult.SkipSubtree
+        )
+            return result;
+
+        context.parents.push(node);
+
+        for (const child of node.children) {
+            result = this.traverseNode(context, child);
+            if (result === TraversalHandlerResult.Stop) return result;
+            else if (result === TraversalHandlerResult.SkipSubtree) continue;
+        }
+
+        context.parents.pop();
+        return TraversalHandlerResult.Continue;
     }
 }
