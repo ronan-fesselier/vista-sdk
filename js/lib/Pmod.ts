@@ -136,6 +136,10 @@ export class Pmod {
         return this._nodeMap.size;
     }
 
+    public getNodeByPath(path: GmodPath) {
+        return this._nodeMap.get(path.toFullPathString());
+    }
+
     public getNodesByCode(code: string) {
         return Array.from(this._nodeMap.values()).filter(
             (n) => n.node.code === code
@@ -146,39 +150,44 @@ export class Pmod {
     public traverse<T>(
         handler: TraversalHandler | TraversalHandlerWithState<T>,
         params?: {
-            rootNode?: PmodNode;
+            fromPath?: GmodPath;
             state?: T;
         }
     ): boolean {
-        const { rootNode = this._rootNode, state } = params || {};
+        const { fromPath = new GmodPath([], this._rootNode.node), state } =
+            params || {};
 
         if (!state) {
             return this.traverseFromNodeWithState(
                 handler as TraversalHandler,
-                rootNode,
+                fromPath,
                 (parents, node, handler) => handler(parents, node)
             );
         }
 
         return this.traverseFromNodeWithState(
             state,
-            rootNode,
+            fromPath,
             handler as TraversalHandlerWithState<T>
         );
     }
 
     public traverseFromNodeWithState<T>(
         state: T,
-        rootNode: PmodNode,
+        fromPath: GmodPath,
         handler: TraversalHandlerWithState<T>
     ): boolean {
+        const parents = new Parents(fromPath);
         const context: TraversalContext<T> = {
-            parents: new Parents(),
+            parents,
             handler,
             state,
         };
+
+        const pmodNode = this.getNodeByPath(fromPath);
+        if (!pmodNode) throw new Error("Start path not found in Pmod");
         return (
-            this.traverseNode<T>(context, rootNode) ===
+            this.traverseNode<T>(context, pmodNode) ===
             TraversalHandlerResult.Continue
         );
     }

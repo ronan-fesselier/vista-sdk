@@ -1,4 +1,4 @@
-import { ImoNumber, PmodNode } from "..";
+import { GmodPath, ImoNumber, PmodNode } from "..";
 import { TraversalHandlerResult } from "./Gmod";
 
 export type PmodInfo = Partial<{
@@ -26,11 +26,27 @@ export type TraversalContext<T> = {
 
 export class Parents {
     private _codes: Set<string> = new Set();
-    private _parents: PmodNode[] = [];
+    private _parents: PmodNode[];
+
+    constructor(path: GmodPath) {
+        this._parents = [];
+
+        let depth = 0;
+        for (const p of path.parents) {
+            const pmodNode = new PmodNode(p, depth);
+            this.push(pmodNode);
+            depth++;
+        }
+    }
 
     public push(parent: PmodNode): void {
         this._codes.add(parent.code);
         this._parents.push(parent);
+    }
+
+    public unshift(parent: PmodNode): void {
+        this._codes.add(parent.code);
+        this._parents.unshift(parent);
     }
 
     public pop(): void {
@@ -46,5 +62,9 @@ export class Parents {
 
     public get asList() {
         return [...this._parents];
+    }
+
+    public get length() {
+        return this._parents.length;
     }
 }

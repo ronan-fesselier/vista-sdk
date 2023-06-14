@@ -158,6 +158,13 @@ export class Gmod {
         return GmodPath.tryParse(item, locations, this);
     }
 
+    public tryParseFromFullPath(
+        item: string,
+        locations: Locations
+    ): GmodPath | undefined {
+        return GmodPath.tryParseFromFullPath(item, this, locations);
+    }
+
     // Traversal
     public traverse<T>(
         handler: TraversalHandler | TraversalHandlerWithState<T>,

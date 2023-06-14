@@ -1,3 +1,4 @@
+import * as testData from "../../testdata/PmodData.json";
 import {
     Gmod,
     ImoNumber,
@@ -7,8 +8,17 @@ import {
     VIS,
     VisVersion,
 } from "../lib";
-import * as testData from "../../testdata/PmodData.json";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
+
+// Used for testing
+type VmodNode = {
+    key: string;
+    children: VmodNode[];
+    depth: number;
+    skip: boolean;
+    merge: boolean;
+    code: string;
+};
 
 describe("Pmod", () => {
     const vis = VIS.instance;
@@ -52,7 +62,7 @@ describe("Pmod", () => {
     });
 
     // Traversal test to map to tree
-    test("Traverse with skip", async () => {
+    test("Traverse pmods", async () => {
         const gmod = await gmodPromise;
         const codeBooks = await codebooksPromise;
         const locations = await locationsPromise;
@@ -153,5 +163,117 @@ describe("Pmod", () => {
         // };
         // console.log(context.nodes.map(print).join("\n"));
         expect(context.nodes.length).toEqual(1);
+    });
+
+    test("Traverse pmod from node", async () => {
+        const gmod = await gmodPromise;
+        const codeBooks = await codebooksPromise;
+        const locations = await locationsPromise;
+
+        const localIds = testData.localIds.map((localIdStr) =>
+            LocalId.parse(localIdStr, gmod, codeBooks, locations)
+        );
+
+        const pmod = Pmod.createFromLocalIds(VisVersion.v3_4a, localIds, {
+            imoNumber: ImoNumber.create(1234567),
+        });
+
+        const rootNodeCode = "411.1";
+
+        const rootNode = pmod.getNodesByCode(rootNodeCode);
+        const rootPath = gmod.tryParseFromFullPath(rootNode[0].id, locations);
+
+        const context = {
+            nodes: [] as VmodNode[],
+            nodeMap: new Map<string, VmodNode>(
+                rootNode[0].parents
+                    .reverse()
+                    .reduce<[string, VmodNode][]>((c, p, index, arr) => {
+                        if (index === 0) {
+                            c.push([
+                                p.id,
+                                {
+                                    key: p.id,
+                                    children: [],
+                                    code: p.code,
+                                    depth: 0,
+                                    merge: false,
+                                    skip: false,
+                                },
+                            ]);
+                            return c;
+                        }
+
+                        c.unshift([
+                            p.id,
+                            {
+                                key: p.id,
+                                children: [c[index - 1][1]],
+                                code: p.code,
+                                depth: index,
+                                merge: false,
+                                skip: false,
+                            },
+                        ]);
+                        return c;
+                    }, [])
+                    .reverse()
+            ),
+            iter: 0,
+        };
+
+        const createKey = (parents: PmodNode[], node: PmodNode) =>
+            parents
+                .concat(node)
+                .map((n) => n.toString())
+                .join("/");
+
+        pmod.traverse(
+            (parents, node, context) => {
+                const key = createKey(parents, node);
+
+                if (context.nodeMap.has(key))
+                    return TraversalHandlerResult.Continue;
+
+                const vmodNode: VmodNode = {
+                    key,
+                    children: [],
+                    depth: node.depth,
+                    code: node.code,
+                    merge: false,
+                    skip: false,
+                };
+
+                context.nodeMap.set(key, vmodNode);
+                if (context.nodes.length === 0) {
+                    context.nodes.push(vmodNode);
+                    return TraversalHandlerResult.Continue;
+                }
+
+                let parentKey = createKey(
+                    parents,
+                    parents.splice(parents.length - 1, 1)[0]
+                );
+
+                let vmodParent = context.nodeMap.get(parentKey);
+                if (!vmodParent)
+                    throw new Error("Unexpected state: should find parent");
+
+                vmodParent.children.push(vmodNode);
+                return TraversalHandlerResult.Continue;
+            },
+            { state: context, fromPath: rootPath }
+        );
+        // const print = (n: VmodNode): string => {
+        //     if (n.code === "VE") return n.children.map(print).join("\n");
+        //     const indents = Array.from(Array(n.depth).keys())
+        //         .map(() => "\t")
+        //         .join();
+
+        //     return indents + n.code + "\n" + n.children.map(print).join("\n");
+        // };
+
+        // console.log(context.nodes.map(print).join("\n"));
+        expect(context.nodes[0].code).toEqual(rootNodeCode);
     });
 });

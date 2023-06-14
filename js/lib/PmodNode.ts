@@ -6,7 +6,12 @@ export class PmodNode {
 
     public constructor(node: GmodNode, depth: number) {
         if (!this.hasValidInput(node))
-            throw new Error("Invalid GmodNode with code: " + node.toString());
+            throw new Error(
+                "Invalid GmodNode with code: " +
+                    node.toString() +
+                    " - Parents: " +
+                    node.parents.map((s) => s.toString()).join(", ")
+            );
         this._node = node;
         this._depth = depth;
     }
