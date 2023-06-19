@@ -264,16 +264,61 @@ describe("Pmod", () => {
             },
             { state: context, fromPath: rootPath }
         );
-        // const print = (n: VmodNode): string => {
-        //     if (n.code === "VE") return n.children.map(print).join("\n");
-        //     const indents = Array.from(Array(n.depth).keys())
+
+        expect(context.nodes[0].code).toEqual(rootNodeCode);
+    });
+
+    test("Tree", async () => {
+        const gmod = await gmodPromise;
+        const codeBooks = await codebooksPromise;
+        const locations = await locationsPromise;
+
+        const localIds = testData.localIds.map((localIdStr) =>
+            LocalId.parse(localIdStr, gmod, codeBooks, locations)
+        );
+
+        const pmod = Pmod.createFromLocalIds(VisVersion.v3_4a, localIds, {
+            imoNumber: ImoNumber.create(1234567),
+        });
+
+        const rootNodeCode = "411";
+
+        const rootNode = pmod.getNodesByCode(rootNodeCode);
+        const rootPath = gmod.tryParseFromFullPath(rootNode[0].id, locations);
+
+        pmod.getVisualizableTreeNodes(
+            (node, _) => {
+                if (node.path.node.code === "C101.322") {
+                    expect(node.parent).not.toBeFalsy();
+                    expect(node.parent?.path.node.code).toBe("C101.32");
+                }
+            },
+            {
+                fromPath: rootPath,
+            }
+        );
+
+        // const resolveMergedNodes = (n: TreeNode) => {
+        //     const items = [n.path.node.toString()];
+
+        //     if (n.mergedNode) items.unshift(n.mergedNode.path.node.toString());
+
+        //     return items.join(" | ");
+        // };
+
+        // const print = (n: TreeNode, depth = 0): string => {
+        //     const indents = Array.from(Array(depth).keys())
         //         .map(() => "\t")
         //         .join();
 
-        //     return indents + n.code + "\n" + n.children.map(print).join("\n");
+        //     return (
+        //         indents +
+        //         resolveMergedNodes(n) +
+        //         "\n" +
+        //         n.children.map((n) => print(n, depth + 1)).join("\n")
+        //     );
         // };
 
-        // console.log(context.nodes.map(print).join("\n"));
-        expect(context.nodes[0].code).toEqual(rootNodeCode);
+        // console.log(nodes.map(print).join("\n"), context);
     });
 });

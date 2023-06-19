@@ -10,7 +10,13 @@ import {
     TraversalHandler,
     TraversalHandlerWithState,
 } from "./types/Pmod";
-import { isNullOrWhiteSpace } from "./util/util";
+import { TreeHandler, TreeHandlerWithState, TreeNode } from "./types/Tree";
+import {
+    isNodeMergeable,
+    isNodeSkippable,
+    isNullOrWhiteSpace,
+    naturalSort,
+} from "./util/util";
 
 export class Pmod {
     public visVersion: VisVersion;
@@ -220,5 +226,189 @@ export class Pmod {
 
         context.parents.pop();
         return TraversalHandlerResult.Continue;
+    }
+
+    /**
+     * @description Filter the Pmod accordingly to rules of visualization
+     *      * Skip - isNodeSkippable
+     *      * Merge - isNodeMergeable
+     * @param handler Callback on each iteration
+     * @param params Allows user to track its own state or decide root path
+     * @returns A set of nodes from root path
+     */
+    public getVisualizableTreeNodes<T>(
+        handler: TreeHandler | TreeHandlerWithState<T>,
+        params?: {
+            fromPath?: GmodPath;
+            state?: T;
+        }
+    ) {
+        const { fromPath = new GmodPath([], this._rootNode.node), state } =
+            params || {};
+
+        if (!state) {
+            return this.createVisualizableTree(
+                handler as TreeHandler,
+                fromPath,
+                (node, handler) => handler(node)
+            );
+        }
+
+        return this.createVisualizableTree(
+            state,
+            fromPath,
+            handler as TreeHandlerWithState<T>
+        );
+    }
+
+    private createVisualizableTree<T>(
+        userState: T,
+        fromPath: GmodPath,
+        handler: TreeHandlerWithState<T>
+    ): TreeNode[] {
+        const context: {
+            nodes: TreeNode[];
+            nodeMap: Map<string, TreeNode>;
+            skippedNodesMap: Map<string, TreeNode>;
+            fromPath: GmodPath;
+            userState: T;
+        } = {
+            nodes: [],
+            nodeMap: new Map(),
+            skippedNodesMap: new Map(),
+            userState,
+            fromPath,
+        };
+
+        this.traverse(
+            (parents, node, context) => {
+                const path = new GmodPath(
+                    parents.map((n) => n.node),
+                    node.node
+                );
+                const key = path.toFullPathString();
+
+                const parentNode = parents[parents.length - 1];
+
+                let parent: TreeNode | undefined;
+
+                if (parentNode) {
+                    const parentPath = new GmodPath(
+                        parents.slice(0, parents.length - 1).map((n) => n.node),
+                        parentNode.node
+                    );
+                    const pKey = parentPath.toFullPathString();
+
+                    parent =
+                        context.skippedNodesMap.get(pKey) ??
+                        context.nodeMap.get(pKey);
+                }
+
+                const treeNode: TreeNode = {
+                    key,
+                    parent,
+                    path,
+                    children: [],
+                };
+
+                if (node.node.equals(context.fromPath.node)) {
+                    context.nodes.push(treeNode);
+                }
+
+                if (!parent) {
+                    context.nodeMap.set(key, treeNode);
+                    return TraversalHandlerResult.Continue;
+                }
+
+                const state = this.getMetadataState(parentNode, node);
+
+                switch (state) {
+                    case "skip":
+                        /**
+                         * SKIP NODE:
+                         * Condition:
+                         *      See isNodeSkippable
+                         *
+                         * Change:
+                         *      Skip node. No visual changes
+                         *
+                         * Logic:
+                         *      Add reference to true parent to skippedNodesMap
+                         *      Continue
+                         *      In next iteration, the node check if current parent was skipped
+                         *      Use the true parent reference as parent
+                         */
+                        context.skippedNodesMap.set(key, parent);
+                        return TraversalHandlerResult.Continue;
+                    case "merge":
+                        /**
+                         * MERGE NODE:
+                         * Condition:
+                         *      See isNodeMergeable
+                         *
+                         * Change:
+                         *      Merge parent with node
+                         *
+                         * Logic:
+                         *      Add parent to 'treeNode.mergedNode'
+                         *      Get the parent's parent
+                         *      Set new parent to parent's parent
+                         *      Delete current parent
+                         *      Add child to new parent
+                         */
+                        if (!parent.parent) {
+                            throw new Error(
+                                "Unexpected state: No parent of parent when merge"
+                            );
+                        }
+
+                        treeNode.mergedNode = Object.assign({}, parent);
+
+                        const parentAsChildIndex =
+                            parent.parent.children.findIndex(
+                                (c) => c.key === parent?.key
+                            );
+                        if (parentAsChildIndex === -1)
+                            throw new Error(
+                                "Unexpected state: Parent not found as child of parents parent"
+                            );
+
+                        parent = parent.parent;
+                        parent.children.splice(parentAsChildIndex, 1);
+
+                        treeNode.parent = parent;
+                        break;
+                }
+                context.nodeMap.set(key, treeNode);
+
+                parent.children.push(treeNode);
+
+                handler(treeNode, context.userState);
+
+                return TraversalHandlerResult.Continue;
+            },
+            { state: context, fromPath }
+        );
+
+        context.nodes.forEach((n) => this.sortChildren(n));
+
+        return context.nodes;
+    }
+
+    private sortChildren(parent: TreeNode) {
+        parent.children.sort((a, b) => naturalSort(a.key, b.key));
+        parent.children.forEach((c) => this.sortChildren(c));
+    }
+
+    private getMetadataState(
+        parent: GmodNode | PmodNode,
+        node: GmodNode | PmodNode
+    ): "skip" | "merge" | undefined {
+        if (isNodeSkippable(parent, node)) {
+            return "skip";
+        } else if (isNodeMergeable(parent, node)) {
+            return "merge";
+        }
+        return undefined;
     }
 }

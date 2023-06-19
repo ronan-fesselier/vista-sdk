@@ -34,9 +34,10 @@ import {
     ShipId,
 } from "./transport/domain";
 import * as Experimental from "./experimental";
+import { TreeNode } from "./types/Tree";
 
 // Types
-export type { GmodNodeMetadata, PmodInfo };
+export type { GmodNodeMetadata, PmodInfo, TreeNode };
 // VisVersion
 export { VisVersion, VisVersionExtension, VisVersions };
 // VIS
