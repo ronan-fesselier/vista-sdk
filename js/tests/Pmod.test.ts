@@ -292,6 +292,7 @@ describe("Pmod", () => {
                     expect(node.parent).not.toBeFalsy();
                     expect(node.parent?.path.node.code).toBe("C101.32");
                 }
+                return TraversalHandlerResult.Continue;
             },
             {
                 fromPath: rootPath,

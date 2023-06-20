@@ -383,9 +383,7 @@ export class Pmod {
 
                 parent.children.push(treeNode);
 
-                handler(treeNode, context.userState);
-
-                return TraversalHandlerResult.Continue;
+                return handler(treeNode, context.userState);
             },
             { state: context, fromPath }
         );

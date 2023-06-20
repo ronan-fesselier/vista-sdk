@@ -1,4 +1,5 @@
 import { GmodPath } from "..";
+import { TraversalHandlerResult } from "./Gmod";
 
 export type TreeNode = {
     key: string;
@@ -8,6 +9,9 @@ export type TreeNode = {
     mergedNode?: TreeNode;
 };
 
-export type TreeHandler = (node: TreeNode) => void;
+export type TreeHandler = (node: TreeNode) => TraversalHandlerResult;
 
-export type TreeHandlerWithState<T> = (node: TreeNode, state: T) => void;
+export type TreeHandlerWithState<T> = (
+    node: TreeNode,
+    state: T
+) => TraversalHandlerResult;
