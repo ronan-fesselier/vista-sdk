@@ -24,8 +24,8 @@ describe("Gmod", () => {
         const gmod = await gmodPromise;
         const locations = await locationsPromise;
 
-        const node1 = gmod.getNode("400a");
-        const node2 = gmod.getNode("400a");
+        const node1 = gmod.getNode("411.1");
+        const node2 = gmod.getNode("411.1");
 
         expect(node1).toEqual(node2);
         expect(node1).toBe(node2);

@@ -5,6 +5,7 @@ import {
     LocalId,
     Pmod,
     PmodNode,
+    TreeNode,
     VIS,
     VisVersion,
 } from "../lib";
@@ -59,110 +60,6 @@ describe("Pmod", () => {
         expect(pmod.rootNode.node.children.length).toBeGreaterThan(0);
         expect(pmod.maxDepth).toEqual(maxDepth);
         expect(pmod.isValid).toBeTruthy();
-    });
-
-    // Traversal test to map to tree
-    test("Traverse pmods", async () => {
-        const gmod = await gmodPromise;
-        const codeBooks = await codebooksPromise;
-        const locations = await locationsPromise;
-
-        const localIds = testData.localIds.map((localIdStr) =>
-            LocalId.parse(localIdStr, gmod, codeBooks, locations)
-        );
-
-        const pmod = Pmod.createFromLocalIds(VisVersion.v3_4a, localIds, {
-            imoNumber: ImoNumber.create(1234567),
-        });
-
-        type SomeOtherType = {
-            key: string;
-            code: string;
-            children: SomeOtherType[];
-            depth: number;
-            skip: boolean;
-            merge: boolean;
-        };
-
-        const context: {
-            nodes: SomeOtherType[];
-            parent?: SomeOtherType;
-            depth: number;
-        } = { nodes: [], depth: 0 };
-
-        pmod.traverse(
-            (parents, node, context) => {
-                const key = parents
-                    .concat(node)
-                    .map((n) => n.toString())
-                    .join("/");
-                let parent =
-                    parents.length > 0
-                        ? parents[parents.length - 1]
-                        : undefined;
-
-                const newNode: SomeOtherType = {
-                    key,
-                    children: [],
-                    depth: node.depth,
-                    code: node.code,
-                    merge: false,
-                    skip: false,
-                };
-
-                // Add parent to tree
-                if (!parent) {
-                    context.nodes.push(newNode);
-                    context.parent = newNode;
-                    return TraversalHandlerResult.Continue;
-                }
-                if (!context.parent)
-                    throw new Error("Unexpected state: missing parent");
-
-                const skip = Gmod.isProductSelectionAssignment(
-                    parent.node,
-                    node.node
-                );
-
-                const merge = Gmod.isProductTypeAssignment(
-                    parent.node,
-                    node.node
-                );
-
-                newNode.skip = skip;
-                newNode.merge = merge;
-
-                if (newNode.skip || newNode.merge)
-                    return TraversalHandlerResult.Continue;
-
-                context.parent.children.push(newNode);
-                context.parent = newNode;
-
-                return TraversalHandlerResult.Continue;
-            },
-            {
-                state: context,
-            }
-        );
-        // const print = (n: SomeOtherType): string => {
-        //     if (n.code === "VE") return n.children.map(print).join("\n");
-        //     const indents = Array.from(Array(n.depth).keys())
-        //         .map(() => "\t")
-        //         .join();
-        //     const merge = n.merge ? " m " : "";
-        //     const skip = n.skip ? " s " : "";
-
-        //     return (
-        //         indents +
-        //         n.code +
-        //         merge +
-        //         skip +
-        //         "\n" +
-        //         n.children.map(print).join("\n")
-        //     );
-        // };
-        // console.log(context.nodes.map(print).join("\n"));
-        expect(context.nodes.length).toEqual(1);
     });
 
     test("Traverse pmod from node", async () => {
@@ -286,7 +183,7 @@ describe("Pmod", () => {
         const rootNode = pmod.getNodesByCode(rootNodeCode);
         const rootPath = gmod.tryParseFromFullPath(rootNode[0].id, locations);
 
-        pmod.getVisualizableTreeNodes(
+        const nodes = pmod.getVisualizableTreeNodes(
             (node, _) => {
                 if (node.path.node.code === "C101.322") {
                     expect(node.parent).not.toBeFalsy();
@@ -320,6 +217,6 @@ describe("Pmod", () => {
         //     );
         // };
 
-        // console.log(nodes.map(print).join("\n"), context);
+        // console.log(nodes.map(print).join("\n"));
     });
 });

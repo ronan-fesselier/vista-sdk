@@ -42,18 +42,15 @@ export class GmodPath {
     }
 
     private static isValid(parents: GmodNode[], node: GmodNode): boolean {
-        if (parents.length === 0 && node.code !== "VE")
-            return false;
-        if (parents.length > 0 && parents[0].code !== "VE")
-            return false;
+        if (parents.length === 0 && node.code !== "VE") return false;
+        if (parents.length > 0 && parents[0].code !== "VE") return false;
 
         for (let i = 0; i < parents.length; i++) {
             const parent = parents[i];
             const nextIndex = i + 1;
             const child =
                 nextIndex < parents.length ? parents[nextIndex] : node;
-            if (!parent.isChild(child))
-                return false;
+            if (!parent.isChild(child)) return false;
         }
 
         return true;
@@ -71,10 +68,59 @@ export class GmodPath {
         return this.node.isMappable;
     }
 
-    public getNode(depth: number): GmodNode {
-        if (depth < 0 || depth > this.parents.length)
-            throw new RangeError("Depth is out of bounds");
-        return depth < this.parents.length ? this.parents[depth] : this.node;
+    public getNode(node: GmodNode): GmodNode;
+    public getNode(code: string): GmodNode;
+    public getNode(depth: number): GmodNode;
+    public getNode(node: unknown): GmodNode {
+        if (node instanceof GmodNode || typeof node === "string") {
+            let code: string;
+
+            if (node instanceof GmodNode) code = node.code;
+            else code = node;
+
+            if (code === this.node.code) return this.node;
+            const parent = this.parents.find((p) => p.code === code);
+
+            if (!parent) throw new Error("Parent not found");
+            return parent;
+        } else if (typeof node === "number") {
+            const depth = node;
+            if (depth < 0 || depth > this.parents.length)
+                throw new RangeError("Depth is out of bounds");
+            return depth < this.parents.length
+                ? this.parents[depth]
+                : this.node;
+        }
+        throw new Error("Unsupported method parameter");
+    }
+
+    public withLocation(location: Location, parent?: GmodNode): GmodPath {
+        /**
+         * ex. Code = C101.31, Location = 2
+         *      -> C101.3i-2/C101.31-2
+         * Apply location to a node on the path (either parent or node)
+         * Backpropagate to closest scope and apply location to these parents
+         * Rules:
+         *      New scope metadata:
+         *          Parent.Category = Selection
+         *          Parent.Category = Group
+         *          Parent.Category = Leaf
+         * */
+
+        if (!parent) {
+            this.node = this.node.withLocation(location);
+            GmodPath.ensureCorrectLocation(this);
+        } else {
+            const nodeIndex = this.parents.findIndex(
+                (p) => p.code === parent.code
+            );
+            if (nodeIndex === -1) throw new Error("Node not part on parents");
+
+            this.parents[nodeIndex] = parent.withLocation(location);
+            GmodPath.ensureCorrectLocation(this);
+        }
+
+        return new GmodPath(this.parents, this.node);
     }
 
     public withoutLocation(): GmodPath {
@@ -82,6 +128,72 @@ export class GmodPath {
             this.parents.map((p) => p.withoutLocation()),
             this.node.withoutLocation()
         );
+    }
+
+    private static ensureCorrectLocation(path: GmodPath) {
+        const nodes = path.parents.map((p, index) => ({
+            node: p,
+            index,
+            isLeaf: Gmod.isLeafNode(p.metadata),
+            hasLocation: !!p.location,
+        }));
+
+        if (Gmod.isProductType(path.node.metadata))
+            nodes[nodes.length - 1].isLeaf = true;
+        else
+            nodes.push({
+                node: path.node,
+                index: path.parents.length,
+                isLeaf: Gmod.isLeafNode(path.node.metadata),
+                hasLocation: !!path.node.location,
+            });
+
+        const potentialNodes = nodes.filter((n) => n.hasLocation);
+
+        //
+        for (const { node, index } of potentialNodes) {
+            if (!node.location) continue;
+            // Check parents
+            this.backPropagateLocations(path, node.location, index - 1);
+
+            if (node.code === path.node.code) continue;
+
+            this.forwardPropagateLocations(path, node.location, index + 1);
+        }
+    }
+
+    private static backPropagateLocations(
+        path: GmodPath,
+        location: Location,
+        fromIndex: number
+    ) {
+        const potentialParentScopeTypes = ["SELECTION", "GROUP", "LEAF"];
+        for (let i = fromIndex; i >= 0; i--) {
+            const parent = path.parents[i];
+            if (potentialParentScopeTypes.includes(parent.metadata.type)) break;
+            if (!parent.isInstantiatable) continue;
+            path.parents[i] = parent.withLocation(location);
+        }
+    }
+
+    private static forwardPropagateLocations(
+        path: GmodPath,
+        location: Location,
+        fromIndex: number
+    ) {
+        const potentialChildScopeTypes = ["SELECTION", "GROUP", "LEAF"];
+        for (let i = fromIndex; i <= path.parents.length; i++) {
+            const child =
+                i === path.parents.length ? path.node : path.parents[i];
+
+            if (potentialChildScopeTypes.includes(child.metadata.type)) break;
+
+            if (!child.isInstantiatable) continue;
+
+            if (i === path.parents.length)
+                path.node = child.withLocation(location);
+            else path.parents[i] = child.withLocation(location);
+        }
     }
 
     public toString(): string {
@@ -123,6 +235,7 @@ export class GmodPath {
     }
 
     public getFullPath(): GmodNode[] {
+        GmodPath.ensureCorrectLocation(this);
         return this.parents.concat(this.node);
     }
 
@@ -198,117 +311,130 @@ export class GmodPath {
         gmod: Gmod
     ): GmodPath | undefined {
         const ERROR_IDENTIFIER = "GModPath - TryParse: ";
-        if (!item || !gmod || !locations) return;
-        if (isNullOrWhiteSpace(item)) return;
+        try {
+            if (!item || !gmod || !locations)
+                throw new Error("Missing parameters");
+            if (isNullOrWhiteSpace(item)) throw new Error("Item is falsy");
 
-        item = item.trim();
+            item = item.trim();
 
-        if (item[0] === "/") {
-            item.slice(1);
-        }
-
-        const parts: PathNode[] = [];
-
-        for (const partStr of item.split("/")) {
-            if (partStr.includes("-")) {
-                const split = partStr.split("-");
-                const parsedLocation = locations.tryParse(split[1]);
-                if (!parsedLocation) return;
-                parts.push({ code: split[0], location: parsedLocation });
-            } else {
-                parts.push({ code: partStr });
+            if (item[0] === "/") {
+                item.slice(1);
             }
-        }
 
-        if (parts.length === 0) return;
-        if (parts.find((p) => isNullOrWhiteSpace(p.code))) return;
+            const parts: PathNode[] = [];
 
-        const toFind = parts.shift();
-        if (!toFind)
-            throw new Error(
-                ERROR_IDENTIFIER + "Invalid queue operation - Shift empty array"
-            );
-        const baseNode = gmod.tryGetNode(toFind.code);
-        if (!baseNode) return;
-
-        const context: ParseContext = { parts, toFind, locations: new Map<string, Location>() };
-
-        gmod.traverse(
-            (parents, current, context) => {
-                const toFind = context.toFind;
-                const found = current.code === toFind.code;
-
-                if (!found && Gmod.isLeafNode(current.metadata))
-                    return TraversalHandlerResult.SkipSubtree;
-                if (!found) return TraversalHandlerResult.Continue;
-
-                if (toFind.location !== undefined) {
-                    context.locations.set(toFind.code, toFind.location);
+            for (const partStr of item.split("/")) {
+                if (partStr.includes("-")) {
+                    const split = partStr.split("-");
+                    const parsedLocation = locations.tryParse(split[1]);
+                    if (!parsedLocation)
+                        throw new Error("Failed to parse location");
+                    parts.push({ code: split[0], location: parsedLocation });
+                } else {
+                    parts.push({ code: partStr });
                 }
+            }
 
-                if (context.parts.length > 0) {
-                    const newToFind = context.parts.shift();
-                    if (newToFind) {
-                        context.toFind = newToFind;
-                        return TraversalHandlerResult.Continue;
+            if (parts.length === 0) throw new Error("Failed find any parts");
+            if (parts.find((p) => isNullOrWhiteSpace(p.code)))
+                throw new Error("Some of the parts where empty");
+
+            const toFind = parts.shift();
+            if (!toFind)
+                throw new Error("Invalid queue operation - Shift empty array");
+            const baseNode = gmod.tryGetNode(toFind.code);
+            if (!baseNode) throw new Error("Failed to find base node");
+
+            const context: ParseContext = {
+                parts,
+                toFind,
+                locations: new Map<string, Location>(),
+            };
+
+            gmod.traverse(
+                (parents, current, context) => {
+                    const toFind = context.toFind;
+                    const found = current.code === toFind.code;
+
+                    if (!found && Gmod.isLeafNode(current.metadata))
+                        return TraversalHandlerResult.SkipSubtree;
+                    if (!found) return TraversalHandlerResult.Continue;
+
+                    if (toFind.location !== undefined) {
+                        context.locations.set(toFind.code, toFind.location);
                     }
-                }
 
-                const pathParents: GmodNode[] = [];
-
-                for (const parent of parents) {
-                    const location = context.locations.get(parent.code);
-                    if (location) {
-                        pathParents.push(
-                            parent.withLocation(location)
-                        );
-                    } else {
-                        pathParents.push(parent);
+                    if (context.parts.length > 0) {
+                        const newToFind = context.parts.shift();
+                        if (newToFind) {
+                            context.toFind = newToFind;
+                            return TraversalHandlerResult.Continue;
+                        }
                     }
-                }
 
-                const endNode = toFind.location
-                    ? current.withLocation(toFind.location)
-                    : current;
+                    const pathParents: GmodNode[] = [];
 
-                const firstParentHasSingleParent =
-                    pathParents.length > 0 &&
-                    pathParents[0].parents.length === 1;
-                const currentNodeHasSingleParent = endNode.parents.length === 1;
+                    for (const parent of parents) {
+                        const location = context.locations.get(parent.code);
+                        if (location) {
+                            pathParents.push(parent.withLocation(location));
+                        } else {
+                            pathParents.push(parent);
+                        }
+                    }
 
-                let startNode = firstParentHasSingleParent
-                    ? pathParents[0].parents[0]
-                    : currentNodeHasSingleParent
-                    ? endNode.parents[0]
-                    : undefined;
+                    const endNode = toFind.location
+                        ? current.withLocation(toFind.location)
+                        : current;
 
-                // Stop if there is no startNode or the parent doesnt have a direct path to root.
-                if (!startNode || startNode.parents.length > 1)
-                    return TraversalHandlerResult.Stop;
+                    const firstParentHasSingleParent =
+                        pathParents.length > 0 &&
+                        pathParents[0].parents.length === 1;
+                    const currentNodeHasSingleParent =
+                        endNode.parents.length === 1;
 
-                while (startNode.parents.length === 1) {
-                    pathParents.unshift(startNode);
-                    startNode = startNode.parents[0];
-                    if (startNode.parents.length > 1)
+                    let startNode = firstParentHasSingleParent
+                        ? pathParents[0].parents[0]
+                        : currentNodeHasSingleParent
+                        ? endNode.parents[0]
+                        : undefined;
+
+                    // Stop if there is no startNode or the parent doesnt have a direct path to root.
+                    if (!startNode || startNode.parents.length > 1)
                         return TraversalHandlerResult.Stop;
-                }
 
-                pathParents.unshift(gmod.rootNode);
+                    while (startNode.parents.length === 1) {
+                        pathParents.unshift(startNode);
+                        startNode = startNode.parents[0];
+                        if (startNode.parents.length > 1)
+                            return TraversalHandlerResult.Stop;
+                    }
 
-                context.path = new GmodPath(pathParents, endNode);
-                return TraversalHandlerResult.Stop;
-            },
-            { state: context, rootNode: baseNode }
-        );
+                    pathParents.unshift(gmod.rootNode);
 
-        if (context.path === undefined) {
+                    context.path = new GmodPath(pathParents, endNode);
+                    return TraversalHandlerResult.Stop;
+                },
+                { state: context, rootNode: baseNode }
+            );
+
+            if (context.path === undefined) {
+                throw new Error("Failed to find path after travesal");
+            }
+            GmodPath.ensureCorrectLocation(context.path);
+
+            return context.path;
+        } catch (error) {
             return;
         }
-
-        return context.path;
     }
 
-    public static parseFromFullPath(item: string, gmod: Gmod, locations: Locations): GmodPath {
+    public static parseFromFullPath(
+        item: string,
+        gmod: Gmod,
+        locations: Locations
+    ): GmodPath {
         const path = this.tryParseFromFullPath(item, gmod, locations);
 
         if (!path) {
@@ -358,33 +484,38 @@ export class GmodPath {
         const endPathNode = parts.pop();
         if (!endPathNode) return;
 
-        const getNode = (code: string, gmod: Gmod, locations: Locations): GmodNode | undefined => {
-            const dashIndex = code.indexOf('-');
-            if (dashIndex === -1 ) {
+        const getNode = (
+            code: string,
+            gmod: Gmod,
+            locations: Locations
+        ): GmodNode | undefined => {
+            const dashIndex = code.indexOf("-");
+            if (dashIndex === -1) {
                 const node = gmod.tryGetNode(code);
                 if (!node) return;
                 return node;
             } else {
                 const node = gmod.tryGetNode(code.substring(0, dashIndex));
                 if (!node) return;
-                const location = locations.tryParse(code.substring(dashIndex + 1));
+                const location = locations.tryParse(
+                    code.substring(dashIndex + 1)
+                );
                 if (!location) return;
                 return node.withLocation(location);
             }
-        }
+        };
 
         const endNode = getNode(endPathNode, gmod, locations);
         if (!endNode) return;
 
-        const parents = parts.map(code => getNode(code, gmod, locations));
-        if (parents.some(n => !n)) return;
+        const parents = parts.map((code) => getNode(code, gmod, locations));
+        if (parents.some((n) => !n)) return;
 
         if (!GmodPath.isValid(parents as GmodNode[], endNode)) return;
-        return new GmodPath(
-            parents as GmodNode[],
-            endNode,
-            true
-        );
+
+        const path = new GmodPath(parents as GmodNode[], endNode, true);
+        GmodPath.ensureCorrectLocation(path);
+        return path;
     }
 
     public static async tryParseAsync(item: string, visVersion: VisVersion) {

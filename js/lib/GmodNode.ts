@@ -104,26 +104,56 @@ export class GmodNode {
         return this.with((s) => (s.location = undefined));
     }
 
-    public withLocation(location: Location): GmodNode {
-        return this.with((s) => (s.location = location));
+    public withLocation(
+        location: string | undefined,
+        locations: Locations
+    ): GmodNode;
+    public withLocation(location: Location): GmodNode;
+    public withLocation(location: unknown, locations?: unknown): GmodNode {
+        let result: GmodNode | undefined;
+        if (location instanceof Location) {
+            result = this.tryWithLocation(location);
+        } else if (
+            typeof location === "string" &&
+            locations instanceof Locations
+        ) {
+            result = this.tryWithLocation(location, locations);
+        }
+
+        if (!result) throw new Error("Node not instantiatable");
+        return result;
     }
 
+    public tryWithLocation(location: Location): GmodNode | undefined;
     public tryWithLocation(
         location: string | undefined,
         locations: Locations
-    ): GmodNode {
-        const parsedLocation = locations.tryParse(location);
-        return !parsedLocation
-            ? this.withoutLocation()
-            : this.withLocation(parsedLocation);
+    ): GmodNode | undefined;
+    public tryWithLocation(
+        location: unknown,
+        locations?: unknown
+    ): GmodNode | undefined {
+        if (!this.isInstantiatable) return undefined;
+        if (location instanceof Location) {
+            return this.with((s) => (s.location = location));
+        } else if (
+            typeof location === "string" &&
+            locations instanceof Locations
+        ) {
+            const parsedLocation = locations.tryParse(location);
+            if (!parsedLocation) return undefined;
+            return this.with((s) => (s.location = parsedLocation));
+        }
     }
 
-    public async withLocationAsync(location: string) {
+    public async withLocationAsync(location: string): Promise<GmodNode> {
         const locations = await VIS.instance.getLocations(this.visVersion);
         const parsedLocation = locations.parse(location);
         return this.withLocation(parsedLocation);
     }
-    public async tryWithLocationAsync(location?: string): Promise<GmodNode> {
+    public async tryWithLocationAsync(
+        location?: string
+    ): Promise<GmodNode | undefined> {
         const locations = await VIS.instance.getLocations(this.visVersion);
         return this.tryWithLocation(location, locations);
     }
@@ -148,6 +178,20 @@ export class GmodNode {
 
         const lastChar = this.code.charAt(this.code.length - 1);
         return lastChar !== "a" && lastChar !== "s";
+    }
+
+    /**
+     * Expected rule - Not allowed to instantiate
+     *      GROUP
+     *      SELECTION
+     *      PRODUCT TYPE
+     */
+    public get isInstantiatable() {
+        return (
+            this.metadata.type !== "GROUP" &&
+            this.metadata.type !== "SELECTION" &&
+            !this.isProductType
+        );
     }
 
     public get isProductSelection() {

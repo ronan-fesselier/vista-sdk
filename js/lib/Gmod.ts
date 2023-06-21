@@ -158,6 +158,16 @@ export class Gmod {
         return GmodPath.tryParse(item, locations, this);
     }
 
+    // Parsing
+    public parseFromFullPath(item: string, locations: Locations): GmodPath {
+        const path = this.tryParseFromFullPath(item, locations);
+
+        if (!path) {
+            throw new Error("Couldn't parse GmodPath");
+        }
+        return path;
+    }
+
     public tryParseFromFullPath(
         item: string,
         locations: Locations
