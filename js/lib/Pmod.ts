@@ -10,7 +10,12 @@ import {
     TraversalHandler,
     TraversalHandlerWithState,
 } from "./types/Pmod";
-import { TreeHandler, TreeHandlerWithState, TreeNode } from "./types/Tree";
+import {
+    FormatNode,
+    TreeHandler,
+    TreeHandlerWithState,
+    TreeNode,
+} from "./types/Tree";
 import {
     isNodeMergeable,
     isNodeSkippable,
@@ -236,20 +241,30 @@ export class Pmod {
      * @param params Allows user to track its own state or decide root path
      * @returns A set of nodes from root path
      */
-    public getVisualizableTreeNodes<T>(
-        handler: TreeHandler | TreeHandlerWithState<T>,
+
+    public getVisualizableTreeNodes<TNode = {}, TState = unknown>(
+        handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
         params?: {
             fromPath?: GmodPath;
-            state?: T;
+            formatNode?: FormatNode<TNode>;
+            state?: TState;
         }
     ) {
-        const { fromPath = new GmodPath([], this._rootNode.node), state } =
-            params || {};
+        const {
+            fromPath = new GmodPath([], this._rootNode.node),
+            state,
+            formatNode,
+        } = params || {};
+
+        const formatter: FormatNode<TNode> = formatNode
+            ? formatNode
+            : (node) => node as TreeNode<TNode>;
 
         if (!state) {
-            return this.createVisualizableTree(
-                handler as TreeHandler,
+            return this.createVisualizableTree<TreeHandler<TNode>, TNode>(
+                handler as TreeHandler<TNode>,
                 fromPath,
+                formatter,
                 (node, handler) => handler(node)
             );
         }
@@ -257,21 +272,23 @@ export class Pmod {
         return this.createVisualizableTree(
             state,
             fromPath,
-            handler as TreeHandlerWithState<T>
+            formatter,
+            handler as TreeHandlerWithState<TState, TNode>
         );
     }
 
-    private createVisualizableTree<T>(
-        userState: T,
+    private createVisualizableTree<TState, TNode>(
+        userState: TState,
         fromPath: GmodPath,
-        handler: TreeHandlerWithState<T>
-    ): TreeNode[] {
+        formatNode: FormatNode<TNode>,
+        handler: TreeHandlerWithState<TState, TNode>
+    ): TreeNode<TNode>[] {
         const context: {
-            nodes: TreeNode[];
-            nodeMap: Map<string, TreeNode>;
-            skippedNodesMap: Map<string, TreeNode>;
+            nodes: TreeNode<TNode>[];
+            nodeMap: Map<string, TreeNode<TNode>>;
+            skippedNodesMap: Map<string, TreeNode<TNode>>;
             fromPath: GmodPath;
-            userState: T;
+            userState: TState;
         } = {
             nodes: [],
             nodeMap: new Map(),
@@ -290,7 +307,7 @@ export class Pmod {
 
                 const parentNode = parents[parents.length - 1];
 
-                let parent: TreeNode | undefined;
+                let parent: TreeNode<TNode> | undefined;
 
                 if (parentNode) {
                     const parentPath = new GmodPath(
@@ -304,12 +321,16 @@ export class Pmod {
                         context.nodeMap.get(pKey);
                 }
 
-                const treeNode: TreeNode = {
+                const initNode: TreeNode<any> = {
                     key,
                     parent,
                     path,
                     children: [],
                 };
+
+                const payload = formatNode(initNode);
+
+                const treeNode: TreeNode<TNode> = { ...initNode, ...payload };
 
                 if (node.node.equals(context.fromPath.node)) {
                     context.nodes.push(treeNode);
