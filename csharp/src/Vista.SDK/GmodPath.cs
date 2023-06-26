@@ -473,6 +473,14 @@ public sealed record GmodPath
         return true;
     }
 
+    public static GmodPath ParseFullPath(string pathStr, VisVersion visVersion)
+    {
+        if (!TryParseFullPath(pathStr, visVersion, out var path))
+            throw new ArgumentException("Couldnt parse path");
+
+        return path;
+    }
+
     public static bool TryParseFullPath(
         string? pathStr,
         VisVersion visVersion,

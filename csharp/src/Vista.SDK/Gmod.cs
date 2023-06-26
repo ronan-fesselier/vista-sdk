@@ -89,6 +89,11 @@ public sealed partial class Gmod : IEnumerable<GmodNode>
     public bool TryParsePath(string item, [NotNullWhen(true)] out GmodPath? path) =>
         GmodPath.TryParse(item, VisVersion, out path);
 
+    public GmodPath ParseFromFullPath(string item) => GmodPath.ParseFullPath(item, VisVersion);
+
+    public bool TryParseFromFullPath(string item, [NotNullWhen(true)] out GmodPath? path) =>
+        GmodPath.TryParseFullPath(item, VisVersion, out path);
+
     public Dictionary<string, GmodNode>.ValueCollection.Enumerator GetEnumerator() =>
         _nodeMap.Values.GetEnumerator();
 

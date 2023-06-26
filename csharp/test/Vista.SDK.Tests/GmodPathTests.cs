@@ -120,5 +120,14 @@ public class GmodPathTests
         Assert.Equal(fullString, parsedPath.ToFullPathString());
         Assert.Equal(shortPathStr, path.ToString());
         Assert.Equal(shortPathStr, parsedPath.ToString());
+
+        parsedPath = GmodPath.ParseFullPath(fullString, version);
+        Assert.NotNull(parsedPath);
+        Assert.True(parsed);
+        Assert.StrictEqual(path, parsedPath);
+        Assert.Equal(fullString, path.ToFullPathString());
+        Assert.Equal(fullString, parsedPath.ToFullPathString());
+        Assert.Equal(shortPathStr, path.ToString());
+        Assert.Equal(shortPathStr, parsedPath.ToString());
     }
 }
