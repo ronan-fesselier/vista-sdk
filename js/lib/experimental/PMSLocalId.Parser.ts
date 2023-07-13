@@ -1,16 +1,16 @@
-import { VIS, VisVersion, VisVersionExtension } from ".";
-import { CodebookName } from "./CodebookName";
-import { Codebooks } from "./Codebooks";
-import { Gmod } from "./Gmod";
-import { GmodPath } from "./GmodPath";
-import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
-import { parseVisVersion } from "./internal/Parsing";
-import { LocalIdBuilder } from "./LocalId.Builder";
-import { Locations } from "./Location";
-import { MetadataTag } from "./MetadataTag";
-import { ParsingState } from "./types/LocalId";
-import { isNullOrWhiteSpace } from "./util/util";
-import { VisVersions } from "./VisVersion";
+import { CodebookName } from "../CodebookName";
+import { Codebooks } from "../Codebooks";
+import { Gmod } from "../Gmod";
+import { GmodPath } from "../GmodPath";
+import { Locations } from "../Location";
+import { MetadataTag } from "../MetadataTag";
+import { VIS } from "../VIS";
+import { VisVersions } from "../VisVersion";
+import { LocalIdParsingErrorBuilder } from "../internal/LocalIdParsingErrorBuilder";
+import { parseVisVersion } from "../internal/Parsing";
+import { ParsingState } from "../types/LocalId";
+import { isNullOrWhiteSpace } from "../util/util";
+import { PMSLocalIdBuilder } from "./PMSLocalId.Builder";
 
 type NextStateIndexTuple = {
     nextStateIndex: number;
@@ -24,15 +24,15 @@ type ParseContext = {
     span: string;
 };
 
-export class LocalIdParser {
+export class PMSLocalIdParser {
     public static parse(
         localIdStr: string | undefined,
         gmod: Gmod,
         codebooks: Codebooks,
         locations: Locations,
         errorBuilder?: LocalIdParsingErrorBuilder
-    ): LocalIdBuilder {
-        const localId = LocalIdParser.tryParse(
+    ): PMSLocalIdBuilder {
+        const localId = PMSLocalIdParser.tryParse(
             localIdStr,
             gmod,
             codebooks,
@@ -47,7 +47,7 @@ export class LocalIdParser {
     public static async parseAsync(
         localIdStr: string | undefined,
         errorBuilder?: LocalIdParsingErrorBuilder
-    ): Promise<LocalIdBuilder> {
+    ): Promise<PMSLocalIdBuilder> {
         const localId = await this.tryParseAsync(localIdStr, errorBuilder);
 
         if (!localId)
@@ -61,7 +61,7 @@ export class LocalIdParser {
         codebooks: Codebooks,
         locations: Locations,
         errorBuilder?: LocalIdParsingErrorBuilder
-    ): LocalIdBuilder | undefined {
+    ): PMSLocalIdBuilder | undefined {
         if (!localIdStr || isNullOrWhiteSpace(localIdStr))
             throw new Error("Invalid LocalId string");
         if (localIdStr.length === 0) return;
@@ -73,19 +73,20 @@ export class LocalIdParser {
             return;
         }
 
-        const namingRule: string = LocalIdBuilder.namingRule;
+        const namingRule: string = PMSLocalIdBuilder.namingRule;
         const visVersion = gmod.visVersion;
 
         let primaryItem: GmodPath | undefined = undefined;
         let secondaryItem: GmodPath | undefined = undefined;
 
         let qty: MetadataTag | undefined = undefined;
-        let calc: MetadataTag | undefined = undefined;
         let cnt: MetadataTag | undefined = undefined;
         let pos: MetadataTag | undefined = undefined;
         let stateTag: MetadataTag | undefined = undefined;
         let cmd: MetadataTag | undefined = undefined;
-        let type: MetadataTag | undefined = undefined;
+        let func: MetadataTag | undefined = undefined;
+        let maint: MetadataTag | undefined = undefined;
+        let act: MetadataTag | undefined = undefined;
         let detail: MetadataTag | undefined = undefined;
         let verbose = false;
         let invalidSecondaryItem = false;
@@ -605,28 +606,6 @@ export class LocalIdParser {
                         cnt = res;
                     }
                     break;
-                case ParsingState.MetaCalculation:
-                    {
-                        if (context.segment.length == 0) {
-                            context.state++;
-                            break;
-                        }
-
-                        const res = this.parseMetatag(
-                            CodebookName.Calculation,
-                            context,
-                            context.state,
-                            context.i,
-                            context.segment,
-                            codebooks,
-                            errorBuilder,
-
-                            calc
-                        );
-                        if (!res) continue;
-                        calc = res;
-                    }
-                    break;
                 case ParsingState.MetaState:
                     {
                         if (context.segment.length == 0) {
@@ -671,7 +650,7 @@ export class LocalIdParser {
                         cmd = res;
                     }
                     break;
-                case ParsingState.MetaType:
+                case ParsingState.MetaFunctionalServices:
                     {
                         if (context.segment.length == 0) {
                             context.state++;
@@ -679,18 +658,59 @@ export class LocalIdParser {
                         }
 
                         const res = this.parseMetatag(
-                            CodebookName.Type,
+                            CodebookName.FunctionalServices,
                             context,
                             context.state,
                             context.i,
                             context.segment,
                             codebooks,
                             errorBuilder,
-
-                            type
+                            func
                         );
                         if (!res) continue;
-                        type = res;
+                        func = res;
+                    }
+                    break;
+                case ParsingState.MetaMaintenanceCategory:
+                    {
+                        if (context.segment.length == 0) {
+                            context.state++;
+                            break;
+                        }
+
+                        const res = this.parseMetatag(
+                            CodebookName.MaintenanceCategory,
+                            context,
+                            context.state,
+                            context.i,
+                            context.segment,
+                            codebooks,
+                            errorBuilder,
+                            maint
+                        );
+                        if (!res) continue;
+                        maint = res;
+                    }
+                    break;
+                case ParsingState.MetaActivityType:
+                    {
+                        if (context.segment.length == 0) {
+                            context.state++;
+                            break;
+                        }
+
+                        const res = this.parseMetatag(
+                            CodebookName.ActivityType,
+                            context,
+                            context.state,
+                            context.i,
+                            context.segment,
+                            codebooks,
+                            errorBuilder,
+                            act
+                        );
+                        if (!res) continue;
+                        act = res;
                     }
                     break;
                 case ParsingState.MetaPosition:
@@ -748,16 +768,17 @@ export class LocalIdParser {
             }
         }
 
-        const builder = LocalIdBuilder.create(visVersion)
+        const builder = PMSLocalIdBuilder.create(visVersion)
             .tryWithPrimaryItem(primaryItem)
             .tryWithSecondaryItem(secondaryItem)
             .withVerboseMode(verbose)
             .tryWithMetadataTag(qty)
             .tryWithMetadataTag(cnt)
-            .tryWithMetadataTag(calc)
             .tryWithMetadataTag(stateTag)
             .tryWithMetadataTag(cmd)
-            .tryWithMetadataTag(type)
+            .tryWithMetadataTag(func)
+            .tryWithMetadataTag(maint)
+            .tryWithMetadataTag(act)
             .tryWithMetadataTag(pos)
             .tryWithMetadataTag(detail);
 
@@ -777,7 +798,7 @@ export class LocalIdParser {
     public static async tryParseAsync(
         localIdStr: string | undefined,
         errorBuilder?: LocalIdParsingErrorBuilder
-    ): Promise<LocalIdBuilder | undefined> {
+    ): Promise<PMSLocalIdBuilder | undefined> {
         const version = parseVisVersion(localIdStr, errorBuilder);
         if (!version) return;
 
@@ -857,7 +878,7 @@ export class LocalIdParser {
             this.advanceParser(context, i, segment, state);
             return;
         }
-        const nextState = LocalIdParser.nextParsingState(actualState);
+        const nextState = PMSLocalIdParser.nextParsingState(actualState);
 
         tag = codebooks.tryCreateTag(codebookName, value);
         if (tag === undefined) {
@@ -896,6 +917,7 @@ export class LocalIdParser {
         if (nextState === undefined)
             this.advanceParser(context, i, segment, state);
         else this.advanceParser(context, i, segment, state, nextState);
+
         return tag;
     }
 
@@ -905,14 +927,17 @@ export class LocalIdParser {
                 return ParsingState.MetaQuantity;
             case "cnt":
                 return ParsingState.MetaContent;
-            case "calc":
-                return ParsingState.MetaCalculation;
+
             case "state":
                 return ParsingState.MetaState;
             case "cmd":
                 return ParsingState.MetaCommand;
-            case "type":
-                return ParsingState.MetaType;
+            case "funct.svc":
+                return ParsingState.MetaFunctionalServices;
+            case "maint.cat":
+                return ParsingState.MetaMaintenanceCategory;
+            case "act.type":
+                return ParsingState.MetaActivityType;
             case "pos":
                 return ParsingState.MetaPosition;
             case "detail":
@@ -921,24 +946,25 @@ export class LocalIdParser {
                 return;
         }
     }
+
     static nextParsingState(prev: ParsingState): ParsingState | undefined {
         switch (prev) {
             case ParsingState.MetaQuantity:
-                return ParsingState.MetaQuantity;
+                return ParsingState.MetaContent;
             case ParsingState.MetaContent:
-                return ParsingState.MetaCalculation;
-            case ParsingState.MetaCalculation:
                 return ParsingState.MetaState;
             case ParsingState.MetaState:
                 return ParsingState.MetaCommand;
             case ParsingState.MetaCommand:
-                return ParsingState.MetaType;
-            case ParsingState.MetaType:
+                return ParsingState.MetaFunctionalServices;
+            case ParsingState.MetaFunctionalServices:
+                return ParsingState.MetaMaintenanceCategory;
+            case ParsingState.MetaMaintenanceCategory:
+                return ParsingState.MetaActivityType;
+            case ParsingState.MetaActivityType:
                 return ParsingState.MetaPosition;
             case ParsingState.MetaPosition:
                 return ParsingState.MetaDetail;
-            default:
-                return;
         }
     }
 

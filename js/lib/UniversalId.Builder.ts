@@ -16,8 +16,8 @@ export class UniversalIdBuilder {
         return this._localId;
     }
 
-    public isValid(): boolean {
-        return !!this.imoNumber?.isValid && !!this.localId?.isValid();
+    public get isValid(): boolean {
+        return !!this.imoNumber?.isValid && !!this.localId?.isValid;
     }
 
     public static create(visVersion: VisVersion) {
@@ -127,9 +127,7 @@ export class UniversalIdBuilder {
     }
 
     public withoutLocalId() {
-        return this.with(
-            (s) => (s._localId = undefined)
-        );
+        return this.with((s) => (s._localId = undefined));
     }
 
     public withImoNumber(imoNumber: ImoNumber) {
@@ -142,9 +140,7 @@ export class UniversalIdBuilder {
     }
 
     public withoutImoNumber() {
-        return this.with(
-            (s) => (s.imoNumber = undefined)
-        );
+        return this.with((s) => (s.imoNumber = undefined));
     }
 
     public with(u: (state: UniversalIdBuilder) => void): UniversalIdBuilder {
