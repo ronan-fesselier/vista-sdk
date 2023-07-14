@@ -10,7 +10,7 @@ export class Extensions {
         const p = domain.package;
         const h = domain.package.header;
 
-        return {
+        const newPackage: TimeSeriesDto.TimeSeriesDataPackage = {
             Package: {
                 Header: h
                     ? {
@@ -18,50 +18,59 @@ export class Extensions {
                           DateCreated: h.dateCreated,
                           DateModified: h.dateModified,
                           AssetID: h.assetId.toString(),
-                          SystemConfiguration: h.systemConfiguration?.map(
-                              (s) => ({
-                                  ID: s.id,
-                                  TimeStamp: s.timeStamp,
-                              })
-                          ),
+                          SystemConfiguration:
+                              h.systemConfiguration?.map<TimeSeriesDto.ConfigurationReference>(
+                                  (s) => ({
+                                      ID: s.id,
+                                      TimeStamp: s.timeStamp,
+                                  })
+                              ),
                           TimeSpan: h.timeSpan
                               ? { End: h.timeSpan.end, Start: h.timeSpan.start }
                               : undefined,
                           AdditionalProperties: h.customHeaders,
                       }
                     : undefined,
-                TimeSeriesData: p.timeSeriesData.map((t) => ({
-                    DataConfiguration: t.dataConfiguration
-                        ? {
-                              TimeStamp: t.dataConfiguration.timeStamp,
-                              ID: t.dataConfiguration.id,
-                          }
-                        : undefined,
-                    EventData: t.eventData
-                        ? {
-                              NumberOfDataSet: t.eventData.numberOfDataSet,
-                              DataSet: t.eventData.dataSet?.map((d) => ({
-                                  TimeStamp: d.timeStamp,
-                                  DataId: d.dataId.toString(),
-                                  Value: d.value,
-                                  Quality: d.quality,
-                              })),
-                          }
-                        : undefined,
-                    TabularData: t.tabularData?.map((d) => ({
-                        NumberOfDataSet: d.numberOfDataSet,
-                        NumberOfDataChannel: d.numberOfDataChannel,
-                        DataId: d.dataId?.map((i) => i.toString()),
-                        DataSet: d.dataSet?.map((td) => ({
-                            Quality: td.quality,
-                            TimeStamp: td.timeStamp,
-                            Value: td.value,
-                        })),
+                TimeSeriesData:
+                    p.timeSeriesData.map<TimeSeriesDto.TimeSeriesData>((t) => ({
+                        DataConfiguration: t.dataConfiguration
+                            ? {
+                                  TimeStamp: t.dataConfiguration.timeStamp,
+                                  ID: t.dataConfiguration.id,
+                              }
+                            : undefined,
+                        EventData: t.eventData
+                            ? {
+                                  NumberOfDataSet: t.eventData.numberOfDataSet,
+                                  DataSet:
+                                      t.eventData.dataSet?.map<TimeSeriesDto.EventDataSet>(
+                                          (d) => ({
+                                              TimeStamp: d.timeStamp,
+                                              DataId: d.dataId.toString(),
+                                              Value: d.value,
+                                              Quality: d.quality,
+                                          })
+                                      ),
+                              }
+                            : undefined,
+                        TabularData:
+                            t.tabularData?.map<TimeSeriesDto.TabularData>(
+                                (d) => ({
+                                    NumberOfDataSet: d.numberOfDataSet,
+                                    NumberOfDataPoints: d.numberOfDataPoints,
+                                    DataId: d.dataId?.map((i) => i.toString()),
+                                    DataSet: d.dataSet?.map((td) => ({
+                                        Quality: td.quality,
+                                        TimeStamp: td.timeStamp,
+                                        Value: td.value,
+                                    })),
+                                })
+                            ),
+                        AdditionalProperties: t.customProperties,
                     })),
-                    AdditionalProperties: t.customProperties,
-                })),
             },
         };
+        return newPackage;
     }
 
     public static async toDomainModel(
@@ -98,7 +107,7 @@ export class Extensions {
 
                     tabularData.push({
                         numberOfDataSet: td.NumberOfDataSet,
-                        numberOfDataChannel: td.NumberOfDataChannel,
+                        numberOfDataPoints: td.NumberOfDataPoints,
                         dataId:
                             dataChannelIds.length > 0
                                 ? dataChannelIds

@@ -37,7 +37,7 @@ export namespace TimeSeries {
 
     export type TabularData = {
         numberOfDataSet?: string;
-        numberOfDataChannel?: string;
+        numberOfDataPoints?: string;
         dataId?: DataId[];
         dataSet?: TabularDataSet[];
     };

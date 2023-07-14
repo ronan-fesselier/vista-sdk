@@ -45,7 +45,7 @@ export namespace TimeSeriesDto {
     }
     export interface TabularData {
         NumberOfDataSet?: string;
-        NumberOfDataChannel?: string;
+        NumberOfDataPoints?: string;
         DataId?: string[];
         DataSet?: TabularDataSet[];
     }
