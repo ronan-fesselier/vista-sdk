@@ -775,16 +775,16 @@ public sealed partial record class LocalIdBuilder
                     var secIndex = span.IndexOf("/sec".AsSpan());
                     var endOfSecIndex = (secIndex + "/sec".Length + 1);
                     return secIndex != -1
-                      ? (secIndex, endOfSecIndex)
-                      : customIndex != -1
-                          ? (customIndex, endOfCustomIndex)
-                          : (metaIndex, endOfMetaIndex);
+                        ? (secIndex, endOfSecIndex)
+                        : customIndex != -1
+                            ? (customIndex, endOfCustomIndex)
+                            : (metaIndex, endOfMetaIndex);
                 }
 
                 case (ParsingState.SecondaryItem):
                     return customIndex != -1
-                      ? (customIndex, endOfCustomIndex)
-                      : (metaIndex, endOfMetaIndex);
+                        ? (customIndex, endOfCustomIndex)
+                        : (metaIndex, endOfMetaIndex);
 
                 default:
                     return (metaIndex, endOfMetaIndex);

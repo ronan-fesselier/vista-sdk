@@ -40,14 +40,12 @@ public class DataChannelListSerialization
     private SpecificWriter<DataChannelListAvroPackage> _avroWriter;
 
     private static readonly Lazy<DataChannelListSerialization> _bench =
-        new(
-            () =>
-            {
-                var bench = new DataChannelListSerialization();
-                bench.Setup();
-                return bench;
-            }
-        );
+        new(() =>
+        {
+            var bench = new DataChannelListSerialization();
+            bench.Setup();
+            return bench;
+        });
     private static readonly Dictionary<string, long> _payloadSizes = new();
 
     public class ConfigSourceAttribute : Attribute, IConfigSource

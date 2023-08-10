@@ -53,8 +53,10 @@ public sealed class Codebooks : IEnumerable<(CodebookName Name, Codebook Codeboo
 
     public Enumerator GetEnumerator() => new Enumerator(this);
 
-    IEnumerator<(CodebookName Name, Codebook Codebook)> IEnumerable<(CodebookName Name, Codebook Codebook)>.GetEnumerator() =>
-        new Enumerator(this);
+    IEnumerator<(CodebookName Name, Codebook Codebook)> IEnumerable<(
+        CodebookName Name,
+        Codebook Codebook
+    )>.GetEnumerator() => new Enumerator(this);
 
     IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
 

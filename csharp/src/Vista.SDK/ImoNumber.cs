@@ -43,8 +43,8 @@ public readonly record struct ImoNumber
             startsWithImo ? value.Slice(3).ToString() : value.ToString(),
             out var n
         )
-          ? n
-          : 0;
+            ? n
+            : 0;
 #endif
 
         if (num == 0 || !IsValid(num))

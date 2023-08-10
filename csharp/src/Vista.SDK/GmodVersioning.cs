@@ -306,15 +306,15 @@ internal sealed class GmodVersioning
                         versioningNodeDto.Value.NextVisVersion,
                         out var nextVisVersion
                     )
-                      ? nextVisVersion
-                      : null,
+                        ? nextVisVersion
+                        : null,
                     versioningNodeDto.Value.NextCode,
                     VisVersions.TryParse(
                         versioningNodeDto.Value.PreviousVisVersion,
                         out var previoiusVisVersion
                     )
-                      ? previoiusVisVersion
-                      : null,
+                        ? previoiusVisVersion
+                        : null,
                     versioningNodeDto.Value.PreviousCode
                 );
                 _versioningNodeChanges.Add(code, versioningNodeChanges);

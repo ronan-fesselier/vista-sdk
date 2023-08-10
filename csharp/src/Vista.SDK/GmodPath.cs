@@ -111,7 +111,8 @@ public sealed record GmodPath
         return true;
     }
 
-    public GmodPath(IReadOnlyList<GmodNode> parents, GmodNode node) : this(parents, node, false) { }
+    public GmodPath(IReadOnlyList<GmodNode> parents, GmodNode node)
+        : this(parents, node, false) { }
 
     public GmodPath WithoutLocations() =>
         new GmodPath(Parents.Select(n => n.WithoutLocation()).ToList(), Node.WithoutLocation());
@@ -228,7 +229,7 @@ public sealed record GmodPath
 
     public struct Enumerator
         : IEnumerable<(int Depth, GmodNode Node)>,
-          IEnumerator<(int Depth, GmodNode Node)>
+            IEnumerator<(int Depth, GmodNode Node)>
     {
         private readonly GmodPath _path;
 

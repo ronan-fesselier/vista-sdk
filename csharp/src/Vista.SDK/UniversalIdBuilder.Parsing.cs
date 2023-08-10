@@ -70,8 +70,8 @@ public sealed partial record UniversalIdBuilder
             ref errorBuilder,
             out var b
         )
-          ? b
-          : null;
+            ? b
+            : null;
 
         if (localIdBuilder is null)
             // Dont need additional error, as the localIdBuilder does it for us

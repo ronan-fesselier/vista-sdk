@@ -12,7 +12,7 @@ public readonly record struct Location
         Value = value;
     }
 
-    public readonly override string ToString() => Value;
+    public override readonly string ToString() => Value;
 
     public static implicit operator string(Location n) => n.Value;
 }

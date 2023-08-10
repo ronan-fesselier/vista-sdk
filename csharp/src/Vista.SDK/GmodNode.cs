@@ -168,7 +168,7 @@ public record class GmodNode
 
     public override int GetHashCode() => HashCode.Combine(Code, Location);
 
-    public override sealed string ToString() => Location is null ? Code : $"{Code}-{Location}";
+    public sealed override string ToString() => Location is null ? Code : $"{Code}-{Location}";
 
     public void ToString(StringBuilder builder)
     {

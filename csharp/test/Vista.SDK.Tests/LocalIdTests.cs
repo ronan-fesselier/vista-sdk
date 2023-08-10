@@ -268,7 +268,12 @@ public class LocalIdTests
         var reader = new StreamReader(file);
 
         var errored =
-            new List<(string LocalIdStr, LocalIdBuilder? LocalId, Exception? Exception, LocalIdParsingErrorBuilder? ErrorBuilder)>();
+            new List<(
+                string LocalIdStr,
+                LocalIdBuilder? LocalId,
+                Exception? Exception,
+                LocalIdParsingErrorBuilder? ErrorBuilder
+            )>();
 
         string? localIdStr;
         while ((localIdStr = await reader.ReadLineAsync()) is not null)
