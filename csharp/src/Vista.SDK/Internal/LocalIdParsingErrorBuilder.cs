@@ -3,8 +3,7 @@ namespace Vista.SDK.Internal;
 internal sealed record LocalIdParsingErrorBuilder
 {
     private readonly List<(LocalIdParsingState type, string message)> _errors;
-    private static Dictionary<LocalIdParsingState, string> _predefinedErrorMessages =>
-        SetPredefinedMessages();
+    private static Dictionary<LocalIdParsingState, string> _predefinedErrorMessages => SetPredefinedMessages();
 
     internal static readonly LocalIdParsingErrorBuilder Empty = new();
 

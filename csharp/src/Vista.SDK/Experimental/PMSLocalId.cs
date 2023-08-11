@@ -11,13 +11,9 @@ public class PMSLocalId : ILocalId<PMSLocalId>, IEquatable<PMSLocalId>
     internal PMSLocalId(PMSLocalIdBuilder builder)
     {
         if (builder.IsEmpty)
-            throw new ArgumentException(
-                "PMSLocalId cannot be constructed from empty PMSLocalIdBuilder"
-            );
+            throw new ArgumentException("PMSLocalId cannot be constructed from empty PMSLocalIdBuilder");
         if (!builder.IsValid)
-            throw new ArgumentException(
-                "PMSLocalId cannot be constructed from invalid PMSLocalIdBuilder"
-            );
+            throw new ArgumentException("PMSLocalId cannot be constructed from invalid PMSLocalIdBuilder");
         _builder = builder;
     }
 
@@ -53,14 +49,9 @@ public class PMSLocalId : ILocalId<PMSLocalId>, IEquatable<PMSLocalId>
 
     public override string ToString() => _builder.ToString();
 
-    public static PMSLocalId Parse(string localIdStr) =>
-        PMSLocalIdBuilder.Parse(localIdStr).Build();
+    public static PMSLocalId Parse(string localIdStr) => PMSLocalIdBuilder.Parse(localIdStr).Build();
 
-    public static bool TryParse(
-        string localIdStr,
-        out ParsingErrors errors,
-        out PMSLocalId? localId
-    )
+    public static bool TryParse(string localIdStr, out ParsingErrors errors, out PMSLocalId? localId)
     {
         if (!PMSLocalIdBuilder.TryParse(localIdStr, out errors, out var localIdBuilder))
         {

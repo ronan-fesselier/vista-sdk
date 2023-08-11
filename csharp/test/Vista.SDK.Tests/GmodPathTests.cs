@@ -5,10 +5,7 @@ namespace Vista.SDK.Tests;
 public class GmodPathTests
 {
     [Theory]
-    [MemberData(
-        nameof(VistaSDKTestData.AddValidGmodPathsData),
-        MemberType = typeof(VistaSDKTestData)
-    )]
+    [MemberData(nameof(VistaSDKTestData.AddValidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
     public void Test_GmodPath_Parse(string inputPath)
     {
         var (_, vis) = VISTests.GetVis();
@@ -20,10 +17,7 @@ public class GmodPathTests
     }
 
     [Theory]
-    [MemberData(
-        nameof(VistaSDKTestData.AddInvalidGmodPathsData),
-        MemberType = typeof(VistaSDKTestData)
-    )]
+    [MemberData(nameof(VistaSDKTestData.AddInvalidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
     public void Test_GmodPath_Parse_Invalid(string inputPath)
     {
         var (_, vis) = VISTests.GetVis();
@@ -100,10 +94,7 @@ public class GmodPathTests
 
     [Theory]
     [InlineData("411.1/C101.72/I101", "VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101")]
-    [InlineData(
-        "612.21-1/C701.13/S93",
-        "VE/600a/610/612/612.2/612.2i/612.21-1/CS10/C701/C701.1/C701.13/S93"
-    )]
+    [InlineData("612.21-1/C701.13/S93", "VE/600a/610/612/612.2/612.2i/612.21-1/CS10/C701/C701.1/C701.13/S93")]
     public void Test_FullPathParsing(string shortPathStr, string expectedFullPathStr)
     {
         var version = VisVersion.v3_4a;

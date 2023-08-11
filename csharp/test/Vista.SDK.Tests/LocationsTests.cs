@@ -16,25 +16,12 @@ public class LocationsTests
 
     [Theory]
     [MemberData(nameof(VistaSDKTestData.AddLocationsData), MemberType = typeof(VistaSDKTestData))]
-    public void Test_Locations(
-        string value,
-        bool success,
-        string? output,
-        string[] expectedErrorMessages
-    )
+    public void Test_Locations(string value, bool success, string? output, string[] expectedErrorMessages)
     {
         var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
 
-        var stringSuccess = locations.TryParse(
-            value,
-            out var stringParsedLocation,
-            out var stringErrorBuilder
-        );
-        var spanSuccess = locations.TryParse(
-            value.AsSpan(),
-            out var spanParsedLocation,
-            out var spanErrorBuilder
-        );
+        var stringSuccess = locations.TryParse(value, out var stringParsedLocation, out var stringErrorBuilder);
+        var spanSuccess = locations.TryParse(value.AsSpan(), out var spanParsedLocation, out var spanErrorBuilder);
         Verify(stringSuccess, stringErrorBuilder, stringParsedLocation);
         Verify(spanSuccess, spanErrorBuilder, spanParsedLocation);
 

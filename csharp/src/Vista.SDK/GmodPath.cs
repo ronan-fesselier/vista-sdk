@@ -34,9 +34,7 @@ public sealed record GmodPath
         if (!skipVerify)
         {
             if (parents.Count == 0)
-                throw new ArgumentException(
-                    $"Invalid gmod path - no parents, and {node.Code} is not the root of gmod"
-                );
+                throw new ArgumentException($"Invalid gmod path - no parents, and {node.Code} is not the root of gmod");
             if (parents.Count > 0 && !parents[0].IsRoot)
                 throw new ArgumentException(
                     $"Invalid gmod path - first parent should be root of gmod (VE), but was {parents[0].Code}"
@@ -55,14 +53,10 @@ public sealed record GmodPath
                 var nextIndex = i + 1;
                 var child = nextIndex < parents.Count ? parents[nextIndex] : node;
                 if (!parent.IsChild(child))
-                    throw new ArgumentException(
-                        $"Invalid gmod path - {child.Code} not child of {parent.Code}"
-                    );
+                    throw new ArgumentException($"Invalid gmod path - {child.Code} not child of {parent.Code}");
 
                 if (!set.Add(child.Code))
-                    throw new ArgumentException(
-                        $"Recursion in gmod path argument for code: {child.Code}"
-                    );
+                    throw new ArgumentException($"Recursion in gmod path argument for code: {child.Code}");
             }
         }
 
@@ -70,14 +64,9 @@ public sealed record GmodPath
         Node = node;
     }
 
-    public static bool IsValid(IReadOnlyList<GmodNode> parents, GmodNode node) =>
-        IsValid(parents, node, out _);
+    public static bool IsValid(IReadOnlyList<GmodNode> parents, GmodNode node) => IsValid(parents, node, out _);
 
-    internal static bool IsValid(
-        IReadOnlyList<GmodNode> parents,
-        GmodNode node,
-        out int missingLinkAt
-    )
+    internal static bool IsValid(IReadOnlyList<GmodNode> parents, GmodNode node, out int missingLinkAt)
     {
         missingLinkAt = -1;
 
@@ -227,9 +216,7 @@ public sealed record GmodPath
 
     public Enumerator GetFullPathFrom(int fromDepth) => new Enumerator(this, fromDepth);
 
-    public struct Enumerator
-        : IEnumerable<(int Depth, GmodNode Node)>,
-            IEnumerator<(int Depth, GmodNode Node)>
+    public struct Enumerator : IEnumerable<(int Depth, GmodNode Node)>, IEnumerator<(int Depth, GmodNode Node)>
     {
         private readonly GmodPath _path;
 
@@ -248,10 +235,7 @@ public sealed record GmodPath
                 if (fromDepth < 0 || fromDepth > _path.Parents.Count)
                     throw new ArgumentOutOfRangeException(nameof(fromDepth));
 
-                Current = (
-                    fromDepth.Value - 1,
-                    fromDepth == 0 ? null! : _path[fromDepth.Value - 1]
-                );
+                Current = (fromDepth.Value - 1, fromDepth == 0 ? null! : _path[fromDepth.Value - 1]);
             }
         }
 
@@ -340,11 +324,7 @@ public sealed record GmodPath
         return path;
     }
 
-    public static bool TryParse(
-        string? item,
-        VisVersion visVersion,
-        [NotNullWhen(true)] out GmodPath? path
-    )
+    public static bool TryParse(string? item, VisVersion visVersion, [NotNullWhen(true)] out GmodPath? path)
     {
         var gmod = VIS.Instance.GetGmod(visVersion);
         var locations = VIS.Instance.GetLocations(visVersion);
@@ -359,17 +339,10 @@ public sealed record GmodPath
         return path;
     }
 
-    public static bool TryParse(
-        string? item,
-        Gmod gmod,
-        Locations locations,
-        [NotNullWhen(true)] out GmodPath? path
-    )
+    public static bool TryParse(string? item, Gmod gmod, Locations locations, [NotNullWhen(true)] out GmodPath? path)
     {
         if (gmod.VisVersion != locations.VisVersion)
-            throw new ArgumentException(
-                "Got different VIS versions for Gmod and Locations arguments"
-            );
+            throw new ArgumentException("Got different VIS versions for Gmod and Locations arguments");
 
         path = null;
         if (string.IsNullOrWhiteSpace(item))
@@ -438,9 +411,7 @@ public sealed record GmodPath
                     else
                         pathParents.Add(parent);
                 }
-                var endNode = toFind.Location is not null
-                    ? current.WithLocation(toFind.Location)
-                    : current;
+                var endNode = toFind.Location is not null ? current.WithLocation(toFind.Location) : current;
 
                 var startNode =
                     pathParents.Count > 0 && pathParents[0].Parents.Count == 1

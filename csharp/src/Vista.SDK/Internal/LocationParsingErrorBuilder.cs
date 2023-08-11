@@ -6,13 +6,9 @@ internal sealed record LocationParsingErrorBuilder
 
     internal static readonly LocationParsingErrorBuilder Empty = new();
 
-    internal LocationParsingErrorBuilder() =>
-        _errors = new List<(LocationValidationResult, string)>();
+    internal LocationParsingErrorBuilder() => _errors = new List<(LocationValidationResult, string)>();
 
-    internal LocationParsingErrorBuilder AddError(
-        LocationValidationResult validationResult,
-        string message
-    )
+    internal LocationParsingErrorBuilder AddError(LocationValidationResult validationResult, string message)
     {
         _errors.Add((validationResult, message));
         return this;

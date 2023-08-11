@@ -13,16 +13,11 @@ partial record class UniversalIdBuilder
     public static UniversalIdBuilder Parse(string universalIdStr)
     {
         if (!TryParse(universalIdStr, out var errors, out var universalId))
-            throw new ArgumentException(
-                $"Couldn't parse universal ID from: '{universalIdStr}'. {errors}"
-            );
+            throw new ArgumentException($"Couldn't parse universal ID from: '{universalIdStr}'. {errors}");
         return universalId;
     }
 
-    public static bool TryParse(
-        string universalId,
-        [MaybeNullWhen(false)] out UniversalIdBuilder universalIdBuilder
-    )
+    public static bool TryParse(string universalId, [MaybeNullWhen(false)] out UniversalIdBuilder universalIdBuilder)
     {
         return TryParse(universalId, out _, out universalIdBuilder);
     }
@@ -39,21 +34,13 @@ partial record class UniversalIdBuilder
 
         if (universalId is null)
         {
-            AddError(
-                ref errorBuilder,
-                LocalIdParsingState.NamingRule,
-                "Failed to find localId start segment"
-            );
+            AddError(ref errorBuilder, LocalIdParsingState.NamingRule, "Failed to find localId start segment");
             errors = errorBuilder.Build();
             return false;
         }
         if (universalId.Length == 0)
         {
-            AddError(
-                ref errorBuilder,
-                LocalIdParsingState.NamingRule,
-                "Failed to find localId start segment"
-            );
+            AddError(ref errorBuilder, LocalIdParsingState.NamingRule, "Failed to find localId start segment");
             errors = errorBuilder.Build();
             return false;
         }
@@ -61,11 +48,7 @@ partial record class UniversalIdBuilder
         var localIdStartIndex = universalId.IndexOf("/dnv-v");
         if (localIdStartIndex == -1)
         {
-            AddError(
-                ref errorBuilder,
-                LocalIdParsingState.NamingRule,
-                "Failed to find localId start segment"
-            );
+            AddError(ref errorBuilder, LocalIdParsingState.NamingRule, "Failed to find localId start segment");
             errors = errorBuilder.Build();
             return false;
         }
@@ -75,13 +58,7 @@ partial record class UniversalIdBuilder
 
         ImoNumber? imoNumber = null;
 
-        var localIdBuilder = LocalIdBuilder.TryParseInternal(
-            localIdSegment,
-            ref errorBuilder,
-            out var b
-        )
-            ? b
-            : null;
+        var localIdBuilder = LocalIdBuilder.TryParseInternal(localIdSegment, ref errorBuilder, out var b) ? b : null;
 
         if (localIdBuilder is null)
         {
@@ -138,19 +115,13 @@ partial record class UniversalIdBuilder
             return false;
         }
 
-        universalIdBuilder = Create(visVersion.Value)
-            .TryWithLocalId(in localIdBuilder)
-            .TryWithImoNumber(in imoNumber);
+        universalIdBuilder = Create(visVersion.Value).TryWithLocalId(in localIdBuilder).TryWithImoNumber(in imoNumber);
 
         errors = errorBuilder.Build();
         return true;
     }
 
-    static void AddError(
-        ref LocalIdParsingErrorBuilder errorBuilder,
-        LocalIdParsingState state,
-        string? message
-    )
+    static void AddError(ref LocalIdParsingErrorBuilder errorBuilder, LocalIdParsingState state, string? message)
     {
         if (!errorBuilder.HasError)
             errorBuilder = LocalIdParsingErrorBuilder.Create();

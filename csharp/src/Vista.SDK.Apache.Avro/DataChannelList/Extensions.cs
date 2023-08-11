@@ -44,10 +44,7 @@ public static class Extensions
                                         LocalID = dc.DataChannelId.LocalId.ToString(),
                                         NameObject = dc.DataChannelId.NameObject is null
                                             ? null
-                                            : new NameObject()
-                                            {
-                                                NamingRule = dc.DataChannelId.NameObject.NamingRule,
-                                            },
+                                            : new NameObject() { NamingRule = dc.DataChannelId.NameObject.NamingRule, },
                                         ShortID = dc.DataChannelId.ShortId,
                                     },
                                     Property = new Property()
@@ -55,9 +52,7 @@ public static class Extensions
                                         AlertPriority = dc.Property.AlertPriority,
                                         DataChannelType = new DataChannelType()
                                         {
-                                            CalculationPeriod = dc.Property
-                                                .DataChannelType
-                                                .CalculationPeriod,
+                                            CalculationPeriod = dc.Property.DataChannelType.CalculationPeriod,
                                             Type = dc.Property.DataChannelType.Type,
                                             UpdateCycle = dc.Property.DataChannelType.UpdateCycle,
                                         },
@@ -67,47 +62,18 @@ public static class Extensions
                                                 ? null
                                                 : new Restriction()
                                                 {
-                                                    Enumeration =
-                                                        dc.Property.Format.Restriction.Enumeration?.ToList(),
-                                                    FractionDigits = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .FractionDigits,
+                                                    Enumeration = dc.Property.Format.Restriction.Enumeration?.ToList(),
+                                                    FractionDigits = dc.Property.Format.Restriction.FractionDigits,
                                                     Length = dc.Property.Format.Restriction.Length,
-                                                    MaxExclusive = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MaxExclusive,
-                                                    MaxInclusive = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MaxInclusive,
-                                                    MaxLength = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MaxLength,
-                                                    MinExclusive = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MinExclusive,
-                                                    MinInclusive = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MinInclusive,
-                                                    MinLength = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .MinLength,
-                                                    Pattern = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .Pattern,
-                                                    TotalDigits = dc.Property
-                                                        .Format
-                                                        .Restriction
-                                                        .TotalDigits,
-                                                    WhiteSpace = (WhiteSpace?)
-                                                        dc.Property.Format.Restriction.WhiteSpace,
+                                                    MaxExclusive = dc.Property.Format.Restriction.MaxExclusive,
+                                                    MaxInclusive = dc.Property.Format.Restriction.MaxInclusive,
+                                                    MaxLength = dc.Property.Format.Restriction.MaxLength,
+                                                    MinExclusive = dc.Property.Format.Restriction.MinExclusive,
+                                                    MinInclusive = dc.Property.Format.Restriction.MinInclusive,
+                                                    MinLength = dc.Property.Format.Restriction.MinLength,
+                                                    Pattern = dc.Property.Format.Restriction.Pattern,
+                                                    TotalDigits = dc.Property.Format.Restriction.TotalDigits,
+                                                    WhiteSpace = (WhiteSpace?)dc.Property.Format.Restriction.WhiteSpace,
                                                 },
                                             Type = dc.Property.Format.Type,
                                         },
@@ -137,9 +103,7 @@ public static class Extensions
         };
     }
 
-    public static Transport.DataChannel.DataChannelListPackage ToDomainModel(
-        this DataChannelListPackage package
-    )
+    public static Transport.DataChannel.DataChannelListPackage ToDomainModel(this DataChannelListPackage package)
     {
         var p = package.Package;
         return new Domain.DataChannelListPackage(
@@ -205,16 +169,12 @@ public static class Extensions
                                                     c.Property.Format.Restriction.MinLength,
                                                     c.Property.Format.Restriction.Pattern,
                                                     c.Property.Format.Restriction.TotalDigits,
-                                                    (Domain.WhiteSpace?)
-                                                        c.Property.Format.Restriction.WhiteSpace
+                                                    (Domain.WhiteSpace?)c.Property.Format.Restriction.WhiteSpace
                                                 )
                                         ),
                                         c.Property.Range is null
                                             ? null
-                                            : new Domain.Range(
-                                                c.Property.Range.High,
-                                                c.Property.Range.Low
-                                            ),
+                                            : new Domain.Range(c.Property.Range.High, c.Property.Range.Low),
                                         c.Property.Unit is null
                                             ? null
                                             : new Domain.Unit(

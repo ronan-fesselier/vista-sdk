@@ -279,10 +279,7 @@ namespace Vista.SDK
             //Debugger.Launch();
 
             // inject the created source into the users compilation
-            context.AddSource(
-                "VisVersionExtensions.g.cs",
-                SourceText.From(sourceBuilder.ToString(), Encoding.UTF8)
-            ); // VisVersionExtensions.g
+            context.AddSource("VisVersionExtensions.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8)); // VisVersionExtensions.g
 
             Debug.WriteLine($"{nameof(VISGenerator)} generated source code");
         }

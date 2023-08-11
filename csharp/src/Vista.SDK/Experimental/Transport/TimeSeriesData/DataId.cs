@@ -40,11 +40,7 @@ public readonly record struct DataId : IEquatable<DataId>
         _shortId = value;
     }
 
-    public readonly T Match<T>(
-        Func<LocalId, T> onLocalId,
-        Func<PMSLocalId, T> onPmsLocalId,
-        Func<string, T> onShortId
-    )
+    public readonly T Match<T>(Func<LocalId, T> onLocalId, Func<PMSLocalId, T> onPmsLocalId, Func<string, T> onShortId)
     {
         return _tag switch
         {
@@ -55,11 +51,7 @@ public readonly record struct DataId : IEquatable<DataId>
         };
     }
 
-    public readonly void Switch(
-        Action<LocalId> onLocalId,
-        Action<PMSLocalId> onPmsLocalId,
-        Action<string> onShortId
-    )
+    public readonly void Switch(Action<LocalId> onLocalId, Action<PMSLocalId> onPmsLocalId, Action<string> onShortId)
     {
         if (_tag == 1)
             onLocalId(_localId!);
@@ -96,11 +88,7 @@ public readonly record struct DataId : IEquatable<DataId>
     {
         var hash = default(HashCode);
 
-        Switch(
-            l => hash.Add(l.GetHashCode()),
-            pl => hash.Add(pl.GetHashCode()),
-            s => hash.Add(s.GetHashCode())
-        );
+        Switch(l => hash.Add(l.GetHashCode()), pl => hash.Add(pl.GetHashCode()), s => hash.Add(s.GetHashCode()));
 
         return hash.ToHashCode();
     }

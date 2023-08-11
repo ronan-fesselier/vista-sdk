@@ -46,8 +46,7 @@ public static class Extensions
                                                     c.Property.Format.Restriction.MinLength,
                                                     c.Property.Format.Restriction.Pattern,
                                                     c.Property.Format.Restriction.TotalDigits,
-                                                    (RestrictionWhiteSpace?)
-                                                        c.Property.Format.Restriction.WhiteSpace
+                                                    (RestrictionWhiteSpace?)c.Property.Format.Restriction.WhiteSpace
                                                 ),
                                             c.Property.Format.Type
                                         ),
@@ -55,25 +54,18 @@ public static class Extensions
                                         c.Property.QualityCoding,
                                         c.Property.Range is null
                                             ? null
-                                            : new Range(
-                                                c.Property.Range.High,
-                                                c.Property.Range.Low
-                                            ),
+                                            : new Range(c.Property.Range.High, c.Property.Range.Low),
                                         c.Property.Remarks,
                                         c.Property.Unit is null
                                             ? null
-                                            : new Unit(
-                                                c.Property.Unit.QuantityName,
-                                                c.Property.Unit.UnitSymbol
-                                            )
+                                            : new Unit(c.Property.Unit.QuantityName, c.Property.Unit.UnitSymbol)
                                             {
                                                 AdditionalProperties =
                                                     c.Property.Unit.CustomProperties.CopyProperties(),
                                             }
                                     )
                                     {
-                                        AdditionalProperties =
-                                            c.Property.CustomProperties.CopyProperties(),
+                                        AdditionalProperties = c.Property.CustomProperties.CopyProperties(),
                                     }
                                 )
                         )
@@ -167,16 +159,12 @@ public static class Extensions
                                                     c.Property.Format.Restriction.MinLength,
                                                     c.Property.Format.Restriction.Pattern,
                                                     c.Property.Format.Restriction.TotalDigits,
-                                                    (Domain.WhiteSpace?)
-                                                        c.Property.Format.Restriction.WhiteSpace
+                                                    (Domain.WhiteSpace?)c.Property.Format.Restriction.WhiteSpace
                                                 )
                                         ),
                                         c.Property.Range is null
                                             ? null
-                                            : new Domain.Range(
-                                                c.Property.Range.High,
-                                                c.Property.Range.Low
-                                            ),
+                                            : new Domain.Range(c.Property.Range.High, c.Property.Range.Low),
                                         c.Property.Unit is null
                                             ? null
                                             : new Domain.Unit(

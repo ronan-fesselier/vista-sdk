@@ -71,14 +71,7 @@ public class LocalIdTests
             },
             new object[]
             {
-                new Input(
-                    "411.1/C101.63/S206",
-                    null,
-                    "temperature",
-                    "exhaust.gas",
-                    "inlet",
-                    Verbose: true
-                ),
+                new Input("411.1/C101.63/S206", null, "temperature", "exhaust.gas", "inlet", Verbose: true),
                 "/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
             },
             new object[]
@@ -110,13 +103,7 @@ public class LocalIdTests
             },
             new object[]
             {
-                new Input(
-                    "411.1/C101.63/S206",
-                    "411.1/C101.31-5",
-                    "temperature",
-                    "exhaust.gas",
-                    "inlet"
-                ),
+                new Input("411.1/C101.63/S206", "411.1/C101.31-5", "temperature", "exhaust.gas", "inlet"),
                 "dnv-v2/vis-3-4a/411.1_C101.63_S206/411.1_C101.31-5/qty-temperature/cnt-exhaust.gas/_/_/_/_/pos-inlet/_",
             },
         };
@@ -133,9 +120,7 @@ public class LocalIdTests
         var codebooks = vis.GetCodebooks(visVersion);
 
         var primaryItem = gmod.ParsePath(input.PrimaryItem);
-        var secondaryItem = input.SecondaryItem is not null
-            ? gmod.ParsePath(input.SecondaryItem)
-            : null;
+        var secondaryItem = input.SecondaryItem is not null ? gmod.ParsePath(input.SecondaryItem) : null;
 
         var localId = LocalIdBuilder
             .Create(visVersion)
@@ -202,9 +187,7 @@ public class LocalIdTests
         var codebooks = vis.GetCodebooks(visVersion);
 
         var primaryItem = gmod.ParsePath(input.PrimaryItem);
-        var secondaryItem = input.SecondaryItem is not null
-            ? gmod.ParsePath(input.SecondaryItem)
-            : null;
+        var secondaryItem = input.SecondaryItem is not null ? gmod.ParsePath(input.SecondaryItem) : null;
 
         var localIdBuilder = LocalIdBuilder
             .Create(visVersion)
@@ -235,9 +218,7 @@ public class LocalIdTests
         var codebooks = vis.GetCodebooks(visVersion);
 
         var primaryItem = gmod.ParsePath(input.PrimaryItem);
-        var secondaryItem = input.SecondaryItem is not null
-            ? gmod.ParsePath(input.SecondaryItem)
-            : null;
+        var secondaryItem = input.SecondaryItem is not null ? gmod.ParsePath(input.SecondaryItem) : null;
 
         var localId = LocalIdBuilder
             .Create(visVersion)
@@ -257,18 +238,14 @@ public class LocalIdTests
         Assert.True(localId == otherLocalId);
         Assert.NotSame(localId, otherLocalId);
 
-        otherLocalId = otherLocalId.WithMetadataTag(
-            codebooks.CreateTag(CodebookName.Position, "eqtestvalue")
-        );
+        otherLocalId = otherLocalId.WithMetadataTag(codebooks.CreateTag(CodebookName.Position, "eqtestvalue"));
         Assert.NotEqual(localId, otherLocalId);
         Assert.True(localId != otherLocalId);
         Assert.NotSame(localId, otherLocalId);
 
         otherLocalId = localId
             .TryWithPrimaryItem(localId.PrimaryItem is null ? null : localId.PrimaryItem with { })
-            .TryWithMetadataTag(
-                codebooks.TryCreateTag(CodebookName.Position, localId.Position?.Value)
-            );
+            .TryWithMetadataTag(codebooks.TryCreateTag(CodebookName.Position, localId.Position?.Value));
 
         Assert.Equal(localId, otherLocalId);
         Assert.True(localId == otherLocalId);
@@ -298,8 +275,7 @@ public class LocalIdTests
     [Fact]
     public void Test()
     {
-        var localIdAsString =
-            "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet";
+        var localIdAsString = "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet";
 
         var localId = LocalIdBuilder.Parse(localIdAsString);
     }
@@ -312,12 +288,7 @@ public class LocalIdTests
         var reader = new StreamReader(file);
 
         var errored =
-            new List<(
-                string LocalIdStr,
-                LocalIdBuilder? LocalId,
-                Exception? Exception,
-                ParsingErrors ParsingErrors
-            )>();
+            new List<(string LocalIdStr, LocalIdBuilder? LocalId, Exception? Exception, ParsingErrors ParsingErrors)>();
 
         string? localIdStr;
         while ((localIdStr = await reader.ReadLineAsync()) is not null)
@@ -362,10 +333,7 @@ public class LocalIdTests
     }
 
     [Theory]
-    [MemberData(
-        nameof(VistaSDKTestData.AddInvalidLocalIdsData),
-        MemberType = typeof(VistaSDKTestData)
-    )]
+    [MemberData(nameof(VistaSDKTestData.AddInvalidLocalIdsData), MemberType = typeof(VistaSDKTestData))]
     public void Test_Parsing_Validation(string localIdStr, string[] expectedErrorMessages)
     {
         var parsed = LocalIdBuilder.TryParse(localIdStr, out var errorBuilder, out _);

@@ -3,13 +3,11 @@ namespace Vista.SDK.Experimental;
 internal sealed record PMSLocalIdParsingErrorBuilder
 {
     private readonly List<(PMSLocalIdParsingState type, string message)> _errors;
-    private static Dictionary<PMSLocalIdParsingState, string> _predefinedErrorMessages =>
-        SetPredefinedMessages();
+    private static Dictionary<PMSLocalIdParsingState, string> _predefinedErrorMessages => SetPredefinedMessages();
 
     internal static readonly PMSLocalIdParsingErrorBuilder Empty = new();
 
-    internal PMSLocalIdParsingErrorBuilder() =>
-        _errors = new List<(PMSLocalIdParsingState, string)>();
+    internal PMSLocalIdParsingErrorBuilder() => _errors = new List<(PMSLocalIdParsingState, string)>();
 
     internal PMSLocalIdParsingErrorBuilder AddError(PMSLocalIdParsingState state)
     {

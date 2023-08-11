@@ -155,8 +155,7 @@ public record class GmodNode
         return false;
     }
 
-    public virtual bool Equals(GmodNode? other) =>
-        Code == other?.Code && Location == other?.Location;
+    public virtual bool Equals(GmodNode? other) => Code == other?.Code && Location == other?.Location;
 
     public override int GetHashCode() => HashCode.Combine(Code, Location);
 

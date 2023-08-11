@@ -52,9 +52,7 @@ public sealed class Locations
 
         var span = locationStr is null ? ReadOnlySpan<char>.Empty : locationStr.AsSpan();
         if (!TryParseInternal(span, locationStr, out var location, ref errorBuilder))
-            throw new ArgumentException(
-                $"Invalid value for location: {locationStr}, errors: {errorBuilder.Build()}"
-            );
+            throw new ArgumentException($"Invalid value for location: {locationStr}, errors: {errorBuilder.Build()}");
 
         return location;
     }
@@ -212,9 +210,7 @@ public sealed class Locations
                     var invalidChars = string.Join(
                         ",",
                         (originalStr ?? originalSpan.ToString())
-                            .Where(
-                                c => !char.IsDigit(c) && (c == 'N' || !_locationCodes.Contains(c))
-                            )
+                            .Where(c => !char.IsDigit(c) && (c == 'N' || !_locationCodes.Contains(c)))
                             .Select(c => $"'{c}'")
                     );
                     AddError(
@@ -251,11 +247,7 @@ public sealed class Locations
         return true;
     }
 
-    static void AddError(
-        ref LocationParsingErrorBuilder errorBuilder,
-        LocationValidationResult name,
-        string message
-    )
+    static void AddError(ref LocationParsingErrorBuilder errorBuilder, LocationValidationResult name, string message)
     {
         if (!errorBuilder.HasError)
             errorBuilder = LocationParsingErrorBuilder.Create();

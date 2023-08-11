@@ -19,9 +19,7 @@ public static class Extensions
                         h.ShipId.ToString(),
                         h.SystemConfiguration is null
                             ? null
-                            : h.SystemConfiguration
-                                .Select(r => new ConfigurationReference(r.Id, r.TimeStamp))
-                                .ToList(),
+                            : h.SystemConfiguration.Select(r => new ConfigurationReference(r.Id, r.TimeStamp)).ToList(),
                         h.TimeSpan is null ? null : new TimeSpan(h.TimeSpan.End, h.TimeSpan.Start)
                     )
                     {
@@ -33,10 +31,7 @@ public static class Extensions
                             new TimeSeriesData(
                                 t.DataConfiguration is null
                                     ? null
-                                    : new ConfigurationReference(
-                                        t.DataConfiguration.Id,
-                                        t.DataConfiguration.TimeStamp
-                                    ),
+                                    : new ConfigurationReference(t.DataConfiguration.Id, t.DataConfiguration.TimeStamp),
                                 t.EventData is null
                                     ? null
                                     : new EventData(
@@ -93,9 +88,7 @@ public static class Extensions
                     ? null
                     : new Domain.Header(
                         ShipId.Parse(h.ShipID),
-                        h.TimeSpan is null
-                            ? null
-                            : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
+                        h.TimeSpan is null ? null : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
                         h.DateCreated,
                         h.DateModified,
                         h.Author,
@@ -120,9 +113,7 @@ public static class Extensions
                                             new Domain.TabularData(
                                                 td.NumberOfDataSet,
                                                 td.NumberOfDataChannel,
-                                                td.DataChannelID
-                                                    ?.Select(i => DataChannelId.Parse(i))
-                                                    .ToList(),
+                                                td.DataChannelID?.Select(i => DataChannelId.Parse(i)).ToList(),
                                                 td.DataSet
                                                     ?.Select(
                                                         tds =>

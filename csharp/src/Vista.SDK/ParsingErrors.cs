@@ -3,16 +3,11 @@ using System.Text;
 
 namespace Vista.SDK;
 
-public sealed class ParsingErrors
-    : IEnumerable<(string Type, string Message)>,
-        IEquatable<ParsingErrors>
+public sealed class ParsingErrors : IEnumerable<(string Type, string Message)>, IEquatable<ParsingErrors>
 {
     public static readonly ParsingErrors Empty = new(Array.Empty<(string Type, string Message)>());
 
-    private readonly (string Type, string Message)[] _errors = Array.Empty<(
-        string Type,
-        string Message
-    )>();
+    private readonly (string Type, string Message)[] _errors = Array.Empty<(string Type, string Message)>();
 
     public bool HasErrors => _errors.Length > 0;
 

@@ -40,9 +40,4 @@ public sealed record TabularDataSet(
 
 public sealed record EventData(string? NumberOfDataSet, IReadOnlyList<EventDataSet>? DataSet);
 
-public sealed record EventDataSet(
-    DateTimeOffset TimeStamp,
-    DataId DataId,
-    string Value,
-    string? Quality
-);
+public sealed record EventDataSet(DateTimeOffset TimeStamp, DataId DataId, string Value, string? Quality);

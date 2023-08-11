@@ -13,9 +13,7 @@ public class LocalId : ILocalId<LocalId>, IEquatable<LocalId>
         if (builder.IsEmpty)
             throw new ArgumentException("LocalId cannot be constructed from empty LocalIdBuilder");
         if (!builder.IsValid)
-            throw new ArgumentException(
-                "LocalId cannot be constructed from invalid LocalIdBuilder"
-            );
+            throw new ArgumentException("LocalId cannot be constructed from invalid LocalIdBuilder");
         _builder = builder;
     }
 

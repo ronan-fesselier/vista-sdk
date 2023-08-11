@@ -58,11 +58,7 @@ public class GmodVersioningTests
                         long counter = 0;
                         try
                         {
-                            targetPath = VIS.Instance.ConvertPath(
-                                VisVersion.v3_4a,
-                                sourcePath,
-                                VisVersion.v3_5a
-                            );
+                            targetPath = VIS.Instance.ConvertPath(VisVersion.v3_4a, sourcePath, VisVersion.v3_5a);
                             Assert.NotNull(targetPath);
                             var parsedPath = context.TargetGmod.TryParsePath(
                                 targetPath!.ToString(),
@@ -157,11 +153,7 @@ public class GmodVersioningTests
     private record SmokeTestContext(Gmod TargetGmod, Channel<GmodPath> Channel)
     {
         public long Counter;
-        public List<(
-            GmodPath SourcePath,
-            GmodPath? TargetPath,
-            Exception Exception
-        )> FailedConversions = new();
+        public List<(GmodPath SourcePath, GmodPath? TargetPath, Exception Exception)> FailedConversions = new();
         public List<(string SourcePath, string TargetPath)> ChangedPaths = new();
     }
 }

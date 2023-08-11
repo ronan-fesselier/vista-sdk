@@ -21,22 +21,11 @@ public static class Extensions
                         DateModified = h.DateModified?.DateTime,
                         ShipID = h.ShipId.ToString(),
                         SystemConfiguration = h.SystemConfiguration
-                            ?.Select(
-                                s =>
-                                    new SystemConfiguration()
-                                    {
-                                        ID = s.Id,
-                                        TimeStamp = s.TimeStamp.DateTime
-                                    }
-                            )
+                            ?.Select(s => new SystemConfiguration() { ID = s.Id, TimeStamp = s.TimeStamp.DateTime })
                             .ToList(),
                         TimeSpan = h.TimeSpan is null
                             ? null
-                            : new TimeSpan()
-                            {
-                                Start = h.TimeSpan.Start.DateTime,
-                                End = h.TimeSpan.End.DateTime,
-                            },
+                            : new TimeSpan() { Start = h.TimeSpan.Start.DateTime, End = h.TimeSpan.End.DateTime, },
                     },
                 TimeSeriesData = p.TimeSeriesData
                     .Select(
@@ -73,9 +62,7 @@ public static class Extensions
                                         td =>
                                             new TabularData()
                                             {
-                                                DataChannelID = td.DataChannelId
-                                                    ?.Select(i => i.ToString())
-                                                    .ToList(),
+                                                DataChannelID = td.DataChannelId?.Select(i => i.ToString()).ToList(),
                                                 DataSet = td.DataSet
                                                     ?.Select(
                                                         ds =>
@@ -99,9 +86,7 @@ public static class Extensions
         };
     }
 
-    public static Transport.TimeSeries.TimeSeriesDataPackage ToDomainModel(
-        this TimeSeriesDataPackage package
-    )
+    public static Transport.TimeSeries.TimeSeriesDataPackage ToDomainModel(this TimeSeriesDataPackage package)
     {
         var p = package.Package;
         var h = package.Package.Header;
@@ -111,9 +96,7 @@ public static class Extensions
                     ? null
                     : new Domain.Header(
                         ShipId.Parse(h.ShipID),
-                        h.TimeSpan is null
-                            ? null
-                            : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
+                        h.TimeSpan is null ? null : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
                         h.DateCreated,
                         h.DateModified,
                         h.Author,
@@ -139,9 +122,7 @@ public static class Extensions
                                             new Domain.TabularData(
                                                 td.NumberOfDataSet,
                                                 td.NumberOfDataChannel,
-                                                td.DataChannelID
-                                                    .Select(i => DataChannelId.Parse(i))
-                                                    ?.ToList(),
+                                                td.DataChannelID.Select(i => DataChannelId.Parse(i))?.ToList(),
                                                 td.DataSet
                                                     ?.Select(
                                                         tds =>

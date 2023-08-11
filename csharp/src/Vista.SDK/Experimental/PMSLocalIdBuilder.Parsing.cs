@@ -41,10 +41,7 @@ partial record class PMSLocalIdBuilder
         return localId;
     }
 
-    public static bool TryParse(
-        string localIdStr,
-        [MaybeNullWhen(false)] out PMSLocalIdBuilder localId
-    )
+    public static bool TryParse(string localIdStr, [MaybeNullWhen(false)] out PMSLocalIdBuilder localId)
     {
         return TryParse(localIdStr, out _, out localId);
     }
@@ -113,29 +110,20 @@ partial record class PMSLocalIdBuilder
         {
             var nextStart = Math.Min(span.Length, i);
             var nextSlash = span.Slice(nextStart).IndexOf('/');
-            var segment =
-                nextSlash == -1 ? span.Slice(nextStart) : span.Slice(nextStart, nextSlash);
+            var segment = nextSlash == -1 ? span.Slice(nextStart) : span.Slice(nextStart, nextSlash);
             switch (state)
             {
                 case PMSLocalIdParsingState.NamingRule:
                     if (segment.Length == 0)
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.NamingRule,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.NamingRule, predefinedMessage);
                         state++;
                         break;
                     }
 
                     if (!segment.SequenceEqual(NamingRule.AsSpan()))
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.NamingRule,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.NamingRule, predefinedMessage);
                         return false;
                     }
                     AdvanceParser(ref i, in segment, ref state);
@@ -143,32 +131,20 @@ partial record class PMSLocalIdBuilder
                 case PMSLocalIdParsingState.VisVersion:
                     if (segment.Length == 0)
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.VisVersion,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.VisVersion, predefinedMessage);
                         state++;
                         break;
                     }
 
                     if (!segment.StartsWith("vis-".AsSpan()))
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.VisVersion,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.VisVersion, predefinedMessage);
                         return false;
                     }
 
                     if (!VisVersions.TryParse(segment.Slice("vis-".Length), out visVersion))
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.VisVersion,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.VisVersion, predefinedMessage);
                         return false;
                     }
 
@@ -202,11 +178,7 @@ partial record class PMSLocalIdBuilder
                             }
                             else
                             {
-                                AddError(
-                                    ref errorBuilder,
-                                    PMSLocalIdParsingState.PrimaryItem,
-                                    predefinedMessage
-                                );
+                                AddError(ref errorBuilder, PMSLocalIdParsingState.PrimaryItem, predefinedMessage);
                             }
                             AddError(
                                 ref errorBuilder,
@@ -261,10 +233,7 @@ partial record class PMSLocalIdBuilder
                                         $"Invalid GmodPath in Primary item: {path.ToString()}"
                                     );
 
-                                    (var _, var endOfNextStateIndex) = GetNextStateIndexes(
-                                        span,
-                                        state
-                                    );
+                                    (var _, var endOfNextStateIndex) = GetNextStateIndexes(span, state);
                                     i = endOfNextStateIndex;
                                     AdvanceParser(ref state, nextState);
                                     break;
@@ -284,10 +253,7 @@ partial record class PMSLocalIdBuilder
                                     PMSLocalIdParsingState.PrimaryItem,
                                     $"Invalid GmodNode in Primary item: {code.ToString()}"
                                 );
-                                (var nextStateIndex, var endOfNextStateIndex) = GetNextStateIndexes(
-                                    span,
-                                    state
-                                );
+                                (var nextStateIndex, var endOfNextStateIndex) = GetNextStateIndexes(span, state);
 
                                 if (nextStateIndex == -1)
                                 {
@@ -359,10 +325,7 @@ partial record class PMSLocalIdBuilder
                         }
                         else
                         {
-                            var nextState = (
-                                segment.StartsWith("meta".AsSpan()),
-                                segment[0] == '~'
-                            ) switch
+                            var nextState = (segment.StartsWith("meta".AsSpan()), segment[0] == '~') switch
                             {
                                 (false, false) => state,
                                 (true, false) => PMSLocalIdParsingState.MetaQuantity,
@@ -372,10 +335,7 @@ partial record class PMSLocalIdBuilder
 
                             if (nextState != state)
                             {
-                                var path = span.Slice(
-                                    secondaryItemStart,
-                                    i - 1 - secondaryItemStart
-                                );
+                                var path = span.Slice(secondaryItemStart, i - 1 - secondaryItemStart);
                                 if (!gmod.TryParsePath(path.ToString(), out secondaryItem))
                                 {
                                     // Displays the full GmodPath when first part of SecondaryItem is invalid
@@ -386,10 +346,7 @@ partial record class PMSLocalIdBuilder
                                         $"Invalid GmodPath in Secondary item: {path.ToString()}"
                                     );
 
-                                    (var _, var endOfNextStateIndex) = GetNextStateIndexes(
-                                        span,
-                                        state
-                                    );
+                                    (var _, var endOfNextStateIndex) = GetNextStateIndexes(span, state);
                                     i = endOfNextStateIndex;
                                     AdvanceParser(ref state, nextState);
                                     break;
@@ -411,10 +368,7 @@ partial record class PMSLocalIdBuilder
                                     $"Invalid GmodNode in Secondary item: {code.ToString()}"
                                 );
 
-                                (var nextStateIndex, var endOfNextStateIndex) = GetNextStateIndexes(
-                                    span,
-                                    state
-                                );
+                                (var nextStateIndex, var endOfNextStateIndex) = GetNextStateIndexes(span, state);
                                 if (nextStateIndex == -1)
                                 {
                                     AddError(
@@ -427,10 +381,7 @@ partial record class PMSLocalIdBuilder
 
                                 var nextSegment = span.Slice(nextStateIndex + 1);
 
-                                nextState = (
-                                    nextSegment.StartsWith("meta".AsSpan()),
-                                    nextSegment[0] == '~'
-                                ) switch
+                                nextState = (nextSegment.StartsWith("meta".AsSpan()), nextSegment[0] == '~') switch
                                 {
                                     (true, false) => PMSLocalIdParsingState.MetaQuantity,
                                     (false, true) => PMSLocalIdParsingState.ItemDescription,
@@ -466,11 +417,7 @@ partial record class PMSLocalIdBuilder
                     var metaIndex = span.IndexOf("/meta".AsSpan());
                     if (metaIndex == -1)
                     {
-                        AddError(
-                            ref errorBuilder,
-                            PMSLocalIdParsingState.ItemDescription,
-                            predefinedMessage
-                        );
+                        AddError(ref errorBuilder, PMSLocalIdParsingState.ItemDescription, predefinedMessage);
                         return false;
                     }
 
@@ -739,11 +686,7 @@ partial record class PMSLocalIdBuilder
             var actualState = MetaPrefixToState(actualPrefix);
             if (actualState is null || actualState < state)
             {
-                AddError(
-                    ref errorBuilder,
-                    state,
-                    $"Invalid metadata tag: unknown prefix {actualPrefix.ToString()}"
-                );
+                AddError(ref errorBuilder, state, $"Invalid metadata tag: unknown prefix {actualPrefix.ToString()}");
                 return false;
             }
 
@@ -757,11 +700,7 @@ partial record class PMSLocalIdBuilder
             var value = segment.Slice(prefixIndex + 1);
             if (value.Length == 0)
             {
-                AddError(
-                    ref errorBuilder,
-                    state,
-                    $"Invalid {codebookName} metadata tag: missing value"
-                );
+                AddError(ref errorBuilder, state, $"Invalid {codebookName} metadata tag: missing value");
                 return false;
             }
 
@@ -830,10 +769,8 @@ partial record class PMSLocalIdBuilder
                 PMSLocalIdParsingState.MetaContent => PMSLocalIdParsingState.MetaState,
                 PMSLocalIdParsingState.MetaState => PMSLocalIdParsingState.MetaCommand,
                 PMSLocalIdParsingState.MetaCommand => PMSLocalIdParsingState.MetaFunctionalServices,
-                PMSLocalIdParsingState.MetaFunctionalServices
-                    => PMSLocalIdParsingState.MetaMaintenanceCategory,
-                PMSLocalIdParsingState.MetaMaintenanceCategory
-                    => PMSLocalIdParsingState.MetaActivityType,
+                PMSLocalIdParsingState.MetaFunctionalServices => PMSLocalIdParsingState.MetaMaintenanceCategory,
+                PMSLocalIdParsingState.MetaMaintenanceCategory => PMSLocalIdParsingState.MetaActivityType,
                 PMSLocalIdParsingState.MetaActivityType => PMSLocalIdParsingState.MetaPosition,
                 PMSLocalIdParsingState.MetaPosition => PMSLocalIdParsingState.MetaDetail,
                 _ => null
@@ -876,9 +813,7 @@ partial record class PMSLocalIdBuilder
                 }
 
                 case (PMSLocalIdParsingState.SecondaryItem):
-                    return customIndex != -1
-                        ? (customIndex, endOfCustomIndex)
-                        : (metaIndex, endOfMetaIndex);
+                    return customIndex != -1 ? (customIndex, endOfCustomIndex) : (metaIndex, endOfMetaIndex);
 
                 default:
                     return (metaIndex, endOfMetaIndex);
@@ -886,11 +821,7 @@ partial record class PMSLocalIdBuilder
         }
     }
 
-    static void AdvanceParser(
-        ref int i,
-        in ReadOnlySpan<char> segment,
-        ref PMSLocalIdParsingState state
-    )
+    static void AdvanceParser(ref int i, in ReadOnlySpan<char> segment, ref PMSLocalIdParsingState state)
     {
         state++;
         i += segment.Length + 1;
@@ -898,8 +829,7 @@ partial record class PMSLocalIdBuilder
 
     static void AdvanceParser(ref int i, in ReadOnlySpan<char> segment) => i += segment.Length + 1;
 
-    static void AdvanceParser(ref PMSLocalIdParsingState state, PMSLocalIdParsingState to) =>
-        state = to;
+    static void AdvanceParser(ref PMSLocalIdParsingState state, PMSLocalIdParsingState to) => state = to;
 
     static void AdvanceParser(
         ref int i,

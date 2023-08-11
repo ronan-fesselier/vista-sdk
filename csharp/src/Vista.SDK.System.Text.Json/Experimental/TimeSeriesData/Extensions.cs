@@ -21,9 +21,7 @@ public static class Extensions
                         h.AssetId.ToString(),
                         h.SystemConfiguration is null
                             ? null
-                            : h.SystemConfiguration
-                                .Select(r => new ConfigurationReference(r.Id, r.TimeStamp))
-                                .ToList(),
+                            : h.SystemConfiguration.Select(r => new ConfigurationReference(r.Id, r.TimeStamp)).ToList(),
                         h.TimeSpan is null ? null : new TimeSpan(h.TimeSpan.End, h.TimeSpan.Start)
                     )
                     {
@@ -35,10 +33,7 @@ public static class Extensions
                             new TimeSeriesData(
                                 t.DataConfiguration is null
                                     ? null
-                                    : new ConfigurationReference(
-                                        t.DataConfiguration.Id,
-                                        t.DataConfiguration.TimeStamp
-                                    ),
+                                    : new ConfigurationReference(t.DataConfiguration.Id, t.DataConfiguration.TimeStamp),
                                 t.EventData is null
                                     ? null
                                     : new EventData(
@@ -95,9 +90,7 @@ public static class Extensions
                     ? null
                     : new Domain.Header(
                         AssetIdentifier.Parse(h.AssetID),
-                        h.TimeSpan is null
-                            ? null
-                            : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
+                        h.TimeSpan is null ? null : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
                         h.DateCreated,
                         h.DateModified,
                         h.Author,
