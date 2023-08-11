@@ -181,7 +181,7 @@ describe("Pmod", () => {
         const rootNodeCode = "411";
 
         const rootNode = pmod.getNodesByCode(rootNodeCode);
-        const rootPath = gmod.tryParseFromFullPath(rootNode[0].id, locations);
+        const rootPath = rootNode[0].path;
 
         const nodes = pmod.getVisualizableTreeNodes(
             (node, _) => {

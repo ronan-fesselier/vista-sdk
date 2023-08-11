@@ -1,4 +1,4 @@
-import { GmodNode } from ".";
+import { GmodNode, GmodPath } from ".";
 
 export class PmodNode {
     private _node: GmodNode;
@@ -44,6 +44,10 @@ export class PmodNode {
         return this._node.parents.map((p) => new PmodNode(p, this._depth - 1));
     }
 
+    public get path(): GmodPath {
+        return new GmodPath(getParents(this._node), this._node);
+    }
+
     public get isValid() {
         return this._node.parents.length <= 1;
     }
@@ -78,4 +82,13 @@ export class PmodNode {
             this._depth
         );
     }
+}
+
+function getParents(node: GmodNode, parents: GmodNode[] = []): GmodNode[] {
+    for (const parent of node.parents) {
+        parents.unshift(parent);
+        getParents(parent, parents);
+    }
+
+    return parents;
 }
