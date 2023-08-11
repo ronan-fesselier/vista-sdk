@@ -52,18 +52,9 @@ public sealed class Locations
 
         var span = locationStr is null ? ReadOnlySpan<char>.Empty : locationStr.AsSpan();
         if (!TryParseInternal(span, locationStr, out var location, ref errorBuilder))
-            throw new ArgumentException($"Invalid value for location: {locationStr}");
-
-        return location;
-    }
-
-    public Location Parse(string locationStr, out LocationParsingErrorBuilder errorBuilder)
-    {
-        errorBuilder = LocationParsingErrorBuilder.Empty;
-
-        var span = locationStr is null ? ReadOnlySpan<char>.Empty : locationStr.AsSpan();
-        if (!TryParseInternal(span, locationStr, out var location, ref errorBuilder))
-            throw new ArgumentException($"Invalid value for location: {locationStr}");
+            throw new ArgumentException(
+                $"Invalid value for location: {locationStr}, errors: {errorBuilder.Build()}"
+            );
 
         return location;
     }
@@ -73,20 +64,9 @@ public sealed class Locations
         var errorBuilder = LocationParsingErrorBuilder.Empty;
 
         if (!TryParseInternal(locationStr, null, out var location, ref errorBuilder))
-            throw new ArgumentException($"Invalid value for location: {locationStr.ToString()}");
-
-        return location;
-    }
-
-    public Location Parse(
-        ReadOnlySpan<char> locationStr,
-        out LocationParsingErrorBuilder errorBuilder
-    )
-    {
-        errorBuilder = LocationParsingErrorBuilder.Empty;
-
-        if (!TryParseInternal(locationStr, null, out var location, ref errorBuilder))
-            throw new ArgumentException($"Invalid value for location: {locationStr.ToString()}");
+            throw new ArgumentException(
+                $"Invalid value for location: {locationStr.ToString()}, errors: {errorBuilder.Build()}"
+            );
 
         return location;
     }
@@ -98,15 +78,13 @@ public sealed class Locations
         return TryParseInternal(span, value, out location, ref errorBuilder);
     }
 
-    public bool TryParse(
-        string? value,
-        out Location location,
-        out LocationParsingErrorBuilder errorBuilder
-    )
+    public bool TryParse(string? value, out Location location, out ParsingErrors errors)
     {
         var span = value is null ? ReadOnlySpan<char>.Empty : value.AsSpan();
-        errorBuilder = LocationParsingErrorBuilder.Empty;
-        return TryParseInternal(span, value, out location, ref errorBuilder);
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+        var result = TryParseInternal(span, value, out location, ref errorBuilder);
+        errors = errorBuilder.Build();
+        return result;
     }
 
     public bool TryParse(ReadOnlySpan<char> value, out Location location)
@@ -115,14 +93,12 @@ public sealed class Locations
         return TryParseInternal(value, null, out location, ref errorBuilder);
     }
 
-    public bool TryParse(
-        ReadOnlySpan<char> value,
-        out Location location,
-        out LocationParsingErrorBuilder errorBuilder
-    )
+    public bool TryParse(ReadOnlySpan<char> value, out Location location, out ParsingErrors errors)
     {
-        errorBuilder = LocationParsingErrorBuilder.Empty;
-        return TryParseInternal(value, null, out location, ref errorBuilder);
+        var errorBuilder = LocationParsingErrorBuilder.Empty;
+        var result = TryParseInternal(value, null, out location, ref errorBuilder);
+        errors = errorBuilder.Build();
+        return result;
     }
 
     private bool TryParseInternal(
@@ -135,7 +111,14 @@ public sealed class Locations
         location = default;
 
         if (span.IsEmpty)
+        {
+            AddError(
+                ref errorBuilder,
+                LocationValidationResult.NullOrWhiteSpace,
+                "Invalid location: contains only whitespace"
+            );
             return false;
+        }
 
         if (span.IsWhiteSpace())
         {

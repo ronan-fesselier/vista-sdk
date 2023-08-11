@@ -5,6 +5,50 @@ using Vista.SDK.Mqtt;
 
 namespace Vista.SDK.Tests;
 
+public class ParsingErrorsTests
+{
+    [Fact]
+    public void Comparisons()
+    {
+        var errors1 = new[] { ("T1", "M1") };
+        var errors2 = new[] { ("T1", "M1"), ("T2", "M1") };
+
+        var e1 = new ParsingErrors(errors1);
+        var e2 = new ParsingErrors(errors1);
+        var e3 = new ParsingErrors(errors2);
+        var e4 = ParsingErrors.Empty;
+        Assert.Equal(e1, e2);
+        Assert.True(e1 == e2);
+#pragma warning disable CS1718
+        Assert.True(e1 == e1);
+#pragma warning restore CS1718
+        Assert.False(e1 == null);
+        Assert.False(e1 == e4);
+
+        Assert.NotEqual(e1, e3);
+        Assert.False(e1 == e3);
+        Assert.True(e4 == ParsingErrors.Empty);
+        Assert.Equal(e4, ParsingErrors.Empty);
+        Assert.True(e4.Equals(ParsingErrors.Empty));
+        Assert.True(e4.Equals((object)ParsingErrors.Empty));
+    }
+
+    [Fact]
+    public void Enumerator()
+    {
+        var errors1 = new[] { ("T1", "M1") };
+        var errors2 = new[] { ("T1", "M1"), ("T2", "M1") };
+
+        var e1 = new ParsingErrors(errors1);
+        var e2 = new ParsingErrors(errors2);
+        var e3 = ParsingErrors.Empty;
+
+        Assert.Equal(errors1.Length, e1.Count());
+        Assert.Equal(errors2.Length, e2.Count());
+        Assert.Empty(e3);
+    }
+}
+
 public class LocalIdTests
 {
     public sealed record class Input(
@@ -272,7 +316,7 @@ public class LocalIdTests
                 string LocalIdStr,
                 LocalIdBuilder? LocalId,
                 Exception? Exception,
-                LocalIdParsingErrorBuilder? ErrorBuilder
+                ParsingErrors ParsingErrors
             )>();
 
         string? localIdStr;
@@ -295,16 +339,16 @@ public class LocalIdTests
                 // Quick fix to skip invalid location e.g. primaryItem 511.11-1SO
                 if (ex.Message.Contains("location"))
                     continue;
-                errored.Add((localIdStr, null, ex, null));
+                errored.Add((localIdStr, null, ex, ParsingErrors.Empty));
             }
         }
-        if (errored.Select(e => e.ErrorBuilder?.ErrorMessages).Count() > 0)
+        if (errored.Any(e => e.ParsingErrors.HasErrors))
         {
             // TODO - gmod path parsing now fails because we actually validate locations properly
             // might have to skip the smoketests while we fix the source data
             Console.Write("");
         }
-        Assert.Empty(errored.Select(e => e.ErrorBuilder?.ErrorMessages).ToList());
+        Assert.Empty(errored.SelectMany(e => e.ParsingErrors).ToList());
         Assert.Empty(errored);
     }
 
@@ -324,13 +368,9 @@ public class LocalIdTests
     )]
     public void Test_Parsing_Validation(string localIdStr, string[] expectedErrorMessages)
     {
-        var parsed = LocalIdBuilder.TryParse(
-            localIdStr,
-            out LocalIdParsingErrorBuilder errorBuilder,
-            out _
-        );
+        var parsed = LocalIdBuilder.TryParse(localIdStr, out var errorBuilder, out _);
 
-        var actualErrorMessages = errorBuilder.ErrorMessages.Select(e => e.message).ToArray();
+        var actualErrorMessages = errorBuilder.Select(e => e.Message).ToArray();
         actualErrorMessages.Should().Equal(expectedErrorMessages);
 
         Assert.False(parsed);

@@ -12,7 +12,7 @@ public class MqttLocalId : LocalId
 {
     private static readonly char _internal_separator = '_';
 
-    public MqttLocalId(ILocalIdBuilder builder)
+    public MqttLocalId(LocalIdBuilder builder)
         : base(builder) { }
 
     public override string ToString()
