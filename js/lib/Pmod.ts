@@ -189,6 +189,7 @@ export class Pmod {
         handler: TraversalHandlerWithState<T>
     ): boolean {
         const parents = new Parents(fromPath);
+
         const context: TraversalContext<T> = {
             parents,
             handler,
@@ -283,13 +284,125 @@ export class Pmod {
         formatNode: FormatNode<TNode>,
         handler: TreeHandlerWithState<TState, TNode>
     ): TreeNode<TNode>[] {
-        const context: {
+        type LocalTraverseContext = {
             nodes: TreeNode<TNode>[];
             nodeMap: Map<string, TreeNode<TNode>>;
             skippedNodesMap: Map<string, TreeNode<TNode>>;
             fromPath: GmodPath;
             userState: TState;
-        } = {
+        };
+
+        const handleIteration = (
+            parents: GmodNode[],
+            node: GmodNode,
+            context: LocalTraverseContext
+        ) => {
+            const path = new GmodPath(parents, node);
+            const key = path.toFullPathString();
+
+            const parentNode = parents[parents.length - 1];
+
+            let parent: TreeNode<TNode> | undefined;
+
+            if (parentNode) {
+                const parentPath = new GmodPath(
+                    parents.slice(0, parents.length - 1),
+                    parentNode
+                );
+                const pKey = parentPath.toFullPathString();
+
+                parent =
+                    context.skippedNodesMap.get(pKey) ??
+                    context.nodeMap.get(pKey);
+            }
+
+            const treeNode: TreeNode<TNode> = this.createTreeNode(
+                {
+                    key,
+                    parent,
+                    path,
+                    children: [],
+                },
+                formatNode,
+                context.nodeMap
+            );
+
+            if (node.equals(context.fromPath.node)) {
+                context.nodes.push(treeNode);
+            }
+
+            if (!parent) {
+                context.nodeMap.set(key, treeNode);
+
+                return TraversalHandlerResult.Continue;
+            }
+
+            const state = this.getMetadataState(parentNode, node);
+
+            switch (state) {
+                case "skip":
+                    /**
+                     * SKIP NODE:
+                     * Condition:
+                     *      See isNodeSkippable
+                     *
+                     * Change:
+                     *      Skip node. No visual changes
+                     *
+                     * Logic:
+                     *      Add reference to true parent to skippedNodesMap
+                     *      Continue
+                     *      In next iteration, the node check if current parent was skipped
+                     *      Use the true parent reference as parent
+                     */
+                    context.skippedNodesMap.set(key, parent);
+                    return TraversalHandlerResult.Continue;
+                case "merge":
+                    /**
+                     * MERGE NODE:
+                     * Condition:
+                     *      See isNodeMergeable
+                     *
+                     * Change:
+                     *      Merge parent with node
+                     *
+                     * Logic:
+                     *      Add parent to 'treeNode.mergedNode'
+                     *      Get the parent's parent
+                     *      Set new parent to parent's parent
+                     *      Delete current parent
+                     *      Add child to new parent
+                     */
+                    if (!parent.parent) {
+                        throw new Error(
+                            "Unexpected state: No parent of parent when merge"
+                        );
+                    }
+
+                    treeNode.mergedNode = Object.assign({}, parent);
+
+                    const parentAsChildIndex = parent.parent.children.findIndex(
+                        (c) => c.key === parent?.key
+                    );
+                    if (parentAsChildIndex === -1)
+                        throw new Error(
+                            "Unexpected state: Parent not found as child of parents parent"
+                        );
+
+                    parent = parent.parent;
+                    parent.children.splice(parentAsChildIndex, 1);
+
+                    treeNode.parent = parent;
+                    break;
+            }
+            context.nodeMap.set(key, treeNode);
+
+            parent.children.push(treeNode);
+
+            return handler(treeNode, context.userState);
+        };
+
+        const context: LocalTraverseContext = {
             nodes: [],
             nodeMap: new Map(),
             skippedNodesMap: new Map(),
@@ -297,121 +410,46 @@ export class Pmod {
             fromPath,
         };
 
+        const initParents = fromPath.parents;
+
+        for (let i = 0; i < initParents.length; i++) {
+            const parents = initParents.slice(0, i) ?? [];
+            const node = initParents[i];
+            console.log(
+                i,
+                parents.map((p) => p.code),
+                node.code
+            );
+
+            handleIteration(parents, node, context);
+        }
+
         this.traverse(
-            (parents, node, context) => {
-                const path = new GmodPath(
+            (parents, node, context) =>
+                handleIteration(
                     parents.map((n) => n.node),
-                    node.node
-                );
-                const key = path.toFullPathString();
-
-                const parentNode = parents[parents.length - 1];
-
-                let parent: TreeNode<TNode> | undefined;
-
-                if (parentNode) {
-                    const parentPath = new GmodPath(
-                        parents.slice(0, parents.length - 1).map((n) => n.node),
-                        parentNode.node
-                    );
-                    const pKey = parentPath.toFullPathString();
-
-                    parent =
-                        context.skippedNodesMap.get(pKey) ??
-                        context.nodeMap.get(pKey);
-                }
-
-                const initNode: TreeNode<any> = {
-                    key,
-                    parent,
-                    path,
-                    children: [],
-                };
-
-                const payload = formatNode(initNode);
-
-                const treeNode: TreeNode<TNode> = { ...initNode, ...payload };
-
-                if (node.node.equals(context.fromPath.node)) {
-                    context.nodes.push(treeNode);
-                }
-
-                if (!parent) {
-                    context.nodeMap.set(key, treeNode);
-                    return TraversalHandlerResult.Continue;
-                }
-
-                const state = this.getMetadataState(parentNode, node);
-
-                switch (state) {
-                    case "skip":
-                        /**
-                         * SKIP NODE:
-                         * Condition:
-                         *      See isNodeSkippable
-                         *
-                         * Change:
-                         *      Skip node. No visual changes
-                         *
-                         * Logic:
-                         *      Add reference to true parent to skippedNodesMap
-                         *      Continue
-                         *      In next iteration, the node check if current parent was skipped
-                         *      Use the true parent reference as parent
-                         */
-                        context.skippedNodesMap.set(key, parent);
-                        return TraversalHandlerResult.Continue;
-                    case "merge":
-                        /**
-                         * MERGE NODE:
-                         * Condition:
-                         *      See isNodeMergeable
-                         *
-                         * Change:
-                         *      Merge parent with node
-                         *
-                         * Logic:
-                         *      Add parent to 'treeNode.mergedNode'
-                         *      Get the parent's parent
-                         *      Set new parent to parent's parent
-                         *      Delete current parent
-                         *      Add child to new parent
-                         */
-                        if (!parent.parent) {
-                            throw new Error(
-                                "Unexpected state: No parent of parent when merge"
-                            );
-                        }
-
-                        treeNode.mergedNode = Object.assign({}, parent);
-
-                        const parentAsChildIndex =
-                            parent.parent.children.findIndex(
-                                (c) => c.key === parent?.key
-                            );
-                        if (parentAsChildIndex === -1)
-                            throw new Error(
-                                "Unexpected state: Parent not found as child of parents parent"
-                            );
-
-                        parent = parent.parent;
-                        parent.children.splice(parentAsChildIndex, 1);
-
-                        treeNode.parent = parent;
-                        break;
-                }
-                context.nodeMap.set(key, treeNode);
-
-                parent.children.push(treeNode);
-
-                return handler(treeNode, context.userState);
-            },
+                    node.node,
+                    context
+                ),
             { state: context, fromPath }
         );
 
         context.nodes.forEach((n) => this.sortChildren(n));
 
         return context.nodes;
+    }
+
+    private createTreeNode<TNode>(
+        initNode: TreeNode<{}>,
+        formatNode: FormatNode<TNode>,
+        nodeMap: Map<string, TreeNode<TNode>>
+    ): TreeNode<TNode> {
+        const node = {
+            ...initNode,
+            ...formatNode(initNode),
+        } as TreeNode<TNode>;
+
+        return node;
     }
 
     private sortChildren(parent: TreeNode) {

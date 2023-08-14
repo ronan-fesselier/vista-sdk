@@ -48,6 +48,10 @@ export class PmodNode {
         return new GmodPath(getParents(this._node), this._node);
     }
 
+    public get parent(): PmodNode | undefined {
+        return this.parents[this.parents.length - 1];
+    }
+
     public get isValid() {
         return this._node.parents.length <= 1;
     }

@@ -178,10 +178,14 @@ describe("Pmod", () => {
             imoNumber: ImoNumber.create(1234567),
         });
 
-        const rootNodeCode = "411";
+        const rootNode = pmod.getNodeByPath(
+            gmod.parseFromFullPath(
+                "VE/400a/410/411/411i/411.1/CS1/C101",
+                locations
+            )
+        );
 
-        const rootNode = pmod.getNodesByCode(rootNodeCode);
-        const rootPath = rootNode[0].path;
+        const rootPath = rootNode!.path;
 
         const nodes = pmod.getVisualizableTreeNodes(
             (node, _) => {
