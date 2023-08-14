@@ -415,11 +415,6 @@ export class Pmod {
         for (let i = 0; i < initParents.length; i++) {
             const parents = initParents.slice(0, i) ?? [];
             const node = initParents[i];
-            console.log(
-                i,
-                parents.map((p) => p.code),
-                node.code
-            );
 
             handleIteration(parents, node, context);
         }
