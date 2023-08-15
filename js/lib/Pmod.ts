@@ -323,8 +323,7 @@ export class Pmod {
                     path,
                     children: [],
                 },
-                formatNode,
-                context.nodeMap
+                formatNode
             );
 
             if (node.equals(context.fromPath.node)) {
@@ -436,8 +435,7 @@ export class Pmod {
 
     private createTreeNode<TNode>(
         initNode: TreeNode<{}>,
-        formatNode: FormatNode<TNode>,
-        nodeMap: Map<string, TreeNode<TNode>>
+        formatNode: FormatNode<TNode>
     ): TreeNode<TNode> {
         const node = {
             ...initNode,
