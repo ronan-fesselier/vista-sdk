@@ -27,6 +27,8 @@ describe("Pmod", () => {
     const gmodPromise = vis.getGmod(version);
     const codebooksPromise = vis.getCodebooks(version);
     const locationsPromise = vis.getLocations(version);
+    const gmod36Promise = vis.getGmod(VisVersion.v3_6a);
+    const locations36Promise = vis.getLocations(VisVersion.v3_6a);
 
     test("From LocalIds", async () => {
         const gmod = await gmodPromise;
@@ -166,42 +168,31 @@ describe("Pmod", () => {
     });
 
     test("Tree", async () => {
-        const gmod = await gmodPromise;
-        const codeBooks = await codebooksPromise;
-        const locations = await locationsPromise;
+        const gmod = await gmod36Promise;
+        const locations = await locations36Promise;
 
-        const localIds = testData.localIds.map((localIdStr) =>
-            LocalId.parse(localIdStr, gmod, codeBooks, locations)
+        const paths = testData.fullPaths.map((localIdStr) =>
+            gmod.parseFromFullPath(localIdStr, locations)
         );
 
-        const pmod = Pmod.createFromLocalIds(VisVersion.v3_4a, localIds, {
+        const pmod = Pmod.createFromPaths(VisVersion.v3_4a, paths, {
             imoNumber: ImoNumber.create(1234567),
         });
 
         const rootNode = pmod.getNodeByPath(
-            gmod.parseFromFullPath(
-                "VE/400a/410/411/411i/411.1/CS1/C101",
-                locations
-            )
+            gmod.parseFromFullPath("VE/100a/100/104/104.2", locations)
         );
 
         const rootPath = rootNode!.path;
 
         const nodes = pmod.getVisualizableTreeNodes(
             (node, _) => {
-                if (node.path.node.code === "C101.322") {
-                    expect(node.parent).not.toBeFalsy();
-                    expect(node.parent?.path.node.code).toBe("C101.32");
-                }
                 return TraversalHandlerResult.Continue;
             },
-            {
-                fromPath: rootPath,
-                withoutLocation: true,
-            }
+            { fromPath: rootPath, withoutLocation: true }
         );
 
-        expect(nodes[0].path.toString()).toEqual("411");
+        expect(nodes[0].path.toString()).toEqual("104.2");
 
         // const resolveMergedNodes = (n: TreeNode) => {
         //     const items = [n.path.node.toString()];

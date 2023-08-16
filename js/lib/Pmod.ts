@@ -397,7 +397,8 @@ export class Pmod {
         const handleIteration = (
             parents: GmodNode[],
             node: GmodNode,
-            context: LocalTraverseContext
+            context: LocalTraverseContext,
+            handler?: TreeHandlerWithState<TState, TNode>
         ) => {
             const path = new GmodPath(parents, node);
             const key = path.toFullPathString();
@@ -500,7 +501,7 @@ export class Pmod {
 
             parent.children.push(treeNode);
 
-            return handler(treeNode, context.userState);
+            return handler && handler(treeNode, context.userState);
         };
 
         const context: LocalTraverseContext = {
@@ -521,12 +522,16 @@ export class Pmod {
         }
 
         this.traverse(
-            (parents, node, context) =>
-                handleIteration(
+            (parents, node, context) => {
+                const result = handleIteration(
                     parents.map((n) => n.node),
                     node.node,
-                    context
-                ),
+                    context,
+                    handler
+                );
+                if (!result) throw new Error("Expected result from iteration");
+                return result;
+            },
             { state: context, fromPath }
         );
 
