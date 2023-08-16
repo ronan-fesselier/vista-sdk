@@ -197,8 +197,11 @@ describe("Pmod", () => {
             },
             {
                 fromPath: rootPath,
+                withoutLocation: true,
             }
         );
+
+        expect(nodes[0].path.toString()).toEqual("411");
 
         // const resolveMergedNodes = (n: TreeNode) => {
         //     const items = [n.path.node.toString()];

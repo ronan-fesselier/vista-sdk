@@ -157,6 +157,24 @@ export class Pmod {
         );
     }
 
+    public getNodesByPath(
+        query: GmodPath,
+        withoutLocation?: boolean
+    ): PmodNode[] {
+        const nodes: PmodNode[] = [];
+
+        for (const value of this._nodeMap.values()) {
+            if (
+                withoutLocation
+                    ? value.path.equalsWithoutLocation(query)
+                    : value.path.equals(query)
+            )
+                nodes.push(value);
+        }
+
+        return nodes;
+    }
+
     // Traversal
     public traverse<T>(
         handler: TraversalHandler | TraversalHandlerWithState<T>,
@@ -234,6 +252,90 @@ export class Pmod {
         return TraversalHandlerResult.Continue;
     }
 
+    public getVisualizableTreeNodes<TState, TNode>(
+        handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
+        params?: {
+            fromPath?: GmodPath;
+            formatNode?: FormatNode<TNode>;
+            /**@description matches paths without location. Then resolves least common parent and traverse tree from there.  */
+            withoutLocation?: boolean;
+            state?: TState;
+        }
+    ) {
+        const {
+            fromPath = new GmodPath([], this._rootNode.node),
+            formatNode,
+            withoutLocation,
+            state,
+        } = params ?? {};
+
+        if (!withoutLocation)
+            return this.getVisualizableTreeNodesInternal(handler, {
+                fromPath,
+                state,
+                formatNode,
+            });
+
+        const hits = this.getNodesByPath(fromPath, withoutLocation);
+
+        if (hits.length === 0)
+            throw new Error("Failed to match path: " + fromPath.toString());
+
+        if (hits.length === 1) {
+            return this.getVisualizableTreeNodesInternal(handler, {
+                fromPath,
+                state,
+                formatNode,
+            });
+        }
+
+        let maxDepth = Math.min(...hits.map((h) => h.depth));
+
+        let commonParent: GmodNode | undefined = undefined;
+
+        let commonDepth = 0;
+
+        while (commonDepth < maxDepth) {
+            let found = false;
+            commonParent = undefined;
+            for (const hit of hits) {
+                const path = hit.path;
+                const parent =
+                    commonDepth === hit.depth
+                        ? path.node
+                        : path.parents[commonDepth];
+                if (!commonParent) {
+                    commonParent = parent;
+                    continue;
+                }
+                if (!parent.equals(commonParent)) {
+                    found = true;
+                    commonDepth--;
+                    break;
+                }
+            }
+            if (found) break;
+            commonDepth++;
+        }
+
+        const usedHit = hits[0];
+        let result: GmodPath;
+        if (commonDepth === usedHit.depth) {
+            result = usedHit.path;
+        } else {
+            result = new GmodPath(
+                hits[0].path.parents.slice(0, commonDepth) ?? [],
+                hits[0].path.parents.slice(commonDepth)[0]
+            );
+        }
+
+        return this.getVisualizableTreeNodesInternal(handler, {
+            fromPath: result,
+            state,
+            formatNode,
+        });
+    }
+
     /**
      * @description Filter the Pmod accordingly to rules of visualization
      *      * Skip - isNodeSkippable
@@ -243,7 +345,7 @@ export class Pmod {
      * @returns A set of nodes from root path
      */
 
-    public getVisualizableTreeNodes<TNode = {}, TState = unknown>(
+    private getVisualizableTreeNodesInternal<TNode = {}, TState = unknown>(
         handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
         params?: {
             fromPath?: GmodPath;
