@@ -252,7 +252,7 @@ export class Pmod {
         return TraversalHandlerResult.Continue;
     }
 
-    public getVisualizableTreeNodes<TState, TNode>(
+    public getVisualizableTreeNodes<TNode = {}, TState = unknown>(
         handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
         params?: {
             fromPath?: GmodPath;
