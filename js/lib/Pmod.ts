@@ -269,13 +269,6 @@ export class Pmod {
             state,
         } = params ?? {};
 
-        if (!withoutLocation)
-            return this.getVisualizableTreeNodesInternal(handler, {
-                fromPath,
-                state,
-                formatNode,
-            });
-
         const hits = this.getNodesByPath(fromPath, withoutLocation);
 
         if (hits.length === 0)
@@ -283,7 +276,7 @@ export class Pmod {
 
         if (hits.length === 1) {
             return this.getVisualizableTreeNodesInternal(handler, {
-                fromPath,
+                fromPath: hits[0].path,
                 state,
                 formatNode,
             });

@@ -175,24 +175,31 @@ describe("Pmod", () => {
             gmod.parseFromFullPath(localIdStr, locations)
         );
 
-        const pmod = Pmod.createFromPaths(VisVersion.v3_4a, paths, {
+        const pmod = Pmod.createFromPaths(VisVersion.v3_6a, paths, {
             imoNumber: ImoNumber.create(1234567),
         });
 
-        const rootNode = pmod.getNodeByPath(
-            gmod.parseFromFullPath("VE/100a/100/104/104.2", locations)
+        const rootPath = gmod.parseFromFullPath(
+            "VE/500a/510/511/511.1/511.1i-1/511.11-1/CS1/C101/C101.3/C101.3i-3",
+            locations
         );
 
-        const rootPath = rootNode!.path;
-
-        const nodes = pmod.getVisualizableTreeNodes(
+        let nodes = pmod.getVisualizableTreeNodes(
             (node, _) => {
                 return TraversalHandlerResult.Continue;
             },
             { fromPath: rootPath, withoutLocation: true }
         );
 
-        expect(nodes[0].path.toString()).toEqual("104.2");
+        expect(nodes[0].path.toString()).toEqual("511.1");
+
+        nodes = pmod.getVisualizableTreeNodes(
+            (node, _) => {
+                return TraversalHandlerResult.Continue;
+            },
+            { fromPath: rootPath, withoutLocation: false }
+        );
+        expect(nodes[0].path.toString()).toEqual(rootPath.toString());
 
         // const resolveMergedNodes = (n: TreeNode) => {
         //     const items = [n.path.node.toString()];
