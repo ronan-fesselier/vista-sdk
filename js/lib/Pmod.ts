@@ -1,15 +1,17 @@
-import { GmodNode, GmodPath, VisVersion } from ".";
+import { GmodNode, GmodPath, Result, VisVersion } from ".";
 import { LocalId } from "./LocalId";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { PmodNode } from "./PmodNode";
 import { TraversalHandlerResult } from "./types/Gmod";
 import {
+    NotRelevant,
     Parents,
     PmodInfo,
     TraversalContext,
     TraversalHandler,
     TraversalHandlerWithState,
 } from "./types/Pmod";
+import { Ok } from "./types/Result";
 import {
     FormatNode,
     TreeHandler,
@@ -261,7 +263,7 @@ export class Pmod {
             withoutLocation?: boolean;
             state?: TState;
         }
-    ) {
+    ): Ok<TreeNode<TNode>> | NotRelevant<TNode> {
         const {
             fromPath = new GmodPath([], this._rootNode.node),
             formatNode,
@@ -272,14 +274,22 @@ export class Pmod {
         const hits = this.getNodesByPath(fromPath, withoutLocation);
 
         if (hits.length === 0)
-            throw new Error("Failed to match path: " + fromPath.toString());
+            return new NotRelevant(
+                this.getVisualizableTreeNodesInternal(handler, {
+                    fromPath: undefined,
+                    state,
+                    formatNode,
+                })
+            );
 
         if (hits.length === 1) {
-            return this.getVisualizableTreeNodesInternal(handler, {
-                fromPath: hits[0].path,
-                state,
-                formatNode,
-            });
+            return new Ok(
+                this.getVisualizableTreeNodesInternal(handler, {
+                    fromPath: hits[0].path,
+                    state,
+                    formatNode,
+                })
+            );
         }
 
         let maxDepth = Math.min(...hits.map((h) => h.depth));
@@ -322,11 +332,13 @@ export class Pmod {
             );
         }
 
-        return this.getVisualizableTreeNodesInternal(handler, {
-            fromPath: result,
-            state,
-            formatNode,
-        });
+        return new Ok(
+            this.getVisualizableTreeNodesInternal(handler, {
+                fromPath: result,
+                state,
+                formatNode,
+            })
+        );
     }
 
     /**
@@ -378,7 +390,7 @@ export class Pmod {
         fromPath: GmodPath,
         formatNode: FormatNode<TNode>,
         handler: TreeHandlerWithState<TState, TNode>
-    ): TreeNode<TNode>[] {
+    ): TreeNode<TNode> {
         type LocalTraverseContext = {
             nodes: TreeNode<TNode>[];
             nodeMap: Map<string, TreeNode<TNode>>;
@@ -528,9 +540,11 @@ export class Pmod {
             { state: context, fromPath }
         );
 
+        if (context.nodes.length > 1)
+            throw new Error("Unexpected state: Should only find one root node");
         context.nodes.forEach((n) => this.sortChildren(n));
 
-        return context.nodes;
+        return context.nodes[0];
     }
 
     private createTreeNode<TNode>(

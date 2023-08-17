@@ -1,4 +1,4 @@
-import { GmodPath, ImoNumber, PmodNode } from "..";
+import { GmodPath, ImoNumber, PmodNode, TreeNode } from "..";
 import { TraversalHandlerResult } from "./Gmod";
 
 export type PmodInfo = Partial<{
@@ -23,6 +23,13 @@ export type TraversalContext<T> = {
     handler: TraversalHandlerWithState<T>;
     state: T;
 };
+
+export class NotRelevant<TNode> {
+    public response;
+    constructor(data: TreeNode<TNode>) {
+        this.response = data;
+    }
+}
 
 export class Parents {
     private _codes: Set<string> = new Set();

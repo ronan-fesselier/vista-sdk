@@ -17,7 +17,8 @@ import { VIS } from "./VIS";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 import { GmodNodeMetadata } from "./types/GmodNode";
 import { ParsingState } from "./types/LocalId";
-import { PmodInfo } from "./types/Pmod";
+import { PmodInfo, NotRelevant } from "./types/Pmod";
+import { Result, Ok, Err } from "./types/Result";
 import { Client } from "./Client";
 import { PmodNode } from "./PmodNode";
 import { UniversalIdParser } from "./UniversalId.Parsing";
@@ -63,9 +64,12 @@ export { UniversalIdParser, UniversalIdBuilder, UniversalId };
 // Gmod
 export { Gmod, GmodNode, GmodPath };
 // Pmod
-export { Pmod, PmodNode };
+export { Pmod, PmodNode, NotRelevant };
 // Client
 export { Client };
+
+// General
+export { Result, Ok, Err };
 
 // Transport
 export {

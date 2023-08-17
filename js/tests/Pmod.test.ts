@@ -5,11 +5,13 @@ import {
     LocalId,
     Pmod,
     PmodNode,
+    Result,
     TreeNode,
     VIS,
     VisVersion,
 } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
+import { Ok } from "../lib/types/Result";
 
 // Used for testing
 type VmodNode = {
@@ -180,26 +182,33 @@ describe("Pmod", () => {
         });
 
         const rootPath = gmod.parseFromFullPath(
-            "VE/500a/510/511/511.1/511.1i-1/511.11-1/CS1/C101/C101.3/C101.3i-3",
+            "VE/500a/510/511/511.1/511.1i/511.11/CS1/C101",
             locations
         );
 
-        let nodes = pmod.getVisualizableTreeNodes(
+        let result = pmod.getVisualizableTreeNodes(
             (node, _) => {
                 return TraversalHandlerResult.Continue;
             },
             { fromPath: rootPath, withoutLocation: true }
         );
 
-        expect(nodes[0].path.toString()).toEqual("511.1");
+        expect(result instanceof Ok).toBeTruthy();
+        if (result instanceof Ok) {
+            expect(result.value.path.toString()).toEqual("511.1");
+        }
 
-        nodes = pmod.getVisualizableTreeNodes(
+        result = pmod.getVisualizableTreeNodes(
             (node, _) => {
                 return TraversalHandlerResult.Continue;
             },
             { fromPath: rootPath, withoutLocation: false }
         );
-        expect(nodes[0].path.toString()).toEqual(rootPath.toString());
+
+        expect(result instanceof Ok).toBeTruthy();
+        if (result instanceof Ok) {
+            expect(result.value.path.toString()).toEqual(rootPath.toString());
+        }
 
         // const resolveMergedNodes = (n: TreeNode) => {
         //     const items = [n.path.node.toString()];
