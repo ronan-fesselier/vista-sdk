@@ -254,7 +254,10 @@ export class Pmod {
         return TraversalHandlerResult.Continue;
     }
 
-    public getVisualizableTreeNodes<TNode = {}, TState = unknown>(
+    public getVisualizableTreeNodes<
+        TNode extends TreeNode<TNode> = TreeNode,
+        TState = unknown
+    >(
         handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
         params?: {
             fromPath?: GmodPath;
@@ -263,7 +266,7 @@ export class Pmod {
             withoutLocation?: boolean;
             state?: TState;
         }
-    ): Ok<TreeNode<TNode>> | NotRelevant<TNode> {
+    ): Ok<TNode> | NotRelevant<TNode> {
         const {
             fromPath = new GmodPath([], this._rootNode.node),
             formatNode,
@@ -350,14 +353,17 @@ export class Pmod {
      * @returns A set of nodes from root path
      */
 
-    private getVisualizableTreeNodesInternal<TNode = {}, TState = unknown>(
+    private getVisualizableTreeNodesInternal<
+        TNode extends TreeNode<TNode> = TreeNode,
+        TState = unknown
+    >(
         handler: TreeHandler<TNode> | TreeHandlerWithState<TState, TNode>,
         params?: {
             fromPath?: GmodPath;
             formatNode?: FormatNode<TNode>;
             state?: TState;
         }
-    ) {
+    ): TNode {
         const {
             fromPath = new GmodPath([], this._rootNode.node),
             state,
@@ -366,7 +372,7 @@ export class Pmod {
 
         const formatter: FormatNode<TNode> = formatNode
             ? formatNode
-            : (node) => node as TreeNode<TNode>;
+            : (node) => node as TNode;
 
         if (!state) {
             return this.createVisualizableTree<TreeHandler<TNode>, TNode>(
@@ -385,16 +391,19 @@ export class Pmod {
         );
     }
 
-    private createVisualizableTree<TState, TNode>(
+    private createVisualizableTree<
+        TState,
+        TNode extends TreeNode<TNode> = TreeNode
+    >(
         userState: TState,
         fromPath: GmodPath,
         formatNode: FormatNode<TNode>,
         handler: TreeHandlerWithState<TState, TNode>
-    ): TreeNode<TNode> {
+    ): TNode {
         type LocalTraverseContext = {
-            nodes: TreeNode<TNode>[];
-            nodeMap: Map<string, TreeNode<TNode>>;
-            skippedNodesMap: Map<string, TreeNode<TNode>>;
+            nodes: TNode[];
+            nodeMap: Map<string, TNode>;
+            skippedNodesMap: Map<string, TNode>;
             fromPath: GmodPath;
             userState: TState;
         };
@@ -410,7 +419,7 @@ export class Pmod {
 
             const parentNode = parents[parents.length - 1];
 
-            let parent: TreeNode<TNode> | undefined;
+            let parent: TNode | undefined;
 
             if (parentNode) {
                 const parentPath = new GmodPath(
@@ -424,15 +433,12 @@ export class Pmod {
                     context.nodeMap.get(pKey);
             }
 
-            const treeNode: TreeNode<TNode> = this.createTreeNode(
-                {
-                    key,
-                    parent,
-                    path,
-                    children: [],
-                },
-                formatNode
-            );
+            const treeNode: TNode = formatNode({
+                key,
+                parent,
+                path,
+                children: [],
+            });
 
             if (node.equals(context.fromPath.node)) {
                 context.nodes.push(treeNode);
@@ -496,7 +502,7 @@ export class Pmod {
                             "Unexpected state: Parent not found as child of parents parent"
                         );
 
-                    parent = parent.parent;
+                    parent = parent.parent as TNode;
                     parent.children.splice(parentAsChildIndex, 1);
 
                     treeNode.parent = parent;
@@ -545,18 +551,6 @@ export class Pmod {
         context.nodes.forEach((n) => this.sortChildren(n));
 
         return context.nodes[0];
-    }
-
-    private createTreeNode<TNode>(
-        initNode: TreeNode<{}>,
-        formatNode: FormatNode<TNode>
-    ): TreeNode<TNode> {
-        const node = {
-            ...initNode,
-            ...formatNode(initNode),
-        } as TreeNode<TNode>;
-
-        return node;
     }
 
     private sortChildren(parent: TreeNode) {

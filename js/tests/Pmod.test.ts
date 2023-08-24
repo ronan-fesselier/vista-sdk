@@ -1,17 +1,16 @@
 import * as testData from "../../testdata/PmodData.json";
 import {
-    Gmod,
     ImoNumber,
     LocalId,
+    NotRelevant,
     Pmod,
     PmodNode,
-    Result,
-    TreeNode,
     VIS,
     VisVersion,
 } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
 import { Ok } from "../lib/types/Result";
+import { StrippedNode } from "../lib/types/Tree";
 
 // Used for testing
 type VmodNode = {
@@ -186,11 +185,22 @@ describe("Pmod", () => {
             locations
         );
 
-        let result = pmod.getVisualizableTreeNodes(
+        type VmodNode = StrippedNode<{ another: string }> & {
+            children: VmodNode[];
+            parent?: VmodNode;
+            mergedNode?: VmodNode;
+        };
+
+        let result = pmod.getVisualizableTreeNodes<VmodNode>(
             (node, _) => {
+                expect(node.another).toEqual(node.key);
                 return TraversalHandlerResult.Continue;
             },
-            { fromPath: rootPath, withoutLocation: true }
+            {
+                fromPath: rootPath,
+                withoutLocation: true,
+                formatNode: (node) => ({ ...node, another: node.key }),
+            }
         );
 
         expect(result instanceof Ok).toBeTruthy();
@@ -205,9 +215,9 @@ describe("Pmod", () => {
             { fromPath: rootPath, withoutLocation: false }
         );
 
-        expect(result instanceof Ok).toBeTruthy();
-        if (result instanceof Ok) {
-            expect(result.value.path.toString()).toEqual(rootPath.toString());
+        expect(result instanceof NotRelevant).toBeTruthy();
+        if (result instanceof NotRelevant) {
+            expect(result.value.path.toString()).toEqual("VE");
         }
 
         // const resolveMergedNodes = (n: TreeNode) => {

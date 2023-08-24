@@ -24,10 +24,10 @@ export type TraversalContext<T> = {
     state: T;
 };
 
-export class NotRelevant<TNode> {
-    public response;
-    constructor(data: TreeNode<TNode>) {
-        this.response = data;
+export class NotRelevant<TNode extends TreeNode<TNode>> {
+    public value;
+    constructor(data: TNode) {
+        this.value = data;
     }
 }
 
