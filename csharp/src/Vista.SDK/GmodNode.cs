@@ -78,6 +78,14 @@ public record class GmodNode
         return WithLocation(location.Value);
     }
 
+    /**
+     * Expected rule - Not allowed to instantiate
+     *      GROUP
+     *      SELECTION
+     *      PRODUCT TYPE
+     */
+    public bool IsInstantiatable => Metadata.Type != "GROUP" && Metadata.Type != "SELECTION" && !isProductType;
+
     public bool IsMappable
     {
         get
@@ -97,6 +105,8 @@ public record class GmodNode
     }
 
     public bool IsProductSelection => Gmod.IsProductSelection(Metadata);
+
+    public bool isProductType => Gmod.IsProductType(Metadata);
 
     public bool IsAsset => Gmod.IsAsset(Metadata);
 

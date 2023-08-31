@@ -38,6 +38,9 @@ public sealed partial class Gmod : IEnumerable<GmodNode>
     public static bool IsProductSelection(GmodNodeMetadata metadata) =>
         metadata.Category == "PRODUCT" && metadata.Type == "SELECTION";
 
+    public static bool IsProductType(GmodNodeMetadata metadata) =>
+        metadata.Category == "PRODUCT" && metadata.Type == "TYPE";
+
     public static bool IsAsset(GmodNodeMetadata metadata) => metadata.Category == "ASSET";
 
     public static bool IsAssetFunctionNode(GmodNodeMetadata metadata) => metadata.Category == "ASSET FUNCTION";
