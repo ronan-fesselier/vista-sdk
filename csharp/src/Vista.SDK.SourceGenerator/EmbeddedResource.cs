@@ -10,7 +10,7 @@ namespace Vista.SDK;
 
 internal static class EmbeddedResource
 {
-    internal static List<string> GetGmodVisVersion()
+    internal static List<string> GetVisVersions()
     {
         var assembly = Assembly.GetExecutingAssembly();
 

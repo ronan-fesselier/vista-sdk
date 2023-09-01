@@ -19,7 +19,7 @@ namespace Vista.SDK.SourceGenerator
 
             var cancellationToken = context.CancellationToken;
 
-            var visVersions = EmbeddedResource.GetGmodVisVersion();
+            var visVersions = EmbeddedResource.GetVisVersions();
 
             if (visVersions is null)
             {
