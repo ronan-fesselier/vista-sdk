@@ -1,11 +1,11 @@
-import { Gmod, GmodPath, VisVersion } from "../lib";
+import { Gmod, GmodPath, VisVersion, VisVersions } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
 import { VIS } from "../lib/VIS";
 
 describe("Gmod", () => {
     const vis = VIS.instance;
     const version = VisVersion.v3_4a;
-    const testVersions = [VisVersion.v3_4a, VisVersion.v3_5a, VisVersion.v3_6a];
+    const testVersions = VisVersions.all;
     const gmodPromise = vis.getGmod(version);
     const locationsPromise = vis.getLocations(version);
 
