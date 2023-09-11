@@ -765,6 +765,7 @@ partial record class LocalIdBuilder
 
             var metaIndex = span.IndexOf("/meta".AsSpan());
             var endOfMetaIndex = (metaIndex + "/meta".Length + 1);
+            var isVerbose = customIndex < metaIndex;
 
             switch (state)
             {
@@ -772,15 +773,20 @@ partial record class LocalIdBuilder
                 {
                     var secIndex = span.IndexOf("/sec".AsSpan());
                     var endOfSecIndex = (secIndex + "/sec".Length + 1);
-                    return secIndex != -1
-                        ? (secIndex, endOfSecIndex)
-                        : customIndex != -1
-                            ? (customIndex, endOfCustomIndex)
-                            : (metaIndex, endOfMetaIndex);
+
+                    if (secIndex != -1)
+                        return (secIndex, endOfSecIndex);
+
+                    if (isVerbose && customIndex != -1)
+                        return (customIndex, endOfCustomIndex);
+
+                    return (metaIndex, endOfMetaIndex);
                 }
 
                 case (LocalIdParsingState.SecondaryItem):
-                    return customIndex != -1 ? (customIndex, endOfCustomIndex) : (metaIndex, endOfMetaIndex);
+                    if (isVerbose && customIndex != -1)
+                        return (customIndex, endOfCustomIndex);
+                    return (metaIndex, endOfMetaIndex);
 
                 default:
                     return (metaIndex, endOfMetaIndex);

@@ -951,36 +951,41 @@ export class LocalIdParser {
 
         const metaIndex = span.indexOf("/meta");
         const endOfMetaIndex = metaIndex + "/meta".length + 1;
+        const isVerbose = customIndex < metaIndex;
 
         switch (state) {
             case ParsingState.PrimaryItem: {
                 const secIndex = span.indexOf("/sec");
                 const endOfSecIndex = secIndex + "/sec".length + 1;
-                return secIndex != -1
-                    ? {
-                          nextStateIndex: secIndex,
-                          endOfNextStateIndex: endOfSecIndex,
-                      }
-                    : customIndex != -1
-                    ? {
-                          nextStateIndex: customIndex,
-                          endOfNextStateIndex: endOfCustomIndex,
-                      }
-                    : {
-                          nextStateIndex: metaIndex,
-                          endOfNextStateIndex: endOfMetaIndex,
-                      };
+
+                if (secIndex !== -1)
+                    return {
+                        nextStateIndex: secIndex,
+                        endOfNextStateIndex: endOfSecIndex,
+                    };
+
+                if (isVerbose && customIndex !== -1)
+                    return {
+                        nextStateIndex: customIndex,
+                        endOfNextStateIndex: endOfCustomIndex,
+                    };
+
+                return {
+                    nextStateIndex: metaIndex,
+                    endOfNextStateIndex: endOfMetaIndex,
+                };
             }
             case ParsingState.SecondaryItem:
-                return customIndex != -1
-                    ? {
-                          nextStateIndex: customIndex,
-                          endOfNextStateIndex: endOfCustomIndex,
-                      }
-                    : {
-                          nextStateIndex: metaIndex,
-                          endOfNextStateIndex: endOfMetaIndex,
-                      };
+                if (isVerbose && customIndex !== -1)
+                    return {
+                        nextStateIndex: customIndex,
+                        endOfNextStateIndex: endOfCustomIndex,
+                    };
+
+                return {
+                    nextStateIndex: metaIndex,
+                    endOfNextStateIndex: endOfMetaIndex,
+                };
             default:
                 return {
                     nextStateIndex: metaIndex,
