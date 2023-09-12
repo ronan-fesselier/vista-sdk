@@ -8,14 +8,14 @@ import {
     ParsingState,
     VisVersion,
 } from "..";
-import { ILocalIdBuilder } from "../ILocalIdBuilder";
+import { ILocalIdBuilderGeneric } from "../ILocalIdBuilder";
 import { LocalIdItems } from "../LocalId.Items";
 import { Locations } from "../Location";
 import { PMSLocalId } from "./PMSLocalId";
 import { PMSLocalIdParser } from "./PMSLocalId.Parser";
 
 export class PMSLocalIdBuilder
-    implements ILocalIdBuilder<PMSLocalIdBuilder, PMSLocalId>
+    implements ILocalIdBuilderGeneric<PMSLocalIdBuilder, PMSLocalId>
 {
     public static readonly namingRule = "dnv-v2-experimental";
     public static readonly usedCodebooks = [

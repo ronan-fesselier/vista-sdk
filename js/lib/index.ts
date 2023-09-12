@@ -37,6 +37,7 @@ import {
 } from "./transport/domain";
 import * as Experimental from "./experimental";
 import { TreeNode } from "./types/Tree";
+import { ILocalIdBuilder, ILocalIdBuilderGeneric } from "./ILocalIdBuilder";
 
 // Types
 export type { GmodNodeMetadata, PmodInfo, TreeNode };
@@ -56,6 +57,8 @@ export {
     LocalIdParsingErrorBuilder,
     ILocalId,
     ILocalIdGeneric,
+    ILocalIdBuilder,
+    ILocalIdBuilderGeneric,
 };
 
 // Experimental

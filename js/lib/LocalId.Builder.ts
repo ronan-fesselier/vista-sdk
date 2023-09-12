@@ -2,7 +2,7 @@ import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
 import { GmodPath } from "./GmodPath";
-import { ILocalIdBuilder } from "./ILocalIdBuilder";
+import { ILocalIdBuilderGeneric } from "./ILocalIdBuilder";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 import { LocalId } from "./LocalId";
 import { LocalIdItems } from "./LocalId.Items";
@@ -13,7 +13,7 @@ import { ParsingState } from "./types/LocalId";
 import { VisVersion } from "./VisVersion";
 
 export class LocalIdBuilder
-    implements ILocalIdBuilder<LocalIdBuilder, LocalId>
+    implements ILocalIdBuilderGeneric<LocalIdBuilder, LocalId>
 {
     public static readonly namingRule = "dnv-v2";
     public static readonly usedCodebooks = [

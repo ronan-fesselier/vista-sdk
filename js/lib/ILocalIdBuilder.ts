@@ -4,10 +4,7 @@ import { ILocalIdGeneric } from "./ILocalId";
 import { MetadataTag } from "./MetadataTag";
 import { VisVersion } from "./VisVersion";
 
-export interface ILocalIdBuilder<
-    TBuilder extends ILocalIdBuilder<TBuilder, TResult>,
-    TResult extends ILocalIdGeneric<TResult>
-> {
+export interface ILocalIdBuilder {
     visVersion?: VisVersion;
     verboseMode: boolean;
     primaryItem?: GmodPath;
@@ -16,6 +13,16 @@ export interface ILocalIdBuilder<
 
     metadataTags: MetadataTag[];
 
+    isValid: boolean;
+    isEmpty: boolean;
+
+    toString(): string;
+}
+
+export interface ILocalIdBuilderGeneric<
+    TBuilder extends ILocalIdBuilderGeneric<TBuilder, TResult>,
+    TResult extends ILocalIdGeneric<TResult>
+> extends ILocalIdBuilder {
     withVisVersion(visVersion: string): TBuilder;
     withVisVersion(visVersion: VisVersion): TBuilder;
     tryWithVisVersion(visVersion?: string): TBuilder;
@@ -37,9 +44,4 @@ export interface ILocalIdBuilder<
     withoutMetadataTag(name: CodebookName): TBuilder;
 
     build(): TResult;
-
-    isValid: boolean;
-    isEmpty: boolean;
-
-    toString(): string;
 }

@@ -1,4 +1,5 @@
-import { GmodNode, GmodPath, Result, VisVersion } from ".";
+import { GmodNode, GmodPath, ILocalId, Result, VisVersion } from ".";
+import { ILocalIdBuilder } from "./ILocalIdBuilder";
 import { LocalId } from "./LocalId";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { PmodNode } from "./PmodNode";
@@ -117,7 +118,7 @@ export class Pmod {
 
     public static createFromLocalIds(
         visVersion: VisVersion,
-        localIds: LocalId[] | LocalIdBuilder[],
+        localIds: ILocalId[] | ILocalIdBuilder[],
         info?: PmodInfo
     ) {
         const paths = localIds
