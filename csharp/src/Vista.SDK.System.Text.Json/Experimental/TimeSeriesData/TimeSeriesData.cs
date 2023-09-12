@@ -4,12 +4,13 @@
 // </auto-generated>
 //----------------------
 
+
 #nullable enable
 
 
 namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
 {
-#pragma warning disable // Disable all warnings
+    #pragma warning disable // Disable all warnings
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.6.10.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class Package
@@ -41,12 +42,12 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
     {
         [System.Text.Json.Serialization.JsonConstructor]
 
-        public Header(string? @author, System.DateTimeOffset? @dateCreated, System.DateTimeOffset? @dateModified, string @assetId, System.Collections.Generic.IReadOnlyList<ConfigurationReference>? @systemConfiguration, TimeSpan? @timeSpan)
+        public Header(string @assetId, string? @author, System.DateTimeOffset? @dateCreated, System.DateTimeOffset? @dateModified, System.Collections.Generic.IReadOnlyList<ConfigurationReference>? @systemConfiguration, TimeSpan? @timeSpan)
 
 
         {
 
-            this.AssetID = @assetId;
+            this.AssetId = @assetId;
 
             this.TimeSpan = @timeSpan;
 
@@ -59,8 +60,8 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
             this.SystemConfiguration = @systemConfiguration;
 
         }
-        [System.Text.Json.Serialization.JsonPropertyName("AssetID")]
-        public string AssetID { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("AssetId")]
+        public string AssetId { get; }
 
 
         [System.Text.Json.Serialization.JsonPropertyName("TimeSpan")]
@@ -191,7 +192,7 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
     {
         [System.Text.Json.Serialization.JsonConstructor]
 
-        public TabularData(System.Collections.Generic.IReadOnlyList<string>? @dataID, System.Collections.Generic.IReadOnlyList<TabularDataSet>? @dataSet, string? @numberOfDataPoints, string? @numberOfDataSet)
+        public TabularData(System.Collections.Generic.IReadOnlyList<string>? @dataId, System.Collections.Generic.IReadOnlyList<TabularDataSet>? @dataSet, string? @numberOfDataPoints, string? @numberOfDataSet)
 
 
         {
@@ -200,7 +201,7 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
 
             this.NumberOfDataPoints = @numberOfDataPoints;
 
-            this.DataId = @dataID;
+            this.DataId = @dataId;
 
             this.DataSet = @dataSet;
 
@@ -284,14 +285,14 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
     {
         [System.Text.Json.Serialization.JsonConstructor]
 
-        public EventDataSet(string @dataID, string? @quality, System.DateTimeOffset @timeStamp, string @value)
+        public EventDataSet(string @dataId, string? @quality, System.DateTimeOffset @timeStamp, string @value)
 
 
         {
 
             this.TimeStamp = @timeStamp;
 
-            this.DataId = @dataID;
+            this.DataId = @dataId;
 
             this.Value = @value;
 
@@ -302,7 +303,7 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
         public System.DateTimeOffset TimeStamp { get; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("DataID")]
+        [System.Text.Json.Serialization.JsonPropertyName("DataId")]
         public string DataId { get; }
 
 
@@ -317,7 +318,7 @@ namespace Vista.SDK.Experimental.Transport.Json.TimeSeriesData
     }
 
     /// <summary>
-    /// An Extension of the TimeSeriesData package for ISO19848
+    /// An experimental generalized TimeSeriesData package based on ISO19848
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.6.10.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class TimeSeriesDataPackage

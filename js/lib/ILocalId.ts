@@ -2,7 +2,7 @@ import { GmodPath } from "./GmodPath";
 import { MetadataTag } from "./MetadataTag";
 import { VisVersion } from "./VisVersion";
 
-export interface ILocalId<T extends ILocalId<T>> {
+export interface ILocalId {
     visVersion: VisVersion;
     verboseMode: boolean;
     primaryItem: GmodPath;
@@ -12,3 +12,6 @@ export interface ILocalId<T extends ILocalId<T>> {
 
     toString(): string;
 }
+
+export interface ILocalIdGeneric<T extends ILocalIdGeneric<T>>
+    extends ILocalId {}

@@ -17,7 +17,7 @@ export class Extensions {
                           Author: h.author,
                           DateCreated: h.dateCreated,
                           DateModified: h.dateModified,
-                          AssetID: h.assetId.toString(),
+                          AssetId: h.assetId.toString(),
                           SystemConfiguration:
                               h.systemConfiguration?.map<TimeSeriesDto.ConfigurationReference>(
                                   (s) => ({
@@ -28,7 +28,7 @@ export class Extensions {
                           TimeSpan: h.timeSpan
                               ? { End: h.timeSpan.end, Start: h.timeSpan.start }
                               : undefined,
-                          AdditionalProperties: h.customHeaders,
+                          ...h.customHeaders,
                       }
                     : undefined,
                 TimeSeriesData:
@@ -66,7 +66,7 @@ export class Extensions {
                                     })),
                                 })
                             ),
-                        AdditionalProperties: t.customProperties,
+                        ...t.customProperties,
                     })),
             },
         };
@@ -82,6 +82,13 @@ export class Extensions {
         const timeSeriesData: TimeSeries.TimeSeriesData[] = [];
 
         for (let t of p.TimeSeriesData) {
+            const {
+                DataConfiguration: _,
+                EventData: __,
+                TabularData: ___,
+                ...customProperties
+            } = t;
+
             const eventDataSet: TimeSeries.EventDataSet[] = [];
             const tabularData: TimeSeries.TabularData[] = [];
 
@@ -126,32 +133,46 @@ export class Extensions {
                     timeStamp: t.DataConfiguration.TimeStamp,
                     id: t.DataConfiguration.ID,
                 },
-                customProperties: t.AdditionalProperties,
                 eventData: {
                     dataSet: eventDataSet.length > 0 ? eventDataSet : undefined,
                     numberOfDataSet: t.EventData?.NumberOfDataSet,
                 },
                 tabularData: tabularData.length > 0 ? tabularData : undefined,
+                customProperties,
             });
+        }
+
+        let header: TimeSeries.Header | undefined = undefined;
+        if (h) {
+            const {
+                AssetId,
+                Author,
+                DateCreated,
+                DateModified,
+                SystemConfiguration,
+                TimeSpan,
+                ...customHeaders
+            } = h;
+
+            header = {
+                assetId: AssetIdentifier.parse(h.AssetId),
+                timeSpan: h.TimeSpan
+                    ? { end: h.TimeSpan.End, start: h.TimeSpan.Start }
+                    : undefined,
+                dateCreated: h.DateCreated,
+                dateModified: h.DateModified,
+                author: h.Author,
+                systemConfiguration: h.SystemConfiguration?.map((c) => ({
+                    id: c.ID,
+                    timeStamp: c.TimeStamp,
+                })),
+                customHeaders,
+            };
         }
 
         return {
             package: {
-                header: h
-                    ? {
-                          assetId: AssetIdentifier.parse(h.AssetID),
-                          timeSpan: h.TimeSpan
-                              ? { end: h.TimeSpan.End, start: h.TimeSpan.Start }
-                              : undefined,
-                          dateCreated: h.DateCreated,
-                          dateModified: h.DateModified,
-                          author: h.Author,
-                          systemConfiguration: h.SystemConfiguration?.map(
-                              (c) => ({ id: c.ID, timeStamp: c.TimeStamp })
-                          ),
-                          customHeaders: h.AdditionalProperties,
-                      }
-                    : undefined,
+                header: header,
                 timeSeriesData: timeSeriesData,
             },
         };

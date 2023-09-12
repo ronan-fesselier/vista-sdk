@@ -1,14 +1,14 @@
 import { Codebooks } from "../Codebooks";
 import { Gmod } from "../Gmod";
 import { GmodPath } from "../GmodPath";
-import { ILocalId } from "../ILocalId";
+import { ILocalIdGeneric } from "../ILocalId";
 import { Locations } from "../Location";
 import { MetadataTag } from "../MetadataTag";
 import { VisVersion } from "../VisVersion";
 import { LocalIdParsingErrorBuilder } from "../internal/LocalIdParsingErrorBuilder";
 import { PMSLocalIdBuilder } from "./PMSLocalId.Builder";
 
-export class PMSLocalId implements ILocalId<PMSLocalId> {
+export class PMSLocalId implements ILocalIdGeneric<PMSLocalId> {
     private readonly _builder: PMSLocalIdBuilder;
 
     public get visVersion(): VisVersion {

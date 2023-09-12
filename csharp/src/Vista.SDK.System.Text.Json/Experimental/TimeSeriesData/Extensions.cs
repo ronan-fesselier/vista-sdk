@@ -15,10 +15,10 @@ public static class Extensions
                 h is null
                     ? null
                     : new Header(
+                        h.AssetId.ToString(),
                         h.Author,
                         h.DateCreated,
                         h.DateModified,
-                        h.AssetId.ToString(),
                         h.SystemConfiguration is null
                             ? null
                             : h.SystemConfiguration.Select(r => new ConfigurationReference(r.Id, r.TimeStamp)).ToList(),
@@ -89,7 +89,7 @@ public static class Extensions
                 h is null
                     ? null
                     : new Domain.Header(
-                        AssetIdentifier.Parse(h.AssetID),
+                        AssetIdentifier.Parse(h.AssetId),
                         h.TimeSpan is null ? null : new Domain.TimeSpan(h.TimeSpan.Start, h.TimeSpan.End),
                         h.DateCreated,
                         h.DateModified,

@@ -7,6 +7,7 @@ import { GmodNode } from "./GmodNode";
 import { GmodPath } from "./GmodPath";
 import { ImoNumber } from "./ImoNumber";
 import { LocalId } from "./LocalId";
+import { ILocalId, ILocalIdGeneric } from "./ILocalId";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { LocalIdParser } from "./LocalId.Parsing";
 import { MetadataTag } from "./MetadataTag";
@@ -53,6 +54,8 @@ export {
     ImoNumber,
     LocalIdParser,
     LocalIdParsingErrorBuilder,
+    ILocalId,
+    ILocalIdGeneric,
 };
 
 // Experimental

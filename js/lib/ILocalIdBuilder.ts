@@ -1,12 +1,12 @@
 import { CodebookName } from "./CodebookName";
 import { GmodPath } from "./GmodPath";
-import { ILocalId } from "./ILocalId";
+import { ILocalIdGeneric } from "./ILocalId";
 import { MetadataTag } from "./MetadataTag";
 import { VisVersion } from "./VisVersion";
 
 export interface ILocalIdBuilder<
     TBuilder extends ILocalIdBuilder<TBuilder, TResult>,
-    TResult extends ILocalId<TResult>
+    TResult extends ILocalIdGeneric<TResult>
 > {
     visVersion?: VisVersion;
     verboseMode: boolean;

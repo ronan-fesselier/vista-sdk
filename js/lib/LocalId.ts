@@ -2,14 +2,14 @@ import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
 import { GmodPath } from "./GmodPath";
-import { ILocalId } from "./ILocalId";
+import { ILocalIdGeneric } from "./ILocalId";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 import { LocalIdBuilder } from "./LocalId.Builder";
 import { LocalIdParser } from "./LocalId.Parsing";
 import { Locations } from "./Location";
 import { MetadataTag } from "./MetadataTag";
 
-export class LocalId implements ILocalId<LocalId> {
+export class LocalId implements ILocalIdGeneric<LocalId> {
     protected _builder: LocalIdBuilder;
 
     public constructor(builder: LocalIdBuilder) {
