@@ -31,6 +31,10 @@ export class PMSLocalId implements ILocalIdGeneric<PMSLocalId> {
         return this._builder.metadataTags;
     }
 
+    public get builder() {
+        return this._builder;
+    }
+
     constructor(builder: PMSLocalIdBuilder) {
         if (builder.isEmpty)
             throw new Error(
