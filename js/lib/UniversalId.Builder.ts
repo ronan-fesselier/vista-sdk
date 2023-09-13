@@ -1,7 +1,6 @@
-import { Codebooks, Gmod, ILocalIdBuilder, UniversalId } from ".";
+import { Codebooks, Gmod, LocalIdBuilder, UniversalId } from ".";
 import { ImoNumber } from "./ImoNumber";
 import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
-import { LocalIdBuilder } from "./LocalId.Builder";
 import { Locations } from "./Location";
 import { ParsingState } from "./types/LocalId";
 import { UniversalIdParser } from "./UniversalId.Parsing";
@@ -9,7 +8,7 @@ import { VisVersion } from "./VisVersion";
 
 export class UniversalIdBuilder {
     public static readonly namingEntity = "data.dnv.com";
-    private _localId?: ILocalIdBuilder;
+    private _localId?: LocalIdBuilder;
     public imoNumber?: ImoNumber;
 
     public get localId() {

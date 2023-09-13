@@ -1,16 +1,10 @@
-import {
-    Gmod,
-    Codebooks,
-    LocalIdParsingErrorBuilder,
-    LocalId,
-    ILocalId,
-} from ".";
+import { Gmod, Codebooks, LocalIdParsingErrorBuilder, LocalId } from ".";
 import { Locations } from "./Location";
 import { UniversalIdBuilder } from "./UniversalId.Builder";
 
 export class UniversalId {
     private _builder: UniversalIdBuilder;
-    private _localId: ILocalId;
+    private _localId: LocalId;
 
     public constructor(builder: UniversalIdBuilder) {
         if (!builder.isValid) throw new Error("Invalid UniversalId state");
@@ -18,7 +12,7 @@ export class UniversalId {
         this._localId = builder.localId!.build();
     }
 
-    public get localId(): ILocalId {
+    public get localId(): LocalId {
         return this._localId;
     }
 
