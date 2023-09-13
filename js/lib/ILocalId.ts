@@ -1,4 +1,5 @@
 import { GmodPath } from "./GmodPath";
+import { ILocalIdBuilder } from "./ILocalIdBuilder";
 import { MetadataTag } from "./MetadataTag";
 import { VisVersion } from "./VisVersion";
 
@@ -9,6 +10,8 @@ export interface ILocalId {
     secondaryItem: GmodPath | undefined;
     hasCustomTag: boolean;
     metadataTags: MetadataTag[];
+
+    builder: ILocalIdBuilder;
 
     toString(): string;
 }
