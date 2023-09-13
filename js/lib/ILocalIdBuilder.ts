@@ -1,8 +1,9 @@
 import { CodebookName } from "./CodebookName";
 import { GmodPath } from "./GmodPath";
-import { ILocalIdGeneric } from "./ILocalId";
+import { ILocalId, ILocalIdGeneric } from "./ILocalId";
 import { MetadataTag } from "./MetadataTag";
 import { VisVersion } from "./VisVersion";
+import { LocalIdParsingErrorBuilder } from "./internal/LocalIdParsingErrorBuilder";
 
 export interface ILocalIdBuilder {
     visVersion?: VisVersion;
@@ -17,6 +18,13 @@ export interface ILocalIdBuilder {
     isEmpty: boolean;
 
     toString(): string;
+    toString(builder?: string[]): string;
+    equals(other?: ILocalIdBuilder): boolean;
+    validate(
+        errorBuilder?: LocalIdParsingErrorBuilder
+    ): LocalIdParsingErrorBuilder;
+
+    build(): ILocalId;
 }
 
 export interface ILocalIdBuilderGeneric<
