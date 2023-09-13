@@ -14,7 +14,7 @@ export class DataId {
     private readonly _pmsLocalId?: PMSLocalId;
     private readonly _shortId?: string;
 
-    private constructor(value: LocalId | PMSLocalId | string) {
+    public constructor(value: LocalId | PMSLocalId | string) {
         if (value instanceof LocalId) {
             this._tag = 1;
             this._localId = value;
