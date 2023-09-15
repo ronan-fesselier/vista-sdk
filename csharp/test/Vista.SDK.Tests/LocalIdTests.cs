@@ -344,4 +344,29 @@ public class LocalIdTests
         Assert.False(parsed);
         Assert.NotNull(errorBuilder);
     }
+
+    // [Fact]
+    // public async Task Test_ILocalId_Equivalency()
+    // {
+    //     var tasks = new Task[Environment.ProcessorCount];
+    //     for (int i = 0; i < Environment.ProcessorCount; i++)
+    //     {
+    //         var task = Task.Run(() =>
+    //         {
+    //             for (int j = 0; j < 100; j++)
+    //             {
+    //                 ILocalId localId1 = PMSLocalId.Parse(
+    //                     "/dnv-v2-experimental/vis-3-6a/411.1/C101.661i-F/C621/meta/maint.cat-preventive/act.type-service"
+    //                 );
+
+    //                 ILocalId localId2 = PMSLocalId.Parse(localId1.ToString());
+
+    //                 localId2.Should().BeEquivalentTo(localId1, config => config.For);
+    //             }
+    //         });
+    //         tasks[i] = task;
+    //     }
+
+    //     await Task.WhenAll(tasks);
+    // }
 }

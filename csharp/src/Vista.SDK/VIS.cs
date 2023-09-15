@@ -265,4 +265,7 @@ public sealed class VIS : IVIS
 
     public LocalIdBuilder? ConvertLocalId(LocalIdBuilder sourceLocalId, VisVersion targetVersion) =>
         GetGmodVersioning().ConvertLocalId(sourceLocalId, targetVersion);
+
+    public LocalId? ConvertLocalId(LocalId sourceLocalId, VisVersion targetVersion) =>
+        GetGmodVersioning().ConvertLocalId(sourceLocalId, targetVersion);
 }

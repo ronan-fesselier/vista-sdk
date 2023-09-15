@@ -8,6 +8,8 @@ public class LocalId : ILocalId<LocalId>, IEquatable<LocalId>
 
     private readonly LocalIdBuilder _builder;
 
+    public LocalIdBuilder Builder => _builder;
+
     internal LocalId(LocalIdBuilder builder)
     {
         if (builder.IsEmpty)

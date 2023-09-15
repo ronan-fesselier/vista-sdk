@@ -12,8 +12,8 @@ public record class GmodNode
 
     public GmodNodeMetadata Metadata { get; }
 
-    private readonly List<GmodNode> _children;
-    private readonly List<GmodNode> _parents;
+    internal readonly List<GmodNode> _children;
+    internal readonly List<GmodNode> _parents;
 
     public IReadOnlyList<GmodNode> Children => _children;
 
@@ -84,7 +84,11 @@ public record class GmodNode
      *      SELECTION
      *      PRODUCT TYPE
      */
-    public bool IsInstantiatable => Metadata.Type != "GROUP" && Metadata.Type != "SELECTION" && !isProductType;
+    public bool IsInstantiatable =>
+        Metadata.Type != "GROUP"
+        && Metadata.Type != "SELECTION"
+        && !isProductType
+        && (Metadata.Category != "ASSET" && Metadata.Type != "TYPE");
 
     public bool IsMappable
     {

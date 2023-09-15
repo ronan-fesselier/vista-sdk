@@ -107,7 +107,7 @@ public class GmodVersioningTests
                 if (parents.Count == 0)
                     return TraversalHandlerResult.Continue;
 
-                var path = new GmodPath(parents.ToArray(), node);
+                var path = new GmodPath(parents.ToList(), node);
                 if (path.ToString() == "1012.22/S201.1/C151.2/S110.2/C101.61/S203.2/S101")
                     return TraversalHandlerResult.Stop;
 

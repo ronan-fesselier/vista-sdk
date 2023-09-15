@@ -30,7 +30,7 @@ public class GmodVersioningTests
                     if (parents.Count == 0)
                         return TraversalHandlerResult.Continue;
 
-                    var path = new GmodPath(parents.ToArray(), node, skipVerify: true);
+                    var path = new GmodPath(parents.ToList(), node, skipVerify: true);
                     _ = context.Channel.Writer.TryWrite(path);
                     return TraversalHandlerResult.Continue;
                 }

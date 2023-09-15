@@ -17,7 +17,7 @@ public interface ILocalId
     string ToString();
 }
 
-public interface ILocalId<T> : ILocalId
+public interface ILocalId<T> : ILocalId, IEquatable<T>
     where T : ILocalId<T>
 {
 #if NET7_0_OR_GREATER

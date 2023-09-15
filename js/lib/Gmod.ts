@@ -13,6 +13,8 @@ import { GmodNodeMetadata } from "./types/GmodNode";
 import { Parents } from "./util/Parents";
 import { VisVersion } from "./VisVersion";
 
+export const PotentialParentScopeTypes = ["SELECTION", "GROUP", "LEAF"];
+
 export class Gmod {
     public visVersion: VisVersion;
     private _rootNode: GmodNode;

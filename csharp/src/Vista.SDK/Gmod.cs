@@ -12,6 +12,8 @@ public sealed partial class Gmod : IEnumerable<GmodNode>
 
     public GmodNode RootNode => _rootNode;
 
+    internal static readonly string[] PotentialParentScopeTypes = new[] { "SELECTION", "GROUP", "LEAF" };
+
     private static readonly (string Category, string Type)[] LeafTypes = new[]
     {
         ("ASSET FUNCTION", "LEAF"),

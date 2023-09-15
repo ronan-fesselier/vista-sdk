@@ -190,7 +190,8 @@ export class GmodNode {
         return (
             this.metadata.type !== "GROUP" &&
             this.metadata.type !== "SELECTION" &&
-            !this.isProductType
+            !this.isProductType &&
+            (this.metadata.category !== "ASSET" && this.metadata.type !== "TYPE")
         );
     }
 

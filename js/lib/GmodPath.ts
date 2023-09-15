@@ -1,10 +1,39 @@
 import { VIS, VisVersion } from ".";
-import { Gmod } from "./Gmod";
+import { Gmod, PotentialParentScopeTypes } from "./Gmod";
 import { GmodNode } from "./GmodNode";
 import { Locations, Location } from "./Location";
 import { TraversalHandlerResult } from "./types/Gmod";
 import { PathNode, ParseContext } from "./types/GmodPath";
 import { isNullOrWhiteSpace } from "./util/util";
+
+export class GmodInstantiableSet {
+    public get location(): Location | undefined {
+        return this.nodes[0].location;
+    }
+
+    public set location(value: Location | undefined) {
+        for (const node of this.nodes) {
+            node.location = value;
+        }
+    }
+
+    public get codes(): string[] {
+        return this.nodes.map(n => n.code);
+    }
+
+    constructor(public nodes: GmodNode[]) {
+        if (nodes.length === 0)
+            throw new Error('GmodInstantiableSet cant be empty');
+        if (nodes.some(n => !n.isInstantiatable))
+            throw new Error('GmodInstantiableSet nodes must be instantiatable');
+        if (new Set<string | undefined>(nodes.map(n => n.location?.value)).size !== 1)
+            throw new Error('GmodInstantiableSet must have a common location');
+    }
+
+    public toString(): string {
+        return this.nodes.filter(n => n.isLeafNode).join('/');
+    }
+}
 
 export class GmodPath {
     public parents: GmodNode[];
@@ -162,15 +191,49 @@ export class GmodPath {
         }
     }
 
+    public get instantiatiableSets(): GmodInstantiableSet[] {
+        const result: GmodInstantiableSet[] = [];
+        let currentParentStart = -1;
+        for (let i = 0; i < this.length; i++) {
+            const node = i < this.parents.length ? this.parents[i] : this.node;
+            var isParent = PotentialParentScopeTypes.includes(node.metadata.type);
+            if (currentParentStart === -1) {
+                if (isParent)
+                    currentParentStart = i;
+                if (node.isInstantiatable)
+                    result.push(new GmodInstantiableSet([node]));
+            } else {
+                if (isParent) {
+                    const nodes: GmodNode[] = [];
+                    if (currentParentStart + 1 === i) {
+                        if (node.isInstantiatable)
+                            nodes.push(node);
+                    } else {
+                        for (let j = currentParentStart + 1; j <= i; j++) {
+                            const setNode = j < this.parents.length ? this.parents[j] : this.node;
+                            if (!setNode.isInstantiatable)
+                                continue;
+                            nodes.push(setNode);
+                        }
+                    }
+                    currentParentStart = i;
+                    if (nodes.length > 0)
+                        result.push(new GmodInstantiableSet(nodes));
+                }
+            }
+        }
+
+        return result;
+    }
+
     private static backPropagateLocations(
         path: GmodPath,
         location: Location,
         fromIndex: number
     ) {
-        const potentialParentScopeTypes = ["SELECTION", "GROUP", "LEAF"];
         for (let i = fromIndex; i >= 0; i--) {
             const parent = path.parents[i];
-            if (potentialParentScopeTypes.includes(parent.metadata.type)) break;
+            if (PotentialParentScopeTypes.includes(parent.metadata.type)) break;
             if (!parent.isInstantiatable) continue;
             path.parents[i] = parent.withLocation(location);
         }
@@ -181,12 +244,11 @@ export class GmodPath {
         location: Location,
         fromIndex: number
     ) {
-        const potentialChildScopeTypes = ["SELECTION", "GROUP", "LEAF"];
         for (let i = fromIndex; i <= path.parents.length; i++) {
             const child =
                 i === path.parents.length ? path.node : path.parents[i];
 
-            if (potentialChildScopeTypes.includes(child.metadata.type)) break;
+            if (PotentialParentScopeTypes.includes(child.metadata.type)) break;
 
             if (!child.isInstantiatable) continue;
 

@@ -8,6 +8,8 @@ public class PMSLocalId : ILocalId<PMSLocalId>, IEquatable<PMSLocalId>
 
     private readonly PMSLocalIdBuilder _builder;
 
+    public PMSLocalIdBuilder Builder => _builder;
+
     internal PMSLocalId(PMSLocalIdBuilder builder)
     {
         if (builder.IsEmpty)

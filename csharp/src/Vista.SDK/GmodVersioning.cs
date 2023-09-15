@@ -102,6 +102,9 @@ internal sealed class GmodVersioning
             .TryWithMetadataTag(sourceLocalId.Detail);
     }
 
+    public LocalId? ConvertLocalId(LocalId sourceLocalId, VisVersion targetVersion) =>
+        ConvertLocalId(sourceLocalId.Builder, targetVersion)?.Build();
+
     public GmodPath? ConvertPath(VisVersion sourceVersion, GmodPath sourcePath, VisVersion targetVersion)
     {
         var targetEndNode = ConvertNode(sourceVersion, sourcePath.Node, targetVersion);
@@ -109,7 +112,7 @@ internal sealed class GmodVersioning
             return null;
 
         if (targetEndNode.IsRoot)
-            return new GmodPath(targetEndNode.Parents, targetEndNode, skipVerify: true);
+            return new GmodPath(targetEndNode._parents, targetEndNode, skipVerify: true);
 
         var targetGmod = VIS.Instance.GetGmod(targetVersion);
         var sourceGmod = VIS.Instance.GetGmod(sourceVersion);
@@ -121,7 +124,7 @@ internal sealed class GmodVersioning
         if (qualifyingNodes.Any(t => t.TargetNode is null))
             throw new Exception("Could convert node forward");
 
-        var potentialParents = qualifyingNodes.Select(n => n.TargetNode).Take(qualifyingNodes.Length - 1).ToArray();
+        var potentialParents = qualifyingNodes.Select(n => n.TargetNode).Take(qualifyingNodes.Length - 1).ToList();
         if (GmodPath.IsValid(potentialParents, targetEndNode))
             return new GmodPath(potentialParents, targetEndNode, skipVerify: true);
 
@@ -210,7 +213,7 @@ internal sealed class GmodVersioning
                 break;
         }
 
-        potentialParents = path.Take(path.Count - 1).ToArray();
+        potentialParents = path.Take(path.Count - 1).ToList();
         targetEndNode = path.Last();
 
         if (!GmodPath.IsValid(potentialParents, targetEndNode, out var missinkLinkAt))

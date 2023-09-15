@@ -152,7 +152,7 @@ public class GmodTests
 
                 if (parents.Any(p => p.Code == "HG3") || node.Code == "HG3")
                 {
-                    paths.Add(new GmodPath(parents, node));
+                    paths.Add(new GmodPath(parents.ToList(), node));
                 }
 
                 return TraversalHandlerResult.Continue;

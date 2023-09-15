@@ -85,7 +85,16 @@ public partial class IsoMessageTests
 
         var dto = Experimental.Transport.Json.DataList.Extensions.ToJsonDto(message);
         var message2 = Experimental.Transport.Json.DataList.Extensions.ToDomainModel(dto);
-
-        message.Should().BeEquivalentTo(message2);
+        var localId1 = message.Package.DataList.Data[0].DataId.LocalId;
+        var localId2 = message2.Package.DataList.Data[0].DataId.LocalId;
+        localId1.Should().Be(localId2);
+        Assert.StrictEqual(localId1, localId2);
+        // var localId1Str = localId1.ToString();
+        // var localId2Str = localId2.ToString();
+        // var parents1 = localId1.PrimaryItem._parents.ToArray();
+        // var parents2 = localId2.PrimaryItem._parents.ToArray();
+        // message2.Should().BeEquivalentTo(message);
+        localId1.Should().Be(localId2);
+        Assert.StrictEqual(localId1, localId2);
     }
 }

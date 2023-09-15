@@ -1,5 +1,6 @@
 import { GmodPath, VIS, VisVersion } from "../lib";
 import GmodPaths from "../../testdata/GmodPaths.json";
+import InstsantiatableSets from "../../testdata/IndividualizableSets.json";
 
 describe("GmodPath", () => {
     const vis = VIS.instance;
@@ -101,5 +102,17 @@ describe("GmodPath", () => {
         expect(path.toFullPathString()).toEqual(
             "VE/800a/840/846/G203/G203.3-2/G203.32-2/S110/S110.2-1/CS1/E31"
         );
+    });
+
+    test.each(InstsantiatableSets)("Instantiatable sets %s", async testCase => {
+        const gmod = await gmodPromise;
+        const locations = await locationsPromise;
+
+        const path = gmod.parsePath(testCase.path, locations);
+        const sets = path.instantiatiableSets;
+        expect(sets.length).toBe(testCase.expected.length);
+        for (let i = 0; i < testCase.expected.length; i++) {
+            expect(sets[i].nodes.map(n => n.code)).toEqual(testCase.expected[i]);
+        }
     });
 });
