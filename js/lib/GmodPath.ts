@@ -31,6 +31,10 @@ export class GmodIndividualizableSet {
         return this._nodes.map(i => this.getNode(i));
     }
 
+    public get nodesIndices(): number[] {
+        return this._nodes;
+    }
+
     public get codes(): string[] {
         return this._nodes.map(i => this.getNode(i).code);
     }

@@ -11,7 +11,9 @@ public sealed record GmodIndividualizableSet
     private readonly List<int> _nodes;
     private GmodPath _path;
 
-    internal IReadOnlyList<GmodNode> Nodes => _nodes.Select(i => _path[i]).ToArray();
+    public IReadOnlyList<GmodNode> Nodes => _nodes.Select(i => _path[i]).ToArray();
+
+    public IReadOnlyList<int> NodeIndices => _nodes;
 
     internal GmodIndividualizableSet(List<int> nodes, GmodPath path)
     {
