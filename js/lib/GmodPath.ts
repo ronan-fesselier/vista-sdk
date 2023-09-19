@@ -62,7 +62,10 @@ export class GmodIndividualizableSet {
     }
 
     public toString(): string {
-        return this._nodes.filter(i => this.getNode(i).isLeafNode).map(i => this.getNode(i).toString()).join('/');
+        return this._nodes
+            .filter((i, j) => this.getNode(i).isLeafNode || j === this._nodes.length - 1)
+            .map(i => this.getNode(i).toString())
+            .join('/');
     }
 }
 

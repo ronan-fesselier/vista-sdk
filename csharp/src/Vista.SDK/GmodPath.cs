@@ -51,7 +51,10 @@ public sealed record GmodIndividualizableSet
     }
 
     public override string ToString() =>
-        string.Join("/", _nodes.Where(i => _path[i].IsLeafNode).Select(i => _path[i].ToString()));
+        string.Join(
+            "/",
+            _nodes.Where((i, j) => _path[i].IsLeafNode || j == _nodes.Count - 1).Select(i => _path[i].ToString())
+        );
 }
 
 public sealed record GmodPath
