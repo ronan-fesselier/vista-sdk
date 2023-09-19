@@ -1,12 +1,11 @@
 using System.Text;
-using Vista.SDK.Internal;
 
 namespace Vista.SDK;
 
 public record class GmodNode
 {
     public string Code { get; init; }
-    public Location? Location { get; private init; }
+    public Location? Location { get; internal init; }
 
     public VisVersion VisVersion { get; }
 
@@ -37,9 +36,9 @@ public record class GmodNode
         _parents = new List<GmodNode>();
     }
 
-    public GmodNode WithoutLocation() => Location is null ? this : this with { Location = null };
+    internal GmodNode WithoutLocation() => Location is null ? this : this with { Location = null };
 
-    public GmodNode WithLocation(string location)
+    internal GmodNode WithLocation(string location)
     {
         var locations = VIS.Instance.GetLocations(VisVersion);
 
@@ -49,7 +48,7 @@ public record class GmodNode
         };
     }
 
-    public GmodNode TryWithLocation(string? locationStr)
+    internal GmodNode TryWithLocation(string? locationStr)
     {
         var locations = VIS.Instance.GetLocations(VisVersion);
         if (!locations.TryParse(locationStr, out var location))
@@ -58,7 +57,7 @@ public record class GmodNode
         return WithLocation(location);
     }
 
-    public GmodNode TryWithLocation(string? locationStr, out ParsingErrors errors)
+    internal GmodNode TryWithLocation(string? locationStr, out ParsingErrors errors)
     {
         var locations = VIS.Instance.GetLocations(VisVersion);
 
@@ -68,9 +67,9 @@ public record class GmodNode
         return WithLocation(location);
     }
 
-    public GmodNode WithLocation(in Location location) => this with { Location = location };
+    internal GmodNode WithLocation(in Location location) => this with { Location = location };
 
-    public GmodNode TryWithLocation(in Location? location)
+    internal GmodNode TryWithLocation(in Location? location)
     {
         if (location is null)
             return this;
@@ -79,12 +78,12 @@ public record class GmodNode
     }
 
     /**
-     * Expected rule - Not allowed to instantiate
+     * Expected rule - Not allowed to individualize
      *      GROUP
      *      SELECTION
      *      PRODUCT TYPE
      */
-    public bool IsInstantiatable =>
+    public bool IsIndividualizable =>
         Metadata.Type != "GROUP"
         && Metadata.Type != "SELECTION"
         && !isProductType

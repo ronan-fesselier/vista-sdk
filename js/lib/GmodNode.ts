@@ -120,7 +120,7 @@ export class GmodNode {
             result = this.tryWithLocation(location, locations);
         }
 
-        if (!result) throw new Error("Node not instantiatable");
+        if (!result) throw new Error("Node not individualizable");
         return result;
     }
 
@@ -133,7 +133,7 @@ export class GmodNode {
         location: unknown,
         locations?: unknown
     ): GmodNode | undefined {
-        if (!this.isInstantiatable) return undefined;
+        if (!this.isIndividualizable) return undefined;
         if (location instanceof Location) {
             return this.with((s) => (s.location = location));
         } else if (
@@ -181,12 +181,12 @@ export class GmodNode {
     }
 
     /**
-     * Expected rule - Not allowed to instantiate
+     * Expected rule - Not allowed to individualize
      *      GROUP
      *      SELECTION
      *      PRODUCT TYPE
      */
-    public get isInstantiatable() {
+    public get isIndividualizable() {
         return (
             this.metadata.type !== "GROUP" &&
             this.metadata.type !== "SELECTION" &&

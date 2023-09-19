@@ -6,32 +6,59 @@ import { TraversalHandlerResult } from "./types/Gmod";
 import { PathNode, ParseContext } from "./types/GmodPath";
 import { isNullOrWhiteSpace } from "./util/util";
 
-export class GmodInstantiableSet {
+export class GmodIndividualizableSet {
     public get location(): Location | undefined {
-        return this.nodes[0].location;
+        return this.getNode(this._nodes[0]).location;
     }
 
     public set location(value: Location | undefined) {
-        for (const node of this.nodes) {
-            node.location = value;
+        for (const i of this._nodes) {
+            if (!value) {
+                if (i < this._path.parents.length)
+                    this._path.parents[i] = this._path.parents[i].withoutLocation();
+                else
+                    this._path.node = this._path.node.withoutLocation();
+            } else {
+                if (i < this._path.parents.length)
+                    this._path.parents[i] = this._path.parents[i].withLocation(value);
+                else
+                    this._path.node = this._path.node.withLocation(value);
+            }
         }
     }
 
-    public get codes(): string[] {
-        return this.nodes.map(n => n.code);
+    public get nodes(): GmodNode[] {
+        return this._nodes.map(i => this.getNode(i));
     }
 
-    constructor(public nodes: GmodNode[]) {
-        if (nodes.length === 0)
-            throw new Error('GmodInstantiableSet cant be empty');
-        if (nodes.some(n => !n.isInstantiatable))
-            throw new Error('GmodInstantiableSet nodes must be instantiatable');
-        if (new Set<string | undefined>(nodes.map(n => n.location?.value)).size !== 1)
-            throw new Error('GmodInstantiableSet must have a common location');
+    public get codes(): string[] {
+        return this._nodes.map(i => this.getNode(i).code);
+    }
+
+    constructor(private _nodes: number[], private _path: GmodPath) {
+        if (_nodes.length === 0)
+            throw new Error('GmodIndividualizableSet cant be empty');
+        if (_nodes.some(i => !this.getNode(i).isIndividualizable))
+            throw new Error('GmodIndividualizableSet nodes must be individualizable');
+        if (new Set<string | undefined>(_nodes.map(i => this.getNode(i).location?.value)).size !== 1)
+            throw new Error('GmodIndividualizableSet must have a common location');
+
+        this._path = _path.clone();
+    }
+
+    private getNode(i: number): GmodNode {
+        return i < this._path.parents.length ? this._path.parents[i] : this._path.node;
+    }
+
+    public build(): GmodPath {
+        const path = this._path;
+        if (!path) throw new Error('Tried to build individualizable set twice');
+        this._path = undefined!;
+        return path;
     }
 
     public toString(): string {
-        return this.nodes.filter(n => n.isLeafNode).join('/');
+        return this._nodes.filter(i => this.getNode(i).isLeafNode).map(i => this.getNode(i).toString()).join('/');
     }
 }
 
@@ -63,6 +90,12 @@ export class GmodPath {
                     throw new Error(
                         `Invalid gmod path - ${child.code} not child of ${parent.code}`
                     );
+            }
+
+            const visit = locationSetsVisitor();
+            for (let i = 0; i < parents.length; i++) {
+                const n = i < parents.length ? parents[i] : node;
+                let _ = visit(n, i, parents, node);
             }
         }
 
@@ -123,139 +156,51 @@ export class GmodPath {
         throw new Error("Unsupported method parameter");
     }
 
-    public withLocation(location: Location, parent?: GmodNode): GmodPath {
-        /**
-         * ex. Code = C101.31, Location = 2
-         *      -> C101.3i-2/C101.31-2
-         * Apply location to a node on the path (either parent or node)
-         * Backpropagate to closest scope and apply location to these parents
-         * Rules:
-         *      New scope metadata:
-         *          Parent.Category = Selection
-         *          Parent.Category = Group
-         *          Parent.Category = Leaf
-         * */
-
-        if (!parent) {
-            this.node = this.node.withLocation(location);
-            GmodPath.ensureCorrectLocation(this);
-        } else {
-            const nodeIndex = this.parents.findIndex(
-                (p) => p.code === parent.code
-            );
-            if (nodeIndex === -1) throw new Error("Node not part on parents");
-
-            this.parents[nodeIndex] = parent.withLocation(location);
-            GmodPath.ensureCorrectLocation(this);
-        }
-
-        return new GmodPath(this.parents, this.node);
-    }
-
     public withoutLocation(): GmodPath {
-        return new GmodPath(
+        return new GmodPath( // TODO inst sets
             this.parents.map((p) => p.withoutLocation()),
             this.node.withoutLocation()
         );
     }
 
-    private static ensureCorrectLocation(path: GmodPath) {
-        const nodes = path.parents.map((p, index) => ({
-            node: p,
-            index,
-            isLeaf: Gmod.isLeafNode(p.metadata),
-            hasLocation: !!p.location,
-        }));
+    public get individualizableSets(): GmodIndividualizableSet[] {
+        const result: GmodIndividualizableSet[] = [];
 
-        if (Gmod.isProductType(path.node.metadata))
-            nodes[nodes.length - 1].isLeaf = true;
-        else
-            nodes.push({
-                node: path.node,
-                index: path.parents.length,
-                isLeaf: Gmod.isLeafNode(path.node.metadata),
-                hasLocation: !!path.node.location,
-            });
-
-        const potentialNodes = nodes.filter((n) => n.hasLocation);
-
-        //
-        for (const { node, index } of potentialNodes) {
-            if (!node.location) continue;
-            // Check parents
-            this.backPropagateLocations(path, node.location, index - 1);
-
-            if (node.code === path.node.code) continue;
-
-            this.forwardPropagateLocations(path, node.location, index + 1);
-        }
-    }
-
-    public get instantiatiableSets(): GmodInstantiableSet[] {
-        const result: GmodInstantiableSet[] = [];
-        let currentParentStart = -1;
+        const visit = locationSetsVisitor();
         for (let i = 0; i < this.length; i++) {
             const node = i < this.parents.length ? this.parents[i] : this.node;
-            var isParent = PotentialParentScopeTypes.includes(node.metadata.type);
-            if (currentParentStart === -1) {
-                if (isParent)
-                    currentParentStart = i;
-                if (node.isInstantiatable)
-                    result.push(new GmodInstantiableSet([node]));
-            } else {
-                if (isParent) {
-                    const nodes: GmodNode[] = [];
-                    if (currentParentStart + 1 === i) {
-                        if (node.isInstantiatable)
-                            nodes.push(node);
-                    } else {
-                        for (let j = currentParentStart + 1; j <= i; j++) {
-                            const setNode = j < this.parents.length ? this.parents[j] : this.node;
-                            if (!setNode.isInstantiatable)
-                                continue;
-                            nodes.push(setNode);
-                        }
-                    }
-                    currentParentStart = i;
-                    if (nodes.length > 0)
-                        result.push(new GmodInstantiableSet(nodes));
-                }
+            const set = visit(node, i, this.parents, this.node);
+            if (set === null)
+                continue;
+
+            const [start, end, _] = set;
+            if (start === end) {
+                result.push(new GmodIndividualizableSet([start], this));
+                continue;
             }
+
+            const nodes = [];
+            for (let j = start; j <= end; j++)
+                nodes.push(j);
+
+            result.push(new GmodIndividualizableSet(nodes, this));
         }
 
         return result;
     }
 
-    private static backPropagateLocations(
-        path: GmodPath,
-        location: Location,
-        fromIndex: number
-    ) {
-        for (let i = fromIndex; i >= 0; i--) {
-            const parent = path.parents[i];
-            if (PotentialParentScopeTypes.includes(parent.metadata.type)) break;
-            if (!parent.isInstantiatable) continue;
-            path.parents[i] = parent.withLocation(location);
+    public get isIndividualizable(): boolean {
+        const visit = locationSetsVisitor();
+        for (let i = 0; i < this.length; i++) {
+            const node = i < this.parents.length ? this.parents[i] : this.node;
+            const set = visit(node, i, this.parents, this.node);
+            if (set === null)
+                continue;
+
+            return true;
         }
-    }
 
-    private static forwardPropagateLocations(
-        path: GmodPath,
-        location: Location,
-        fromIndex: number
-    ) {
-        for (let i = fromIndex; i <= path.parents.length; i++) {
-            const child =
-                i === path.parents.length ? path.node : path.parents[i];
-
-            if (PotentialParentScopeTypes.includes(child.metadata.type)) break;
-
-            if (!child.isInstantiatable) continue;
-
-            if (i === path.parents.length)
-                path.node = child.withLocation(location);
-            else path.parents[i] = child.withLocation(location);
-        }
+        return false;
     }
 
     public toString(): string {
@@ -297,7 +242,6 @@ export class GmodPath {
     }
 
     public getFullPath(): GmodNode[] {
-        GmodPath.ensureCorrectLocation(this);
         return this.parents.concat(this.node);
     }
 
@@ -446,7 +390,7 @@ export class GmodPath {
                         }
                     }
 
-                    const endNode = toFind.location
+                    let endNode = toFind.location
                         ? current.withLocation(toFind.location)
                         : current;
 
@@ -475,6 +419,33 @@ export class GmodPath {
 
                     pathParents.unshift(gmod.rootNode);
 
+                    const visit = locationSetsVisitor();
+                    for (let i = 0; i < pathParents.length + 1; i++) {
+                        var n = i < pathParents.length ? pathParents[i] : endNode;
+                        const set = visit(n, i, pathParents, endNode);
+                        if (set === null)
+                            continue;
+
+                        const [start, end, location] = set;
+                        if (start === end)
+                            continue;
+
+                        for (let j = start; j <= end; j++) {
+                            if (j < pathParents.length) {
+                                if (!!location)
+                                    pathParents[j] = pathParents[j].withLocation(location);
+                                else
+                                    pathParents[j] = pathParents[j].withoutLocation();
+                            }
+                            else {
+                                if (!!location)
+                                    endNode = endNode.withLocation(location);
+                                else
+                                    endNode = endNode.withoutLocation();
+                            }
+                        }
+                    }
+
                     context.path = new GmodPath(pathParents, endNode);
                     return TraversalHandlerResult.Stop;
                 },
@@ -484,7 +455,6 @@ export class GmodPath {
             if (context.path === undefined) {
                 throw new Error("Failed to find path after travesal");
             }
-            GmodPath.ensureCorrectLocation(context.path);
 
             return context.path;
         } catch (error) {
@@ -567,16 +537,44 @@ export class GmodPath {
             }
         };
 
-        const endNode = getNode(endPathNode, gmod, locations);
+        let endNode = getNode(endPathNode, gmod, locations);
         if (!endNode) return;
 
         const parents = parts.map((code) => getNode(code, gmod, locations));
         if (parents.some((n) => !n)) return;
 
-        if (!GmodPath.isValid(parents as GmodNode[], endNode)) return;
+        const pathParents = parents as GmodNode[];
+        if (!GmodPath.isValid(pathParents, endNode)) return;
 
-        const path = new GmodPath(parents as GmodNode[], endNode, true);
-        GmodPath.ensureCorrectLocation(path);
+
+        const visit = locationSetsVisitor();
+        for (let i = 0; i < pathParents.length + 1; i++) {
+            var n = i < pathParents.length ? pathParents[i] : endNode;
+            const set = visit(n, i, pathParents, endNode);
+            if (set === null)
+                continue;
+
+            const [start, end, location] = set;
+            if (start === end)
+                continue;
+
+            for (let j = start; j <= end; j++) {
+                if (j < pathParents.length) {
+                    if (!!location)
+                        pathParents[j] = pathParents[j].withLocation(location);
+                    else
+                        pathParents[j] = pathParents[j].withoutLocation();
+                }
+                else {
+                    if (!!location)
+                        endNode = endNode.withLocation(location);
+                    else
+                        endNode = endNode.withoutLocation();
+                }
+            }
+        }
+
+        const path = new GmodPath(pathParents, endNode, true);
         return path;
     }
 
@@ -603,4 +601,54 @@ export class GmodPath {
             this.node.clone()
         );
     }
+}
+
+function locationSetsVisitor() {
+    let currentParentStart = -1;
+
+    return (node: GmodNode, i: number, parents: GmodNode[], target: GmodNode): [number, number, Location | undefined] | null => {
+        const isParent = PotentialParentScopeTypes.includes(node.metadata.type);
+        if (currentParentStart === -1) {
+            if (isParent)
+                currentParentStart = i;
+            if (node.isIndividualizable)
+                return [i, i, node.location];
+        } else {
+            if (isParent) {
+                let nodes: [number, number, Location | undefined] | null = null;
+                if (currentParentStart + 1 === i) {
+                    if (node.isIndividualizable)
+                        nodes = [i, i, node.location];
+                } else {
+                    let skippedOne = -1;
+                    for (let j = currentParentStart + 1; j <= i; j++) {
+                        const setNode = j < parents.length ? parents[j] : target;
+                        if (!setNode.isIndividualizable) {
+                            if (nodes !== null)
+                                skippedOne = j;
+                            continue;
+                        }
+
+                        if (nodes !== null && !!nodes[2] && !!setNode.location && !setNode.location.equals(nodes[2])) {
+                            throw new Error(`Mapping error: different locations in the same nodeset: ${nodes[2]}, ${setNode.location}`);
+                        }
+
+                        if (skippedOne !== -1) {
+                            throw new Error('Cant skip in the middle of individualizable set');
+                        }
+
+                        const location: Location | undefined = nodes === null || !nodes[2] ? setNode.location : nodes[2];
+                        const start: number = !!nodes ? nodes[0] : j;
+                        const end: number = j;
+                        nodes = [start, end, location];
+                    }
+                }
+
+                currentParentStart = i;
+                if (nodes !== null)
+                    return nodes;
+            }
+        }
+        return null;
+    };
 }

@@ -1,6 +1,7 @@
 import { GmodPath, VIS, VisVersion } from "../lib";
 import GmodPaths from "../../testdata/GmodPaths.json";
-import InstsantiatableSets from "../../testdata/IndividualizableSets.json";
+import IndividualizableSets from "../../testdata/IndividualizableSets.json";
+import { GmodIndividualizableSet } from "../lib/GmodPath";
 
 describe("GmodPath", () => {
     const vis = VIS.instance;
@@ -60,32 +61,43 @@ describe("GmodPath", () => {
         const gmod = await gmodPromise;
         const locations = await locationsPromise;
 
-        const path = gmod.parseFromFullPath(
+        let path = gmod.parseFromFullPath(
             "VE/400a/410/411/411i/411.1/CS1/C101/C101.3/C101.3i/C101.31/C101.311-1",
             locations
         );
         const newLocation = locations.parse("2");
 
         // Test setting location on the path node
-        path.withLocation(newLocation);
+        let sets = path.individualizableSets;
+        let set: GmodIndividualizableSet | undefined = sets[sets.length - 1];
+        expect(set).toBeDefined();
+        set.location = newLocation;
+        path = set.build();
         expect(path.node.location?.toString()).toEqual(newLocation.toString());
         expect(path.getNode("C101.31").toString()).toEqual("C101.31-2");
         expect(path.getNode("C101.3i").toString()).toEqual("C101.3i-2");
 
         // Test setting location on a parent in the path
-        path.withLocation(newLocation, gmod.getNode("411.1"));
+        sets = path.individualizableSets;
+        set = sets.find(s => s.codes.includes("411.1"));
+        expect(set).toBeDefined();
+        set!.location = newLocation;
+        path = set!.build();
         expect(path.getNode("411.1")?.toString()).toEqual("411.1-2");
         expect(path.getNode("411")?.toString()).not.toEqual("411-2");
 
-        expect(() =>
-            path.withLocation(newLocation, gmod.getNode("411"))
-        ).toThrowError();
+        sets = path.individualizableSets;
+        set = sets.find(s => s.codes.includes("411"));
+        expect(set).toBeUndefined();
 
         // Test setting location on the path node
-        const newPath = path.withoutLocation();
-        newPath.withLocation(newLocation, gmod.getNode("C101.3i"));
-
-        expect(newPath.getNode("C101.31").toString()).toEqual("C101.31-2");
+        path = path.withoutLocation();
+        sets = path.individualizableSets;
+        set = sets.find(s => s.codes.includes("C101.3i"));
+        expect(set).toBeDefined();
+        set!.location = newLocation;
+        path = set!.build();
+        expect(path.getNode("C101.31").toString()).toEqual("C101.31-2");
     });
 
     test("toFullPathString", async () => {
@@ -104,15 +116,59 @@ describe("GmodPath", () => {
         );
     });
 
-    test.each(InstsantiatableSets)("Instantiatable sets %s", async testCase => {
+    test.each(IndividualizableSets)("Individualizable sets %s", async testCase => {
         const gmod = await gmodPromise;
         const locations = await locationsPromise;
 
         const path = gmod.parsePath(testCase.path, locations);
-        const sets = path.instantiatiableSets;
+        const sets = path.individualizableSets;
         expect(sets.length).toBe(testCase.expected.length);
         for (let i = 0; i < testCase.expected.length; i++) {
-            expect(sets[i].nodes.map(n => n.code)).toEqual(testCase.expected[i]);
+            expect(sets[i].codes).toEqual(testCase.expected[i]);
+        }
+    });
+
+    test.each(IndividualizableSets)("Individualizable sets fullpath %s", async testCase => {
+        const gmod = await gmodPromise;
+        const locations = await locationsPromise;
+
+        const path = gmod.parseFromFullPath(gmod.parsePath(testCase.path, locations).toFullPathString(), locations);
+        const sets = path.individualizableSets;
+        expect(sets.length).toBe(testCase.expected.length);
+        for (let i = 0; i < testCase.expected.length; i++) {
+            expect(sets[i].codes).toEqual(testCase.expected[i]);
+        }
+    });
+
+    test.each(GmodPaths.Valid)("Individualizable sets valid paths %p", async (testPath) => {
+        const gmod = await gmodPromise;
+        const locations = await locationsPromise;
+
+        const path = GmodPath.parse(testPath, locations, gmod);
+        const sets = path.individualizableSets;
+
+        const uniqueCodes = new Set<string>();
+        for (const set of sets) {
+            for (const node of set.nodes) {
+                expect(uniqueCodes.has(node.code)).toBe(false);
+                uniqueCodes.add(node.code)
+            }
+        }
+    });
+
+    test.each(GmodPaths.Valid)("Individualizable sets valid paths full path %p", async (testPath) => {
+        const gmod = await gmodPromise;
+        const locations = await locationsPromise;
+
+        const path = GmodPath.parseFromFullPath(GmodPath.parse(testPath, locations, gmod).toFullPathString(), gmod, locations);
+        const sets = path.individualizableSets;
+
+        const uniqueCodes = new Set<string>();
+        for (const set of sets) {
+            for (const node of set.nodes) {
+                expect(uniqueCodes.has(node.code)).toBe(false);
+                uniqueCodes.add(node.code)
+            }
         }
     });
 });

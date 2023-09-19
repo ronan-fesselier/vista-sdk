@@ -94,7 +94,7 @@ public class GmodPathTests
 
     [Theory]
     [InlineData("411.1/C101.72/I101", "VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101")]
-    [InlineData("612.21-1/C701.13/S93", "VE/600a/610/612/612.2/612.2i/612.21-1/CS10/C701/C701.1/C701.13/S93")]
+    [InlineData("612.21-1/C701.13/S93", "VE/600a/610/612/612.2/612.2i-1/612.21-1/CS10/C701/C701.1/C701.13/S93")]
     public void Test_FullPathParsing(string shortPathStr, string expectedFullPathStr)
     {
         var version = VisVersion.v3_4a;
@@ -120,5 +120,73 @@ public class GmodPathTests
         Assert.Equal(fullString, parsedPath.ToFullPathString());
         Assert.Equal(shortPathStr, path.ToString());
         Assert.Equal(shortPathStr, parsedPath.ToString());
+    }
+
+    [Theory]
+    [MemberData(nameof(VistaSDKTestData.AddIndividualizableSetsData), MemberType = typeof(VistaSDKTestData))]
+    public void Test_IndividualizableSets(string inputPath, string[][] expected)
+    {
+        var version = VisVersion.v3_4a;
+        var gmod = VIS.Instance.GetGmod(version);
+
+        var path = gmod.ParsePath(inputPath);
+        var sets = path.IndividualizableSets;
+        Assert.Equal(expected.Length, sets.Count);
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i], sets[i].Nodes.Select(n => n.Code));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(VistaSDKTestData.AddIndividualizableSetsData), MemberType = typeof(VistaSDKTestData))]
+    public void Test_IndividualizableSets_FullPath(string inputPath, string[][] expected)
+    {
+        var version = VisVersion.v3_4a;
+        var gmod = VIS.Instance.GetGmod(version);
+
+        var path = GmodPath.ParseFullPath(gmod.ParsePath(inputPath).ToFullPathString(), version);
+        var sets = path.IndividualizableSets;
+        Assert.Equal(expected.Length, sets.Count);
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i], sets[i].Nodes.Select(n => n.Code));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(VistaSDKTestData.AddValidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
+    public void Test_Valid_GmodPath_IndividualizableSets(string inputPath)
+    {
+        var version = VisVersion.v3_4a;
+        var gmod = VIS.Instance.GetGmod(version);
+
+        var path = gmod.ParsePath(inputPath);
+        var sets = path.IndividualizableSets;
+
+        var uniqueCodes = new HashSet<string>();
+        foreach (var set in sets)
+        {
+            foreach (var node in set.Nodes)
+                Assert.True(uniqueCodes.Add(node.Code));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(VistaSDKTestData.AddValidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
+    public void Test_Valid_GmodPath_IndividualizableSets_FullPath(string inputPath)
+    {
+        var version = VisVersion.v3_4a;
+        var gmod = VIS.Instance.GetGmod(version);
+
+        var path = GmodPath.ParseFullPath(gmod.ParsePath(inputPath).ToFullPathString(), version);
+        var sets = path.IndividualizableSets;
+
+        var uniqueCodes = new HashSet<string>();
+        foreach (var set in sets)
+        {
+            foreach (var node in set.Nodes)
+                Assert.True(uniqueCodes.Add(node.Code));
+        }
     }
 }

@@ -23,10 +23,15 @@ public class VistaSDKTestData
 
     public static IEnumerable<object?[]> AddLocationsData() => AddLocationsData(LocationsTestData);
 
+    public static IEnumerable<object?[]> AddIndividualizableSetsData() =>
+        AddIndividualizableSetsData(IndividualizableSetsData);
+
     private static CodebookTestData CodebookTestData => GetData<CodebookTestData>("Codebook");
     private static LocalIdTestData LocalIdTestData => GetData<LocalIdTestData>("InvalidLocalIds");
     private static GmodPathTestData GmodPathTestData => GetData<GmodPathTestData>("GmodPaths");
     private static LocationsTestData LocationsTestData => GetData<LocationsTestData>("Locations");
+    private static IndividualizableSetData[] IndividualizableSetsData =>
+        GetData<IndividualizableSetData[]>("IndividualizableSets");
 
     private static T GetData<T>(string testName)
     {
@@ -81,6 +86,14 @@ public class VistaSDKTestData
             };
         }
     }
+
+    public static IEnumerable<object?[]> AddIndividualizableSetsData(IndividualizableSetData[] data)
+    {
+        foreach (var set in data)
+        {
+            yield return new object?[] { set.Path, set.Expected, };
+        }
+    }
 }
 
 public record InvalidLocalIds(
@@ -110,4 +123,9 @@ public sealed record class LocationsTestDataItem(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("output")] string? Output,
     [property: JsonPropertyName("expectedErrorMessages")] string[] ExpectedErrorMessages
+);
+
+public sealed record IndividualizableSetData(
+    [property: JsonPropertyName("path")] string Path,
+    [property: JsonPropertyName("expected")] string[][] Expected
 );

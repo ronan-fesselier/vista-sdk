@@ -6,48 +6,58 @@ using Vista.SDK.Internal;
 
 namespace Vista.SDK;
 
-public sealed record GmodInstantiableSet
+public sealed record GmodIndividualizableSet
 {
-    private readonly List<GmodNode> _nodes;
+    private readonly List<int> _nodes;
+    private GmodPath _path;
 
-    public IReadOnlyList<GmodNode> Nodes => _nodes;
+    internal IReadOnlyList<GmodNode> Nodes => _nodes.Select(i => _path[i]).ToArray();
 
-    internal GmodInstantiableSet(List<GmodNode> nodes)
+    internal GmodIndividualizableSet(List<int> nodes, GmodPath path)
     {
         if (nodes.Count == 0)
-            throw new Exception("GmodInstantiableSet cant be empty");
-        if (nodes.Any(n => !n.IsInstantiatable))
-            throw new Exception("GmodInstantiableSet nodes must be instantiatable");
-        if (nodes.Select(n => n.Location).Distinct().Count() != 1)
-            throw new Exception();
+            throw new Exception("GmodIndividualizableSet cant be empty");
+        if (nodes.Any(i => !path[i].IsIndividualizable))
+            throw new Exception("GmodIndividualizableSet nodes must be individualizable");
+        if (nodes.Select(i => path[i].Location).Distinct().Count() != 1)
+            throw new Exception("GmodIndividualizableSet nodes have different locations");
 
         _nodes = nodes;
+        _path = path with { _parents = path._parents.ToList(), Node = path.Node with { } };
     }
 
     public Location? Location
     {
-        get => _nodes[0].Location;
+        get => _path[_nodes[0]].Location;
         set
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
                 if (value is null)
-                    _nodes[i] = _nodes[i].WithoutLocation();
+                    _path[_nodes[i]] = _path[_nodes[i]].WithoutLocation();
                 else
-                    _nodes[i] = _nodes[i].WithLocation(value.Value);
+                    _path[_nodes[i]] = _path[_nodes[i]].WithLocation(value.Value);
             }
         }
     }
 
-    public override string ToString() => string.Join("/", _nodes.Where(n => n.IsLeafNode).Select(n => n.ToString()));
+    public GmodPath Build()
+    {
+        var path = _path ?? throw new Exception("Tried to build individualizable set twice");
+        _path = null!;
+        return path;
+    }
+
+    public override string ToString() =>
+        string.Join("/", _nodes.Where(i => _path[i].IsLeafNode).Select(i => _path[i].ToString()));
 }
 
 public sealed record GmodPath
 {
-    public readonly List<GmodNode> _parents;
+    internal List<GmodNode> _parents { get; init; }
     public IReadOnlyList<GmodNode> Parents => _parents;
 
-    public GmodNode Node { get; private set; }
+    public GmodNode Node { get; internal set; }
 
     public int Length => _parents.Count + 1;
 
@@ -64,85 +74,61 @@ public sealed record GmodPath
 
             return depth < _parents.Count ? _parents[depth] : Node;
         }
+        internal set
+        {
+            if (depth < _parents.Count)
+                _parents[depth] = value;
+            else
+                Node = value;
+        }
     }
 
-    // public IReadOnlyList<GmodInstantiableSet> InstantiatiableSets
-    // {
-    //     get
-    //     {
-    //         var result = new List<GmodInstantiableSet>();
-    //         IterateGmodInstantiableSets(result);
-    //         return result;
-    //     }
-    // }
-
-    private void IterateGmodInstantiableSets(List<GmodInstantiableSet>? result = null)
+    public IReadOnlyList<GmodIndividualizableSet> IndividualizableSets
     {
-        var currentParentStart = -1;
-        for (int i = 0; i < Length; i++)
+        get
         {
-            var node = this[i];
-            var isParent = Gmod.PotentialParentScopeTypes.Contains(node.Metadata.Type);
-            if (currentParentStart == -1)
+            var result = new List<GmodIndividualizableSet>();
+            var visitor = new LocationSetsVisitor();
+            for (int i = 0; i < Length; i++)
             {
-                if (isParent)
-                    currentParentStart = i;
-                if (node.IsInstantiatable && result is not null)
-                    result.Add(new GmodInstantiableSet(new List<GmodNode> { node }));
-            }
-            else
-            {
-                if (isParent)
-                {
-                    var nodes = result is not null ? new List<GmodNode>() : null;
-                    if (currentParentStart + 1 == i)
-                    {
-                        if (node.IsInstantiatable)
-                            nodes?.Add(node);
-                    }
-                    else
-                    {
-                        GmodNode? locationNode = null;
-                        for (var j = currentParentStart + 1; j <= i; j++)
-                        {
-                            var setNode = this[j];
-                            if (!setNode.IsInstantiatable)
-                                continue;
+                var node = this[i];
+                var set = visitor.Visit(node, i, _parents, Node);
+                if (set is null)
+                    continue;
 
-                            if (locationNode is null)
-                            {
-                                if (setNode.Location is not null)
-                                    locationNode = setNode;
-                            }
-                            else
-                            {
-                                Debug.Assert(
-                                    locationNode.Location is not null,
-                                    "We only set locationNode for this case"
-                                );
-                                if (setNode.Location is not null && setNode.Location != locationNode.Location)
-                                {
-                                    throw new Exception(
-                                        $"Tried to propagate location, but location was different: {locationNode}, {setNode}"
-                                    );
-                                }
-                                if (setNode.Location != locationNode.Location)
-                                {
-                                    setNode = setNode.WithLocation(locationNode!.Location!.Value);
-                                    if (j < _parents.Count)
-                                        _parents[j] = setNode;
-                                    else
-                                        Node = setNode;
-                                }
-                            }
-                            nodes?.Add(setNode);
-                        }
-                    }
-                    currentParentStart = i;
-                    if (result is not null && nodes is not null && nodes.Count > 0)
-                        result.Add(new GmodInstantiableSet(nodes));
+                var (start, end, _) = set.Value;
+                if (start == end)
+                {
+                    result.Add(new GmodIndividualizableSet(new List<int>() { start }, this));
+                    continue;
                 }
+
+                var nodes = new List<int>(end - start);
+                for (int j = start; j <= end; j++)
+                    nodes.Add(j);
+
+                result.Add(new GmodIndividualizableSet(nodes, this));
             }
+            return result;
+        }
+    }
+
+    public bool IsIndividualizable
+    {
+        get
+        {
+            var visitor = new LocationSetsVisitor();
+            for (int i = 0; i < Length; i++)
+            {
+                var node = this[i];
+                var set = visitor.Visit(node, i, _parents, Node);
+                if (set is null)
+                    continue;
+
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -174,6 +160,13 @@ public sealed record GmodPath
 
                 if (!set.Add(child.Code))
                     throw new ArgumentException($"Recursion in gmod path argument for code: {child.Code}");
+            }
+
+            var visitor = new LocationSetsVisitor();
+            for (int i = 0; i < parents.Count + 1; i++)
+            {
+                var n = i < parents.Count ? parents[i] : node;
+                var _ = visitor.Visit(n, i, parents, node);
             }
         }
 
@@ -456,6 +449,79 @@ public sealed record GmodPath
         return path;
     }
 
+    private record struct LocationSetsVisitor
+    {
+        public int currentParentStart;
+
+        public LocationSetsVisitor() => currentParentStart = -1;
+
+        public (int Start, int End, Location? Location)? Visit(
+            GmodNode node,
+            int i,
+            IReadOnlyList<GmodNode> parents,
+            GmodNode target
+        )
+        {
+            var isParent = Gmod.PotentialParentScopeTypes.Contains(node.Metadata.Type);
+            if (currentParentStart == -1)
+            {
+                if (isParent)
+                    currentParentStart = i;
+                if (node.IsIndividualizable)
+                    return (i, i, node.Location); // TODO - is this correct?
+            }
+            else
+            {
+                if (isParent)
+                {
+                    (int Start, int End, Location? Location)? nodes = null;
+                    if (currentParentStart + 1 == i)
+                    {
+                        if (node.IsIndividualizable)
+                            nodes = (i, i, node.Location);
+                    }
+                    else
+                    {
+                        var skippedOne = -1;
+                        for (var j = currentParentStart + 1; j <= i; j++)
+                        {
+                            var setNode = j < parents.Count ? parents[j] : target;
+                            if (!setNode.IsIndividualizable)
+                            {
+                                if (nodes is not null)
+                                    skippedOne = j;
+                                continue;
+                            }
+
+                            if (
+                                nodes?.Location is not null
+                                && setNode.Location is not null
+                                && nodes.Value.Location != setNode.Location
+                            )
+                                throw new Exception(
+                                    $"Mapping error: different locations in the same nodeset: {nodes.Value.Location}, {setNode.Location}"
+                                );
+
+                            if (skippedOne != -1)
+                                throw new Exception("Can't skip in the middle of individualizable set");
+
+                            var location = nodes?.Location is null ? setNode.Location : nodes?.Location;
+                            var start = nodes?.Start ?? j;
+                            var end = j;
+                            nodes = (start, end, location);
+                        }
+                    }
+
+                    currentParentStart = i;
+                    if (nodes is not null)
+                        return nodes;
+                }
+            }
+
+            return null;
+        }
+    }
+
     public static bool TryParse(string? item, Gmod gmod, Locations locations, [NotNullWhen(true)] out GmodPath? path)
     {
         if (gmod.VisVersion != locations.VisVersion)
@@ -549,6 +615,27 @@ public sealed record GmodPath
                 }
 
                 pathParents.Insert(0, gmod.RootNode);
+
+                var visitor = new LocationSetsVisitor();
+                for (var i = 0; i < pathParents.Count + 1; i++)
+                {
+                    var n = i < pathParents.Count ? pathParents[i] : endNode;
+                    var set = visitor.Visit(n, i, pathParents, endNode);
+                    if (set is null)
+                        continue;
+
+                    var (start, end, location) = set.Value;
+                    if (start == end)
+                        continue;
+
+                    for (int j = start; j <= end; j++)
+                    {
+                        if (j < pathParents.Count)
+                            pathParents[j] = pathParents[j] with { Location = location };
+                        else
+                            endNode = endNode with { Location = location };
+                    }
+                }
 
                 context.Path = new GmodPath(pathParents, endNode);
                 return TraversalHandlerResult.Stop;
@@ -657,6 +744,27 @@ public sealed record GmodPath
         nodes.RemoveAt(nodes.Count - 1);
         if (!IsValid(nodes, endNode))
             return false;
+
+        var visitor = new LocationSetsVisitor();
+        for (var i = 0; i < nodes.Count + 1; i++)
+        {
+            var n = i < nodes.Count ? nodes[i] : endNode;
+            var set = visitor.Visit(n, i, nodes, endNode);
+            if (set is null)
+                continue;
+
+            var (start, end, location) = set.Value;
+            if (start == end)
+                continue;
+
+            for (int j = start; j <= end; j++)
+            {
+                if (j < nodes.Count)
+                    nodes[j] = nodes[j] with { Location = location };
+                else
+                    endNode = endNode with { Location = location };
+            }
+        }
 
         path = new GmodPath(nodes, endNode, skipVerify: true);
         return true;

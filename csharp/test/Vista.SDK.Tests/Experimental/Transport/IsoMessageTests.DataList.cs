@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Equivalency;
 using Vista.SDK.Experimental.Transport;
 using Vista.SDK.Experimental.Transport.DataList;
+using Property = Vista.SDK.Experimental.Transport.DataList.Property;
 
 namespace Vista.SDK.Experimental.Tests.Transport;
 
@@ -89,12 +91,26 @@ public partial class IsoMessageTests
         var localId2 = message2.Package.DataList.Data[0].DataId.LocalId;
         localId1.Should().Be(localId2);
         Assert.StrictEqual(localId1, localId2);
-        // var localId1Str = localId1.ToString();
-        // var localId2Str = localId2.ToString();
-        // var parents1 = localId1.PrimaryItem._parents.ToArray();
-        // var parents2 = localId2.PrimaryItem._parents.ToArray();
-        // message2.Should().BeEquivalentTo(message);
+        message2.Should().BeEquivalentTo(message, config => config.Using(new LocalIdEquivalency()));
         localId1.Should().Be(localId2);
         Assert.StrictEqual(localId1, localId2);
+    }
+
+    private sealed class LocalIdEquivalency : IEquivalencyStep
+    {
+        public EquivalencyResult Handle(
+            Comparands comparands,
+            IEquivalencyValidationContext context,
+            IEquivalencyValidator nestedValidator
+        )
+        {
+            if (comparands.Subject is ILocalId && comparands.Expectation is ILocalId)
+            {
+                comparands.Subject.Equals(comparands.Expectation).Should().BeTrue();
+                return EquivalencyResult.AssertionCompleted;
+            }
+
+            return EquivalencyResult.ContinueWithNext;
+        }
     }
 }
