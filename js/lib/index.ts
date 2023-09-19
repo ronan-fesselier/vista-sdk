@@ -4,7 +4,7 @@ import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";
 import { Pmod } from "./Pmod";
 import { GmodNode } from "./GmodNode";
-import { GmodPath } from "./GmodPath";
+import { GmodPath, GmodIndividualizableSet } from "./GmodPath";
 import { ImoNumber } from "./ImoNumber";
 import { LocalId } from "./LocalId";
 import { ILocalId, ILocalIdGeneric } from "./ILocalId";
@@ -68,7 +68,7 @@ export { Experimental };
 export { UniversalIdParser, UniversalIdBuilder, UniversalId };
 
 // Gmod
-export { Gmod, GmodNode, GmodPath };
+export { Gmod, GmodNode, GmodPath, GmodIndividualizableSet };
 // Pmod
 export { Pmod, PmodNode, NotRelevant };
 // Client
