@@ -180,19 +180,20 @@ export class GmodNode {
         return lastChar !== "a" && lastChar !== "s";
     }
 
-    /**
-     * Expected rule - Not allowed to individualize
-     *      GROUP
-     *      SELECTION
-     *      PRODUCT TYPE
-     */
     public get isIndividualizable() {
-        return (
-            this.metadata.type !== "GROUP" &&
-            this.metadata.type !== "SELECTION" &&
-            !this.isProductType &&
-            (this.metadata.category !== "ASSET" && this.metadata.type !== "TYPE")
-        );
+        if (this.metadata.type === "GROUP")
+            return false;
+        if (this.metadata.type === "SELECTION")
+            return false;
+        if (this.isProductType)
+            return false;
+        if (this.metadata.category === "ASSET" && this.metadata.type == "TYPE")
+            return false;
+        if (this.metadata.category === "ASSET FUNCTION" && this.metadata.type === "COMPOSITION")
+            return this.code[this.code.length - 1] === 'i';
+        if (this.metadata.category === "PRODUCT FUNCTION" && this.metadata.type === "COMPOSITION")
+            return this.code[this.code.length - 1] === 'i';
+        return true;
     }
 
     public get isProductSelection() {

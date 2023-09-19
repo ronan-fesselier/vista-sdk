@@ -23,6 +23,8 @@ public sealed record GmodIndividualizableSet
             throw new Exception("GmodIndividualizableSet nodes must be individualizable");
         if (nodes.Select(i => path[i].Location).Distinct().Count() != 1)
             throw new Exception("GmodIndividualizableSet nodes have different locations");
+        if (!nodes.Any(i => path[i] == path.Node || path[i].IsLeafNode))
+            throw new Exception("GmodIndividualizableSet has no nodes that are part of short path");
 
         _nodes = nodes;
         _path = path with { _parents = path._parents.ToList(), Node = path.Node with { } };
@@ -521,6 +523,9 @@ public sealed record GmodPath
                     if (nodes is not null)
                         return nodes;
                 }
+
+                if (node.IsIndividualizable)
+                    return (i, i, node.Location);
             }
 
             return null;

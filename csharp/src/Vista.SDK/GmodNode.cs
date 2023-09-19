@@ -77,17 +77,25 @@ public record class GmodNode
         return WithLocation(location.Value);
     }
 
-    /**
-     * Expected rule - Not allowed to individualize
-     *      GROUP
-     *      SELECTION
-     *      PRODUCT TYPE
-     */
-    public bool IsIndividualizable =>
-        Metadata.Type != "GROUP"
-        && Metadata.Type != "SELECTION"
-        && !isProductType
-        && (Metadata.Category != "ASSET" && Metadata.Type != "TYPE");
+    public bool IsIndividualizable
+    {
+        get
+        {
+            if (Metadata.Type == "GROUP")
+                return false;
+            if (Metadata.Type == "SELECTION")
+                return false;
+            if (IsProductType)
+                return false;
+            if (Metadata.Category == "ASSET" && Metadata.Type == "TYPE")
+                return false;
+            if (Metadata.Category == "ASSET FUNCTION" && Metadata.Type == "COMPOSITION")
+                return Code[Code.Length - 1] == 'i';
+            if (Metadata.Category == "PRODUCT FUNCTION" && Metadata.Type == "COMPOSITION")
+                return Code[Code.Length - 1] == 'i';
+            return true;
+        }
+    }
 
     public bool IsMappable
     {
@@ -109,7 +117,7 @@ public record class GmodNode
 
     public bool IsProductSelection => Gmod.IsProductSelection(Metadata);
 
-    public bool isProductType => Gmod.IsProductType(Metadata);
+    public bool IsProductType => Gmod.IsProductType(Metadata);
 
     public bool IsAsset => Gmod.IsAsset(Metadata);
 

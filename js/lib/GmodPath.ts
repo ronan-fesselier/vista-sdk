@@ -46,6 +46,8 @@ export class GmodIndividualizableSet {
             throw new Error('GmodIndividualizableSet nodes must be individualizable');
         if (new Set<string | undefined>(_nodes.map(i => this.getNode(i).location?.value)).size !== 1)
             throw new Error('GmodIndividualizableSet must have a common location');
+        if (!_nodes.some(i => this.getNode(i).equals(_path.node) || this.getNode(i).isLeafNode))
+            throw new Error('GmodIndividualizableSet has no nodes that are part of short path');
 
         this._path = _path.clone();
     }
@@ -655,6 +657,9 @@ function locationSetsVisitor() {
                 if (nodes !== null)
                     return nodes;
             }
+
+            if (node.isIndividualizable)
+                return [i, i, node.location];
         }
         return null;
     };

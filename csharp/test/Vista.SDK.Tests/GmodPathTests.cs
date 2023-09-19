@@ -154,6 +154,16 @@ public class GmodPathTests
         }
     }
 
+    [Fact]
+    public void Test_GmodPath_Individualizes()
+    {
+        var version = VisVersion.v3_7a;
+        var gmod = VIS.Instance.GetGmod(version);
+        var path = gmod.ParsePath("411.1/C101.62/S205");
+        var sets = path.IndividualizableSets;
+        Assert.Equal(2, sets.Count);
+    }
+
     [Theory]
     [MemberData(nameof(VistaSDKTestData.AddValidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
     public void Test_Valid_GmodPath_IndividualizableSets(string inputPath)
