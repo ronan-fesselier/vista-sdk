@@ -23,6 +23,7 @@ import { Result, Ok, Err } from "./types/Result";
 import { Client } from "./Client";
 import { PmodNode } from "./PmodNode";
 import { UniversalIdParser } from "./UniversalId.Parsing";
+import { Location, LocationGroup, Locations } from "./Location";
 import {
     JSONExtensions,
     VistaJSONSerializer,
@@ -60,6 +61,9 @@ export {
     ILocalIdBuilder,
     ILocalIdBuilderGeneric,
 };
+
+// Locations
+export { Location, LocationGroup, Locations };
 
 // Experimental
 export { Experimental };

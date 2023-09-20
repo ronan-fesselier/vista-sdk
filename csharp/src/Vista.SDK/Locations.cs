@@ -3,6 +3,15 @@ using Vista.SDK.Internal;
 
 namespace Vista.SDK;
 
+public enum LocationGroup
+{
+    Number,
+    Side,
+    Vertical,
+    Transverse,
+    Longitudinal
+}
+
 public readonly record struct Location
 {
     public readonly string Value { get; }
@@ -26,6 +35,8 @@ public sealed class Locations
 
     // This is if we need Code, Name, Definition in Frontend UI
     public IReadOnlyList<RelativeLocation> RelativeLocations => _relativeLocations;
+
+    public IReadOnlyDictionary<LocationGroup, IReadOnlyList<RelativeLocation>> Groups => GroupLocations();
 
     internal Locations(VisVersion version, LocationsDto dto)
     {
@@ -252,6 +263,28 @@ public sealed class Locations
         if (!errorBuilder.HasError)
             errorBuilder = LocationParsingErrorBuilder.Create();
         errorBuilder.AddError(name, message);
+    }
+
+    private IReadOnlyDictionary<LocationGroup, IReadOnlyList<RelativeLocation>> GroupLocations()
+    {
+        var groups = new Dictionary<LocationGroup, List<RelativeLocation>>();
+
+        foreach (var location in _relativeLocations)
+        {
+            var key = char.ToLower(location.Code) switch
+            {
+                'n' => LocationGroup.Number,
+                'p' or 'c' or 's' => LocationGroup.Side,
+                'u' or 'm' or 'l' => LocationGroup.Vertical,
+                'i' or 'o' => LocationGroup.Transverse,
+                'f' or 'a' or 's' => LocationGroup.Longitudinal,
+                _ => throw new Exception($"Unsupported code: {location.Code}")
+            };
+            if (!groups.ContainsKey(key))
+                groups.Add(key, new());
+            groups.GetValueOrDefault(key)?.Add(location);
+        }
+        return groups.ToDictionary(g => g.Key, g => g.Value.ToArray() as IReadOnlyList<RelativeLocation>);
     }
 }
 

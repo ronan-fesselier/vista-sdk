@@ -1,17 +1,20 @@
 using FluentAssertions;
-using Vista.SDK.Internal;
 
 namespace Vista.SDK.Tests;
 
 public class LocationsTests
 {
-    [Fact]
-    public void Test_Locations_Loads()
+    public static IEnumerable<object[]> Test_Vis_Versions => GmodTests.Test_Vis_Versions;
+
+    [Theory]
+    [MemberData(nameof(Test_Vis_Versions))]
+    public void Test_Locations_Loads(VisVersion visVersion)
     {
         var (_, vis) = VISTests.GetVis();
 
-        var locations = vis.GetLocations(VisVersion.v3_4a);
+        var locations = vis.GetLocations(visVersion);
         Assert.NotNull(locations);
+        Assert.NotNull(locations.Groups);
     }
 
     [Theory]

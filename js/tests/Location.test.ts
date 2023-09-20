@@ -1,4 +1,4 @@
-import { VIS, VisVersion } from "../lib";
+import { VIS, VisVersion, VisVersions } from "../lib";
 import * as testData from "../../testdata/Locations.json";
 import { LocationParsingErrorBuilder } from "../lib/internal/LocationParsingErrorBuilder";
 
@@ -7,11 +7,15 @@ describe("Location", () => {
     const version = VisVersion.v3_4a;
     const locationPromise = vis.getLocations(version);
 
-    test("Location loads", async () => {
-        const location = await locationPromise;
+    test.each(VisVersions.all)(
+        "Location loads for VIS version %s",
+        async (version) => {
+            const location = await vis.getLocations(version);
 
-        expect(location).toBeTruthy();
-    });
+            expect(location).toBeTruthy();
+            expect(location.groups).toBeTruthy();
+        }
+    );
 
     test.each(testData.locations.map((l) => [l]))(
         "Location parsing - %s",
@@ -38,7 +42,7 @@ describe("Location", () => {
         }
     );
 
-    test('Location parsing throws', async () => {
+    test("Location parsing throws", async () => {
         const locations = await locationPromise;
 
         expect(() => locations.parse(null!)).toThrowError();

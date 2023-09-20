@@ -4,11 +4,19 @@ import {
     RelativeLocation as RelativeLocations,
 } from "./types/Location";
 import { LocationsDto } from "./types/LocationDto";
-import { isNullOrWhiteSpace, tryParseInt } from "./util/util";
+import { isNullOrWhiteSpace } from "./util/util";
 import { VisVersion } from "./VisVersion";
 
 const charCodeZero = "0".charCodeAt(0);
 const charCodeNine = "9".charCodeAt(0);
+
+export enum LocationGroup {
+    Number,
+    Side,
+    Vertical,
+    Transverse,
+    Longitudinal,
+}
 
 export class Location {
     public readonly value: string;
@@ -110,7 +118,10 @@ export class Locations {
                                 `Invalid location: numeric location should start before location code(s) in location: '${location}'`
                             );
                             return;
-                        } else if (lastLetterIndex > digitStartIndex && lastLetterIndex < i) {
+                        } else if (
+                            lastLetterIndex > digitStartIndex &&
+                            lastLetterIndex < i
+                        ) {
                             addError(
                                 LocationValidationResult.Invalid,
                                 `Invalid location: cannot have multiple separated digits in location: '${location}'`
@@ -119,7 +130,10 @@ export class Locations {
                         }
                     }
 
-                    n = parseInt(span.slice(digitStartIndex, i - digitStartIndex), 10);
+                    n = parseInt(
+                        span.slice(digitStartIndex, i - digitStartIndex),
+                        10
+                    );
 
                     if (n < 0) {
                         addError(
@@ -130,11 +144,15 @@ export class Locations {
                     }
                 }
             } else {
-                if (ch === 'N' || !this._locationCodes.includes(ch)) {
+                if (ch === "N" || !this._locationCodes.includes(ch)) {
                     const invalidChars = Array.from(location)
-                        .filter(c => !isDigitCode(c) && (c === 'N' || !this._locationCodes.includes(c)))
-                        .map(c => `'${c}'`)
-                        .join(',');
+                        .filter(
+                            (c) =>
+                                !isDigitCode(c) &&
+                                (c === "N" || !this._locationCodes.includes(c))
+                        )
+                        .map((c) => `'${c}'`)
+                        .join(",");
                     addError(
                         LocationValidationResult.InvalidCode,
                         `Invalid location code: '${location}' with invalid location code(s): ${invalidChars}`
@@ -161,7 +179,6 @@ export class Locations {
 
         return new Location(location);
 
-
         function addError(type: LocationValidationResult, message: string) {
             errorBuilder?.push({
                 type,
@@ -170,7 +187,10 @@ export class Locations {
         }
 
         function isDigitCode(ch: string) {
-            return(ch.charCodeAt(0) >= charCodeZero && ch.charCodeAt(0) <= charCodeNine);
+            return (
+                ch.charCodeAt(0) >= charCodeZero &&
+                ch.charCodeAt(0) <= charCodeNine
+            );
         }
     }
 
@@ -180,5 +200,33 @@ export class Locations {
 
     public get locationCodes() {
         return this._locationCodes;
+    }
+
+    public get groups(): Map<LocationGroup, RelativeLocations[]> {
+        const groups = new Map<LocationGroup, RelativeLocations[]>();
+
+        for (const location of this._relativeLocations) {
+            const key = {
+                n: LocationGroup.Number,
+                p: LocationGroup.Side,
+                c: LocationGroup.Side,
+                s: LocationGroup.Side,
+                u: LocationGroup.Vertical,
+                m: LocationGroup.Vertical,
+                l: LocationGroup.Vertical,
+                i: LocationGroup.Transverse,
+                o: LocationGroup.Transverse,
+                f: LocationGroup.Longitudinal,
+                a: LocationGroup.Longitudinal,
+            }[location.code.toLowerCase()];
+
+            if (key === undefined)
+                throw new Error(`Unsupported code: ${location.code}`);
+            if (!groups.has(key)) groups.set(key, []);
+
+            groups.get(key)?.push(location);
+        }
+
+        return groups;
     }
 }
