@@ -164,6 +164,22 @@ public class GmodPathTests
         Assert.Equal(2, sets.Count);
     }
 
+    [Fact]
+    public void Test_ToFullPathString()
+    {
+        var version = VisVersion.v3_7a;
+        var gmod = VIS.Instance.GetGmod(version);
+
+        var path = gmod.ParsePath("511.11-1/C101.663i-1/C663");
+        Assert.Equal(
+            "VE/500a/510/511/511.1/511.1i-1/511.11-1/CS1/C101/C101.6/C101.66/C101.663/C101.663i-1/C663",
+            path.ToFullPathString()
+        );
+
+        path = gmod.ParsePath("846/G203.32-2/S110.2-1/E31");
+        Assert.Equal("VE/800a/840/846/G203/G203.3-2/G203.32-2/S110/S110.2-1/CS1/E31", path.ToFullPathString());
+    }
+
     [Theory]
     [MemberData(nameof(VistaSDKTestData.AddValidGmodPathsData), MemberType = typeof(VistaSDKTestData))]
     public void Test_Valid_GmodPath_IndividualizableSets(string inputPath)

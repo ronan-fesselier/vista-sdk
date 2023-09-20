@@ -133,7 +133,7 @@ export class GmodNode {
         location: unknown,
         locations?: unknown
     ): GmodNode | undefined {
-        if (!this.isIndividualizable) return undefined;
+        // if (!isIndividualizable(this, false, false)) return undefined; // TODO what to do about this case
         if (location instanceof Location) {
             return this.with((s) => (s.location = location));
         } else if (
@@ -178,22 +178,6 @@ export class GmodNode {
 
         const lastChar = this.code.charAt(this.code.length - 1);
         return lastChar !== "a" && lastChar !== "s";
-    }
-
-    public get isIndividualizable() {
-        if (this.metadata.type === "GROUP")
-            return false;
-        if (this.metadata.type === "SELECTION")
-            return false;
-        if (this.isProductType)
-            return false;
-        if (this.metadata.category === "ASSET" && this.metadata.type == "TYPE")
-            return false;
-        if (this.metadata.category === "ASSET FUNCTION" && this.metadata.type === "COMPOSITION")
-            return this.code[this.code.length - 1] === 'i';
-        if (this.metadata.category === "PRODUCT FUNCTION" && this.metadata.type === "COMPOSITION")
-            return this.code[this.code.length - 1] === 'i';
-        return true;
     }
 
     public get isProductSelection() {
@@ -281,6 +265,11 @@ export class GmodNode {
         return Gmod.isFunctionNode(this.metadata);
     }
 
+    public get isFunctionComposition(): boolean {
+        return this.metadata.category === "ASSET FUNCTION" && this.metadata.type === "COMPOSITION" ||
+            this.metadata.category === "PRODUCT FUNCTION" && this.metadata.type === "COMPOSITION";
+    }
+
     public with(u: { (state: GmodNode): void }): GmodNode {
         const n = this.clone();
         u && u(n);
@@ -301,4 +290,20 @@ export class GmodNode {
             this
         );
     }
+}
+
+export function isIndividualizable(node: GmodNode, isTargetNode: boolean, isInSet: boolean = false) {
+    if (node.metadata.type === "GROUP")
+        return false;
+    if (node.metadata.type === "SELECTION")
+        return false;
+    if (node.isProductType)
+        return false;
+    if (node.metadata.category === "ASSET" && node.metadata.type == "TYPE")
+        return false;
+    if (node.metadata.category === "ASSET FUNCTION" && node.metadata.type === "COMPOSITION")
+        return node.code[node.code.length - 1] === 'i' || isTargetNode || isInSet;
+    if (node.metadata.category === "PRODUCT FUNCTION" && node.metadata.type === "COMPOSITION")
+        return node.code[node.code.length - 1] === 'i' || isTargetNode || isInSet;
+    return true;
 }

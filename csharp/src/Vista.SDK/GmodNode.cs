@@ -77,25 +77,24 @@ public record class GmodNode
         return WithLocation(location.Value);
     }
 
-    public bool IsIndividualizable
+    internal bool IsIndividualizable(bool isTargetNode = false, bool isInSet = false)
     {
-        get
-        {
-            if (Metadata.Type == "GROUP")
-                return false;
-            if (Metadata.Type == "SELECTION")
-                return false;
-            if (IsProductType)
-                return false;
-            if (Metadata.Category == "ASSET" && Metadata.Type == "TYPE")
-                return false;
-            if (Metadata.Category == "ASSET FUNCTION" && Metadata.Type == "COMPOSITION")
-                return Code[Code.Length - 1] == 'i';
-            if (Metadata.Category == "PRODUCT FUNCTION" && Metadata.Type == "COMPOSITION")
-                return Code[Code.Length - 1] == 'i';
-            return true;
-        }
+        if (Metadata.Type == "GROUP")
+            return false;
+        if (Metadata.Type == "SELECTION")
+            return false;
+        if (IsProductType)
+            return false;
+        if (Metadata.Category == "ASSET" && Metadata.Type == "TYPE")
+            return false;
+        if (IsFunctionComposition)
+            return Code[Code.Length - 1] == 'i' || isInSet || isTargetNode;
+        return true;
     }
+
+    public bool IsFunctionComposition =>
+        Metadata.Category == "ASSET FUNCTION" && Metadata.Type == "COMPOSITION"
+        || Metadata.Category == "PRODUCT FUNCTION" && Metadata.Type == "COMPOSITION";
 
     public bool IsMappable
     {

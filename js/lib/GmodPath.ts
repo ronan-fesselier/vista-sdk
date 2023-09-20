@@ -1,6 +1,6 @@
 import { VIS, VisVersion } from ".";
 import { Gmod, PotentialParentScopeTypes } from "./Gmod";
-import { GmodNode } from "./GmodNode";
+import { GmodNode, isIndividualizable } from "./GmodNode";
 import { Locations, Location } from "./Location";
 import { TraversalHandlerResult } from "./types/Gmod";
 import { PathNode, ParseContext } from "./types/GmodPath";
@@ -42,7 +42,7 @@ export class GmodIndividualizableSet {
     constructor(private _nodes: number[], private _path: GmodPath) {
         if (_nodes.length === 0)
             throw new Error('GmodIndividualizableSet cant be empty');
-        if (_nodes.some(i => !this.getNode(i).isIndividualizable))
+        if (_nodes.some(i => !isIndividualizable(this.getNode(i), i === _path.parents.length, _nodes.length > 1)))
             throw new Error('GmodIndividualizableSet nodes must be individualizable');
         if (new Set<string | undefined>(_nodes.map(i => this.getNode(i).location?.value)).size !== 1)
             throw new Error('GmodIndividualizableSet must have a common location');
@@ -617,22 +617,24 @@ function locationSetsVisitor() {
 
     return (node: GmodNode, i: number, parents: GmodNode[], target: GmodNode): [number, number, Location | undefined] | null => {
         const isParent = PotentialParentScopeTypes.includes(node.metadata.type);
+        const isTargetNode = i === parents.length;
         if (currentParentStart === -1) {
             if (isParent)
                 currentParentStart = i;
-            if (node.isIndividualizable)
+            if (isIndividualizable(node, isTargetNode))
                 return [i, i, node.location];
         } else {
             if (isParent) {
                 let nodes: [number, number, Location | undefined] | null = null;
                 if (currentParentStart + 1 === i) {
-                    if (node.isIndividualizable)
+                    if (isIndividualizable(node, isTargetNode))
                         nodes = [i, i, node.location];
                 } else {
                     let skippedOne = -1;
+                    let hasComposition = false;
                     for (let j = currentParentStart + 1; j <= i; j++) {
                         const setNode = j < parents.length ? parents[j] : target;
-                        if (!setNode.isIndividualizable) {
+                        if (!isIndividualizable(setNode, j == parents.length, true)) {
                             if (nodes !== null)
                                 skippedOne = j;
                             continue;
@@ -646,11 +648,17 @@ function locationSetsVisitor() {
                             throw new Error('Cant skip in the middle of individualizable set');
                         }
 
+                        if (setNode.isFunctionComposition)
+                            hasComposition = true;
+
                         const location: Location | undefined = nodes === null || !nodes[2] ? setNode.location : nodes[2];
                         const start: number = !!nodes ? nodes[0] : j;
                         const end: number = j;
                         nodes = [start, end, location];
                     }
+
+                    if (nodes !== null && nodes[0] === nodes[1] && hasComposition)
+                        nodes = null;
                 }
 
                 currentParentStart = i;
@@ -658,7 +666,7 @@ function locationSetsVisitor() {
                     return nodes;
             }
 
-            if (node.isIndividualizable)
+            if (isTargetNode && isIndividualizable(node, isTargetNode))
                 return [i, i, node.location];
         }
         return null;

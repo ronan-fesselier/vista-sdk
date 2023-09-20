@@ -19,7 +19,7 @@ public sealed record GmodIndividualizableSet
     {
         if (nodes.Count == 0)
             throw new Exception("GmodIndividualizableSet cant be empty");
-        if (nodes.Any(i => !path[i].IsIndividualizable))
+        if (nodes.Any(i => !path[i].IsIndividualizable(i == path.Length - 1, nodes.Count > 1)))
             throw new Exception("GmodIndividualizableSet nodes must be individualizable");
         if (nodes.Select(i => path[i].Location).Distinct().Count() != 1)
             throw new Exception("GmodIndividualizableSet nodes have different locations");
@@ -470,11 +470,12 @@ public sealed record GmodPath
         )
         {
             var isParent = Gmod.PotentialParentScopeTypes.Contains(node.Metadata.Type);
+            var isTargetNode = i == parents.Count;
             if (currentParentStart == -1)
             {
                 if (isParent)
                     currentParentStart = i;
-                if (node.IsIndividualizable)
+                if (node.IsIndividualizable(isTargetNode))
                     return (i, i, node.Location); // TODO - is this correct?
             }
             else
@@ -484,16 +485,17 @@ public sealed record GmodPath
                     (int Start, int End, Location? Location)? nodes = null;
                     if (currentParentStart + 1 == i)
                     {
-                        if (node.IsIndividualizable)
+                        if (node.IsIndividualizable(isTargetNode))
                             nodes = (i, i, node.Location);
                     }
                     else
                     {
                         var skippedOne = -1;
+                        var hasComposition = false;
                         for (var j = currentParentStart + 1; j <= i; j++)
                         {
                             var setNode = j < parents.Count ? parents[j] : target;
-                            if (!setNode.IsIndividualizable)
+                            if (!setNode.IsIndividualizable(j == parents.Count, isInSet: true))
                             {
                                 if (nodes is not null)
                                     skippedOne = j;
@@ -512,11 +514,17 @@ public sealed record GmodPath
                             if (skippedOne != -1)
                                 throw new Exception("Can't skip in the middle of individualizable set");
 
+                            if (setNode.IsFunctionComposition)
+                                hasComposition = true;
+
                             var location = nodes?.Location is null ? setNode.Location : nodes?.Location;
                             var start = nodes?.Start ?? j;
                             var end = j;
                             nodes = (start, end, location);
                         }
+
+                        if (nodes is not null && nodes.Value.Start == nodes.Value.End && hasComposition)
+                            nodes = null;
                     }
 
                     currentParentStart = i;
@@ -524,7 +532,7 @@ public sealed record GmodPath
                         return nodes;
                 }
 
-                if (node.IsIndividualizable)
+                if (isTargetNode && node.IsIndividualizable(isTargetNode))
                     return (i, i, node.Location);
             }
 

@@ -100,6 +100,15 @@ describe("GmodPath", () => {
         expect(path.getNode("C101.31").toString()).toEqual("C101.31-2");
     });
 
+    test("path individualizes", async () => {
+        const gmod = await gmodPromise;
+        const locations = await locationsPromise;
+
+        const path = gmod.parsePath("411.1/C101.62/S205", locations);
+        const sets = path.individualizableSets;
+        expect(sets.length).toBe(2);
+    });
+
     test("toFullPathString", async () => {
         const gmod = await gmodPromise;
         const locations = await locationsPromise;
