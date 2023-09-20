@@ -51,6 +51,7 @@ public sealed class Locations
                 new RelativeLocation(
                     relativeLocationsDto.Code,
                     relativeLocationsDto.Name,
+                    new Location(relativeLocationsDto.Code.ToString()),
                     relativeLocationsDto.Definition
                 )
             );
@@ -294,11 +295,14 @@ public sealed record RelativeLocation
     public string Name { get; }
     public string? Definition { get; }
 
-    internal RelativeLocation(char code, string name, string? definition)
+    public Location Location { get; }
+
+    internal RelativeLocation(char code, string name, Location location, string? definition)
     {
         Code = code;
         Name = name;
         Definition = definition;
+        Location = location;
     }
 
     public override int GetHashCode() => Code.GetHashCode();

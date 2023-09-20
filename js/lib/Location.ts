@@ -54,6 +54,7 @@ export class Locations {
                 code: relativeLocationDto.code,
                 name: relativeLocationDto.name,
                 definition: relativeLocationDto.definition ?? undefined,
+                location: new Location(relativeLocationDto.code),
             });
         }
     }
