@@ -89,7 +89,11 @@ export class LocationBuilder {
         return this.withValueInternal(LocationGroup.Longitudinal, value);
     }
 
-    public withValue(value: number | string): LocationBuilder {
+    public withValue(
+        value: number | string,
+        group: LocationGroup | undefined = undefined
+    ): LocationBuilder {
+        if (group !== undefined) return this.withValueInternal(group, value);
         if (typeof value === "number") {
             return this.withValueInternal(LocationGroup.Number, value);
         } else {
@@ -102,7 +106,7 @@ export class LocationBuilder {
         }
     }
 
-    public withValueInternal(
+    private withValueInternal(
         group: LocationGroup,
         value: number | string
     ): LocationBuilder {
