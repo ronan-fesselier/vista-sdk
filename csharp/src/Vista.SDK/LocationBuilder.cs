@@ -1,114 +1,140 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Vista.SDK;
 
-public enum LocationGroup
+public sealed record LocationBuilder
 {
-    Number,
-    Side,
-    Vertical,
-    Transverse,
-    Longitudinal
-}
-
-public record LocationBuilder
-{
-    private int? _number;
-    private char? _side;
-    private char? _vertical;
-    private char? _transverse;
-    private char? _longitudinal;
-
-    private Locations _locations;
+    public int? Number { get; private init; }
+    public char? Side { get; private init; }
+    public char? Vertical { get; private init; }
+    public char? Transverse { get; private init; }
+    public char? Longitudinal { get; private init; }
 
     public VisVersion VisVersion { get; }
 
     private IReadOnlyDictionary<char, LocationGroup> _reversedGroups;
-    public IReadOnlyDictionary<LocationGroup, IReadOnlyList<char>> GroupedCodes { get; }
 
-    internal LocationBuilder(VisVersion version, Locations locations)
+    private LocationBuilder(VisVersion visVersion, IReadOnlyDictionary<char, LocationGroup> reversedGroups)
     {
-        VisVersion = version;
-        _locations = locations;
-
-        var groups = new Dictionary<LocationGroup, List<char>>();
-        var reversedGroups = new Dictionary<char, LocationGroup>();
-
-        foreach (var item in locations.RelativeLocations)
-        {
-            var key = item.Code switch
-            {
-                'N' => LocationGroup.Number,
-                'P' or 'C' or 'S' => LocationGroup.Side,
-                'U' or 'M' or 'L' => LocationGroup.Vertical,
-                'I' or 'O' => LocationGroup.Transverse,
-                'F' or 'A' => LocationGroup.Longitudinal,
-                _ => throw new Exception($"Unsupported code: {item.Code}")
-            };
-
-            if (!groups.ContainsKey(key))
-                groups.Add(key, new());
-            if (key == LocationGroup.Number)
-                continue;
-
-            reversedGroups.Add(item.Code, key);
-            groups.GetValueOrDefault(key)?.Add(item.Code);
-        }
+        VisVersion = visVersion;
 
         _reversedGroups = reversedGroups;
-        GroupedCodes = groups.ToDictionary(g => g.Key, g => g.Value as IReadOnlyList<char>);
     }
 
-    public LocationBuilder WithNumber(int number) => WithValue(LocationGroup.Number, number.ToString());
+    public static LocationBuilder Create(Locations locations) =>
+        new LocationBuilder(locations.VisVersion, locations._reversedGroups);
 
-    public LocationBuilder WithSide(string side) => WithValue(LocationGroup.Side, side);
-
-    public LocationBuilder WithVertical(string vertical) => WithValue(LocationGroup.Vertical, vertical);
-
-    public LocationBuilder WithTransverse(string transverse) => WithValue(LocationGroup.Transverse, transverse);
-
-    public LocationBuilder WithLongitudinal(string longitudinal) => WithValue(LocationGroup.Longitudinal, longitudinal);
-
-    public LocationBuilder WithValue(string value)
+    public LocationBuilder WithLocation(Location value)
     {
-        if (int.TryParse(value, out _))
-            return WithValue(LocationGroup.Number, value);
-        if (!char.TryParse(value, out var val))
-            throw new ValidationException("Value should be a character");
-        if (!_reversedGroups.TryGetValue(val, out var key))
-            throw new ValidationException($"The value {value} is an invalid Locations value");
-        return WithValue(key, value);
+        var builder = this with { };
+
+        var span = value.ToString().AsSpan();
+
+        int? n = null;
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            ref readonly var ch = ref span[i];
+            if (char.IsDigit(ch))
+            {
+                if (n is null)
+                    n = ch;
+                else
+                {
+                    if (!Locations.TryParseInt(span, 0, i + 1, out var num))
+                        throw new ValidationException("Should include a valid number");
+                    n = num;
+                }
+                continue;
+            }
+
+            builder = builder.WithValue(ch);
+        }
+
+        if (n is not null)
+            builder = builder.WithNumber(n.Value);
+
+        return builder;
     }
 
-    public LocationBuilder WithValue(LocationGroup group, string value)
+    public LocationBuilder WithNumber(int number) => WithValueInternal(LocationGroup.Number, number);
+
+    public LocationBuilder WithSide(char side) => WithValueInternal(LocationGroup.Side, side);
+
+    public LocationBuilder WithVertical(char vertical) => WithValueInternal(LocationGroup.Vertical, vertical);
+
+    public LocationBuilder WithTransverse(char transverse) => WithValueInternal(LocationGroup.Transverse, transverse);
+
+    public LocationBuilder WithLongitudinal(char longitudinal) =>
+        WithValueInternal(LocationGroup.Longitudinal, longitudinal);
+
+    public LocationBuilder WithValue(int value)
+    {
+        return WithValueInternal(LocationGroup.Number, value);
+    }
+
+    public LocationBuilder WithValue(char value)
+    {
+        if (!_reversedGroups.TryGetValue(value, out var key))
+            throw new ValidationException($"The value {value} is an invalid Locations value");
+        return WithValueInternal(key, value);
+    }
+
+    private LocationBuilder WithValueInternal<T>(LocationGroup group, T value)
+        where T : struct
     {
         if (group == LocationGroup.Number)
         {
-            if (!int.TryParse(value, out var number))
+            if (typeof(T) != typeof(int))
                 throw new ValidationException("Value should be number");
-            return this with { _number = number };
+            ref var n = ref Unsafe.As<T, int>(ref value);
+            if (n < 1)
+                throw new ValidationException("Value should be greater than 0");
+            return this with { Number = n };
         }
 
-        if (char.TryParse(value, out var val))
+        if (typeof(T) != typeof(char))
             throw new ValidationException("Value should be a character");
+        ref var val = ref Unsafe.As<T, char>(ref value);
 
-        if (!_reversedGroups.ContainsKey(val))
-            throw new ValidationException($"The value {value} is an invalid Locations value");
+        if (!_reversedGroups.TryGetValue(val, out var key) || key != group)
+            throw new ValidationException(
+                $"The value {value} is an invalid {Enum.GetName(typeof(LocationGroup), group)} value"
+            );
 
-        switch (group)
+        return group switch
         {
-            case LocationGroup.Side:
-                return this with { _side = val };
-            case LocationGroup.Vertical:
-                return this with { _vertical = val };
-            case LocationGroup.Transverse:
-                return this with { _transverse = val };
-            case LocationGroup.Longitudinal:
-                return this with { _longitudinal = val };
-            default:
-                throw new Exception($"Unsupported code: {group}");
-        }
+            LocationGroup.Side => this with { Side = val },
+            LocationGroup.Vertical => this with { Vertical = val },
+            LocationGroup.Transverse => this with { Transverse = val },
+            LocationGroup.Longitudinal => this with { Longitudinal = val },
+            _ => throw new Exception($"Unsupported code: {group}"),
+        };
     }
+
+    public LocationBuilder WithoutValue(LocationGroup group)
+    {
+        return group switch
+        {
+            LocationGroup.Number => this with { Number = null },
+            LocationGroup.Side => this with { Side = null },
+            LocationGroup.Vertical => this with { Vertical = null },
+            LocationGroup.Transverse => this with { Transverse = null },
+            LocationGroup.Longitudinal => this with { Longitudinal = null },
+            _ => throw new Exception($"Unsupported code: {group}"),
+        };
+    }
+
+    public LocationBuilder WithoutNumber() => WithoutValue(LocationGroup.Number);
+
+    public LocationBuilder WithoutSide() => WithoutValue(LocationGroup.Side);
+
+    public LocationBuilder WithoutVertical() => WithoutValue(LocationGroup.Vertical);
+
+    public LocationBuilder WithoutTransverse() => WithoutValue(LocationGroup.Transverse);
+
+    public LocationBuilder WithoutLongitudinal() => WithoutValue(LocationGroup.Longitudinal);
 
     public Location Build()
     {
@@ -117,22 +143,22 @@ public record LocationBuilder
 
     public override string ToString()
     {
-        var items = new char?[] { _side, _vertical, _transverse, _longitudinal };
+        var items = new char?[] { Side, Vertical, Transverse, Longitudinal };
 
-        var str = "";
+        var str = new StringBuilder();
+
+        if (Number is not null)
+            str.Append(Number.ToString());
 
         foreach (var item in items)
         {
             if (item is null)
                 continue;
 
-            str += item.ToString();
+            str.Append(item);
         }
 
         var parts = str.ToString().OrderBy(c => c).Select(s => s.ToString());
-
-        if (_number is not null)
-            parts.Prepend(_number.ToString());
 
         return string.Concat(parts);
     }

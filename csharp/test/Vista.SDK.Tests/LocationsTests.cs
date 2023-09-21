@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.ComponentModel.DataAnnotations;
 
 namespace Vista.SDK.Tests;
 
@@ -59,6 +60,52 @@ public class LocationsTests
         var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
         Assert.Throws<ArgumentException>(() => locations.Parse(null!));
         Assert.Throws<ArgumentException>(() => locations.Parse(ReadOnlySpan<char>.Empty));
+    }
+
+    [Fact]
+    public void Test_Location_Builder()
+    {
+        var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
+
+        var locationStr = "11FIPU";
+        var location = locations.Parse(locationStr);
+
+        var builder = LocationBuilder.Create(locations);
+
+        builder = builder.WithNumber(11).WithSide('P').WithTransverse('I').WithLongitudinal('F').WithValue('U');
+
+        Assert.Equal("11FIPU", builder.ToString());
+        Assert.Equal(11, builder.Number);
+        Assert.Equal('P', builder.Side);
+        Assert.Equal('U', builder.Vertical);
+        Assert.Equal('I', builder.Transverse);
+        Assert.Equal('F', builder.Longitudinal);
+
+        Assert.Throws<ValidationException>(() => builder = builder.WithValue('X'));
+        Assert.Throws<ValidationException>(() => builder = builder.WithNumber(-1));
+        Assert.Throws<ValidationException>(() => builder = builder.WithNumber(0));
+        Assert.Throws<ValidationException>(() => builder = builder.WithSide('A'));
+        Assert.Throws<ValidationException>(() => builder = builder.WithValue('a'));
+
+        Assert.Equal(location, builder.Build());
+
+        builder = LocationBuilder.Create(locations).WithLocation(builder.Build());
+
+        Assert.Equal("11FIPU", builder.ToString());
+        Assert.Equal(11, builder.Number);
+        Assert.Equal('P', builder.Side);
+        Assert.Equal('U', builder.Vertical);
+        Assert.Equal('I', builder.Transverse);
+        Assert.Equal('F', builder.Longitudinal);
+
+        builder = builder.WithValue('S').WithValue(2);
+
+        Assert.Equal("2FISU", builder.ToString());
+        Assert.Equal(2, builder.Number);
+        Assert.Equal('S', builder.Side);
+        Assert.Equal('U', builder.Vertical);
+        Assert.Equal('I', builder.Transverse);
+        Assert.Equal('F', builder.Longitudinal);
     }
 
     [Fact]
