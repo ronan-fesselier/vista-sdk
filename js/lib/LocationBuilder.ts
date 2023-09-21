@@ -139,26 +139,26 @@ export class LocationBuilder {
     }
 
     public withoutNumber(): LocationBuilder {
-        return this.withoutValueInternal(LocationGroup.Number);
+        return this.withoutValue(LocationGroup.Number);
     }
 
     public withoutSide(): LocationBuilder {
-        return this.withoutValueInternal(LocationGroup.Side);
+        return this.withoutValue(LocationGroup.Side);
     }
 
     public withoutVertical(): LocationBuilder {
-        return this.withoutValueInternal(LocationGroup.Vertical);
+        return this.withoutValue(LocationGroup.Vertical);
     }
 
     public withoutTransverse(): LocationBuilder {
-        return this.withoutValueInternal(LocationGroup.Transverse);
+        return this.withoutValue(LocationGroup.Transverse);
     }
 
     public withoutLongitudinal(): LocationBuilder {
-        return this.withoutValueInternal(LocationGroup.Longitudinal);
+        return this.withoutValue(LocationGroup.Longitudinal);
     }
 
-    public withoutValueInternal(group: LocationGroup) {
+    public withoutValue(group: LocationGroup) {
         return {
             [LocationGroup.Number]: this.with((s) => (s.number = undefined)),
             [LocationGroup.Side]: this.with((s) => (s.side = undefined)),
