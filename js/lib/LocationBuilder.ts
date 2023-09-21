@@ -138,23 +138,23 @@ export class LocationBuilder {
         }[key];
     }
 
-    public withoutNumber(value: number): LocationBuilder {
+    public withoutNumber(): LocationBuilder {
         return this.withoutValueInternal(LocationGroup.Number);
     }
 
-    public withoutSide(value: string): LocationBuilder {
+    public withoutSide(): LocationBuilder {
         return this.withoutValueInternal(LocationGroup.Side);
     }
 
-    public withoutVertical(value: string): LocationBuilder {
+    public withoutVertical(): LocationBuilder {
         return this.withoutValueInternal(LocationGroup.Vertical);
     }
 
-    public withoutTransverse(value: string): LocationBuilder {
+    public withoutTransverse(): LocationBuilder {
         return this.withoutValueInternal(LocationGroup.Transverse);
     }
 
-    public withoutLongitudinal(value: string): LocationBuilder {
+    public withoutLongitudinal(): LocationBuilder {
         return this.withoutValueInternal(LocationGroup.Longitudinal);
     }
 
