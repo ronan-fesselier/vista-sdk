@@ -24,6 +24,7 @@ import { Client } from "./Client";
 import { PmodNode } from "./PmodNode";
 import { UniversalIdParser } from "./UniversalId.Parsing";
 import { Location, LocationGroup, Locations } from "./Location";
+import { LocationBuilder } from "./LocationBuilder";
 import {
     JSONExtensions,
     VistaJSONSerializer,
@@ -63,7 +64,7 @@ export {
 };
 
 // Locations
-export { Location, LocationGroup, Locations };
+export { Location, LocationGroup, Locations, LocationBuilder };
 
 // Experimental
 export { Experimental };

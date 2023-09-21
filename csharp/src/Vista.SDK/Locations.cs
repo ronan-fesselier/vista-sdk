@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Vista.SDK.Internal;
 
@@ -30,32 +31,54 @@ public sealed class Locations
 {
     private readonly char[] _locationCodes;
     private readonly List<RelativeLocation> _relativeLocations;
+    internal Dictionary<char, LocationGroup> _reversedGroups;
 
     public VisVersion VisVersion { get; }
 
     // This is if we need Code, Name, Definition in Frontend UI
     public IReadOnlyList<RelativeLocation> RelativeLocations => _relativeLocations;
 
-    public IReadOnlyDictionary<LocationGroup, IReadOnlyList<RelativeLocation>> Groups => GroupLocations();
+    public IReadOnlyDictionary<LocationGroup, IReadOnlyList<RelativeLocation>> Groups;
 
     internal Locations(VisVersion version, LocationsDto dto)
     {
         VisVersion = version;
 
         _locationCodes = dto.Items.Select(d => d.Code).ToArray();
-
         _relativeLocations = new List<RelativeLocation>(dto.Items.Length);
+
+        var groups = new Dictionary<LocationGroup, List<RelativeLocation>>(5);
+
+        _reversedGroups = new Dictionary<char, LocationGroup>();
+
         foreach (var relativeLocationsDto in dto.Items)
         {
-            _relativeLocations.Add(
-                new RelativeLocation(
-                    relativeLocationsDto.Code,
-                    relativeLocationsDto.Name,
-                    new Location(relativeLocationsDto.Code.ToString()),
-                    relativeLocationsDto.Definition
-                )
+            var relativeLocation = new RelativeLocation(
+                relativeLocationsDto.Code,
+                relativeLocationsDto.Name,
+                new Location(relativeLocationsDto.Code.ToString()),
+                relativeLocationsDto.Definition
             );
+            _relativeLocations.Add(relativeLocation);
+
+            var key = relativeLocationsDto.Code switch
+            {
+                'N' => LocationGroup.Number,
+                'P' or 'C' or 'S' => LocationGroup.Side,
+                'U' or 'M' or 'L' => LocationGroup.Vertical,
+                'I' or 'O' => LocationGroup.Transverse,
+                'F' or 'A' => LocationGroup.Longitudinal,
+                _ => throw new Exception($"Unsupported code: {relativeLocationsDto.Code}")
+            };
+            if (!groups.ContainsKey(key))
+                groups.Add(key, new());
+            if (key == LocationGroup.Number)
+                continue;
+            _reversedGroups.Add(relativeLocationsDto.Code, key);
+            groups.GetValueOrDefault(key)?.Add(relativeLocation);
         }
+
+        Groups = groups.ToDictionary(g => g.Key, g => g.Value.ToArray() as IReadOnlyList<RelativeLocation>);
     }
 
     public Location Parse(string locationStr)
@@ -142,10 +165,12 @@ public sealed class Locations
 
         var originalSpan = span;
 
+        int? prevDigitIndex = null;
         int? digitStartIndex = null;
-        int? lastLetterIndex = null;
         int? charsStartIndex = null;
-        int? n = null;
+        int? number = null;
+
+        var charDict = new LocationCharDict();
 
         for (int i = 0; i < span.Length; i++)
         {
@@ -153,71 +178,51 @@ public sealed class Locations
 
             if (char.IsDigit(ch))
             {
+                // First digit should be at index 0
+                if (digitStartIndex is null && i != 0)
+                {
+                    AddError(
+                        ref errorBuilder,
+                        LocationValidationResult.Invalid,
+                        $"Invalid location: numeric location should start before location code(s) in location: '{originalStr ?? originalSpan.ToString()}'"
+                    );
+                    return false;
+                }
+                // Other digits should neighbor the first
+                if (prevDigitIndex is not null && prevDigitIndex != (i - 1))
+                {
+                    AddError(
+                        ref errorBuilder,
+                        LocationValidationResult.Invalid,
+                        $"Invalid location: cannot have multiple separated digits in location: '{originalStr ?? originalSpan.ToString()}'"
+                    );
+                    return false;
+                }
+
                 if (digitStartIndex is null)
                 {
+                    number = ch;
                     digitStartIndex = i;
-                    if (lastLetterIndex is not null)
-                    {
-                        AddError(
-                            ref errorBuilder,
-                            LocationValidationResult.Invalid,
-                            $"Invalid location: numeric location should start before location code(s) in location: '{originalStr ?? originalSpan.ToString()}'"
-                        );
-                        return false;
-                    }
                 }
                 else
                 {
-                    if (lastLetterIndex is not null)
-                    {
-                        if (lastLetterIndex < digitStartIndex)
-                        {
-                            AddError(
-                                ref errorBuilder,
-                                LocationValidationResult.Invalid,
-                                $"Invalid location: numeric location should start before location code(s) in location: '{originalStr ?? originalSpan.ToString()}'"
-                            );
-                            return false;
-                        }
-                        else if (lastLetterIndex > digitStartIndex && lastLetterIndex < i)
-                        {
-                            AddError(
-                                ref errorBuilder,
-                                LocationValidationResult.Invalid,
-                                $"Invalid location: cannot have multiple separated digits in location: '{originalStr ?? originalSpan.ToString()}'"
-                            );
-                            return false;
-                        }
-                    }
-
-#if NETCOREAPP3_1_OR_GREATER
-                    n = int.Parse(
-                        span.Slice(digitStartIndex.Value, i - digitStartIndex.Value),
-                        NumberStyles.None,
-                        CultureInfo.InvariantCulture
-                    );
-#else
-                    n = int.Parse(
-                        span.Slice(digitStartIndex.Value, i - digitStartIndex.Value).ToString(),
-                        NumberStyles.None,
-                        CultureInfo.InvariantCulture
-                    );
-#endif
-
-                    if (n.Value < 0)
+                    if (!TryParseInt(span, digitStartIndex.Value, i - digitStartIndex.Value + 1, out var num))
                     {
                         AddError(
                             ref errorBuilder,
                             LocationValidationResult.Invalid,
-                            $"Invalid location: negative numeric location is not allowed: '{originalStr ?? originalSpan.ToString()}'"
+                            $"Invalid location: failed to parse numeric location: '{originalStr ?? originalSpan.ToString()}'"
                         );
                         return false;
                     }
+                    number = num;
                 }
+
+                prevDigitIndex = i;
             }
             else
             {
-                if (ch == 'N' || !_locationCodes.Contains(ch))
+                if (!_reversedGroups.TryGetValue(ch, out var group))
                 {
                     var invalidChars = string.Join(
                         ",",
@@ -229,6 +234,16 @@ public sealed class Locations
                         ref errorBuilder,
                         LocationValidationResult.InvalidCode,
                         $"Invalid location code: '{originalStr ?? originalSpan.ToString()}' with invalid location code(s): {invalidChars}"
+                    );
+                    return false;
+                }
+
+                if (!charDict.TryAdd(group, ch))
+                {
+                    AddError(
+                        ref errorBuilder,
+                        LocationValidationResult.Invalid,
+                        $"Invalid location: Multiple '{Enum.GetName(typeof(LocationGroup), group)}' values. Got both '{charDict.GetValueOrDefault(group)}' and '{ch}' in '{originalStr ?? originalSpan.ToString()}'"
                     );
                     return false;
                 }
@@ -250,8 +265,6 @@ public sealed class Locations
                         return false;
                     }
                 }
-
-                lastLetterIndex = i;
             }
         }
 
@@ -266,26 +279,88 @@ public sealed class Locations
         errorBuilder.AddError(name, message);
     }
 
-    private IReadOnlyDictionary<LocationGroup, IReadOnlyList<RelativeLocation>> GroupLocations()
+    internal static bool TryParseInt(ReadOnlySpan<char> span, int start, int length, out int number)
     {
-        var groups = new Dictionary<LocationGroup, List<RelativeLocation>>();
+#if NETCOREAPP3_1_OR_GREATER
+        return int.TryParse(span.Slice(start, length), NumberStyles.None, CultureInfo.InvariantCulture, out number);
+#else
+        return int.TryParse(
+            span.Slice(start, length).ToString(),
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out number
+        );
+#endif
+    }
+}
 
-        foreach (var location in _relativeLocations)
+internal struct LocationCharDict
+{
+    private char? _side = null;
+    private char? _vertical = null;
+    private char? _transverse = null;
+    private char? _longitudinal = null;
+
+    public LocationCharDict() { }
+
+    public bool ContainsKey(LocationGroup key)
+    {
+        return key switch
         {
-            var key = char.ToLower(location.Code) switch
-            {
-                'n' => LocationGroup.Number,
-                'p' or 'c' or 's' => LocationGroup.Side,
-                'u' or 'm' or 'l' => LocationGroup.Vertical,
-                'i' or 'o' => LocationGroup.Transverse,
-                'f' or 'a' or 's' => LocationGroup.Longitudinal,
-                _ => throw new Exception($"Unsupported code: {location.Code}")
-            };
-            if (!groups.ContainsKey(key))
-                groups.Add(key, new());
-            groups.GetValueOrDefault(key)?.Add(location);
+            LocationGroup.Side => _side is not null,
+            LocationGroup.Vertical => _vertical is not null,
+            LocationGroup.Transverse => _transverse is not null,
+            LocationGroup.Longitudinal => _longitudinal is not null,
+            _ => throw new Exception($"Unsupported code: {key}")
+        };
+    }
+
+    public char? GetValueOrDefault(LocationGroup group)
+    {
+        if (!TryGetValue(group, out var val))
+            return null;
+        return val;
+    }
+
+    public bool TryGetValue(LocationGroup key, [MaybeNullWhen(false)] out char value)
+    {
+        value = default;
+        var temp = key switch
+        {
+            LocationGroup.Side => _side,
+            LocationGroup.Vertical => _vertical,
+            LocationGroup.Transverse => _transverse,
+            LocationGroup.Longitudinal => _longitudinal,
+            _ => throw new Exception($"Unsupported code: {key}")
+        };
+
+        if (temp is null)
+            return false;
+        value = temp.Value;
+        return true;
+    }
+
+    public bool TryAdd(LocationGroup key, char value)
+    {
+        if (ContainsKey(key))
+            return false;
+
+        switch (key)
+        {
+            case LocationGroup.Side:
+                _side = value;
+                break;
+            case LocationGroup.Vertical:
+                _vertical = value;
+                break;
+            case LocationGroup.Transverse:
+                _transverse = value;
+                break;
+            case LocationGroup.Longitudinal:
+                _longitudinal = value;
+                break;
         }
-        return groups.ToDictionary(g => g.Key, g => g.Value.ToArray() as IReadOnlyList<RelativeLocation>);
+        return true;
     }
 }
 
