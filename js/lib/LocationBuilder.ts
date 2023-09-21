@@ -27,6 +27,21 @@ export class LocationBuilder {
         );
     }
 
+    public get(group: LocationGroup): number | string | undefined {
+        return {
+            [LocationGroup.Number]: this.number,
+            [LocationGroup.Side]: this.side,
+            [LocationGroup.Vertical]: this.vertical,
+            [LocationGroup.Transverse]: this.transverse,
+            [LocationGroup.Longitudinal]: this.longitudinal,
+        }[group];
+    }
+
+    public tryWithLocation(value?: Location): LocationBuilder {
+        if (!value) return this;
+        return this.withLocation(value);
+    }
+
     public withLocation(value: Location): LocationBuilder {
         let builder = this.clone();
 
