@@ -1,4 +1,5 @@
 import { VisVersion, Experimental, CodebookName, VIS } from "../../lib";
+import { DataId } from "../../lib/experimental";
 import { PMSLocalId } from "../../lib/experimental/PMSLocalId";
 
 type Input = {
@@ -260,4 +261,36 @@ describe("LocalId", () => {
 
         expect(pmsLocalId).not.toBeFalsy();
     });
+
+    const otherTestData = [
+        "/dnv-v2-experimental/vis-3-7a/623-1/meta/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/623-2/sec/411/meta/cmd-activate/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/623-3/meta/state-abnormal/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/623/sec/411/meta/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/621.24i/C623/sec/411/meta/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/631.22i/S110.2/E31/meta/maint.cat-preventive/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101/meta/maint.cat-preventive/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101/meta/maint.cat-preventive/act.type-inspection",
+        "/dnv-v2-experimental/vis-3-7a/411.1-2/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-2/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101.663i/C663/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-2/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-2/C101.663i/C663/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-2/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-3/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-1/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-1/C101.663i/C663/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-4/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/411.1-1/C101/meta/maint.cat-preventive/act.type-test",
+        "/dnv-v2-experimental/vis-3-7a/511.15-1/E32/meta/maint.cat-preventive/act.type-test"
+    ];
+
+    test.each(otherTestData)("Parsing DataId - %s", async (localId) => {
+        const pmsLocalId = await DataId.parseAsync(localId);
+
+        expect(pmsLocalId).not.toBeFalsy();
+    });
+
 });

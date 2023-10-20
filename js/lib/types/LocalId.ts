@@ -10,9 +10,9 @@ export enum ParsingState {
     MetaState,
     MetaCommand,
     MetaType,
-    MetaActivityType,
     MetaFunctionalServices,
     MetaMaintenanceCategory,
+    MetaActivityType,
     MetaPosition,
     MetaDetail,
 

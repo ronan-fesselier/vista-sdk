@@ -52,10 +52,11 @@ export class PMSLocalIdBuilder
             throw new Error(
                 "Cant build to PMSLocalId from empty PMSLocalIdBuilder"
             );
-        if (!this.isValid)
+        if (!this.isValid){
             throw new Error(
                 "Cant build to PMSLocalId from invalid PMSLocalIdBuilder"
             );
+        }
 
         return new PMSLocalId(this);
     }
