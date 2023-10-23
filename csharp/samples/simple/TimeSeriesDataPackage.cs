@@ -66,7 +66,7 @@ static class TimeSeries
                         .Select(d => new TabularDataSet(quality: null, timeStamp: d.Timestamp, value: d.Data))
                         .ToArray(),
                     numberOfDataChannel: dataChannelId.Length.ToString(CultureInfo.InvariantCulture),
-                    numberOfDataSet: dataChannelId.Length.ToString(CultureInfo.InvariantCulture) // One sample per datachannel/timestamp for this scenario
+                    numberOfDataSet: dataAsTable.Length.ToString(CultureInfo.InvariantCulture) // One sample per datachannel/timestamp for this scenario
                 )
             }
         );
