@@ -640,7 +640,11 @@ public sealed record GmodPath
                     var n = i < pathParents.Count ? pathParents[i] : endNode;
                     var set = visitor.Visit(n, i, pathParents, endNode);
                     if (set is null)
+                    {
+                        if (n.Location is not null)
+                            return TraversalHandlerResult.Stop;
                         continue;
+                    }
 
                     var (start, end, location) = set.Value;
                     if (start == end)
