@@ -480,7 +480,7 @@ public sealed record GmodPath
             }
             else
             {
-                if (isParent)
+                if (isParent || isTargetNode)
                 {
                     (int Start, int End, Location? Location)? nodes = null;
                     if (currentParentStart + 1 == i)
@@ -529,7 +529,20 @@ public sealed record GmodPath
 
                     currentParentStart = i;
                     if (nodes is not null)
-                        return nodes;
+                    {
+                        var hasLeafNode = false;
+                        for (int j = nodes.Value.Start; j <= nodes.Value.End; j++)
+                        {
+                            var setNode = j < parents.Count ? parents[j] : target;
+                            if (setNode.IsLeafNode || j == parents.Count)
+                            {
+                                hasLeafNode = true;
+                                break;
+                            }
+                        }
+                        if (hasLeafNode)
+                            return nodes;
+                    }
                 }
 
                 if (isTargetNode && node.IsIndividualizable(isTargetNode))
@@ -768,14 +781,31 @@ public sealed record GmodPath
             return false;
 
         var visitor = new LocationSetsVisitor();
+        int? prevNonNullLocation = null;
         for (var i = 0; i < nodes.Count + 1; i++)
         {
             var n = i < nodes.Count ? nodes[i] : endNode;
             var set = visitor.Visit(n, i, nodes, endNode);
             if (set is null)
+            {
+                if (prevNonNullLocation is null && n.Location is not null)
+                    prevNonNullLocation = i;
                 continue;
+            }
 
             var (start, end, location) = set.Value;
+
+            if (prevNonNullLocation is int sj)
+            {
+                for (int j = sj; j < start; j++)
+                {
+                    var pn = j < nodes.Count ? nodes[j] : endNode;
+                    if (pn.Location is not null)
+                        return false; // This one is between
+                }
+            }
+            prevNonNullLocation = null;
+
             if (start == end)
                 continue;
 

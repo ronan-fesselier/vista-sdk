@@ -38,7 +38,13 @@ public class VistaSDKTestData
         var path = $"testdata/{testName}.json";
         var testDataJson = File.ReadAllText(path);
 
-        return JsonSerializer.Deserialize<T>(testDataJson)!;
+        var options = new JsonSerializerOptions
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        };
+        return JsonSerializer.Deserialize<T>(testDataJson, options)
+            ?? throw new Exception("Couldn't deserialize: " + typeof(T).Name);
     }
 
     public static IEnumerable<object[]> AddCodebookData(string[][] data)
@@ -91,7 +97,7 @@ public class VistaSDKTestData
     {
         foreach (var set in data)
         {
-            yield return new object?[] { set.Path, set.Expected, };
+            yield return new object?[] { set.IsFullPath, set.VisVersion, set.Path, set.Expected, };
         }
     }
 }
@@ -126,6 +132,8 @@ public sealed record class LocationsTestDataItem(
 );
 
 public sealed record IndividualizableSetData(
+    [property: JsonPropertyName("isFullPath")] bool IsFullPath,
+    [property: JsonPropertyName("visVersion")] string VisVersion,
     [property: JsonPropertyName("path")] string Path,
     [property: JsonPropertyName("expected")] string[][]? Expected
 );
