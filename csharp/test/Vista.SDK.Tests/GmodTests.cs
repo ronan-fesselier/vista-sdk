@@ -1,4 +1,7 @@
+using System.Diagnostics;
+using FluentAssertions;
 using Vista.SDK;
+using Vista.SDK.Internal;
 
 namespace Vista.SDK.Tests;
 
@@ -16,6 +19,92 @@ public class GmodTests
         Assert.NotNull(gmod);
 
         Assert.True(gmod.TryGetNode("400a", out _));
+    }
+
+    [Theory]
+    [MemberData(nameof(Test_Vis_Versions))]
+    public void Test_Gmod_Properties(VisVersion visVersion)
+    {
+        // This test ensures certain properties of the Gmod data
+        // that we make some design desicisions based on,
+        // i.e for hashing of the node code
+
+        var (_, vis) = VISTests.GetVis();
+
+        var gmod = vis.GetGmod(visVersion);
+        Assert.NotNull(gmod);
+
+        var minLength = gmod.MinBy(n => n.Code.Length);
+        var maxLength = gmod.MaxBy(n => n.Code.Length);
+        Assert.NotNull(minLength);
+        Assert.NotNull(maxLength);
+        Assert.Equal(2, minLength.Code.Length);
+        Assert.Equal("VE", minLength.Code);
+        Assert.Equal(10, maxLength.Code.Length);
+        string[] expectedMax = ["C1053.3112", "H346.11113"];
+        Assert.Contains(maxLength.Code, expectedMax);
+
+        var count = gmod.Count();
+        int[] expectedCounts = [6420, 6557, 6672];
+        Assert.Contains(count, expectedCounts);
+    }
+
+    [Theory]
+    [MemberData(nameof(Test_Vis_Versions))]
+    public void Test_Gmod_Lookup(VisVersion visVersion)
+    {
+        var (_, vis) = VISTests.GetVis();
+
+        var gmod = vis.GetGmod(visVersion);
+        Assert.NotNull(gmod);
+
+        var gmodDto = VIS.Instance.GetGmodDto(visVersion);
+        Assert.NotNull(gmodDto);
+
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var counter = 0;
+            foreach (var node in gmodDto.Items)
+            {
+                Assert.NotNull(node?.Code);
+                Assert.True(seen.Add(node.Code), $"Code: {node.Code}");
+
+                Assert.NotNull(node.Code);
+                Assert.True(gmod.TryGetNode(node.Code.AsSpan(), out var foundNode));
+                Assert.NotNull(foundNode);
+                Assert.Equal(node.Code, foundNode.Code);
+                counter++;
+            }
+        }
+
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var counter = 0;
+            foreach (var node in gmod)
+            {
+                Assert.NotNull(node?.Code);
+                Assert.True(seen.Add(node.Code), $"Code: {node.Code}");
+
+                Assert.NotNull(node.Code);
+                Assert.True(gmod.TryGetNode(node.Code.AsSpan(), out var foundNode));
+                Assert.NotNull(foundNode);
+                Assert.Equal(node.Code, foundNode.Code);
+                counter++;
+            }
+
+            Assert.Equal(gmodDto.Items.Length, counter);
+        }
+
+        Assert.False(gmod.TryGetNode("ABC", out _));
+        Assert.False(gmod.TryGetNode(null!, out _));
+        Assert.False(gmod.TryGetNode("", out _));
+        Assert.False(gmod.TryGetNode("SDFASDFSDAFb", out _));
+        Assert.False(gmod.TryGetNode("✅", out _));
+        Assert.False(gmod.TryGetNode("a✅b", out _));
+        Assert.False(gmod.TryGetNode("ac✅bc", out _));
+        Assert.False(gmod.TryGetNode("✅bc", out _));
+        Assert.False(gmod.TryGetNode("a✅", out _));
+        Assert.False(gmod.TryGetNode("ag✅", out _));
     }
 
     [Fact]

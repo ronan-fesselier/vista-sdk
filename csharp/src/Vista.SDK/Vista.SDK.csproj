@@ -6,6 +6,7 @@
     <RootNamespace>Vista.SDK</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>DNV.Vista.SDK</PackageId>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
     <InternalsVisibleTo Include="$(AssemblyName).SmokeTests" />
     <InternalsVisibleTo Include="$(AssemblyName).Mqtt" />
   </ItemGroup>
