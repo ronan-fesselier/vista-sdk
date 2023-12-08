@@ -52,7 +52,7 @@ describe("Location", () => {
     test("Location builder", async () => {
         const locations = await locationPromise;
 
-        const locationStr = "12FIPU";
+        const locationStr = "21FIPU";
         var location = locations.parse(locationStr);
 
         var builder = LocationBuilder.create(locations);
@@ -61,14 +61,14 @@ describe("Location", () => {
         expect(builder.toString()).toEqual('62');
 
         builder = builder
-            .withNumber(12)
+            .withNumber(21)
             .withSide("P")
             .withTransverse("I")
             .withLongitudinal("F")
             .withValue("U");
 
-        expect(builder.toString()).toEqual("12FIPU");
-        expect(builder.number).toEqual(12);
+        expect(builder.toString()).toEqual("21FIPU");
+        expect(builder.number).toEqual(21);
         expect(builder.side).toEqual("P");
         expect(builder.vertical).toEqual("U");
         expect(builder.transverse).toEqual("I");
@@ -87,8 +87,8 @@ describe("Location", () => {
             builder.build()
         );
 
-        expect(builder.toString()).toEqual("12FIPU");
-        expect(builder.number).toEqual(12);
+        expect(builder.toString()).toEqual("21FIPU");
+        expect(builder.number).toEqual(21);
         expect(builder.side).toEqual("P");
         expect(builder.vertical).toEqual("U");
         expect(builder.transverse).toEqual("I");
