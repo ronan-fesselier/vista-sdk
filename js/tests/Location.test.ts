@@ -52,20 +52,23 @@ describe("Location", () => {
     test("Location builder", async () => {
         const locations = await locationPromise;
 
-        const locationStr = "11FIPU";
+        const locationStr = "12FIPU";
         var location = locations.parse(locationStr);
 
         var builder = LocationBuilder.create(locations);
 
+        builder = builder.withNumber(62);
+        expect(builder.toString()).toEqual('62');
+
         builder = builder
-            .withNumber(11)
+            .withNumber(12)
             .withSide("P")
             .withTransverse("I")
             .withLongitudinal("F")
             .withValue("U");
 
-        expect(builder.toString()).toEqual("11FIPU");
-        expect(builder.number).toEqual(11);
+        expect(builder.toString()).toEqual("12FIPU");
+        expect(builder.number).toEqual(12);
         expect(builder.side).toEqual("P");
         expect(builder.vertical).toEqual("U");
         expect(builder.transverse).toEqual("I");
@@ -74,6 +77,7 @@ describe("Location", () => {
         expect(() => (builder = builder.withValue("X"))).toThrowError();
         expect(() => (builder = builder.withNumber(-1))).toThrowError();
         expect(() => (builder = builder.withNumber(0))).toThrowError();
+        expect(() => (builder = builder.withNumber(1.5))).toThrowError();
         expect(() => (builder = builder.withSide("A"))).toThrowError();
         expect(() => (builder = builder.withValue("a"))).toThrowError();
 
@@ -83,8 +87,8 @@ describe("Location", () => {
             builder.build()
         );
 
-        expect(builder.toString()).toEqual("11FIPU");
-        expect(builder.number).toEqual(11);
+        expect(builder.toString()).toEqual("12FIPU");
+        expect(builder.number).toEqual(12);
         expect(builder.side).toEqual("P");
         expect(builder.vertical).toEqual("U");
         expect(builder.transverse).toEqual("I");

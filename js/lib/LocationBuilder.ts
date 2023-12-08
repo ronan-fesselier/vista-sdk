@@ -114,6 +114,7 @@ export class LocationBuilder {
             if (typeof value !== "number")
                 throw new Error("Value should be number");
             if (value < 1) throw new Error("Value should be greater than 0");
+            if (value % 1 != 0) throw new Error("Value must be an integer larger than 0");
 
             return this.with((s) => (s.number = value));
         }
@@ -205,13 +206,13 @@ export class LocationBuilder {
 
         let s = "";
 
-        if (this.number !== undefined) s += this.number;
-
         for (const item of items) {
             if (item === undefined) continue;
             s += item;
         }
 
-        return s.split("").sort().join("");
+        const chars = s.split("").sort().join("");
+
+        return this.number !== undefined ? `${this.number}${chars}` : chars;
     }
 }
