@@ -782,6 +782,8 @@ public sealed record GmodPath
 
         var visitor = new LocationSetsVisitor();
         int? prevNonNullLocation = null;
+        Span<(int Start, int End)> sets = stackalloc (int, int)[16];
+        var setCounter = 0;
         for (var i = 0; i < nodes.Count + 1; i++)
         {
             var n = i < nodes.Count ? nodes[i] : endNode;
@@ -792,7 +794,6 @@ public sealed record GmodPath
                     prevNonNullLocation = i;
                 continue;
             }
-
             var (start, end, location) = set.Value;
 
             if (prevNonNullLocation is int sj)
@@ -806,6 +807,7 @@ public sealed record GmodPath
             }
             prevNonNullLocation = null;
 
+            sets[setCounter++] = (start, end);
             if (start == end)
                 continue;
 
@@ -815,6 +817,31 @@ public sealed record GmodPath
                     nodes[j] = nodes[j] with { Location = location };
                 else
                     endNode = endNode with { Location = location };
+            }
+        }
+
+        (int Start, int End) currentSet = (-1, -1);
+        var currentSetIndex = 0;
+        for (var i = 0; i < nodes.Count + 1; i++)
+        {
+            while (currentSetIndex < setCounter && currentSet.End < i)
+                currentSet = sets[currentSetIndex++];
+
+            var insideSet = i >= currentSet.Start && i <= currentSet.End;
+
+            var n = i < nodes.Count ? nodes[i] : endNode;
+            var expectedLocationNode =
+                currentSet.End != -1 && currentSet.End < nodes.Count ? nodes[currentSet.End] : endNode;
+
+            if (insideSet)
+            {
+                if (n.Location != expectedLocationNode.Location)
+                    return false;
+            }
+            else
+            {
+                if (n.Location is not null)
+                    return false;
             }
         }
 

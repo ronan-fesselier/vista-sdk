@@ -51,12 +51,12 @@ export class Extensions implements IExtension {
         const p = dto.Package;
         const h = dto.Package.Header;
 
-        const datas: DataList.Data[] = [];
+        const dataPromises: Promise<DataList.Data>[] = [];
 
-        for (let c of p.DataList.Data) {
-            const dc = await DataExtension.toDomainModel(c);
-            datas.push(dc);
-        }
+        for (let c of p.DataList.Data)
+            dataPromises.push(DataExtension.toDomainModel(c));
+
+        const datas = await Promise.all(dataPromises);
 
         const {
             AssetId,
