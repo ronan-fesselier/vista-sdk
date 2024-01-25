@@ -1,5 +1,6 @@
 import { Gmod, GmodPath, VisVersion, VisVersions } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
+import { naturalSort } from "../lib/util/util";
 import { VIS } from "../lib/VIS";
 
 describe("Gmod", () => {
@@ -18,6 +19,29 @@ describe("Gmod", () => {
 
         expect(gmod).toBeTruthy();
         expect(gmod.tryGetNode("400a")).toBeTruthy();
+    });
+
+    test("Gmod storted", async () => {
+        const gmod = await gmodPromise;
+        const context = { isSorted: true };
+        gmod.traverse(
+            (_, node, context) => {
+                if (node.children.length === 0)
+                    return TraversalHandlerResult.Continue;
+
+                for (let i = 1; i < node.children.length; i++) {
+                    const a = node.children[i - 1];
+                    const b = node.children[i];
+                    const order = naturalSort(a.toString(), b.toString());
+                    if (context.isSorted && order > 0) {
+                        context.isSorted = false;
+                    }
+                }
+                return TraversalHandlerResult.Continue;
+            },
+            { state: context }
+        );
+        expect(context.isSorted).toBe(true);
     });
 
     test("Gmod node equality", async () => {

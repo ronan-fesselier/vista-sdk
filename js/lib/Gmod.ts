@@ -11,6 +11,7 @@ import {
 import { GmodDto } from "./types/GmodDto";
 import { GmodNodeMetadata } from "./types/GmodNode";
 import { Parents } from "./util/Parents";
+import { naturalSort } from "./util/util";
 import { VisVersion } from "./VisVersion";
 
 export const PotentialParentScopeTypes = ["SELECTION", "GROUP", "LEAF"];
@@ -34,6 +35,7 @@ export class Gmod {
             this._nodeMap.set(nodeDto.id ?? nodeDto.code, node);
         }
 
+        dto.relations.sort(([_, a], [__, b]) => naturalSort(a, b));
         for (const relation of dto.relations) {
             const parentCode = relation[0];
             const childCode = relation[1];

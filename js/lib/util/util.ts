@@ -26,6 +26,16 @@ export const naturalSort = (a: string, b: string) => {
     });
 };
 
+export const sortChildren = (gmodNode: GmodNode | PmodNode) => {
+    if (gmodNode.children.length === 0) return 0;
+    if (gmodNode.children.length > 0) {
+        gmodNode.children.sort((a, b) =>
+            naturalSort(a.toString(), b.toString())
+        );
+        gmodNode.children.forEach(sortChildren);
+    }
+};
+
 export const createKey = <T = GmodNode | PmodNode>(parents: T[], node: T) =>
     parents
         .concat(node)

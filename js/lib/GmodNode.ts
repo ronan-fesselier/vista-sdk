@@ -2,7 +2,6 @@ import { Gmod } from "./Gmod";
 import { Location, Locations } from "./Location";
 import { GmodNodeDto } from "./types/GmodDto";
 import { GmodNodeMetadata } from "./types/GmodNode";
-import { naturalSort } from "./util/util";
 import { VIS } from "./VIS";
 import { VisVersion } from "./VisVersion";
 
@@ -242,16 +241,10 @@ export class GmodNode {
 
     public addChild(child: GmodNode) {
         this._children.push(child);
-        this._children = this._children.sort((a, b) =>
-            naturalSort(this.getSortedString(a), this.getSortedString(b))
-        );
     }
 
     public addParent(parent: GmodNode) {
         this._parents.push(parent);
-        this._parents = this._parents.sort((a, b) =>
-            naturalSort(this.getSortedString(a), this.getSortedString(b))
-        );
     }
 
     private getSortedString(node: GmodNode) {
@@ -266,8 +259,12 @@ export class GmodNode {
     }
 
     public get isFunctionComposition(): boolean {
-        return this.metadata.category === "ASSET FUNCTION" && this.metadata.type === "COMPOSITION" ||
-            this.metadata.category === "PRODUCT FUNCTION" && this.metadata.type === "COMPOSITION";
+        return (
+            (this.metadata.category === "ASSET FUNCTION" &&
+                this.metadata.type === "COMPOSITION") ||
+            (this.metadata.category === "PRODUCT FUNCTION" &&
+                this.metadata.type === "COMPOSITION")
+        );
     }
 
     public with(u: { (state: GmodNode): void }): GmodNode {
@@ -292,18 +289,29 @@ export class GmodNode {
     }
 }
 
-export function isIndividualizable(node: GmodNode, isTargetNode: boolean, isInSet: boolean = false): boolean {
-    if (node.metadata.type === "GROUP")
-        return false;
-    if (node.metadata.type === "SELECTION")
-        return false;
-    if (node.isProductType)
-        return false;
+export function isIndividualizable(
+    node: GmodNode,
+    isTargetNode: boolean,
+    isInSet: boolean = false
+): boolean {
+    if (node.metadata.type === "GROUP") return false;
+    if (node.metadata.type === "SELECTION") return false;
+    if (node.isProductType) return false;
     if (node.metadata.category === "ASSET" && node.metadata.type == "TYPE")
         return false;
-    if (node.metadata.category === "ASSET FUNCTION" && node.metadata.type === "COMPOSITION")
-        return node.code[node.code.length - 1] === 'i' || isTargetNode || isInSet;
-    if (node.metadata.category === "PRODUCT FUNCTION" && node.metadata.type === "COMPOSITION")
-        return node.code[node.code.length - 1] === 'i' || isTargetNode || isInSet;
+    if (
+        node.metadata.category === "ASSET FUNCTION" &&
+        node.metadata.type === "COMPOSITION"
+    )
+        return (
+            node.code[node.code.length - 1] === "i" || isTargetNode || isInSet
+        );
+    if (
+        node.metadata.category === "PRODUCT FUNCTION" &&
+        node.metadata.type === "COMPOSITION"
+    )
+        return (
+            node.code[node.code.length - 1] === "i" || isTargetNode || isInSet
+        );
     return true;
 }
