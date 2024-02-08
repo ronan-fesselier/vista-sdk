@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Vista.SDK.Internal;
 
 namespace Vista.SDK;
@@ -813,5 +813,67 @@ partial record class LocalIdBuilder
     {
         i += segment.Length + 1;
         state = to;
+    }
+
+    public static bool MatchISOString(StringBuilder builder)
+    {
+        for (var i = 0; i < builder.Length; i++)
+        {
+            var ch = builder[i];
+            if (ch == '/')
+                continue;
+            if (!MatchISOSubString(ch))
+                return false;
+        }
+        return true;
+    }
+
+    public static bool MatchISOString(string value)
+    {
+        foreach (var part in value.Split("/"))
+        {
+            if (!MatchISOSubString(part))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    public static bool MatchISOSubString(StringBuilder builder)
+    {
+        for (var i = 0; i < builder.Length; i++)
+            if (!MatchAsciiDecimal(builder[i]))
+                return false;
+        return true;
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    public static bool MatchISOSubString(char c) => MatchAsciiDecimal(c);
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    public static bool MatchISOSubString(string value)
+    {
+        foreach (ref readonly var p in value.AsSpan())
+            if (!MatchAsciiDecimal(p))
+                return false;
+
+        return true;
+    }
+
+    private static bool MatchAsciiDecimal(int code)
+    {
+        // Number
+        if (code >= 48 && code <= 57)
+            return true;
+        // Large character
+        if (code >= 65 && code <= 90)
+            return true;
+        // Small character
+        if (code >= 97 && code <= 122)
+            return true;
+        // ["-" , "." , "_" , "~"] respectively
+        if (code == 45 || code == 46 || code == 95 || code == 126)
+            return true;
+        return false;
     }
 }

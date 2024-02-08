@@ -364,6 +364,9 @@ public sealed partial record class LocalIdBuilder : ILocalIdBuilder<LocalIdBuild
 
         if (builder[builder.Length - 1] == '/')
             builder.Remove(builder.Length - 1, 1);
+
+        if (!MatchISOString(builder))
+            throw new FormatException("Invalid characters in LocalId");
     }
 
     public override string ToString()

@@ -170,8 +170,12 @@ export class LocalIdBuilder
                 -1
             );
         }
+        const result = builder.join("");
 
-        return builder.join("");
+        if (!LocalIdParser.matchISOString(result))
+            throw new Error("Invalid characters in LocalId");
+
+        return result;
     }
 
     public getMetadataTag(name: CodebookName): MetadataTag | undefined {

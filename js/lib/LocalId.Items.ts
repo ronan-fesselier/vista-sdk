@@ -1,4 +1,5 @@
 import { GmodPath } from "./GmodPath";
+import { LocalIdParser } from "./LocalId.Parsing";
 
 export class LocalIdItems {
     public primaryItem?: GmodPath;
@@ -64,15 +65,23 @@ export class LocalIdItems {
             if (ch === "/") continue;
             if (prev === " " && ch === " ") continue;
 
+            let current = ch;
             switch (ch) {
                 case " ":
-                    builder.push(".");
+                    current = ".";
                     break;
                 default:
-                    builder.push(ch.toLocaleLowerCase());
+                    const match = LocalIdParser.matchISOSubString(ch);
+                    if (!match) {
+                        current = ".";
+                        break;
+                    }
+                    current = ch.toLocaleLowerCase();
                     break;
             }
-            prev = ch;
+            if (current === "." && prev === ".") continue;
+            builder.push(current);
+            prev = current;
         }
 
         if (!!location) {
