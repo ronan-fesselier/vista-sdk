@@ -3,17 +3,15 @@ import {
     ParsingState,
     UniversalId,
     UniversalIdBuilder,
-    VIS,
     VisVersion,
 } from "../lib";
+import { getVIS, getVISMap } from "./Fixture";
 
 describe("UniversalId", () => {
-    const vis = VIS.instance;
     const visVersion = VisVersion.v3_4a;
-    const gmodPromise = vis.getGmod(visVersion);
-    const codebooksPromise = vis.getCodebooks(visVersion);
-    const locationsPromise = vis.getLocations(visVersion);
-
+    beforeAll(() => {
+        return getVISMap();
+    });
     const validTestData = [
         "data.dnv.com/IMO1234567/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         "data.dnv.com/IMO1234567/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
@@ -24,10 +22,8 @@ describe("UniversalId", () => {
         "data.dnv.com/IMO1234567/dnv-v2/vis-3-4a/411.1/C101/meta/qty-temperature",
     ];
 
-    test("Valid parsing", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it("Valid parsing", () => {
+        const { gmod, codebooks, locations } = getVIS(visVersion);
 
         validTestData.forEach((testData) => {
             const errorBuilder = new LocalIdParsingErrorBuilder();
@@ -69,10 +65,8 @@ describe("UniversalId", () => {
         },
     ];
 
-    test("Invalid parsing", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it("Invalid parsing", () => {
+        const { gmod, codebooks, locations } = getVIS(visVersion);
 
         invalidTestData.forEach((data) => {
             const errorBuilder = LocalIdParsingErrorBuilder.create();
@@ -100,7 +94,7 @@ describe("UniversalId", () => {
         "data.dnv.com/IMO1234567/dnv-v2/vis-3-7a/612.21/C701.23/C633/meta/calc~accumulate",
         "data.dnv.com/IMO1234567/dnv-v2/vis-3-7a/612.21/C701.23/C633/sec/411.1/C101/meta/calc~accumulate",
     ];
-    test.each(testCase)("Async parsing %s", async (s) => {
+    it.each(testCase)(" parsing %s", async (s) => {
         const errors = new LocalIdParsingErrorBuilder();
         const universalId = await UniversalIdBuilder.tryParseAsync(s, errors);
 

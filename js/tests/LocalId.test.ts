@@ -1,9 +1,9 @@
-import { VisVersion, LocalIdBuilder, CodebookName } from "../lib";
-import { LocalIdParsingErrorBuilder } from "../lib/internal/LocalIdParsingErrorBuilder";
-import { VIS } from "../lib/VIS";
 import * as fs from "fs-extra";
-import * as InvalidData from "../../testdata/InvalidLocalIds.json";
 import readline from "readline";
+import * as InvalidData from "../../testdata/InvalidLocalIds.json";
+import { CodebookName, LocalIdBuilder, VisVersion } from "../lib";
+import { LocalIdParsingErrorBuilder } from "../lib/internal/LocalIdParsingErrorBuilder";
+import { getVISMap, visMap } from "./Fixture";
 
 type Input = {
     primaryItem: string;
@@ -12,6 +12,7 @@ type Input = {
     content?: string;
     position?: string;
     verbose: boolean;
+    visVersion: VisVersion;
 };
 
 type Errored = {
@@ -21,13 +22,13 @@ type Errored = {
     errorBuilder?: LocalIdParsingErrorBuilder;
 };
 
+const visVersion = VisVersion.v3_4a;
+
 describe("LocalId", () => {
-    const vis = VIS.instance;
-    const visVersion = VisVersion.v3_4a;
-    const gmodPromise = vis.getGmod(visVersion);
-    const codebooksPromise = vis.getCodebooks(visVersion);
-    const locationsPromise = vis.getLocations(visVersion);
     const testDataPath = "../testdata/LocalIds.txt";
+    beforeAll(() => {
+        return getVISMap();
+    });
 
     const createInput = (
         primaryItem: string,
@@ -35,7 +36,8 @@ describe("LocalId", () => {
         quantity?: string,
         content?: string,
         position?: string,
-        verbose = false
+        verbose = false,
+        visVersion = VisVersion.v3_4a
     ): Input => {
         return {
             primaryItem,
@@ -44,6 +46,7 @@ describe("LocalId", () => {
             content,
             position,
             verbose,
+            visVersion,
         };
     };
 
@@ -69,18 +72,30 @@ describe("LocalId", () => {
                 "temperature",
                 "exhaust.gas",
                 "inlet",
+
                 true
             ),
             output: "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         },
+        {
+            input: createInput(
+                "511.11/C101.67/S208",
+                undefined,
+                "pressure",
+                "starting.air",
+                "inlet",
+                true,
+                VisVersion.v3_6a
+            ),
+            output: "/dnv-v2/vis-3-6a/511.11/C101.67/S208/~main.generator.engine/~starting.system.pneumatic/meta/qty-pressure/cnt-starting.air/pos-inlet",
+        },
     ];
 
-    test("LocalId valid build", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
-
+    it("LocalId valid build", () => {
         testData.forEach(({ input, output }) => {
+            const visVersion = input.visVersion;
+            const { gmod, locations, codebooks } = visMap.get(visVersion)!;
+
             const primaryItem = gmod.parsePath(input.primaryItem, locations);
             const secondaryItem = input.secondaryItem
                 ? gmod.parsePath(input.secondaryItem, locations)
@@ -111,12 +126,11 @@ describe("LocalId", () => {
         });
     });
 
-    test("LocalId equality", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
-
+    it("LocalId equality", () => {
         testData.forEach(({ input, output }) => {
+            const visVersion = input.visVersion;
+            const { gmod, locations, codebooks } = visMap.get(visVersion)!;
+
             const primaryItem = gmod.parsePath(input.primaryItem, locations);
             const secondaryItem = input.secondaryItem
                 ? gmod.parsePath(input.secondaryItem, locations)
@@ -175,10 +189,9 @@ describe("LocalId", () => {
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         "/dnv-v2/vis-3-4a/411.1/C101.313-4/C469/meta/qty-temperature/state-high/pos-intake.side",
     ];
-    test("LocalId parsing", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it("LocalId parsing", () => {
+        const visVersion = VisVersion.v3_4a;
+        const { gmod, locations, codebooks } = visMap.get(visVersion)!;
 
         parseTestData.forEach((s) => {
             const errorBuilder = new LocalIdParsingErrorBuilder();
@@ -195,7 +208,7 @@ describe("LocalId", () => {
         });
     });
 
-    test("LocalId async parsing", async () => {
+    it("LocalId async parsing", async () => {
         for (const s of parseTestData) {
             const errorBuilder = new LocalIdParsingErrorBuilder();
             const localId = await LocalIdBuilder.parseAsync(s, errorBuilder);
@@ -207,10 +220,8 @@ describe("LocalId", () => {
 
     const invalidParseTestData: string =
         "/dnv-v2/vis-3-4a/1021.1i-3AC/H121/meta/qty-temperature/cnt-cargo/cal";
-    test("LocalId invalid parsing", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it("LocalId invalid parsing", () => {
+        const { gmod, locations, codebooks } = visMap.get(visVersion)!;
 
         const errorBuilder = new LocalIdParsingErrorBuilder();
         const localId = LocalIdBuilder.tryParse(
@@ -224,10 +235,9 @@ describe("LocalId", () => {
         expect(localId).toBeUndefined();
     });
 
-    test.skip("LocalId smoketest parsing", async () => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it.skip("LocalId smoketest parsing", async () => {
+        const visVersion = VisVersion.v3_4a;
+        const { gmod, locations, codebooks } = visMap.get(visVersion)!;
 
         const fileStream = fs.createReadStream(testDataPath);
         const rl = readline.createInterface({
@@ -279,35 +289,30 @@ describe("LocalId", () => {
             console.warn("Number of errors in dataset:", errored.length);
     });
 
-    test.each(
+    it.each(
         InvalidData.InvalidLocalIds.map((l) => [
             l.input,
             l.expectedErrorMessages,
         ])
-    )(
-        "LocalId parsing validation - %s",
-        async (input, expectedErrorMessages) => {
-            const gmod = await gmodPromise;
-            const codeBooks = await codebooksPromise;
-            const locations = await locationsPromise;
+    )("LocalId parsing validation - %s", (input, expectedErrorMessages) => {
+        const { gmod, locations, codebooks } = visMap.get(visVersion)!;
 
-            const errorBuilder = new LocalIdParsingErrorBuilder();
-            const localId = LocalIdBuilder.tryParse(
-                input as string,
-                gmod,
-                codeBooks,
-                locations,
-                errorBuilder
-            );
+        const errorBuilder = new LocalIdParsingErrorBuilder();
+        const localId = LocalIdBuilder.tryParse(
+            input as string,
+            gmod,
+            codebooks,
+            locations,
+            errorBuilder
+        );
 
-            expect(localId).toBeUndefined();
-            expect(errorBuilder.errors.map((e) => e.message)).toEqual(
-                expectedErrorMessages
-            );
-        }
-    );
+        expect(localId).toBeUndefined();
+        expect(errorBuilder.errors.map((e) => e.message)).toEqual(
+            expectedErrorMessages
+        );
+    });
 
-    test("LocalId Metadata Equality", async () => {
+    it("LocalId Metadata Equality", async () => {
         const t1 = await LocalIdBuilder.parseAsync(
             "/dnv-v2/vis-3-4a/087/meta/qty-time/detail-one.more"
         );

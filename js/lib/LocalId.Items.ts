@@ -1,5 +1,4 @@
 import { GmodPath } from "./GmodPath";
-import { LocalIdParser } from "./LocalId.Parsing";
 import { VIS } from "./VIS";
 
 export class LocalIdItems {

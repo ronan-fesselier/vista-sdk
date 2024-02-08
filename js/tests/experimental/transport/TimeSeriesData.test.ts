@@ -3,7 +3,7 @@ import { AssetIdentifier, DataId, TimeSeries } from "../../../lib/experimental";
 describe("TimeSeriesDataPackage", () => {
     const validLocalIdStr =
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/meta/qty-temperature/cnt-cooling.water/pos-inlet";
-    test("Model", async () => {
+    it("Model", async () => {
         // Values
         const dataId = await DataId.parseAsync(validLocalIdStr);
         const shipId = AssetIdentifier.parse("IMO1234567");

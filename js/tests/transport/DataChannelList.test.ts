@@ -6,7 +6,7 @@ describe("DataChannel", () => {
     const validLocalIdStr =
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/meta/qty-temperature/cnt-cooling.water/pos-inlet";
 
-    test("Model", async () => {
+    it("Model", async () => {
         const localId = await LocalId.parseAsync(validLocalIdStr);
 
         const shipId = ShipId.parse("IMO1234567");

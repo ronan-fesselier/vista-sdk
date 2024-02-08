@@ -1,8 +1,13 @@
-import { VisVersion, CodebookName } from "../lib";
+import { CodebookName, VisVersion } from "../lib";
 import { Codebook, PositionValidationResult } from "../lib/Codebook";
-import { VIS } from "../lib/VIS";
+import { getVIS, getVISMap } from "./Fixture";
 
 describe("Codebooks", () => {
+    beforeAll(() => {
+        return getVISMap();
+    });
+    const version = VisVersion.v3_4a;
+
     const testPositionData = [
         { input: "phase.w.u", output: PositionValidationResult.Valid },
         { input: "outside-phase.w.u", output: PositionValidationResult.Valid },
@@ -53,12 +58,8 @@ describe("Codebooks", () => {
         },
     ];
 
-    const vis = VIS.instance;
-    const version = VisVersion.v3_4a;
-    const codebooksPromise = vis.getCodebooks(version);
-
-    test("Position validation", async () => {
-        const codebooks = await codebooksPromise;
+    it("Position validation", () => {
+        const codebooks = getVIS(version).codebooks;
 
         const codebookType = codebooks.getCodebook(CodebookName.Position);
 
@@ -69,16 +70,16 @@ describe("Codebooks", () => {
         });
     }); // TODO
 
-    test("Positions", async () => {
-        const codebooks = await codebooksPromise;
+    it("Positions", () => {
+        const codebooks = getVIS(version).codebooks;
         const positions = codebooks.getCodebook(CodebookName.Position);
 
         expect(positions.hasStandardValue("<number>")).toBe(false);
         expect(positions.hasStandardValue("1")).toBe(true);
     });
 
-    test("States", async () => {
-        const codebooks = await codebooksPromise;
+    it("States", () => {
+        const codebooks = getVIS(version).codebooks;
         const states = codebooks.getCodebook(CodebookName.State);
 
         expect(states).not.toBe(undefined);
@@ -87,8 +88,8 @@ describe("Codebooks", () => {
         expect(states.hasStandardValue("clogged")).toBe(true);
     });
 
-    test("Create tag", async () => {
-        const codebooks = await codebooksPromise;
+    it("Create tag", () => {
+        const codebooks = getVIS(version).codebooks;
         const codebookType = codebooks.getCodebook(CodebookName.Position);
 
         const metadataTag1 = codebookType.createTag("1");
@@ -117,8 +118,8 @@ describe("Codebooks", () => {
         expect(codebookType.tryCreateTag("centre!")).toBeFalsy();
     });
 
-    test("Detail tag", async () => {
-        const codebooks = await vis.getCodebooks(version);
+    it("Detail tag", () => {
+        const codebooks = getVIS(version).codebooks;
         const codebook = codebooks.getCodebook(CodebookName.Detail);
 
         expect(codebook).toBeTruthy();
@@ -135,10 +136,11 @@ describe("Codebooks", () => {
         [CodebookName.Quantity, "test", true],
         [CodebookName.Position, "Aft", false],
     ];
-    test.each(testCases)("IsValid", async (name, value, valid) => {
-        const codebooks = await codebooksPromise;
+    it.each(testCases)("IsValid", (name, value, valid) => {
+        const codebooks = getVIS(version).codebooks;
         const codebook = codebooks.getCodebook(name);
 
-        expect(Codebook.isValidTag(name, value, codebook)).toEqual(valid);
+        const isValid = Codebook.isValidTag(name, value, codebook);
+        expect(isValid).toEqual(valid);
     });
 });

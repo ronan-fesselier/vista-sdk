@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Caching.Memory;
 using System.Text;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Vista.SDK;
 

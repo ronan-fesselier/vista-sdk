@@ -6,14 +6,14 @@ describe("ShipId", () => {
     const invalidImoStr = "IMO1234568";
     const invalidImoStartStr = "IM1234567";
 
-    test("ParseValid IMO", () => {
+    it("ParseValid IMO", () => {
         const shipId = ShipId.parse(validImoStr);
 
         expect(shipId.imoNumber).toBeTruthy();
         expect(shipId.imoNumber!.value).toEqual(1234567);
     });
 
-    test("ParseInvalidValid IMO start", () => {
+    it("ParseInvalidValid IMO start", () => {
         const shipId = ShipId.parse(invalidImoStartStr);
 
         expect(shipId.imoNumber).toBeUndefined();
@@ -21,7 +21,7 @@ describe("ShipId", () => {
         expect(shipId.otherId).toEqual(invalidImoStartStr);
     });
 
-    test("ParseInvalidValid IMO number", () => {
+    it("ParseInvalidValid IMO number", () => {
         const shipId = ShipId.parse(invalidImoStr);
 
         expect(shipId.imoNumber).toBeUndefined();
@@ -29,7 +29,7 @@ describe("ShipId", () => {
         expect(shipId.otherId).toEqual(invalidImoStr);
     });
 
-    test("ParseValid Other", () => {
+    it("ParseValid Other", () => {
         const shipId = ShipId.parse(otherString);
 
         expect(shipId.otherId).toBeTruthy();

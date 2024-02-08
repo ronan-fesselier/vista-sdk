@@ -9,7 +9,7 @@ import {
 import { DataList } from "../../../lib/experimental/transport/domain/data-list/DataList";
 
 describe("Transport JSON", () => {
-    test("DataChannelList Extensions", async () => {
+    it("DataChannelList Extensions", async () => {
         const p: DataList.DataListPackage = {
             package: {
                 header: {
@@ -41,7 +41,7 @@ describe("Transport JSON", () => {
         expect(dto.Package.Header.AssetId).toEqual("IMO1234567");
     });
 
-    test("TimeSeries Extensions", async () => {
+    it("TimeSeries Extensions", async () => {
         const p: TimeSeries.TimeSeriesDataPackage = {
             package: {
                 header: {

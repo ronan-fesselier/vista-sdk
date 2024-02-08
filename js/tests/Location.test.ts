@@ -1,26 +1,26 @@
 import { LocationBuilder, VIS, VisVersion, VisVersions } from "../lib";
 import * as testData from "../../testdata/Locations.json";
 import { LocationParsingErrorBuilder } from "../lib/internal/LocationParsingErrorBuilder";
+import { getVIS, getVISMap } from "./Fixture";
 
 describe("Location", () => {
-    const vis = VIS.instance;
     const version = VisVersion.v3_4a;
-    const locationPromise = vis.getLocations(version);
 
-    test.each(VisVersions.all)(
-        "Location loads for VIS version %s",
-        async (version) => {
-            const location = await vis.getLocations(version);
+    beforeAll(() => {
+        return getVISMap();
+    });
 
-            expect(location).toBeTruthy();
-            expect(location.groups).toBeTruthy();
-        }
-    );
+    it.each(VisVersions.all)("Location loads for VIS version %s", (version) => {
+        const location = getVIS(version).locations;
 
-    test.each(testData.locations.map((l) => [l]))(
+        expect(location).toBeTruthy();
+        expect(location.groups).toBeTruthy();
+    });
+
+    it.each(testData.locations.map((l) => [l]))(
         "Location parsing - %s",
-        async ({ value, success, output, expectedErrorMessages }) => {
-            const locations = await locationPromise;
+        ({ value, success, output, expectedErrorMessages }) => {
+            const locations = getVIS(version).locations;
 
             const errorBuilder = new LocationParsingErrorBuilder();
             const createdLocation = locations.tryParse(value, errorBuilder);
@@ -42,15 +42,15 @@ describe("Location", () => {
         }
     );
 
-    test("Location parsing throws", async () => {
-        const locations = await locationPromise;
+    it("Location parsing throws", () => {
+        const locations = getVIS(version).locations;
 
         expect(() => locations.parse(null!)).toThrowError();
         expect(() => locations.parse(undefined!)).toThrowError();
     });
 
-    test("Location builder", async () => {
-        const locations = await locationPromise;
+    it("Location builder", () => {
+        const locations = getVIS(version).locations;
 
         const locationStr = "21FIPU";
         var location = locations.parse(locationStr);
@@ -58,7 +58,7 @@ describe("Location", () => {
         var builder = LocationBuilder.create(locations);
 
         builder = builder.withNumber(62);
-        expect(builder.toString()).toEqual('62');
+        expect(builder.toString()).toEqual("62");
 
         builder = builder
             .withNumber(21)

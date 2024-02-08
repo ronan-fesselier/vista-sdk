@@ -1,6 +1,7 @@
-import { VisVersion, Experimental, CodebookName, VIS } from "../../lib";
+import { CodebookName, Experimental, VisVersion } from "../../lib";
 import { DataId } from "../../lib/experimental";
 import { PMSLocalId } from "../../lib/experimental/PMSLocalId";
+import { getVIS, getVISMap } from "../Fixture";
 
 type Input = {
     primaryItem: string;
@@ -12,11 +13,11 @@ type Input = {
 };
 
 describe("LocalId", () => {
-    const vis = VIS.instance;
     const visVersion = VisVersion.v3_6a;
-    const gmodPromise = vis.getGmod(visVersion);
-    const codebooksPromise = vis.getCodebooks(visVersion);
-    const locationsPromise = vis.getLocations(visVersion);
+
+    beforeAll(() => {
+        return getVISMap();
+    });
 
     const createInput = (
         primaryItem: string,
@@ -125,12 +126,10 @@ describe("LocalId", () => {
         },
     ];
 
-    test.each(testData)(
+    it.each(testData)(
         "LocalId valid build for $output",
-        async ({ input, output }) => {
-            const gmod = await gmodPromise;
-            const codebooks = await codebooksPromise;
-            const locations = await locationsPromise;
+        ({ input, output }) => {
+            const { gmod, codebooks, locations } = getVIS(visVersion);
 
             const primaryItem = gmod.parsePath(input.primaryItem, locations);
             const secondaryItem = input.secondaryItem
@@ -163,10 +162,8 @@ describe("LocalId", () => {
         }
     );
 
-    test.each(testData)("LocalId equality for $output", async ({ input }) => {
-        const gmod = await gmodPromise;
-        const codebooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it.each(testData)("LocalId equality for $output", ({ input }) => {
+        const { gmod, codebooks, locations } = getVIS(visVersion);
 
         const primaryItem = gmod.parsePath(input.primaryItem, locations);
         const secondaryItem = input.secondaryItem
@@ -216,47 +213,40 @@ describe("LocalId", () => {
         expect(localId).not.toBe(otherLocalId);
     });
 
-    test.each(testData)(
-        "Without MaintenanceCategory $output",
-        async ({ input }) => {
-            const gmod = await gmodPromise;
-            const codebooks = await codebooksPromise;
-            const locations = await locationsPromise;
+    it.each(testData)("Without MaintenanceCategory $output", ({ input }) => {
+        const { gmod, codebooks, locations } = getVIS(visVersion);
 
-            const primaryItem = gmod.parsePath(input.primaryItem, locations);
-            const secondaryItem = input.secondaryItem
-                ? gmod.parsePath(input.secondaryItem, locations)
-                : undefined;
+        const primaryItem = gmod.parsePath(input.primaryItem, locations);
+        const secondaryItem = input.secondaryItem
+            ? gmod.parsePath(input.secondaryItem, locations)
+            : undefined;
 
-            let localId = Experimental.PMSLocalIdBuilder.create(visVersion)
-                .withPrimaryItem(primaryItem)
-                .tryWithSecondaryItem(secondaryItem)
-                .withVerboseMode(input.verbose)
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(
-                        CodebookName.MaintenanceCategory,
-                        input.mainenanceCategory
-                    )
+        let localId = Experimental.PMSLocalIdBuilder.create(visVersion)
+            .withPrimaryItem(primaryItem)
+            .tryWithSecondaryItem(secondaryItem)
+            .withVerboseMode(input.verbose)
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(
+                    CodebookName.MaintenanceCategory,
+                    input.mainenanceCategory
                 )
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(CodebookName.Content, input.content)
+            )
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(CodebookName.Content, input.content)
+            )
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(
+                    CodebookName.ActivityType,
+                    input.activityType
                 )
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(
-                        CodebookName.ActivityType,
-                        input.activityType
-                    )
-                );
-
-            localId = localId.withoutMetadataTag(
-                CodebookName.MaintenanceCategory
             );
 
-            expect(localId.maintenanceCategory).toBeFalsy();
-        }
-    );
+        localId = localId.withoutMetadataTag(CodebookName.MaintenanceCategory);
 
-    test.each(testData)("Parsing", async ({ output }) => {
+        expect(localId.maintenanceCategory).toBeFalsy();
+    });
+
+    it.each(testData)("Parsing", async ({ output }) => {
         const pmsLocalId = await PMSLocalId.parseAsync(output);
 
         expect(pmsLocalId).not.toBeFalsy();
@@ -284,13 +274,12 @@ describe("LocalId", () => {
         "/dnv-v2-experimental/vis-3-7a/411.1-1/C101.663i/C663/meta/maint.cat-preventive/act.type-test",
         "/dnv-v2-experimental/vis-3-7a/411.1-4/C101/meta/maint.cat-preventive/act.type-test",
         "/dnv-v2-experimental/vis-3-7a/411.1-1/C101/meta/maint.cat-preventive/act.type-test",
-        "/dnv-v2-experimental/vis-3-7a/511.15-1/E32/meta/maint.cat-preventive/act.type-test"
+        "/dnv-v2-experimental/vis-3-7a/511.15-1/E32/meta/maint.cat-preventive/act.type-test",
     ];
 
-    test.each(otherTestData)("Parsing DataId - %s", async (localId) => {
+    it.each(otherTestData)("Parsing DataId - %s", async (localId) => {
         const pmsLocalId = await DataId.parseAsync(localId);
 
         expect(pmsLocalId).not.toBeFalsy();
     });
-
 });

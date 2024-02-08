@@ -1,19 +1,21 @@
-import { VisVersion, CodebookName } from "../lib";
-import { VIS } from "../lib/VIS";
+import { CodebookName, VisVersion } from "../lib";
+import { getVIS, getVISMap } from "./Fixture";
 
 describe("Codebooks", () => {
-    const vis = VIS.instance;
-    const version = VisVersion.v3_4a;
-    const codebooksPromise = vis.getCodebooks(version);
+    const visVersion = VisVersion.v3_4a;
 
-    test("Codebooks load", async () => {
-        const codebooks = await codebooksPromise;
+    beforeAll(() => {
+        return getVISMap();
+    });
+
+    it("Codebooks load", () => {
+        const { codebooks } = getVIS(visVersion);
         expect(codebooks).toBeTruthy();
         expect(codebooks.getCodebook(CodebookName.Position)).toBeTruthy();
     });
 
-    test("Codebooks equality", async () => {
-        const codebooks = await codebooksPromise;
+    it("Codebooks equality", () => {
+        const { codebooks } = getVIS(visVersion);
         const codebook = codebooks.getCodebook(CodebookName.Position);
         expect(codebook.hasStandardValue("centre")).toBe(true);
     });

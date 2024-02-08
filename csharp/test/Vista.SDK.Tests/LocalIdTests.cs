@@ -57,6 +57,7 @@ public class LocalIdTests
         string? Quantity = null,
         string? Content = null,
         string? Position = null,
+        VisVersion VisVersion = VisVersion.v3_4a,
         bool Verbose = false
     );
 
@@ -86,6 +87,11 @@ public class LocalIdTests
                 ),
                 "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
             },
+
+            [
+                new Input(PrimaryItem: "511.11/C101.67/S208", Quantity: "pressure", Position: "inlet", Content: "starting.air", Verbose: true, VisVersion: VisVersion.v3_6a),
+                "/dnv-v2/vis-3-6a/511.11/C101.67/S208/~main.generator.engine/~starting.system.pneumatic/meta/qty-pressure/cnt-starting.air/pos-inlet"
+            ]
         };
 
     public static IEnumerable<object[]> Valid_Mqtt_Test_Data =>
@@ -114,7 +120,7 @@ public class LocalIdTests
     {
         var (_, vis) = VISTests.GetVis();
 
-        var visVersion = VisVersion.v3_4a;
+        var visVersion = input.VisVersion;
 
         var gmod = vis.GetGmod(visVersion);
         var codebooks = vis.GetCodebooks(visVersion);
