@@ -830,11 +830,15 @@ partial record class LocalIdBuilder
 
     public static bool MatchISOString(string value)
     {
-        foreach (var part in value.Split("/"))
+        var span = value.AsSpan();
+        foreach (ref readonly var ch in span)
         {
-            if (!MatchISOSubString(part))
+            if (ch == '/')
+                continue;
+            if (!MatchISOSubString(ch))
                 return false;
         }
+
         return true;
     }
 
@@ -853,7 +857,8 @@ partial record class LocalIdBuilder
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
     public static bool MatchISOSubString(string value)
     {
-        foreach (ref readonly var p in value.AsSpan())
+        var span = value.AsSpan();
+        foreach (ref readonly var p in span)
             if (!MatchAsciiDecimal(p))
                 return false;
 
