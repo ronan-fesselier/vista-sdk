@@ -1,5 +1,6 @@
 import { GmodPath } from "./GmodPath";
 import { LocalIdParser } from "./LocalId.Parsing";
+import { VIS } from "./VIS";
 
 export class LocalIdItems {
     public primaryItem?: GmodPath;
@@ -71,7 +72,7 @@ export class LocalIdItems {
                     current = ".";
                     break;
                 default:
-                    const match = LocalIdParser.matchISOSubString(ch);
+                    const match = VIS.matchISOSubString(ch);
                     if (!match) {
                         current = ".";
                         break;

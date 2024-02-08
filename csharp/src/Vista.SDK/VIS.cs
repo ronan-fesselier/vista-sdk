@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using System.Text;
 
 namespace Vista.SDK;
 
@@ -271,4 +272,73 @@ public sealed class VIS : IVIS
 
     public LocalId? ConvertLocalId(LocalId sourceLocalId, VisVersion targetVersion) =>
         GetGmodVersioning().ConvertLocalId(sourceLocalId, targetVersion);
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOString(StringBuilder builder)
+    {
+        for (var i = 0; i < builder.Length; i++)
+        {
+            var ch = builder[i];
+            if (ch == '/')
+                continue;
+            if (!MatchISOSubString(ch))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOString(string value)
+    {
+        var span = value.AsSpan();
+        foreach (ref readonly var ch in span)
+        {
+            if (ch == '/')
+                continue;
+            if (!MatchISOSubString(ch))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOSubString(StringBuilder builder)
+    {
+        for (var i = 0; i < builder.Length; i++)
+            if (!MatchAsciiDecimal(builder[i]))
+                return false;
+        return true;
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOSubString(char c) => MatchAsciiDecimal(c);
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOSubString(string value)
+    {
+        var span = value.AsSpan();
+        foreach (ref readonly var p in span)
+            if (!MatchAsciiDecimal(p))
+                return false;
+
+        return true;
+    }
+
+    private static bool MatchAsciiDecimal(int code)
+    {
+        // Number
+        if (code >= 48 && code <= 57)
+            return true;
+        // Large character A-Z
+        if (code >= 65 && code <= 90)
+            return true;
+        // Small character a-z
+        if (code >= 97 && code <= 122)
+            return true;
+        // ["-" , "." , "_" , "~"] respectively
+        if (code == 45 || code == 46 || code == 95 || code == 126)
+            return true;
+        return false;
+    }
 }

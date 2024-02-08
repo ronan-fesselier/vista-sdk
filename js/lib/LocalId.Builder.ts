@@ -172,9 +172,6 @@ export class LocalIdBuilder
         }
         const result = builder.join("");
 
-        if (!LocalIdParser.matchISOString(result))
-            throw new Error("Invalid characters in LocalId");
-
         return result;
     }
 

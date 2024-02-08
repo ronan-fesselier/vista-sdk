@@ -72,7 +72,7 @@ internal readonly record struct LocalIdItems
                         current = '.';
                         break;
                     default:
-                        var match = LocalIdBuilder.MatchISOSubString(ch);
+                        var match = VIS.MatchISOSubString(ch);
                         if (!match)
                         {
                             current = '.';

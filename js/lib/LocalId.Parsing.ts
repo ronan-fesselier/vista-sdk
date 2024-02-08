@@ -1015,38 +1015,4 @@ export class LocalIdParser {
             return;
         }
     }
-
-    public static matchISOString(value: string): boolean {
-        for (const part of value.split("/")) {
-            if (!LocalIdParser.matchISOSubString(part)) return false;
-        }
-        return true;
-    }
-
-    /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
-    public static matchISOSubString(value: string): boolean {
-        for (let i = 0; i < value.length; i++) {
-            // User ASCII Decimal instead of HEX Digits
-            const code = value.charCodeAt(i);
-            // Number
-            if (code >= asciiNumberStart && code <= asciiNumberEnd) continue;
-            // Large character
-            if (code >= asciiLargeStart && code <= asciiLargeEnd) continue;
-            // Small character
-            if (code >= asciiSmallStart && code <= asciiSmallEnd) continue;
-            // ["-" , "." , "_" , "~"] respectively
-            if (code === 45 || code === 46 || code === 95 || code === 126)
-                continue;
-            return false;
-        }
-        return true;
-    }
 }
-
-// ASCII decimal values
-const asciiNumberStart = 48;
-const asciiNumberEnd = 57;
-const asciiLargeStart = 65;
-const asciiLargeEnd = 90;
-const asciiSmallStart = 97;
-const asciiSmallEnd = 122;
