@@ -65,15 +65,26 @@ internal readonly record struct LocalIdItems
                 if (prev == ' ' && ch == ' ')
                     continue;
 
-                builder.Append(
-                    ch switch
-                    {
-                        ' ' => '.',
-                        _ => char.ToLowerInvariant(ch)
-                    }
-                );
-
-                prev = ch;
+                var current = ch;
+                switch (ch)
+                {
+                    case ' ':
+                        current = '.';
+                        break;
+                    default:
+                        var match = VIS.IsISOString(ch);
+                        if (!match)
+                        {
+                            current = '.';
+                            break;
+                        }
+                        current = char.ToLowerInvariant(ch);
+                        break;
+                }
+                if (current == '.' && prev == '.')
+                    continue;
+                builder.Append(current);
+                prev = current;
             }
 
             if (location is { Length: > 0 })

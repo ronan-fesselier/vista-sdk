@@ -170,8 +170,9 @@ export class LocalIdBuilder
                 -1
             );
         }
+        const result = builder.join("");
 
-        return builder.join("");
+        return result;
     }
 
     public getMetadataTag(name: CodebookName): MetadataTag | undefined {

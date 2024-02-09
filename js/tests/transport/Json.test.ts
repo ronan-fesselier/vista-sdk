@@ -3,9 +3,8 @@ import { JSONExtensions } from "../../lib";
 import { VistaJSONSerializer } from "../../lib";
 
 describe("Transport JSON", () => {
-    test("DataChannelList Extensions", async () => {
-        const testDataPath =
-            "../schemas/json/DataChannelList.sample.json";
+    it("DataChannelList Extensions", async () => {
+        const testDataPath = "../schemas/json/DataChannelList.sample.json";
         const sample = await fs
             .readFile(testDataPath)
             .then((res) => res.toString());
@@ -22,7 +21,7 @@ describe("Transport JSON", () => {
         expect(dto.Package.Header.ShipID).toEqual("IMO1234567");
     });
 
-    test("TimeSeries Extensions", async () => {
+    it("TimeSeries Extensions", async () => {
         const testDataPath = "../schemas/json/TimeSeriesData.sample.json";
         const sample = await fs
             .readFile(testDataPath)

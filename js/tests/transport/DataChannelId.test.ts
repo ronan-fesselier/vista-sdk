@@ -7,14 +7,14 @@ describe("DataChannelId", () => {
         "/invalid/dnv-v2/vis-3-4a/411.1/C101.63/S206/meta/qty-temperature/cnt-cooling.water/pos-inlet";
     const otherString = "myVessel";
 
-    test("ParseValid LocalId", async () => {
+    it("ParseValid LocalId", async () => {
         const dataChannelId = await DataChannelId.parseAsync(validLocalIdStr);
 
         expect(dataChannelId.localId).toBeTruthy();
         expect(dataChannelId.localId!.toString()).toEqual(validLocalIdStr);
     });
 
-    test("ParseInvalidValid LocalId", async () => {
+    it("ParseInvalidValid LocalId", async () => {
         const dataChannelId = await DataChannelId.parseAsync(invalidLocalIdStr);
 
         expect(dataChannelId.localId).toBeUndefined();
@@ -22,7 +22,7 @@ describe("DataChannelId", () => {
         expect(dataChannelId.shortId).toEqual(invalidLocalIdStr);
     });
 
-    test("ParseValid Other", async () => {
+    it("ParseValid Other", async () => {
         const dataChannelId = await DataChannelId.parseAsync(otherString);
 
         expect(dataChannelId.shortId).toBeTruthy();

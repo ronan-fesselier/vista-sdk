@@ -5,12 +5,12 @@ import {
     NotRelevant,
     Pmod,
     PmodNode,
-    VIS,
     VisVersion,
 } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
 import { Ok } from "../lib/types/Result";
 import { StrippedNode } from "../lib/types/Tree";
+import { getVIS, getVISMap } from "./Fixture";
 
 // Used for testing
 type VmodNode = {
@@ -23,18 +23,14 @@ type VmodNode = {
 };
 
 describe("Pmod", () => {
-    const vis = VIS.instance;
     const version = VisVersion.v3_4a;
-    const gmodPromise = vis.getGmod(version);
-    const codebooksPromise = vis.getCodebooks(version);
-    const locationsPromise = vis.getLocations(version);
-    const gmod36Promise = vis.getGmod(VisVersion.v3_6a);
-    const locations36Promise = vis.getLocations(VisVersion.v3_6a);
 
-    test("From LocalIds", async () => {
-        const gmod = await gmodPromise;
-        const codeBooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    beforeAll(() => {
+        return getVISMap();
+    });
+
+    it("From LocalIds", () => {
+        const { gmod, codebooks: codeBooks, locations } = getVIS(version);
 
         const localIds = testData.localIds.map((localIdStr) =>
             LocalId.parse(localIdStr, gmod, codeBooks, locations)
@@ -65,10 +61,8 @@ describe("Pmod", () => {
         expect(pmod.isValid).toBeTruthy();
     });
 
-    test("Traverse pmod from node", async () => {
-        const gmod = await gmodPromise;
-        const codeBooks = await codebooksPromise;
-        const locations = await locationsPromise;
+    it("Traverse pmod from node", () => {
+        const { gmod, codebooks: codeBooks, locations } = getVIS(version);
 
         const localIds = testData.localIds.map((localIdStr) =>
             LocalId.parse(localIdStr, gmod, codeBooks, locations)
@@ -168,17 +162,15 @@ describe("Pmod", () => {
         expect(context.nodes[0].code).toEqual(rootNodeCode);
     });
 
-    test.each(testData.fullPaths)("Tree parse paths %s", async (testPath) => {
-        const gmod = await gmod36Promise;
-        const locations = await locations36Promise;
+    it.each(testData.fullPaths)("Tree parse paths %s", (testPath) => {
+        const { gmod, locations } = getVIS(VisVersion.v3_6a);
 
         const path = gmod.parseFromFullPath(testPath, locations);
         expect(path).toBeTruthy();
     });
 
-    test("Tree", async () => {
-        const gmod = await gmod36Promise;
-        const locations = await locations36Promise;
+    it("Tree", () => {
+        const { gmod, locations } = getVIS(VisVersion.v3_6a);
 
         const paths = testData.fullPaths.map((localIdStr) =>
             gmod.parseFromFullPath(localIdStr, locations)

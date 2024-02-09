@@ -64,21 +64,9 @@
             ]
         },
         {
-            "input": "/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-seaXX.water/state-opened",
-            "expectedErrorMessages": [
-                "Invalid Content metadata tag: failed to create seaXX.water"
-            ]
-        },
-        {
             "input": "/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cntsea.XXwaters/state-opened",
             "expectedErrorMessages": [
                 "Invalid metadata tag: missing prefix '-' or '~' in cntsea.XXwaters"
-            ]
-        },
-        {
-            "input": "/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt~customSeaWater/state~opened",
-            "expectedErrorMessages": [
-                "Invalid custom Content metadata tag: failed to create customSeaWater"
             ]
         },
         {

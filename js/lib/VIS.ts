@@ -157,6 +157,84 @@ export class VIS {
         );
     }
 
+    public async getLocationsMap(
+        visVersions: VisVersion[]
+    ): Promise<Map<VisVersion, Locations>> {
+        var invalidVisVersions = visVersions.filter(
+            (v) => !VisVersionExtension.isValid(v)
+        );
+        if (invalidVisVersions.length > 0) {
+            throw new Error(
+                "Invalid VIS versions provided: " +
+                    invalidVisVersions.join(", ")
+            );
+        }
+
+        const versions = new Set(visVersions);
+        const locationPromises = Array.from(versions).map(async (v) => ({
+            visVersion: v,
+            location: await this.getLocations(v),
+        }));
+        const locations = await Promise.all(locationPromises);
+
+        return new Map(
+            Object.assign(
+                {},
+                ...locations.map((c) => ({ [c.visVersion]: c.location }))
+            )
+        );
+    }
+
+    public async getVIS(
+        visVersion: VisVersion
+    ): Promise<{ gmod: Gmod; codebooks: Codebooks; locations: Locations }> {
+        const promises = [
+            this.getGmod(visVersion),
+            this.getCodebooks(visVersion),
+            this.getLocations(visVersion),
+        ];
+
+        const [gmod, codebooks, locations] = (await Promise.all(promises)) as [
+            Gmod,
+            Codebooks,
+            Locations
+        ];
+
+        return { gmod, codebooks, locations };
+    }
+
+    public async getVISMap(visVersions: VisVersion[]): Promise<
+        Map<
+            VisVersion,
+            {
+                gmod: Gmod;
+                codebooks: Codebooks;
+                locations: Locations;
+            }
+        >
+    > {
+        var invalidVisVersions = visVersions.filter(
+            (v) => !VisVersionExtension.isValid(v)
+        );
+        if (invalidVisVersions.length > 0) {
+            throw new Error(
+                "Invalid VIS versions provided: " +
+                    invalidVisVersions.join(", ")
+            );
+        }
+        const promises = visVersions.map((v) => this.getVIS(v));
+        const results = await Promise.all(promises);
+
+        const map = new Map<
+            VisVersion,
+            { gmod: Gmod; codebooks: Codebooks; locations: Locations }
+        >();
+
+        for (const result of results) map.set(result.gmod.visVersion, result);
+
+        return map;
+    }
+
     private async getLocationsDto(
         visVersion: VisVersion
     ): Promise<LocationsDto> {
@@ -186,5 +264,36 @@ export class VIS {
 
     public getVisVersions() {
         return VisVersions.all;
+    }
+
+    /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
+    public static isISOLocalIdString(value: string): boolean {
+        for (const part of value.split("/")) {
+            if (!VIS.isISOString(part)) return false;
+        }
+        return true;
+    }
+
+    /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
+    public static isISOString(value: string): boolean {
+        for (let i = 0; i < value.length; i++) {
+            // User ASCII Decimal instead of HEX Digits
+            const code = value.charCodeAt(i);
+            if (!VIS.matchAsciiDecimal(code)) return false;
+        }
+        return true;
+    }
+
+    private static matchAsciiDecimal(code: number) {
+        // Number
+        if (code >= 48 && code <= 57) return true;
+        // Large character A-Z
+        if (code >= 65 && code <= 90) return true;
+        // Small character a-z
+        if (code >= 97 && code <= 122) return true;
+        // ["-" , "." , "_" , "~"] respectively
+        if (code === 45 || code === 46 || code === 95 || code === 126)
+            return true;
+        return false;
     }
 }

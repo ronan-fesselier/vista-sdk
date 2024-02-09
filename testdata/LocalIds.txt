@@ -1,4 +1,4 @@
-﻿/dnv-v2/vis-3-4a/621.1/sec/625.21/C823/meta/qty-level/cnt-marine.gas.oil/state-low
+/dnv-v2/vis-3-4a/621.1/sec/625.21/C823/meta/qty-level/cnt-marine.gas.oil/state-low
 /dnv-v2/vis-3-4a/922.3-1/S224/sec/401/H233/meta/state-abnormal
 /dnv-v2/vis-3-4a/621.21/S90/sec/612.21/C701/meta/qty-temperature/cnt-fuel.oil/state-high/detail-mdo.lsmgo
 /dnv-v2/vis-3-4a/1021.1i-1CF/H122/meta/qty-temperature/cnt-cargo/pos-centre
@@ -16068,7 +16068,6 @@
 /dnv-v2/vis-3-4a/111/sec/107.3/I101/meta/qty-draught/pos-aft
 /dnv-v2/vis-3-4a/1021.1i-12AC/H121/meta/qty-temperature/cnt-cargo/pos-upper
 /dnv-v2/vis-3-4a/812.2/S233/meta/state-opened
-/dnv-v2/vis-3-4a/1015.11-"/S90.3-S/S61/meta/cmd-close
 /dnv-v2/vis-3-4a/631.3/S90.3/S61/sec/652/meta/state-opened/pos-starboard/detail-main
 /dnv-v2/vis-3-4a/511.11-2/C101.44i/C261/meta/qty-acceleration/pos-driving.end/detail-horizontal
 /dnv-v2/vis-3-4a/411.1/C101.65/S210/sec/411.1/C101.311-4/C467/meta/qty-temperature/cnt-exhaust.gas/calc-deviation/pos-outlet

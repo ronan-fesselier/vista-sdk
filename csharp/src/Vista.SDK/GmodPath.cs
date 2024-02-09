@@ -570,12 +570,16 @@ public sealed record GmodPath
             if (partStr.Contains('-'))
             {
                 var split = partStr.Split('-');
+                if (!gmod.TryGetNode(split[0], out _))
+                    return false;
                 if (!locations.TryParse(split[1], out var location))
                     return false;
                 parts.Enqueue(new PathNode(split[0], location));
             }
             else
             {
+                if (!gmod.TryGetNode(partStr, out _))
+                    return false;
                 parts.Enqueue(new PathNode(partStr));
             }
         }

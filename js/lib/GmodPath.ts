@@ -15,20 +15,20 @@ export class GmodIndividualizableSet {
         for (const i of this._nodes) {
             if (!value) {
                 if (i < this._path.parents.length)
-                    this._path.parents[i] = this._path.parents[i].withoutLocation();
-                else
-                    this._path.node = this._path.node.withoutLocation();
+                    this._path.parents[i] =
+                        this._path.parents[i].withoutLocation();
+                else this._path.node = this._path.node.withoutLocation();
             } else {
                 if (i < this._path.parents.length)
-                    this._path.parents[i] = this._path.parents[i].withLocation(value);
-                else
-                    this._path.node = this._path.node.withLocation(value);
+                    this._path.parents[i] =
+                        this._path.parents[i].withLocation(value);
+                else this._path.node = this._path.node.withLocation(value);
             }
         }
     }
 
     public get nodes(): GmodNode[] {
-        return this._nodes.map(i => this.getNode(i));
+        return this._nodes.map((i) => this.getNode(i));
     }
 
     public get nodesIndices(): number[] {
@@ -36,38 +36,68 @@ export class GmodIndividualizableSet {
     }
 
     public get codes(): string[] {
-        return this._nodes.map(i => this.getNode(i).code);
+        return this._nodes.map((i) => this.getNode(i).code);
     }
 
     constructor(private _nodes: number[], private _path: GmodPath) {
         if (_nodes.length === 0)
-            throw new Error('GmodIndividualizableSet cant be empty');
-        if (_nodes.some(i => !isIndividualizable(this.getNode(i), i === _path.parents.length, _nodes.length > 1)))
-            throw new Error('GmodIndividualizableSet nodes must be individualizable');
-        if (new Set<string | undefined>(_nodes.map(i => this.getNode(i).location?.value)).size !== 1)
-            throw new Error('GmodIndividualizableSet must have a common location');
-        if (!_nodes.some(i => this.getNode(i).equals(_path.node) || this.getNode(i).isLeafNode))
-            throw new Error('GmodIndividualizableSet has no nodes that are part of short path');
+            throw new Error("GmodIndividualizableSet cant be empty");
+        if (
+            _nodes.some(
+                (i) =>
+                    !isIndividualizable(
+                        this.getNode(i),
+                        i === _path.parents.length,
+                        _nodes.length > 1
+                    )
+            )
+        )
+            throw new Error(
+                "GmodIndividualizableSet nodes must be individualizable"
+            );
+        if (
+            new Set<string | undefined>(
+                _nodes.map((i) => this.getNode(i).location?.value)
+            ).size !== 1
+        )
+            throw new Error(
+                "GmodIndividualizableSet must have a common location"
+            );
+        if (
+            !_nodes.some(
+                (i) =>
+                    this.getNode(i).equals(_path.node) ||
+                    this.getNode(i).isLeafNode
+            )
+        )
+            throw new Error(
+                "GmodIndividualizableSet has no nodes that are part of short path"
+            );
 
         this._path = _path.clone();
     }
 
     private getNode(i: number): GmodNode {
-        return i < this._path.parents.length ? this._path.parents[i] : this._path.node;
+        return i < this._path.parents.length
+            ? this._path.parents[i]
+            : this._path.node;
     }
 
     public build(): GmodPath {
         const path = this._path;
-        if (!path) throw new Error('Tried to build individualizable set twice');
+        if (!path) throw new Error("Tried to build individualizable set twice");
         this._path = undefined!;
         return path;
     }
 
     public toString(): string {
         return this._nodes
-            .filter((i, j) => this.getNode(i).isLeafNode || j === this._nodes.length - 1)
-            .map(i => this.getNode(i).toString())
-            .join('/');
+            .filter(
+                (i, j) =>
+                    this.getNode(i).isLeafNode || j === this._nodes.length - 1
+            )
+            .map((i) => this.getNode(i).toString())
+            .join("/");
     }
 }
 
@@ -179,8 +209,7 @@ export class GmodPath {
         for (let i = 0; i < this.length; i++) {
             const node = i < this.parents.length ? this.parents[i] : this.node;
             const set = visit(node, i, this.parents, this.node);
-            if (set === null)
-                continue;
+            if (set === null) continue;
 
             const [start, end, _] = set;
             if (start === end) {
@@ -189,8 +218,7 @@ export class GmodPath {
             }
 
             const nodes = [];
-            for (let j = start; j <= end; j++)
-                nodes.push(j);
+            for (let j = start; j <= end; j++) nodes.push(j);
 
             result.push(new GmodIndividualizableSet(nodes, this));
         }
@@ -203,8 +231,7 @@ export class GmodPath {
         for (let i = 0; i < this.length; i++) {
             const node = i < this.parents.length ? this.parents[i] : this.node;
             const set = visit(node, i, this.parents, this.node);
-            if (set === null)
-                continue;
+            if (set === null) continue;
 
             return true;
         }
@@ -343,10 +370,12 @@ export class GmodPath {
                 if (partStr.includes("-")) {
                     const split = partStr.split("-");
                     const parsedLocation = locations.tryParse(split[1]);
+                    if (!gmod.tryGetNode(split[0])) return;
                     if (!parsedLocation)
                         throw new Error("Failed to parse location");
                     parts.push({ code: split[0], location: parsedLocation });
                 } else {
+                    if (!gmod.tryGetNode(partStr)) return;
                     parts.push({ code: partStr });
                 }
             }
@@ -430,31 +459,30 @@ export class GmodPath {
 
                     const visit = locationSetsVisitor();
                     for (let i = 0; i < pathParents.length + 1; i++) {
-                        var n = i < pathParents.length ? pathParents[i] : endNode;
+                        var n =
+                            i < pathParents.length ? pathParents[i] : endNode;
                         const set = visit(n, i, pathParents, endNode);
-                        if (set === null)
-                        {
+                        if (set === null) {
                             if (!!n.location)
                                 return TraversalHandlerResult.Stop;
                             continue;
                         }
 
                         const [start, end, location] = set;
-                        if (start === end)
-                            continue;
+                        if (start === end) continue;
 
                         for (let j = start; j <= end; j++) {
                             if (j < pathParents.length) {
                                 if (!!location)
-                                    pathParents[j] = pathParents[j].withLocation(location);
+                                    pathParents[j] =
+                                        pathParents[j].withLocation(location);
                                 else
-                                    pathParents[j] = pathParents[j].withoutLocation();
-                            }
-                            else {
+                                    pathParents[j] =
+                                        pathParents[j].withoutLocation();
+                            } else {
                                 if (!!location)
                                     endNode = endNode.withLocation(location);
-                                else
-                                    endNode = endNode.withoutLocation();
+                                else endNode = endNode.withoutLocation();
                             }
                         }
                     }
@@ -526,6 +554,8 @@ export class GmodPath {
 
         const parts: string[] = item.split("/");
 
+        for (const part of parts) if (!VIS.isISOString(part)) return;
+
         const endPathNode = parts.pop();
         if (!endPathNode) return;
 
@@ -559,14 +589,12 @@ export class GmodPath {
         const pathParents = parents as GmodNode[];
         if (!GmodPath.isValid(pathParents, endNode)) return;
 
-
         const visit = locationSetsVisitor();
         let prevNonNullLocation: number | null = null;
         for (let i = 0; i < pathParents.length + 1; i++) {
             const n = i < pathParents.length ? pathParents[i] : endNode;
             const set = visit(n, i, pathParents, endNode);
-            if (set === null)
-            {
+            if (set === null) {
                 if (prevNonNullLocation === null && !!n.location)
                     prevNonNullLocation = i;
                 continue;
@@ -574,32 +602,25 @@ export class GmodPath {
 
             const [start, end, location] = set;
 
-            if (prevNonNullLocation !== null)
-            {
-                for (let j = prevNonNullLocation; j < start; j++)
-                {
-                    const pn = i < pathParents.length ? pathParents[i] : endNode;
-                    if (!!pn.location)
-                        return;
+            if (prevNonNullLocation !== null) {
+                for (let j = prevNonNullLocation; j < start; j++) {
+                    const pn =
+                        i < pathParents.length ? pathParents[i] : endNode;
+                    if (!!pn.location) return;
                 }
             }
             prevNonNullLocation = null;
 
-            if (start === end)
-                continue;
+            if (start === end) continue;
 
             for (let j = start; j <= end; j++) {
                 if (j < pathParents.length) {
                     if (!!location)
                         pathParents[j] = pathParents[j].withLocation(location);
-                    else
-                        pathParents[j] = pathParents[j].withoutLocation();
-                }
-                else {
-                    if (!!location)
-                        endNode = endNode.withLocation(location);
-                    else
-                        endNode = endNode.withoutLocation();
+                    else pathParents[j] = pathParents[j].withoutLocation();
+                } else {
+                    if (!!location) endNode = endNode.withLocation(location);
+                    else endNode = endNode.withoutLocation();
                 }
             }
         }
@@ -636,12 +657,16 @@ export class GmodPath {
 function locationSetsVisitor() {
     let currentParentStart = -1;
 
-    return (node: GmodNode, i: number, parents: GmodNode[], target: GmodNode): [number, number, Location | undefined] | null => {
+    return (
+        node: GmodNode,
+        i: number,
+        parents: GmodNode[],
+        target: GmodNode
+    ): [number, number, Location | undefined] | null => {
         const isParent = PotentialParentScopeTypes.includes(node.metadata.type);
         const isTargetNode = i === parents.length;
         if (currentParentStart === -1) {
-            if (isParent)
-                currentParentStart = i;
+            if (isParent) currentParentStart = i;
             if (isIndividualizable(node, isTargetNode))
                 return [i, i, node.location];
         } else {
@@ -654,48 +679,68 @@ function locationSetsVisitor() {
                     let skippedOne = -1;
                     let hasComposition = false;
                     for (let j = currentParentStart + 1; j <= i; j++) {
-                        const setNode = j < parents.length ? parents[j] : target;
-                        if (!isIndividualizable(setNode, j == parents.length, true)) {
-                            if (nodes !== null)
-                                skippedOne = j;
+                        const setNode =
+                            j < parents.length ? parents[j] : target;
+                        if (
+                            !isIndividualizable(
+                                setNode,
+                                j == parents.length,
+                                true
+                            )
+                        ) {
+                            if (nodes !== null) skippedOne = j;
                             continue;
                         }
 
-                        if (nodes !== null && !!nodes[2] && !!setNode.location && !setNode.location.equals(nodes[2])) {
-                            throw new Error(`Mapping error: different locations in the same nodeset: ${nodes[2]}, ${setNode.location}`);
+                        if (
+                            nodes !== null &&
+                            !!nodes[2] &&
+                            !!setNode.location &&
+                            !setNode.location.equals(nodes[2])
+                        ) {
+                            throw new Error(
+                                `Mapping error: different locations in the same nodeset: ${nodes[2]}, ${setNode.location}`
+                            );
                         }
 
                         if (skippedOne !== -1) {
-                            throw new Error('Cant skip in the middle of individualizable set');
+                            throw new Error(
+                                "Cant skip in the middle of individualizable set"
+                            );
                         }
 
                         if (setNode.isFunctionComposition)
                             hasComposition = true;
 
-                        const location: Location | undefined = nodes === null || !nodes[2] ? setNode.location : nodes[2];
+                        const location: Location | undefined =
+                            nodes === null || !nodes[2]
+                                ? setNode.location
+                                : nodes[2];
                         const start: number = !!nodes ? nodes[0] : j;
                         const end: number = j;
                         nodes = [start, end, location];
                     }
 
-                    if (nodes !== null && nodes[0] === nodes[1] && hasComposition)
+                    if (
+                        nodes !== null &&
+                        nodes[0] === nodes[1] &&
+                        hasComposition
+                    )
                         nodes = null;
                 }
 
                 currentParentStart = i;
-                if (nodes !== null)
-                {
+                if (nodes !== null) {
                     let hasLeafNode = false;
-                    for (let j = nodes[0]; j <= nodes[1]; j++)
-                    {
-                        const setNode = j < parents.length ? parents[j] : target;
+                    for (let j = nodes[0]; j <= nodes[1]; j++) {
+                        const setNode =
+                            j < parents.length ? parents[j] : target;
                         if (setNode.isLeafNode || j === parents.length) {
                             hasLeafNode = true;
                             break;
                         }
                     }
-                    if (hasLeafNode)
-                        return nodes;
+                    if (hasLeafNode) return nodes;
                 }
             }
 

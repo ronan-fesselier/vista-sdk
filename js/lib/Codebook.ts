@@ -1,5 +1,6 @@
 import { CodebookName, CodebookNames } from "./CodebookName";
 import { MetadataTag } from "./MetadataTag";
+import { VIS } from "./VIS";
 import { CodebookDto } from "./types/CodebookDto";
 import { isNullOrWhiteSpace, tryParseInt } from "./util/util";
 
@@ -8,10 +9,6 @@ export class Codebook {
     private readonly _groupMap: Map<string, string>;
     private readonly _standardValues: CodebookStandardValues;
     private readonly _groups: CodebookGroups;
-
-    private static readonly tagAlphabet =
-        "abcdefghijklmnopqrstuvwxyz0123456789.";
-    private static readonly positionTagAlphabet = this.tagAlphabet + "-";
 
     public constructor(dto: CodebookDto) {
         switch (dto.name) {
@@ -102,8 +99,7 @@ export class Codebook {
                 isCustom = true;
             }
         } else {
-            if (![...value].every((c) => Codebook.tagAlphabet.includes(c)))
-                return;
+            if (!VIS.isISOString(value)) return;
             if (
                 this.name !== CodebookName.Detail &&
                 !this._standardValues.contains(value)
@@ -134,8 +130,7 @@ export class Codebook {
             if (this.validatePositionInternal(value, codebook) < 100)
                 return false;
         } else {
-            if (![...value].every((c) => Codebook.tagAlphabet.includes(c)))
-                return false;
+            if (!VIS.isISOString(value)) return false;
         }
         return true;
     }
@@ -147,17 +142,10 @@ export class Codebook {
         position: string,
         codebook: Codebook
     ): PositionValidationResult {
-        if (isNullOrWhiteSpace(position))
+        if (isNullOrWhiteSpace(position) || !VIS.isISOString(position))
             return PositionValidationResult.Invalid;
 
         if (position.trim().length != position.length)
-            return PositionValidationResult.Invalid;
-
-        if (
-            ![...position].every((c) =>
-                Codebook.positionTagAlphabet.includes(c)
-            )
-        )
             return PositionValidationResult.Invalid;
 
         if (codebook.standardValues.contains(position))

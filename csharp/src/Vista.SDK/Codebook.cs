@@ -9,9 +9,6 @@ public sealed record class Codebook
     private readonly CodebookStandardValues _standardValues;
     private readonly CodebookGroups _groups;
 
-    private const string TagAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789.";
-    private const string PositionTagAlphabet = TagAlphabet + "-";
-
     public IReadOnlyDictionary<string, IReadOnlyList<string>> RawData { get; }
 
     internal Codebook(CodebookDto dto)
@@ -76,9 +73,8 @@ public sealed record class Codebook
         }
         else
         {
-            if (!value.All(c => TagAlphabet.Contains(c)))
+            if (!VIS.IsISOString(value))
                 return null;
-
             if (Name != CodebookName.Detail && !StandardValues.Contains(value))
                 isCustom = true;
         }
@@ -97,13 +93,10 @@ public sealed record class Codebook
 
     public PositionValidationResult ValidatePosition(string position)
     {
-        if (string.IsNullOrWhiteSpace(position))
+        if (string.IsNullOrWhiteSpace(position) || !VIS.IsISOString(position))
             return PositionValidationResult.Invalid;
 
         if (position.Trim().Length != position.Length)
-            return PositionValidationResult.Invalid;
-
-        if (!position.All(c => PositionTagAlphabet.Contains(c)))
             return PositionValidationResult.Invalid;
 
         if (StandardValues.Contains(position))

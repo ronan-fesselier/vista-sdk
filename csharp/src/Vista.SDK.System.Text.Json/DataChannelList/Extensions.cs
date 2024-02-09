@@ -17,7 +17,9 @@ public static class Extensions
                             c =>
                                 new DataChannel(
                                     new DataChannelID(
-                                        c.DataChannelId.LocalId.ToString(),
+                                        c.DataChannelId.LocalId.VerboseMode
+                                            ? c.DataChannelId.LocalId.Builder.WithVerboseMode(false).Build().ToString()
+                                            : c.DataChannelId.LocalId.Builder.ToString(),
                                         c.DataChannelId.NameObject is null
                                             ? null
                                             : new NameObject(c.DataChannelId.NameObject.NamingRule)

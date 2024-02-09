@@ -2,27 +2,30 @@ import { Gmod, GmodPath, VisVersion, VisVersions } from "../lib";
 import { TraversalHandlerResult } from "../lib/types/Gmod";
 import { naturalSort } from "../lib/util/util";
 import { VIS } from "../lib/VIS";
+import { getVIS, getVISMap } from "./Fixture";
 
 describe("Gmod", () => {
     const vis = VIS.instance;
     const version = VisVersion.v3_4a;
     const testVersions = VisVersions.all;
-    const gmodPromise = vis.getGmod(version);
-    const locationsPromise = vis.getLocations(version);
 
-    test.each(
+    beforeAll(() => {
+        return getVISMap();
+    });
+
+    it.each(
         testVersions.map(
             (v) => [v, vis.getGmod(v)] as [VisVersion, Promise<Gmod>]
         )
-    )("Gmod loads %s", async (_, gmodPromise) => {
-        const gmod = await gmodPromise;
+    )("Gmod loads %s", (_, gmodPromise) => {
+        const { gmod } = getVIS(version);
 
         expect(gmod).toBeTruthy();
         expect(gmod.tryGetNode("400a")).toBeTruthy();
     });
 
-    test("Gmod storted", async () => {
-        const gmod = await gmodPromise;
+    it("Gmod storted", () => {
+        const { gmod } = getVIS(version);
         const context = { isSorted: true };
         gmod.traverse(
             (_, node, context) => {
@@ -44,9 +47,8 @@ describe("Gmod", () => {
         expect(context.isSorted).toBe(true);
     });
 
-    test("Gmod node equality", async () => {
-        const gmod = await gmodPromise;
-        const locations = await locationsPromise;
+    it("Gmod node equality", () => {
+        const { gmod, locations } = getVIS(version);
 
         const node1 = gmod.getNode("411.1");
         const node2 = gmod.getNode("411.1");
@@ -63,20 +65,20 @@ describe("Gmod", () => {
         expect(node1).not.toBe(node4);
     });
 
-    test.each(
+    it.each(
         testVersions.map(
             (v) => [v, vis.getGmod(v)] as [VisVersion, Promise<Gmod>]
         )
-    )("Gmod rootnode children", async (_, gmodPromise) => {
-        const gmod = await gmodPromise;
+    )("Gmod rootnode children", (_, gmodPromise) => {
+        const { gmod } = getVIS(version);
 
         const node = gmod.rootNode;
 
         expect(node.children).not.toHaveLength(0);
     });
 
-    test("Normal assignments", async () => {
-        const gmod = await gmodPromise;
+    it("Normal assignments", () => {
+        const { gmod } = getVIS(version);
 
         const node1 = gmod.getNode("411.3");
 
@@ -87,8 +89,8 @@ describe("Gmod", () => {
         expect(node2.productType).toBeFalsy();
     });
 
-    test("Product selection", async () => {
-        const gmod = await gmodPromise;
+    it("Product selection", () => {
+        const { gmod } = getVIS(version);
 
         const node = gmod.getNode("CS1");
 
@@ -113,8 +115,8 @@ describe("Gmod", () => {
         { input: "C101.211", output: false },
     ];
 
-    test("Mappability", async () => {
-        const gmod = await gmodPromise;
+    it("Mappability", () => {
+        const { gmod } = getVIS(version);
 
         testMappabilityData.forEach(({ input, output }) => {
             const node = gmod.getNode(input);
@@ -122,8 +124,8 @@ describe("Gmod", () => {
         });
     });
 
-    test("Full traversal", async () => {
-        const gmod = await gmodPromise;
+    it("Full traversal", () => {
+        const { gmod } = getVIS(version);
 
         const context: {
             paths: Map<string, GmodPath>;
@@ -148,8 +150,8 @@ describe("Gmod", () => {
         expect(context.paths.size).toBe(punctureTests.length);
     });
 
-    test("Partial traversal", async () => {
-        const gmod = await gmodPromise;
+    it("Partial traversal", () => {
+        const { gmod } = getVIS(version);
 
         const context = { count: 0 };
         const stop = 5;
@@ -168,8 +170,8 @@ describe("Gmod", () => {
         expect(context.count).toBe(stop);
     });
 
-    test("Full traversal from", async () => {
-        const gmod = await gmodPromise;
+    it("Full traversal from", () => {
+        const { gmod } = getVIS(version);
 
         const context = { invalidPaths: [] as GmodPath[] };
         const rootCode = "400a";

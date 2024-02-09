@@ -1,4 +1,4 @@
-import { VIS, VisVersion, VisVersionExtension } from ".";
+import { VIS } from ".";
 import { CodebookName } from "./CodebookName";
 import { Codebooks } from "./Codebooks";
 import { Gmod } from "./Gmod";

@@ -92,7 +92,12 @@ export class DataChannelExtension {
     ): DataChannelListDto.DataChannel {
         return {
             DataChannelID: {
-                LocalID: c.dataChannelId.localId.toString(),
+                LocalID: c.dataChannelId.localId.verboseMode
+                    ? c.dataChannelId.localId.builder
+                          .withoutVerboseMode()
+                          .build()
+                          .toString()
+                    : c.dataChannelId.localId.toString(),
                 ShortID: c.dataChannelId.shortId,
                 NameObject: c.dataChannelId.nameObject
                     ? {
