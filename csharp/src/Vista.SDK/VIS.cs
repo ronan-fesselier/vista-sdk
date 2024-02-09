@@ -274,28 +274,28 @@ public sealed class VIS : IVIS
         GetGmodVersioning().ConvertLocalId(sourceLocalId, targetVersion);
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(StringBuilder builder)
+    internal static bool MatchISOLocalIdString(StringBuilder builder)
     {
         for (var i = 0; i < builder.Length; i++)
         {
             var ch = builder[i];
             if (ch == '/')
                 continue;
-            if (!MatchISOSubString(ch))
+            if (!MatchISOString(ch))
                 return false;
         }
         return true;
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(string value)
+    internal static bool MatchISOLocalIdString(string value)
     {
         var span = value.AsSpan();
         foreach (ref readonly var ch in span)
         {
             if (ch == '/')
                 continue;
-            if (!MatchISOSubString(ch))
+            if (!MatchISOString(ch))
                 return false;
         }
 
@@ -303,7 +303,7 @@ public sealed class VIS : IVIS
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOSubString(StringBuilder builder)
+    internal static bool MatchISOString(StringBuilder builder)
     {
         for (var i = 0; i < builder.Length; i++)
             if (!MatchAsciiDecimal(builder[i]))
@@ -312,12 +312,18 @@ public sealed class VIS : IVIS
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOSubString(char c) => MatchAsciiDecimal(c);
+    internal static bool MatchISOString(char c) => MatchAsciiDecimal(c);
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOSubString(string value)
+    internal static bool MatchISOString(string value)
     {
         var span = value.AsSpan();
+        return MatchISOString(span);
+    }
+
+    /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
+    internal static bool MatchISOString(ReadOnlySpan<char> span)
+    {
         foreach (ref readonly var p in span)
             if (!MatchAsciiDecimal(p))
                 return false;

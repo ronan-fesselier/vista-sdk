@@ -71,7 +71,7 @@ export class LocalIdItems {
                     current = ".";
                     break;
                 default:
-                    const match = VIS.matchISOSubString(ch);
+                    const match = VIS.matchISOString(ch);
                     if (!match) {
                         current = ".";
                         break;

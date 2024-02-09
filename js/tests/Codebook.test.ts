@@ -134,7 +134,7 @@ describe("Codebooks", () => {
     const testCases: [CodebookName, string, boolean][] = [
         [CodebookName.Position, "aft", true],
         [CodebookName.Quantity, "test", true],
-        [CodebookName.Position, "Aft", false],
+        [CodebookName.Position, "Aft", true],
     ];
     it.each(testCases)("IsValid", (name, value, valid) => {
         const codebooks = getVIS(version).codebooks;

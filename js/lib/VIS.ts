@@ -266,29 +266,34 @@ export class VIS {
         return VisVersions.all;
     }
 
-    public static matchISOString(value: string): boolean {
+    /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
+    public static matchISOLocalIdString(value: string): boolean {
         for (const part of value.split("/")) {
-            if (!VIS.matchISOSubString(part)) return false;
+            if (!VIS.matchISOString(part)) return false;
         }
         return true;
     }
 
     /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
-    public static matchISOSubString(value: string): boolean {
+    public static matchISOString(value: string): boolean {
         for (let i = 0; i < value.length; i++) {
             // User ASCII Decimal instead of HEX Digits
             const code = value.charCodeAt(i);
-            // Number
-            if (code >= 48 && code <= 57) continue;
-            // Large character A-Z
-            if (code >= 65 && code <= 90) continue;
-            // Small character a-z
-            if (code >= 97 && code <= 122) continue;
-            // ["-" , "." , "_" , "~"] respectively
-            if (code === 45 || code === 46 || code === 95 || code === 126)
-                continue;
-            return false;
+            if (!VIS.matchAsciiDecimal(code)) return false;
         }
         return true;
+    }
+
+    private static matchAsciiDecimal(code: number) {
+        // Number
+        if (code >= 48 && code <= 57) return true;
+        // Large character A-Z
+        if (code >= 65 && code <= 90) return true;
+        // Small character a-z
+        if (code >= 97 && code <= 122) return true;
+        // ["-" , "." , "_" , "~"] respectively
+        if (code === 45 || code === 46 || code === 95 || code === 126)
+            return true;
+        return false;
     }
 }

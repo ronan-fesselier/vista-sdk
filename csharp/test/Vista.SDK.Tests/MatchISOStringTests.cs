@@ -24,14 +24,14 @@ public class MatchISOStringTests
 
     [Theory]
     [MemberData(nameof(Valid_Characters))]
-    public void AllValidCharacters(char c) => Assert.True(VIS.MatchISOSubString(c));
+    public void AllValidCharacters(char c) => Assert.True(VIS.MatchISOString(c));
 
     [Fact]
-    public void AllAllowedInOne() => Assert.True(VIS.MatchISOSubString(AllAllowedCharacters));
+    public void AllAllowedInOne() => Assert.True(VIS.MatchISOString(AllAllowedCharacters));
 
     [Theory]
     [MemberData(nameof(Spot_Test_Data))]
-    public void SpotTests(string input, bool expected) => Assert.Equal(expected, VIS.MatchISOSubString(input));
+    public void SpotTests(string input, bool expected) => Assert.Equal(expected, VIS.MatchISOString(input));
 
     [Fact]
     public async Task SmokeTest_Parsing()
@@ -48,7 +48,7 @@ public class MatchISOStringTests
         {
             try
             {
-                var match = VIS.MatchISOString(localIdStr);
+                var match = VIS.MatchISOLocalIdString(localIdStr);
                 if (!match)
                     context.Errors.Add((localIdStr, null));
                 else

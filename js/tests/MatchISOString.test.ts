@@ -9,7 +9,7 @@ describe("MatchISOString", () => {
     it.each(allAllowedCharacters.split("").concat(allAllowedCharacters))(
         "AllValidCharacters %s",
         (ch) => {
-            const result = VIS.matchISOSubString(ch);
+            const result = VIS.matchISOString(ch);
             expect(result).toBe(true);
         }
     );
@@ -20,7 +20,7 @@ describe("MatchISOString", () => {
         ["with space", false],
         ["#%/*", false],
     ])("Spot test %s", (input, expectedResult) => {
-        const result = VIS.matchISOSubString(input);
+        const result = VIS.matchISOString(input);
         expect(result).toBe(expectedResult);
     });
 
@@ -36,7 +36,7 @@ describe("MatchISOString", () => {
         let errored: string[] = [];
         for await (let localIdStr of rl) {
             try {
-                const match = VIS.matchISOString(localIdStr);
+                const match = VIS.matchISOLocalIdString(localIdStr);
                 if (!match) {
                     errored.push(localIdStr);
                 } else {

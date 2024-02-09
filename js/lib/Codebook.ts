@@ -99,7 +99,7 @@ export class Codebook {
                 isCustom = true;
             }
         } else {
-            if (!VIS.matchISOSubString(value)) return;
+            if (!VIS.matchISOString(value)) return;
             if (
                 this.name !== CodebookName.Detail &&
                 !this._standardValues.contains(value)
@@ -130,7 +130,7 @@ export class Codebook {
             if (this.validatePositionInternal(value, codebook) < 100)
                 return false;
         } else {
-            if (!VIS.matchISOSubString(value)) return false;
+            if (!VIS.matchISOString(value)) return false;
         }
         return true;
     }
@@ -142,13 +142,10 @@ export class Codebook {
         position: string,
         codebook: Codebook
     ): PositionValidationResult {
-        if (isNullOrWhiteSpace(position))
+        if (isNullOrWhiteSpace(position) || !VIS.matchISOString(position))
             return PositionValidationResult.Invalid;
 
         if (position.trim().length != position.length)
-            return PositionValidationResult.Invalid;
-
-        if (!VIS.matchISOSubString(position))
             return PositionValidationResult.Invalid;
 
         if (codebook.standardValues.contains(position))

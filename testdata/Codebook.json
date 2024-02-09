@@ -17,7 +17,8 @@
         ["port-starboard", "InvalidGrouping"],
         ["starboard-port", "InvalidOrder"],
         ["port-starboard-1", "InvalidGrouping"],
-        ["starboard-port-1", "InvalidOrder"]
+        ["starboard-port-1", "InvalidOrder"],
+        ["-_.~", "Custom"]
     ],
 
     "Positions": [["<number>", "1"]],
