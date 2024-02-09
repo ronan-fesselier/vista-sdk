@@ -567,17 +567,19 @@ public sealed record GmodPath
         var parts = new Queue<PathNode>();
         foreach (var partStr in item.Split('/'))
         {
-            if (!VIS.MatchISOString(partStr))
-                return false;
             if (partStr.Contains('-'))
             {
                 var split = partStr.Split('-');
+                if (!gmod.TryGetNode(split[0], out _))
+                    return false;
                 if (!locations.TryParse(split[1], out var location))
                     return false;
                 parts.Enqueue(new PathNode(split[0], location));
             }
             else
             {
+                if (!gmod.TryGetNode(partStr, out _))
+                    return false;
                 parts.Enqueue(new PathNode(partStr));
             }
         }
@@ -751,8 +753,6 @@ public sealed record GmodPath
         var nodes = new List<GmodNode>(span.Length / 3);
         foreach (ReadOnlySpan<char> nodeStr in span.Split('/'))
         {
-            if (!VIS.MatchISOString(nodeStr))
-                return false;
             var dashIndex = nodeStr.IndexOf('-');
 
             GmodNode? node;

@@ -367,14 +367,15 @@ export class GmodPath {
             const parts: PathNode[] = [];
 
             for (const partStr of item.split("/")) {
-                if (!VIS.matchISOString(partStr)) return;
                 if (partStr.includes("-")) {
                     const split = partStr.split("-");
                     const parsedLocation = locations.tryParse(split[1]);
+                    if (!gmod.tryGetNode(split[0])) return;
                     if (!parsedLocation)
                         throw new Error("Failed to parse location");
                     parts.push({ code: split[0], location: parsedLocation });
                 } else {
+                    if (!gmod.tryGetNode(partStr)) return;
                     parts.push({ code: partStr });
                 }
             }
@@ -553,7 +554,7 @@ export class GmodPath {
 
         const parts: string[] = item.split("/");
 
-        for (const part of parts) if (!VIS.matchISOString(part)) return;
+        for (const part of parts) if (!VIS.isISOString(part)) return;
 
         const endPathNode = parts.pop();
         if (!endPathNode) return;

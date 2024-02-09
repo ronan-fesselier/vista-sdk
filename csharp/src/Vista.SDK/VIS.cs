@@ -281,7 +281,7 @@ public sealed class VIS : IVIS
             var ch = builder[i];
             if (ch == '/')
                 continue;
-            if (!MatchISOString(ch))
+            if (!IsISOString(ch))
                 return false;
         }
         return true;
@@ -295,7 +295,7 @@ public sealed class VIS : IVIS
         {
             if (ch == '/')
                 continue;
-            if (!MatchISOString(ch))
+            if (!IsISOString(ch))
                 return false;
         }
 
@@ -303,7 +303,7 @@ public sealed class VIS : IVIS
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(StringBuilder builder)
+    internal static bool IsISOString(StringBuilder builder)
     {
         for (var i = 0; i < builder.Length; i++)
             if (!MatchAsciiDecimal(builder[i]))
@@ -312,17 +312,17 @@ public sealed class VIS : IVIS
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(char c) => MatchAsciiDecimal(c);
+    internal static bool IsISOString(char c) => MatchAsciiDecimal(c);
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(string value)
+    internal static bool IsISOString(string value)
     {
         var span = value.AsSpan();
-        return MatchISOString(span);
+        return IsISOString(span);
     }
 
     /// <summary>Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"</summary>
-    internal static bool MatchISOString(ReadOnlySpan<char> span)
+    internal static bool IsISOString(ReadOnlySpan<char> span)
     {
         foreach (ref readonly var p in span)
             if (!MatchAsciiDecimal(p))

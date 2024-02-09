@@ -2,14 +2,14 @@ import * as fs from "fs-extra";
 import readline from "readline";
 import { VIS } from "../lib";
 
-describe("MatchISOString", () => {
+describe("isISOString", () => {
     const allAllowedCharacters =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 
     it.each(allAllowedCharacters.split("").concat(allAllowedCharacters))(
         "AllValidCharacters %s",
         (ch) => {
-            const result = VIS.matchISOString(ch);
+            const result = VIS.isISOString(ch);
             expect(result).toBe(true);
         }
     );
@@ -20,7 +20,7 @@ describe("MatchISOString", () => {
         ["with space", false],
         ["#%/*", false],
     ])("Spot test %s", (input, expectedResult) => {
-        const result = VIS.matchISOString(input);
+        const result = VIS.isISOString(input);
         expect(result).toBe(expectedResult);
     });
 
@@ -36,7 +36,7 @@ describe("MatchISOString", () => {
         let errored: string[] = [];
         for await (let localIdStr of rl) {
             try {
-                const match = VIS.matchISOLocalIdString(localIdStr);
+                const match = VIS.isISOLocalIdString(localIdStr);
                 if (!match) {
                     errored.push(localIdStr);
                 } else {

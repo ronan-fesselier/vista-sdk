@@ -289,44 +289,50 @@ public class LocalIdTests
     [Fact(Skip = "LocalIds have a lot of location errors")]
     public async Task SmokeTest_Parsing()
     {
-        var file = File.OpenRead("testdata/LocalIds.txt");
-
-        var reader = new StreamReader(file);
-
-        var errored =
-            new List<(string LocalIdStr, LocalIdBuilder? LocalId, Exception? Exception, ParsingErrors ParsingErrors)>();
-
-        string? localIdStr;
-        while ((localIdStr = await reader.ReadLineAsync()) is not null)
+        await using (var file = File.OpenRead("testdata/LocalIds.txt"))
         {
-            try
+            using var reader = new StreamReader(file, leaveOpen: true);
+
+            var errored =
+                new List<(
+                    string LocalIdStr,
+                    LocalIdBuilder? LocalId,
+                    Exception? Exception,
+                    ParsingErrors ParsingErrors
+                )>();
+
+            string? localIdStr;
+            while ((localIdStr = await reader.ReadLineAsync()) is not null)
             {
-                // Quick fix to skip invalid metadata tags "qty-content"
-                if (localIdStr.Contains("qty-content"))
-                    continue;
-                if (!LocalIdBuilder.TryParse(localIdStr, out var errorBuilder, out var localId))
-                    errored.Add((localIdStr, localId, null, errorBuilder));
-                else if (localId.IsEmpty || !localId.IsValid)
-                    errored.Add((localIdStr, localId, null, errorBuilder));
-                //else // Readd when regen test-data using proper SDK
-                //    Assert.Equal(localIdStr, localId.ToString());
+                try
+                {
+                    // Quick fix to skip invalid metadata tags "qty-content"
+                    if (localIdStr.Contains("qty-content"))
+                        continue;
+                    if (!LocalIdBuilder.TryParse(localIdStr, out var errorBuilder, out var localId))
+                        errored.Add((localIdStr, localId, null, errorBuilder));
+                    else if (localId.IsEmpty || !localId.IsValid)
+                        errored.Add((localIdStr, localId, null, errorBuilder));
+                    //else // Readd when regen test-data using proper SDK
+                    //    Assert.Equal(localIdStr, localId.ToString());
+                }
+                catch (Exception ex)
+                {
+                    // Quick fix to skip invalid location e.g. primaryItem 511.11-1SO
+                    if (ex.Message.Contains("location"))
+                        continue;
+                    errored.Add((localIdStr, null, ex, ParsingErrors.Empty));
+                }
             }
-            catch (Exception ex)
+            if (errored.Any(e => e.ParsingErrors.HasErrors))
             {
-                // Quick fix to skip invalid location e.g. primaryItem 511.11-1SO
-                if (ex.Message.Contains("location"))
-                    continue;
-                errored.Add((localIdStr, null, ex, ParsingErrors.Empty));
+                // TODO - gmod path parsing now fails because we actually validate locations properly
+                // might have to skip the smoketests while we fix the source data
+                Console.Write("");
             }
+            Assert.Empty(errored.SelectMany(e => e.ParsingErrors).ToList());
+            Assert.Empty(errored);
         }
-        if (errored.Any(e => e.ParsingErrors.HasErrors))
-        {
-            // TODO - gmod path parsing now fails because we actually validate locations properly
-            // might have to skip the smoketests while we fix the source data
-            Console.Write("");
-        }
-        Assert.Empty(errored.SelectMany(e => e.ParsingErrors).ToList());
-        Assert.Empty(errored);
     }
 
     [Fact(Skip = "Experimental")]

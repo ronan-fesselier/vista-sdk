@@ -72,13 +72,13 @@ internal readonly record struct LocalIdItems
                         current = '.';
                         break;
                     default:
-                        var match = VIS.MatchISOString(ch);
+                        var match = VIS.IsISOString(ch);
                         if (!match)
                         {
                             current = '.';
                             break;
                         }
-                        current = char.ToLower(ch);
+                        current = char.ToLowerInvariant(ch);
                         break;
                 }
                 if (current == '.' && prev == '.')

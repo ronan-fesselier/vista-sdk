@@ -267,15 +267,15 @@ export class VIS {
     }
 
     /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
-    public static matchISOLocalIdString(value: string): boolean {
+    public static isISOLocalIdString(value: string): boolean {
         for (const part of value.split("/")) {
-            if (!VIS.matchISOString(part)) return false;
+            if (!VIS.isISOString(part)) return false;
         }
         return true;
     }
 
     /**@description Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"*/
-    public static matchISOString(value: string): boolean {
+    public static isISOString(value: string): boolean {
         for (let i = 0; i < value.length; i++) {
             // User ASCII Decimal instead of HEX Digits
             const code = value.charCodeAt(i);

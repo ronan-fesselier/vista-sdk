@@ -73,7 +73,7 @@ public sealed record class Codebook
         }
         else
         {
-            if (!VIS.MatchISOString(value))
+            if (!VIS.IsISOString(value))
                 return null;
             if (Name != CodebookName.Detail && !StandardValues.Contains(value))
                 isCustom = true;
@@ -93,7 +93,7 @@ public sealed record class Codebook
 
     public PositionValidationResult ValidatePosition(string position)
     {
-        if (string.IsNullOrWhiteSpace(position) || !VIS.MatchISOString(position))
+        if (string.IsNullOrWhiteSpace(position) || !VIS.IsISOString(position))
             return PositionValidationResult.Invalid;
 
         if (position.Trim().Length != position.Length)
