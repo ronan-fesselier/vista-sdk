@@ -126,15 +126,15 @@ the builder APIs construct new instances while passing along the old data that i
 #### Builder pattern
 
 Typically, when the SDK provides code for building classes, it does so in a Builder Pattern. It provides possibility to chain using With, TryWith and Without methods.
+
+```csharp
+builder = Create(someIntro)
+    .WithSomeValue(someValue)
+    .TryWithSomeOtherValue(someOtherValue)
+    .WithoutSomeThirdValue() // usually without/limited arguments
+builder = builder.TryWithValue(item, out var success)
 ```
-        builder = Create(someIntro)
-            .WithSomeValue(in someValue)
-            .TryWithSomeOtherValue(in someOtherValue)
-            .WithoutSomeThirdValue() // usually without/limited arguments
-        builder.TryWithValue(item, out var success)
-        if(!success)
-          throw
-```
+
 * `With` should be used when the operation is expected to receive non-nullable values and succeed without further checking. It will throw error if provided with wrong arguments.
 * `TryWith` should be used in two cases: When you don't want to be bothered by failures behind the scene, and when you want to know if it went ok, but without exceptions. If you want to check if the opration went as expected, you can use the try do out param - "succeeded" e.g. TryWithSomething(intput, out bool succeeded).
 * `Without` provides functionality for removing certain elements from the chain. Typically without arguments/limited arguments
