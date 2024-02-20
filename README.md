@@ -12,7 +12,14 @@ We will be developing these SDKs as open source projects. Feel free to provide i
 
 For general documentation relating to VIS and relating standard. See [vista.dnv.com/docs](https://vista.dnv.com/docs).
 
-> **_NOTE:_**  These SDKs are currently being used in production at DNV, and will be open sourced and released under preview initially.
+### Status
+
+> [!NOTE]  
+> The **v0.1** versions of the SDK are currently in production use at DNV for various services.
+> We are currently working on the **v0.2** version of the SDKs where we are adressing several usability and API design issues.
+> When **v0.2** is finalized we are hoping that **v1.0** will quickly follow.
+> New users should stick to **v0.1** currently while we work on stabilizing APIs and design.
+> Functionally (in terms of domain), not much will change 
 
 ### Content
 
