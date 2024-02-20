@@ -18,7 +18,7 @@ users and implementers of the standards.
 Our plan is to develop SDKs for some of the most common platforms. We are starting with .NET, Python and JavaScript.
 We will be developing these SDKs as open source projects. Feel free to provide input, request changes or make contributions by creating issues in this repository.
 
-For general documentation relating to VIS and relating standard. See [vista.dnv.com/docs](https://vista.dnv.com/docs).
+For general documentation relating to VIS and relating standard. See [docs.vista.dnv.com](https://docs.vista.dnv.com).
 
 ### Status
 
@@ -62,7 +62,7 @@ There are various components of VIS in our SDKs:
 * Codebooks (metadata tags) - C#, JS
 * Locations - C#, JS
 
-For more information on this concepts, check out [vista.dnv.com/docs](https://vista.dnv.com/docs).
+For more information on this concepts, check out [docs.vista.dnv.com](https://docs.vista.dnv.com).
 
 #### ISO-19848 and ISO-19847
 
