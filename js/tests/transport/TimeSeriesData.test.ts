@@ -1,3 +1,5 @@
+import { readFile } from "fs/promises";
+import { validate } from "jsonschema";
 import { DataChannelId, ShipId, TimeSeries } from "../../lib/transport/domain";
 
 describe("TimeSeriesDataPackage", () => {
@@ -25,7 +27,7 @@ describe("TimeSeriesDataPackage", () => {
                                     quality: quality,
                                 },
                             ],
-                            numberOfDataSet: "1",
+                            numberOfDataSet: 1,
                         },
                         tabularData: [
                             {
@@ -37,8 +39,8 @@ describe("TimeSeriesDataPackage", () => {
                                         quality: [quality],
                                     },
                                 ],
-                                numberOfDataChannel: "1",
-                                numberOfDataSet: "1",
+                                numberOfDataChannel: 1,
+                                numberOfDataSet: 1,
                             },
                         ],
                         dataConfiguration: {
@@ -73,7 +75,7 @@ describe("TimeSeriesDataPackage", () => {
         expect(
             timeSeriesDataPackage.package.timeSeriesData[0]!.eventData!
                 .numberOfDataSet
-        ).toEqual("1");
+        ).toEqual(1);
         expect(
             timeSeriesDataPackage.package.timeSeriesData[0]!.eventData!
                 .dataSet![0]!.value
@@ -87,11 +89,11 @@ describe("TimeSeriesDataPackage", () => {
         expect(
             timeSeriesDataPackage.package.timeSeriesData[0]!.tabularData![0]!
                 .numberOfDataSet
-        ).toEqual("1");
+        ).toEqual(1);
         expect(
             timeSeriesDataPackage.package.timeSeriesData[0]!.tabularData![0]!
                 .numberOfDataChannel
-        ).toEqual("1");
+        ).toEqual(1);
         expect(
             timeSeriesDataPackage.package.timeSeriesData[0]!.tabularData![0]!
                 .dataChannelId![0]
@@ -104,5 +106,14 @@ describe("TimeSeriesDataPackage", () => {
             timeSeriesDataPackage.package.timeSeriesData[0]!.tabularData![0]!
                 .dataSet![0]!.value[0]
         ).toEqual(value);
+    });
+
+    it("JSONSchema validation", async () => {
+        var sample = await readFile('../schemas/json/TimeSeriesData.sample.json', { encoding: 'utf8', flag: 'r' });
+        var schema = await readFile('../schemas/json/TimeSeriesData.schema.json', { encoding: 'utf8', flag: 'r' });
+
+        const result = validate(JSON.parse(sample), JSON.parse(schema));
+        expect(result.errors).toHaveLength(0);
+        expect(result.valid).toBe(true);
     });
 });

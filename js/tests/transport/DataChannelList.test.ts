@@ -1,6 +1,8 @@
 import { LocalId, LocalIdBuilder, VisVersion } from "../../lib";
 import { DataChannelList, ShipId } from "../../lib/transport/domain";
 import { Version } from "../../lib/transport/domain/data-channel/Version";
+import { validate } from "jsonschema";
+import { readFile } from "fs/promises";
 
 describe("DataChannel", () => {
     const validLocalIdStr =
@@ -44,22 +46,22 @@ describe("DataChannel", () => {
                                 dataChannelType: {
                                     type: "Inst",
                                     calculationPeriod: undefined,
-                                    updateCycle: "1",
+                                    updateCycle: 1,
                                 },
                                 format: {
                                     type: "formatType",
                                     restriction: {
                                         enumeration: ["0", "1"],
-                                        fractionDigits: "1",
-                                        length: "1",
-                                        maxExclusive: "maxExclusive",
-                                        minExclusive: "minExclusive",
-                                        maxLength: "maxLength",
-                                        maxInclusive: "maxInclusive",
-                                        minInclusive: "minInclusive",
-                                        minLength: "minLength",
+                                        fractionDigits: 1,
+                                        length: 1,
+                                        maxExclusive: 1,
+                                        minExclusive: 1,
+                                        maxLength: 1,
+                                        maxInclusive: 1,
+                                        minInclusive: 1,
+                                        minLength: 1,
                                         pattern: "pattern",
-                                        totalDigits: "totalDigits",
+                                        totalDigits: 2,
                                         whiteSpace:
                                             DataChannelList.WhiteSpace.Collapse,
                                     },
@@ -67,7 +69,7 @@ describe("DataChannel", () => {
                                 alertPriority: "alertPriority",
                                 name: "Cooling system / Propulsion Engine",
                                 qualityCoding: "qualityCoding",
-                                range: { high: "100", low: "0" },
+                                range: { high: 100, low: 0 },
                                 remarks: "This is a remark",
                                 unit: {
                                     quantityName: "celcius",
@@ -112,5 +114,14 @@ describe("DataChannel", () => {
             dataChannelListPackage.package.dataChannelList.dataChannel[0]!
                 .property.dataChannelType.type
         ).toEqual("Inst");
+    });
+
+    it("JSONSchema validation", async () => {
+        var sample = await readFile('../schemas/json/DataChannelList.sample.json', { encoding: 'utf8', flag: 'r' });
+        var schema = await readFile('../schemas/json/DataChannelList.schema.json', { encoding: 'utf8', flag: 'r' });
+
+        const result = validate(JSON.parse(sample), JSON.parse(schema));
+        expect(result.errors).toHaveLength(0);
+        expect(result.valid).toBe(true);
     });
 });
