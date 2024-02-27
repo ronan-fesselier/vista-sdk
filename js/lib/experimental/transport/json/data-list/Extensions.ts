@@ -1,3 +1,4 @@
+import { VIS } from "../../../..";
 import { ILocalId } from "../../../../ILocalId";
 import { Version } from "../../../../transport/domain/data-channel/Version";
 import { AssetIdentifier } from "../../domain/AssetIdentifier";
@@ -50,13 +51,24 @@ export class Extensions implements IExtension {
     ): Promise<DataList.DataListPackage> {
         const p = dto.Package;
         const h = dto.Package.Header;
+        const version = h.DataListID.Version
+            ? Version.parse(h.DataListID.Version)
+            : undefined;
 
-        const dataPromises: Promise<DataList.Data>[] = [];
+        if (version) {
+            // Cache expected Vis version
+            await version.match<Promise<void>>(
+                async (v) => {
+                    await VIS.instance.getGmod(v);
+                },
+                (_) => Promise.resolve()
+            );
+        }
+
+        const datas: DataList.Data[] = [];
 
         for (let c of p.DataList.Data)
-            dataPromises.push(DataExtension.toDomainModel(c));
-
-        const datas = await Promise.all(dataPromises);
+            datas.push(await DataExtension.toDomainModel(c));
 
         const {
             AssetId,
@@ -73,9 +85,7 @@ export class Extensions implements IExtension {
                     dataListId: {
                         id: h.DataListID.ID,
                         timestamp: new Date(h.DataListID.TimeStamp),
-                        version: h.DataListID.Version
-                            ? Version.parse(h.DataListID.Version)
-                            : undefined,
+                        version,
                     },
                     dateCreated: h.DateCreated
                         ? new Date(h.DateCreated)
