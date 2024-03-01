@@ -411,7 +411,11 @@ public sealed class Restriction
     public int? TotalDigits { get; }
 
     [JsonPropertyName("WhiteSpace")]
+#if NET8_0_OR_GREATER
+    [JsonConverter(typeof(JsonStringEnumConverter<RestrictionWhiteSpace>))]
+#else
     [JsonConverter(typeof(JsonStringEnumConverter))]
+#endif
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RestrictionWhiteSpace? WhiteSpace { get; }
 }
