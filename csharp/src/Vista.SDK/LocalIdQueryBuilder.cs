@@ -88,7 +88,7 @@ public sealed record LocalIdQueryBuilder
         if (item.Invidivualized == false)
         {
             source = item.Path.WithoutLocations();
-            target = item.Path.WithoutLocations();
+            target = other?.WithoutLocations();
         }
         return source == target;
     }
