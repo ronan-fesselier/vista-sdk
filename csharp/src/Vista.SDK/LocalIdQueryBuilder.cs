@@ -26,12 +26,24 @@ public sealed record LocalIdQueryBuilder
 
     public LocalIdQueryBuilder WithPrimaryItem(GmodPath primaryItem, bool individualized)
     {
-        return this with { _primaryItem = new(primaryItem, individualized) };
+        var p =
+            primaryItem.VisVersion == VIS.LatestVisVersion
+                ? primaryItem
+                : VIS.Instance.ConvertPath(primaryItem, VIS.LatestVisVersion);
+        if (p is null)
+            throw new Exception("Failed to convert path");
+        return this with { _primaryItem = new(p, individualized) };
     }
 
     public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem, bool individualized)
     {
-        return this with { _secondaryItem = new(secondaryItem, individualized) };
+        var p =
+            secondaryItem.VisVersion == VIS.LatestVisVersion
+                ? secondaryItem
+                : VIS.Instance.ConvertPath(secondaryItem, VIS.LatestVisVersion);
+        if (p is null)
+            throw new Exception("Failed to convert path");
+        return this with { _secondaryItem = new(p, individualized) };
     }
 
     public LocalIdQueryBuilder WithTag(CodebookName name, string value)
