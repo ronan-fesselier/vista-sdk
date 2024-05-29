@@ -64,32 +64,38 @@ public sealed record LocalIdQueryBuilder
         return WithPrimaryItem(configure(builder));
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(GmodPath, PathQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithPrimaryItem(GmodPath primaryItem)
     {
         return WithPrimaryItem(GmodPathQueryBuilder.From(primaryItem).Build());
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(GmodPath, PathQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithPrimaryItem(GmodPathQuery primaryItem)
     {
         return this with { _primaryItem = primaryItem };
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(NodesQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithSecondaryItem(NodesQueryConfiguration configure)
     {
         return WithSecondaryItem(configure(GmodPathQueryBuilder.Empty()));
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(GmodPath, PathQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem, PathQueryConfiguration configure)
     {
         var builder = GmodPathQueryBuilder.From(secondaryItem);
         return WithSecondaryItem(configure(builder));
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(GmodPath, PathQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem)
     {
         return WithSecondaryItem(GmodPathQueryBuilder.From(secondaryItem).Build());
     }
 
+    /// <summary>See documentation for <see cref="WithPrimaryItem(GmodPath, PathQueryConfiguration)"/></summary>
     public LocalIdQueryBuilder WithSecondaryItem(GmodPathQuery secondaryItem)
     {
         return this with { _secondaryItem = secondaryItem };
