@@ -4,8 +4,6 @@ public sealed record LocalIdQuery
 {
     private readonly LocalIdQueryBuilder _builder;
 
-    public GmodPath? PrimaryItem => _builder.PrimaryItem;
-    public GmodPath? SecondaryItem => _builder.SecondaryItem;
     public IReadOnlyList<MetadataTag> Tags => _builder.Tags;
 
     internal LocalIdQuery(LocalIdQueryBuilder builder) => _builder = builder;

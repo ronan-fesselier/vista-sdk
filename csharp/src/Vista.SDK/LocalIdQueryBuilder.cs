@@ -2,55 +2,74 @@ namespace Vista.SDK;
 
 public sealed record LocalIdQueryBuilder
 {
-    private PathItem? _primaryItem;
-    private PathItem? _secondaryItem;
+    private GmodPathQuery? _primaryItem;
+    private GmodPathQuery? _secondaryItem;
     private readonly Dictionary<CodebookName, MetadataTag> _tags = new();
 
     public IReadOnlyList<MetadataTag> Tags => _tags.Values.ToList();
-    public GmodPath? PrimaryItem => _primaryItem?.Path;
-    public GmodPath? SecondaryItem => _secondaryItem?.Path;
 
     public LocalIdQuery Build() => new(this);
 
-    public static LocalIdQueryBuilder New() => new();
+    public static LocalIdQueryBuilder Empty() => new();
 
     public static LocalIdQueryBuilder From(LocalId localId)
     {
-        var builder = new LocalIdQueryBuilder().WithPrimaryItem(localId.PrimaryItem, true);
+        var builder = new LocalIdQueryBuilder().WithPrimaryItem(GmodPathQueryBuilder.From(localId.PrimaryItem).Build());
         if (localId.SecondaryItem != null)
-            builder = builder.WithSecondaryItem(localId.SecondaryItem, true);
+            builder = builder.WithSecondaryItem(GmodPathQueryBuilder.From(localId.SecondaryItem).Build());
         foreach (var tag in localId.MetadataTags)
             builder = builder.WithTag(tag.Name, tag.Value);
         return builder;
     }
 
-    public LocalIdQueryBuilder WithPrimaryItem(GmodPath primaryItem, bool individualized)
+    public LocalIdQueryBuilder WithPrimaryItem(
+        GmodPath primaryItem,
+        Func<GmodPathQueryBuilder.Path, GmodPathQuery> configure
+    )
     {
-        var p =
-            primaryItem.VisVersion == VIS.LatestVisVersion
-                ? primaryItem
-                : VIS.Instance.ConvertPath(primaryItem, VIS.LatestVisVersion);
-        if (p is null)
-            throw new Exception("Failed to convert path");
-        return this with { _primaryItem = new(p, individualized) };
+        var builder = GmodPathQueryBuilder.From(primaryItem);
+        return WithPrimaryItem(configure(builder));
     }
 
-    public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem, bool individualized)
+    public LocalIdQueryBuilder WithPrimaryItem(GmodPath primaryItem)
     {
-        var p =
-            secondaryItem.VisVersion == VIS.LatestVisVersion
-                ? secondaryItem
-                : VIS.Instance.ConvertPath(secondaryItem, VIS.LatestVisVersion);
-        if (p is null)
-            throw new Exception("Failed to convert path");
-        return this with { _secondaryItem = new(p, individualized) };
+        return WithPrimaryItem(GmodPathQueryBuilder.From(primaryItem).Build());
+    }
+
+    public LocalIdQueryBuilder WithPrimaryItem(GmodPathQuery primaryItem)
+    {
+        return this with { _primaryItem = primaryItem };
+    }
+
+    public LocalIdQueryBuilder WithSecondaryItem(
+        GmodPath secondaryItem,
+        Func<GmodPathQueryBuilder.Path, GmodPathQuery> configure
+    )
+    {
+        var builder = GmodPathQueryBuilder.From(secondaryItem);
+        return WithSecondaryItem(configure(builder));
+    }
+
+    public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem)
+    {
+        return WithSecondaryItem(GmodPathQueryBuilder.From(secondaryItem).Build());
+    }
+
+    public LocalIdQueryBuilder WithSecondaryItem(GmodPathQuery secondaryItem)
+    {
+        return this with { _secondaryItem = secondaryItem };
+    }
+
+    public LocalIdQueryBuilder WithTag(MetadataTag tag)
+    {
+        _tags.Add(tag.Name, tag);
+        // Not sure if this is necessary
+        return this with { };
     }
 
     public LocalIdQueryBuilder WithTag(CodebookName name, string value)
     {
-        _tags.Add(name, new MetadataTag(name, value));
-        // Not sure if this is necessary
-        return this with { };
+        return WithTag(new MetadataTag(name, value));
     }
 
     internal bool Match(string other) => Match(LocalId.Parse(other));
@@ -66,31 +85,23 @@ public sealed record LocalIdQueryBuilder
             localId = converted;
         }
 
-        if (_primaryItem != null && MatchPath(_primaryItem, localId.PrimaryItem) == false)
+        if (_primaryItem != null && _primaryItem.Match(localId.PrimaryItem) == false)
             return false;
-        if (_secondaryItem != null && MatchPath(_secondaryItem, localId.SecondaryItem) == false)
+        if (_secondaryItem != null && _secondaryItem.Match(localId.SecondaryItem) == false)
             return false;
-
-        foreach (var tag in localId.MetadataTags)
+        var metadataTags = other.MetadataTags.ToDictionary(t => t.Name);
+        if (_tags.Count > 0)
         {
-            if (_tags.TryGetValue(tag.Name, out var expectedTag))
-                if (expectedTag.Value != tag.Value)
+            foreach (var tag in _tags.Values)
+            {
+                if (!metadataTags.TryGetValue(tag.Name, out var otherTag))
                     return false;
+                if (tag.Equals(otherTag) == false)
+                    return false;
+            }
         }
 
         return true;
-    }
-
-    private static bool MatchPath(PathItem item, GmodPath? other)
-    {
-        var source = item.Path;
-        var target = other;
-        if (item.Invidivualized == false)
-        {
-            source = item.Path.WithoutLocations();
-            target = other?.WithoutLocations();
-        }
-        return source == target;
     }
 }
 
