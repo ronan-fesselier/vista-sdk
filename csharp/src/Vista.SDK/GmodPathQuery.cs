@@ -144,27 +144,35 @@ public abstract record GmodPathQueryBuilder
             return false;
         var target = EnsurePathVersion(other);
 
-        var targetNodes = target.IndividualizableSets.SelectMany(set => set.Nodes).ToDictionary(node => node.Code);
+        Dictionary<string, List<Location>> targetNodes = new();
+        var nodes = target.Parents.Concat([target.Node]);
+        foreach (var node in nodes)
+        {
+            if (!targetNodes.TryGetValue(node.Code, out var locations))
+                targetNodes.Add(node.Code, locations = new());
+            if (node.Location is not null)
+                locations.Add(node.Location.Value);
+        }
 
         foreach (var kvp in _filter)
         {
             var code = kvp.Key;
             var item = kvp.Value;
 
-            if (!targetNodes.TryGetValue(code, out var targetNode))
+            if (!targetNodes.TryGetValue(code, out var potentialLocations))
                 return false;
             if (item.MatchAllLocations)
                 continue;
             if (item.Locations.Count > 0)
             {
-                if (targetNode.Location is null)
+                if (potentialLocations.Count == 0)
                     return false;
-                if (!item.Locations.Contains(targetNode.Location.Value))
+                if (!potentialLocations.Any(item.Locations.Contains))
                     return false;
             }
             else
             {
-                if (targetNode.Location is not null)
+                if (potentialLocations.Count > 0)
                     return false;
             }
         }

@@ -263,7 +263,7 @@ public class LocalIdQueryTests
         var locations = VIS.Instance.GetLocations(VisVersion.v3_4a);
         var codebooks = VIS.Instance.GetCodebooks(VisVersion.v3_4a);
 
-        var pPath = gmod.ParsePath("621.11i-P/H135");
+        var pPath = gmod.ParsePath("621.11i/H135");
         var sPath = gmod.ParsePath("1036.13i-1/C662.1/C661");
         var tag = codebooks.CreateTag(CodebookName.Content, "heavy.fuel.oil");
         var location = locations.Parse("P");
@@ -313,5 +313,47 @@ public class LocalIdQueryTests
 
             Assert.Equal(matches, queryMatches[i]);
         }
+    }
+
+    [Fact]
+    public void Test_Use_Case_1()
+    {
+        var localId = LocalId.Parse(
+            "/dnv-v2/vis-3-7a/433.1-P/C322/meta/qty-linear.vibration.amplitude/pos-driving.end/detail-iso.10816"
+        );
+
+        var query = LocalIdQueryBuilder
+            .From(localId)
+            .WithPrimaryItem(localId.PrimaryItem, builder => builder.WithNode(nodes => nodes["433.1"], true).Build())
+            .Build();
+        Assert.True(query.Match(localId));
+        Assert.True(
+            query.Match(
+                "/dnv-v2/vis-3-7a/433.1-S/C322/meta/qty-linear.vibration.amplitude/pos-driving.end/detail-iso.10816"
+            )
+        );
+    }
+
+    [Fact]
+    public void Test_Use_Case_2()
+    {
+        var localId = LocalId.Parse(
+            "/dnv-v2/vis-3-7a/511.31/C121/meta/qty-linear.vibration.amplitude/pos-driving.end/detail-iso.10816"
+        );
+        var gmod = VIS.Instance.GetGmod(localId.VisVersion);
+        // Match all Wind turbine arrangements
+        var query = LocalIdQueryBuilder
+            .From(localId)
+            .WithPrimaryItem(builder => builder.WithNode(gmod["511.3"], true).Build())
+            .Build();
+        Assert.True(query.Match(localId));
+
+        // Should not match Solar pannel arrangements
+        query = LocalIdQueryBuilder
+            .Empty()
+            .WithPrimaryItem(builder => builder.WithNode(gmod["511.4"], true).Build())
+            .Build();
+
+        Assert.False(query.Match(localId));
     }
 }

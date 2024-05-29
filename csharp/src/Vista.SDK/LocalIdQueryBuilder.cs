@@ -1,5 +1,8 @@
 namespace Vista.SDK;
 
+public delegate GmodPathQuery PathQueryConfiguration(GmodPathQueryBuilder.Path path);
+public delegate GmodPathQuery NodesQueryConfiguration(GmodPathQueryBuilder.Nodes nodes);
+
 public sealed record LocalIdQueryBuilder
 {
     private GmodPathQuery? _primaryItem;
@@ -22,10 +25,40 @@ public sealed record LocalIdQueryBuilder
         return builder;
     }
 
-    public LocalIdQueryBuilder WithPrimaryItem(
-        GmodPath primaryItem,
-        Func<GmodPathQueryBuilder.Path, GmodPathQuery> configure
-    )
+    /// <summary>Used to cofigure a path to query by a node.</summary>
+    /// <returns>A new <see cref="LocalIdQueryBuilder"/> with the primary item configured.</returns>
+    /// <example>
+    /// This example configures the query to match all <see cref="LocalId"/> having a primary item with the node 500a in its path, with all possible individualizations.
+    /// <code>
+    /// var path = GmodPath.Parse("511.31-2/C101", VIS.LatestVisVersion);
+    /// var builder = LocalIdQueryBuilder.Empty().WithPrimaryItem(configure => configure.WithNode(nodes => nodes["500a"], true));
+    /// var query = builder.Build();
+    /// Assert.True(query.Match(path));
+    /// </code>
+    /// </example>
+    /// <param name="configure">A function that takes a <see cref="GmodPathQueryBuilder.Nodes" />.</param>
+    public LocalIdQueryBuilder WithPrimaryItem(NodesQueryConfiguration configure)
+    {
+        return WithPrimaryItem(configure(GmodPathQueryBuilder.Empty()));
+    }
+
+    /// <summary>Used to cofigure a path to query by another path, which can the be configured.</summary>
+    /// <remarks>This will be more specific the the overload using <see cref="NodesQueryConfiguration"/> config.</remarks>
+    /// <returns>A new <see cref="LocalIdQueryBuilder"/> with the primary item configured.</returns>
+    /// <example>
+    /// <code>
+    /// var visVersion = VIS.LatestVisVersion;
+    /// var locations = VIS.Instance.GetLocations(visVersion);
+    /// var path = GmodPath.Parse("511.31-2/C101", visVersion);
+    /// var builder = LocalIdQueryBuilder.Empty().WithPrimaryItem(path, configure => configure.WithNode(nodes => nodes["511.31"], [locations.Parse("2")]), true));
+    /// var query = builder.Build();
+    /// Assert.True(query.Match("511.3/C101"));
+    /// builder
+    /// </code>
+    /// </example>
+    /// <param name="primaryItem">A function that takes a <see cref="GmodPath"/>.</param>
+    /// <param name="configure">A function that takes a <see cref="GmodPathQueryBuilder.Nodes"/>.</param>
+    public LocalIdQueryBuilder WithPrimaryItem(GmodPath primaryItem, PathQueryConfiguration configure)
     {
         var builder = GmodPathQueryBuilder.From(primaryItem);
         return WithPrimaryItem(configure(builder));
@@ -41,10 +74,12 @@ public sealed record LocalIdQueryBuilder
         return this with { _primaryItem = primaryItem };
     }
 
-    public LocalIdQueryBuilder WithSecondaryItem(
-        GmodPath secondaryItem,
-        Func<GmodPathQueryBuilder.Path, GmodPathQuery> configure
-    )
+    public LocalIdQueryBuilder WithSecondaryItem(NodesQueryConfiguration configure)
+    {
+        return WithSecondaryItem(configure(GmodPathQueryBuilder.Empty()));
+    }
+
+    public LocalIdQueryBuilder WithSecondaryItem(GmodPath secondaryItem, PathQueryConfiguration configure)
     {
         var builder = GmodPathQueryBuilder.From(secondaryItem);
         return WithSecondaryItem(configure(builder));
