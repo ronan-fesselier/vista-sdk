@@ -12,12 +12,27 @@ export class LocationBuilder {
 
     protected _reversedGroups: Map<string, LocationGroup>;
 
+    private constructor(previous: LocationBuilder);
     private constructor(
         visVersion: VisVersion,
         reversedGroups: Map<string, LocationGroup>
+    );
+    private constructor(
+        arg1: VisVersion | LocationBuilder,
+        arg2?: Map<string, LocationGroup>
     ) {
-        this.visVersion = visVersion;
-        this._reversedGroups = reversedGroups;
+        if (arg1 instanceof LocationBuilder && arg2 === undefined) {
+            this.number = arg1.number;
+            this.side = arg1.side;
+            this.vertical = arg1.vertical;
+            this.transverse = arg1.transverse;
+            this.longitudinal = arg1.longitudinal;
+            this.visVersion = arg1.visVersion;
+            this._reversedGroups = arg1._reversedGroups;
+        } else {
+            this.visVersion = arg1 as VisVersion;
+            this._reversedGroups = arg2!;
+        }
     }
 
     public static create(locations: Locations) {
@@ -114,7 +129,8 @@ export class LocationBuilder {
             if (typeof value !== "number")
                 throw new Error("Value should be number");
             if (value < 1) throw new Error("Value should be greater than 0");
-            if (value % 1 != 0) throw new Error("Value must be an integer larger than 0");
+            if (value % 1 != 0)
+                throw new Error("Value must be an integer larger than 0");
 
             return this.with((s) => (s.number = value));
         }
@@ -186,10 +202,7 @@ export class LocationBuilder {
     }
 
     public clone(): LocationBuilder {
-        return Object.assign(
-            new LocationBuilder(this.visVersion, this._reversedGroups),
-            this
-        );
+        return new LocationBuilder(this);
     }
 
     public build(): Location {

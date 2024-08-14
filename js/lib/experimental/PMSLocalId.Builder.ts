@@ -44,15 +44,32 @@ export class PMSLocalIdBuilder
     public position?: MetadataTag;
     public detail?: MetadataTag;
 
-    protected constructor() {
-        this._items = new LocalIdItems();
+    protected constructor();
+    protected constructor(previous: PMSLocalIdBuilder);
+    protected constructor(previous?: PMSLocalIdBuilder) {
+        if (previous === undefined) {
+            this._items = new LocalIdItems();
+        } else {
+            this._items = previous._items;
+            this.visVersion = previous.visVersion;
+            this.verboseMode = previous.verboseMode;
+            this.quantity = previous.quantity;
+            this.content = previous.content;
+            this.state = previous.state;
+            this.command = previous.command;
+            this.functionalServices = previous.functionalServices;
+            this.maintenanceCategory = previous.maintenanceCategory;
+            this.activityType = previous.activityType;
+            this.position = previous.position;
+            this.detail = previous.detail;
+        }
     }
     public build(): PMSLocalId {
         if (this.isEmpty)
             throw new Error(
                 "Cant build to PMSLocalId from empty PMSLocalIdBuilder"
             );
-        if (!this.isValid){
+        if (!this.isValid) {
             throw new Error(
                 "Cant build to PMSLocalId from invalid PMSLocalIdBuilder"
             );
@@ -66,7 +83,7 @@ export class PMSLocalIdBuilder
     }
 
     public clone() {
-        return Object.assign(new PMSLocalIdBuilder(), this);
+        return new PMSLocalIdBuilder(this);
     }
 
     public get primaryItem() {

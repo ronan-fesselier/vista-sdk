@@ -5,6 +5,13 @@ export class LocalIdItems {
     public primaryItem?: GmodPath;
     public secondaryItem?: GmodPath;
 
+    public clone(): LocalIdItems {
+        const items = new LocalIdItems();
+        items.primaryItem = this.primaryItem?.clone();
+        items.secondaryItem = this.secondaryItem?.clone();
+        return items;
+    }
+
     public append(builder: string[], verboseMode?: boolean) {
         if (!this.primaryItem && !this.secondaryItem) return;
 

@@ -1,10 +1,10 @@
 export interface GmodNodeMetadata {
-  category: string;
-  type: string;
-  name: string;
-  commonName?: string;
-  definition?: string;
-  commonDefinition?: string;
-  installSubstructure?: boolean;
-  normalAssignmentNames: Map<string, string>;
+    readonly category: string;
+    readonly type: string;
+    readonly name: string;
+    readonly commonName?: string;
+    readonly definition?: string;
+    readonly commonDefinition?: string;
+    readonly installSubstructure?: boolean;
+    readonly normalAssignmentNames: Map<string, string>;
 }

@@ -11,6 +11,18 @@ export class UniversalIdBuilder {
     private _localId?: LocalIdBuilder;
     public imoNumber?: ImoNumber;
 
+    private constructor();
+    private constructor(previous: UniversalIdBuilder);
+    private constructor(previous?: UniversalIdBuilder) {
+        if (previous) {
+            this._localId = previous._localId;
+            this.imoNumber = previous.imoNumber;
+        } else {
+            this._localId = undefined;
+            this.imoNumber = undefined;
+        }
+    }
+
     public get localId() {
         return this._localId;
     }
@@ -34,7 +46,7 @@ export class UniversalIdBuilder {
     }
 
     public clone() {
-        return Object.assign(new UniversalIdBuilder(), this);
+        return new UniversalIdBuilder(this);
     }
 
     public validate(

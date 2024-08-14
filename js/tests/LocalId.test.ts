@@ -1,7 +1,13 @@
 import * as fs from "fs-extra";
 import readline from "readline";
 import * as InvalidData from "../../testdata/InvalidLocalIds.json";
-import { CodebookName, LocalIdBuilder, VisVersion } from "../lib";
+import {
+    CodebookName,
+    LocalId,
+    LocalIdBuilder,
+    LocationBuilder,
+    VisVersion,
+} from "../lib";
 import { LocalIdParsingErrorBuilder } from "../lib/internal/LocalIdParsingErrorBuilder";
 import { getVISMap, visMap } from "./Fixture";
 
@@ -126,58 +132,49 @@ describe("LocalId", () => {
         });
     });
 
-    it("LocalId equality", () => {
-        testData.forEach(({ input, output }) => {
-            const visVersion = input.visVersion;
-            const { gmod, locations, codebooks } = visMap.get(visVersion)!;
+    it.each(testData)("LocalId equality", ({ input }) => {
+        const visVersion = input.visVersion;
+        const { gmod, locations, codebooks } = visMap.get(visVersion)!;
 
-            const primaryItem = gmod.parsePath(input.primaryItem, locations);
-            const secondaryItem = input.secondaryItem
-                ? gmod.parsePath(input.secondaryItem, locations)
-                : undefined;
+        const primaryItem = gmod.parsePath(input.primaryItem, locations);
+        const secondaryItem = input.secondaryItem
+            ? gmod.parsePath(input.secondaryItem, locations)
+            : undefined;
 
-            const localId = LocalIdBuilder.create(visVersion)
-                .withPrimaryItem(primaryItem)
-                .tryWithSecondaryItem(secondaryItem)
-                .withVerboseMode(input.verbose)
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(
-                        CodebookName.Quantity,
-                        input.quantity
-                    )
+        const localId = LocalIdBuilder.create(visVersion)
+            .withPrimaryItem(primaryItem)
+            .tryWithSecondaryItem(secondaryItem)
+            .withVerboseMode(input.verbose)
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(CodebookName.Quantity, input.quantity)
+            )
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(CodebookName.Content, input.content)
+            )
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(CodebookName.Position, input.position)
+            );
+
+        let otherLocalId = localId;
+
+        expect(localId).toEqual(otherLocalId);
+        expect(localId.equals(otherLocalId)).toBe(true);
+        expect(localId).toBe(otherLocalId);
+
+        otherLocalId = localId.clone();
+        expect(localId.equals(otherLocalId)).toBe(true);
+        expect(localId).not.toBe(otherLocalId);
+
+        otherLocalId = localId
+            .tryWithPrimaryItem(localId.primaryItem?.clone())
+            .tryWithMetadataTag(
+                codebooks.tryCreateTag(
+                    CodebookName.Position,
+                    localId.position?.value
                 )
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(CodebookName.Content, input.content)
-                )
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(
-                        CodebookName.Position,
-                        input.position
-                    )
-                );
-
-            let otherLocalId = localId;
-
-            expect(localId).toEqual(otherLocalId);
-            expect(localId.equals(otherLocalId)).toBe(true);
-            expect(localId).toBe(otherLocalId);
-
-            otherLocalId = localId.clone();
-            expect(localId.equals(otherLocalId)).toBe(true);
-            expect(localId).not.toBe(otherLocalId);
-
-            otherLocalId = localId
-                .tryWithPrimaryItem(localId.primaryItem?.clone())
-                .tryWithMetadataTag(
-                    codebooks.tryCreateTag(
-                        CodebookName.Position,
-                        localId.position?.value
-                    )
-                );
-            expect(localId).toEqual(otherLocalId);
-            expect(localId.equals(otherLocalId)).toBe(true);
-            expect(localId).not.toBe(otherLocalId);
-        });
+            );
+        expect(localId.equals(otherLocalId)).toBe(true);
+        expect(localId).not.toBe(otherLocalId);
     });
 
     const parseTestData = [
@@ -322,5 +319,35 @@ describe("LocalId", () => {
 
         expect(t1.equals(t2)).toEqual(false);
         expect(t2.equals(t1)).toEqual(false);
+    });
+
+    it("LocalId path location equality", async () => {
+        const initBuilder = await LocalIdBuilder.parseAsync(
+            "/dnv-v2/vis-3-4a/411.1-1/meta/qty-time/detail-one.more"
+        );
+        const visVersion = initBuilder.visVersion!;
+        const vis = visMap.get(visVersion)!;
+
+        const locationBuilder = LocationBuilder.create(vis.locations);
+
+        const localIds: LocalId[] = [];
+
+        for (let i = 0; i < 10; i++) {
+            const builder = initBuilder.clone();
+            const path = builder.primaryItem!;
+            const sets = path.individualizableSets;
+            const set = sets[sets.length - 1];
+
+            set.location = locationBuilder.withNumber(i + 1).build();
+
+            localIds.push(builder.withPrimaryItem(set.build()).build());
+        }
+        const base = localIds[0];
+        expect(
+            localIds.reduce((state, current) => {
+                if (base.equals(current)) state++;
+                return state;
+            }, 0)
+        ).toEqual(1);
     });
 });

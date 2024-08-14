@@ -40,8 +40,23 @@ export class LocalIdBuilder
     public position?: MetadataTag;
     public detail?: MetadataTag;
 
-    private constructor() {
-        this._items = new LocalIdItems();
+    private constructor();
+    private constructor(previous: LocalIdBuilder);
+    private constructor(previous?: LocalIdBuilder) {
+        if (previous === undefined) this._items = new LocalIdItems();
+        else {
+            this.visVersion = previous.visVersion;
+            this.verboseMode = previous.verboseMode;
+            this._items = previous._items.clone();
+            this.quantity = previous.quantity;
+            this.content = previous.content;
+            this.calculation = previous.calculation;
+            this.state = previous.state;
+            this.command = previous.command;
+            this.type = previous.type;
+            this.position = previous.position;
+            this.detail = previous.detail;
+        }
     }
 
     public static create(visVersion: VisVersion): LocalIdBuilder {
@@ -49,7 +64,7 @@ export class LocalIdBuilder
     }
 
     public clone() {
-        return Object.assign(new LocalIdBuilder(), this);
+        return new LocalIdBuilder(this);
     }
 
     public build(): LocalId {

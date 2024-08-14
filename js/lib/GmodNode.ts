@@ -7,13 +7,14 @@ import { VisVersion } from "./VisVersion";
 
 export class GmodNode {
     private _id: string;
-    public visVersion: VisVersion;
-    public code: string;
-    public metadata: GmodNodeMetadata;
-    public location?: Location;
+    private _visVersion: VisVersion;
+    public readonly code: string;
+    public readonly metadata: GmodNodeMetadata;
+    private _location?: Location;
     private _children: GmodNode[];
     private _parents: GmodNode[];
 
+    private constructor(previous: GmodNode);
     private constructor(
         id: string,
         visVersion: VisVersion,
@@ -22,15 +23,42 @@ export class GmodNode {
         location?: Location,
         parents?: GmodNode[],
         children?: GmodNode[]
+    );
+    private constructor(
+        arg1: string | GmodNode,
+        visVersion?: VisVersion,
+        code?: string,
+        metadata?: GmodNodeMetadata,
+        location?: Location,
+        parents?: GmodNode[],
+        children?: GmodNode[]
     ) {
-        this._id = id;
-        this.visVersion = visVersion;
-        this.code = code;
-        this.location = location || undefined;
-        this.metadata = metadata;
+        if (arg1 instanceof GmodNode) {
+            const previous = arg1;
+            this._id = previous._id;
+            this._visVersion = previous._visVersion;
+            this.code = previous.code;
+            this.metadata = previous.metadata;
+            this._location = previous._location;
+            this._children = previous._children;
+            this._parents = previous._parents;
+        } else {
+            this._id = arg1;
+            this._visVersion = visVersion!;
+            this.code = code!;
+            this.metadata = metadata!;
+            this._location = location;
+            this._children = children ?? [];
+            this._parents = parents ?? [];
+        }
+    }
 
-        this._children = children ?? [];
-        this._parents = parents ?? [];
+    public get visVersion() {
+        return this._visVersion;
+    }
+
+    public get location() {
+        return this._location;
     }
 
     public static createFromDto(visVersion: VisVersion, dto: GmodNodeDto) {
@@ -90,17 +118,17 @@ export class GmodNode {
     public withEmptyRelations(): GmodNode {
         return new GmodNode(
             this._id,
-            this.visVersion,
+            this._visVersion,
             this.code,
             this.metadata,
-            this.location,
+            this._location,
             [],
             []
         );
     }
 
     public withoutLocation(): GmodNode {
-        return this.with((s) => (s.location = undefined));
+        return this.with((s) => (s._location = undefined));
     }
 
     public withLocation(
@@ -134,26 +162,26 @@ export class GmodNode {
     ): GmodNode | undefined {
         // if (!isIndividualizable(this, false, false)) return undefined; // TODO what to do about this case
         if (location instanceof Location) {
-            return this.with((s) => (s.location = location));
+            return this.with((s) => (s._location = location));
         } else if (
             typeof location === "string" &&
             locations instanceof Locations
         ) {
             const parsedLocation = locations.tryParse(location);
             if (!parsedLocation) return undefined;
-            return this.with((s) => (s.location = parsedLocation));
+            return this.with((s) => (s._location = parsedLocation));
         }
     }
 
     public async withLocationAsync(location: string): Promise<GmodNode> {
-        const locations = await VIS.instance.getLocations(this.visVersion);
+        const locations = await VIS.instance.getLocations(this._visVersion);
         const parsedLocation = locations.parse(location);
         return this.withLocation(parsedLocation);
     }
     public async tryWithLocationAsync(
         location?: string
     ): Promise<GmodNode | undefined> {
-        const locations = await VIS.instance.getLocations(this.visVersion);
+        const locations = await VIS.instance.getLocations(this._visVersion);
         return this.tryWithLocation(location, locations);
     }
 
@@ -228,15 +256,15 @@ export class GmodNode {
 
     public equals(other?: GmodNode): boolean {
         if (!other) return false;
-        if (!!this.location !== !!other.location) return false;
+        if (!!this._location !== !!other._location) return false;
         return (
             this.code === other.code &&
-            (this.location?.equals(other.location) ?? true)
+            (this._location?.equals(other._location) ?? true)
         );
     }
 
     public toString(): string {
-        return this.location ? `${this.code}-${this.location}` : this.code;
+        return this._location ? `${this.code}-${this._location}` : this.code;
     }
 
     public addChild(child: GmodNode) {
@@ -248,7 +276,7 @@ export class GmodNode {
     }
 
     private getSortedString(node: GmodNode) {
-        return node.location ? node.code + "-" + node.location : node.code;
+        return node._location ? node.code + "-" + node._location : node.code;
     }
 
     public get isLeafNode(): boolean {
@@ -267,25 +295,14 @@ export class GmodNode {
         );
     }
 
-    public with(u: { (state: GmodNode): void }): GmodNode {
+    private with(u: { (state: GmodNode): void }): GmodNode {
         const n = this.clone();
         u && u(n);
         return n;
     }
 
     public clone(): GmodNode {
-        return Object.assign(
-            new GmodNode(
-                this._id,
-                this.visVersion,
-                this.code,
-                { ...this.metadata },
-                this.location?.clone(),
-                [...this._parents],
-                [...this._children]
-            ),
-            this
-        );
+        return new GmodNode(this);
     }
 }
 
