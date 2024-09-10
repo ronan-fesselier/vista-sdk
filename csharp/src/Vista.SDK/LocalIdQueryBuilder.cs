@@ -7,9 +7,7 @@ public sealed record LocalIdQueryBuilder
 {
     private GmodPathQuery? _primaryItem;
     private GmodPathQuery? _secondaryItem;
-    private readonly Dictionary<CodebookName, MetadataTag> _tags = new();
-
-    public IReadOnlyList<MetadataTag> Tags => _tags.Values.ToList();
+    private MetadataTagsQuery? _tags;
 
     public LocalIdQuery Build() => new(this);
 
@@ -18,13 +16,14 @@ public sealed record LocalIdQueryBuilder
     public GmodPath? PrimaryItem => _primaryItem?.Builder is GmodPathQueryBuilder.Path p ? p.GmodPath : null;
     public GmodPath? SecondaryItem => _secondaryItem?.Builder is GmodPathQueryBuilder.Path p ? p.GmodPath : null;
 
+    public static LocalIdQueryBuilder From(string localId) => From(LocalId.Parse(localId));
+
     public static LocalIdQueryBuilder From(LocalId localId)
     {
         var builder = new LocalIdQueryBuilder().WithPrimaryItem(GmodPathQueryBuilder.From(localId.PrimaryItem).Build());
         if (localId.SecondaryItem != null)
             builder = builder.WithSecondaryItem(GmodPathQueryBuilder.From(localId.SecondaryItem).Build());
-        foreach (var tag in localId.MetadataTags)
-            builder = builder.WithTag(tag.Name, tag.Value);
+        builder = builder.WithTags(MetadataTagsQueryBuilder.From(localId).Build());
         return builder;
     }
 
@@ -120,16 +119,15 @@ public sealed record LocalIdQueryBuilder
         return this with { _secondaryItem = secondaryItem };
     }
 
-    public LocalIdQueryBuilder WithTag(MetadataTag tag)
+    public LocalIdQueryBuilder WithTags(Func<MetadataTagsQueryBuilder, MetadataTagsQuery> configure)
     {
-        _tags.Add(tag.Name, tag);
-        // Not sure if this is necessary
-        return this with { };
+        MetadataTagsQueryBuilder builder = _tags?.Builder ?? MetadataTagsQueryBuilder.Empty();
+        return WithTags(configure(builder));
     }
 
-    public LocalIdQueryBuilder WithTag(CodebookName name, string value)
+    public LocalIdQueryBuilder WithTags(MetadataTagsQuery tags)
     {
-        return WithTag(new MetadataTag(name, value));
+        return this with { _tags = tags };
     }
 
     internal bool Match(string other) => Match(LocalId.Parse(other));
@@ -149,17 +147,8 @@ public sealed record LocalIdQueryBuilder
             return false;
         if (_secondaryItem != null && _secondaryItem.Match(localId.SecondaryItem) == false)
             return false;
-        var metadataTags = other.MetadataTags.ToDictionary(t => t.Name);
-        if (_tags.Count > 0)
-        {
-            foreach (var tag in _tags.Values)
-            {
-                if (!metadataTags.TryGetValue(tag.Name, out var otherTag))
-                    return false;
-                if (tag.Equals(otherTag) == false)
-                    return false;
-            }
-        }
+        if (_tags != null && _tags.Match(localId) == false)
+            return false;
 
         return true;
     }

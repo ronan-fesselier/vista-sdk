@@ -19,7 +19,7 @@ public class LocalIdQueryTests
             [
                 new InputData(
                     "/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened",
-                    LocalIdQueryBuilder.Empty().WithTag(CodebookName.Content, "sea.water").Build(),
+                    LocalIdQueryBuilder.Empty().WithTags(MetadataTagsQueryBuilder.Empty().WithTag(CodebookName.Content, "sea.water").Build()).Build(),
                     true
                 )
             ],
@@ -49,6 +49,17 @@ public class LocalIdQueryTests
                     "/dnv-v2/vis-3-4a/511.11-21O/C101.67/S208/meta/qty-pressure/cnt-air/state-low",
                     LocalIdQueryBuilder.Empty().WithPrimaryItem(GmodPathQueryBuilder.From(GmodPath.Parse("411.1", VisVersion.v3_4a)).WithoutLocations().Build()).Build(),
                     false
+                )
+            ],
+            [
+                new InputData(
+                    "/dnv-v2/vis-3-7a/433.1-S/C322.91/S205/meta/qty-conductivity/detail-relative",
+                    LocalIdQueryBuilder
+                        .From("/dnv-v2/vis-3-7a/433.1-S/C322.91/S205/meta/qty-conductivity")
+                        .WithPrimaryItem(builder =>
+                            builder.WithNode(nodes => nodes["433.1"], MatchAllLocations: true).Build()
+                        ).Build(),
+                    true
                 )
             ]
         ];
@@ -109,7 +120,7 @@ public class LocalIdQueryTests
             // Match tags
             builder = LocalIdQueryBuilder.Empty();
             foreach (var tag in localId.MetadataTags)
-                builder = builder.WithTag(tag.Name, tag.Value);
+                builder = builder.WithTags(tags => tags.WithTag(tag).Build());
             query = builder.Build();
             Assert.True(query.Match(localId));
 
@@ -121,21 +132,21 @@ public class LocalIdQueryTests
             // Match primary and tags
             builder = LocalIdQueryBuilder.Empty().WithPrimaryItem(primaryQuery);
             foreach (var tag in localId.MetadataTags)
-                builder = builder.WithTag(tag.Name, tag.Value);
+                builder = builder.WithTags(tags => tags.WithTag(tag).Build());
             query = builder.Build();
             Assert.True(query.Match(localId));
 
             // Match secondary and tags
             builder = LocalIdQueryBuilder.Empty().WithSecondaryItem(secondaryQuery);
             foreach (var tag in localId.MetadataTags)
-                builder = builder.WithTag(tag.Name, tag.Value);
+                builder = builder.WithTags(tags => tags.WithTag(tag).Build());
             query = builder.Build();
             Assert.True(query.Match(localId));
 
             // Match primary, secondary, and tags
             builder = LocalIdQueryBuilder.Empty().WithPrimaryItem(primaryQuery).WithSecondaryItem(secondaryQuery);
             foreach (var tag in localId.MetadataTags)
-                builder = builder.WithTag(tag.Name, tag.Value);
+                builder = builder.WithTags(tags => tags.WithTag(tag).Build());
             query = builder.Build();
             Assert.True(query.Match(localId));
         }
@@ -279,7 +290,10 @@ public class LocalIdQueryTests
 
         List<LocalIdQuery> queries = new(queryMatches.Length);
 
-        var query1 = LocalIdQueryBuilder.Empty().WithTag(tag).Build();
+        var query1 = LocalIdQueryBuilder
+            .Empty()
+            .WithTags(MetadataTagsQueryBuilder.Empty().WithTag(tag).Build())
+            .Build();
         var query2 = LocalIdQueryBuilder
             .Empty()
             .WithPrimaryItem(pPath, builder => builder.WithoutLocations().Build())
@@ -318,13 +332,17 @@ public class LocalIdQueryTests
     [Fact]
     public void Test_Use_Case_1()
     {
+        var locations = VIS.Instance.GetLocations(VIS.LatestVisVersion);
         var localId = LocalId.Parse(
             "/dnv-v2/vis-3-7a/433.1-P/C322/meta/qty-linear.vibration.amplitude/pos-driving.end/detail-iso.10816"
         );
-
+        // Match both 433.1-P and 433.1-S
         var query = LocalIdQueryBuilder
             .From(localId)
-            .WithPrimaryItem(builder => builder.WithNode(nodes => nodes["433.1"], MatchAllLocations: true).Build())
+            .WithPrimaryItem(
+                builder =>
+                    builder.WithNode(nodes => nodes["433.1"], [locations.Parse("P"), locations.Parse("S")]).Build()
+            )
             .Build();
         Assert.True(query.Match(localId));
         Assert.True(
@@ -355,5 +373,25 @@ public class LocalIdQueryTests
             .Build();
 
         Assert.False(query.Match(localId));
+    }
+
+    [Fact]
+    public void Test_Use_Case_3()
+    {
+        // Only match 100% matches
+        var codebooks = VIS.Instance.GetCodebooks(VIS.LatestVisVersion);
+        var gmod = VIS.Instance.GetGmod(VIS.LatestVisVersion);
+        var localId = LocalId.Parse("/dnv-v2/vis-3-7a/433.1-S/C322.91/S205/meta/qty-conductivity/detail-relative");
+        var query = LocalIdQueryBuilder
+            .From(localId)
+            .WithTags(builder => builder.WithAllowOtherTags(false).Build())
+            .Build();
+        Assert.True(query.Match(localId));
+        var builder = localId.Builder;
+
+        var l1 = builder.WithMetadataTag(codebooks.CreateTag(CodebookName.Content, "random")).Build();
+        var l2 = builder.WithPrimaryItem(gmod.ParsePath("433.1-1S")).Build();
+        Assert.False(query.Match(l1));
+        Assert.False(query.Match(l2));
     }
 }
