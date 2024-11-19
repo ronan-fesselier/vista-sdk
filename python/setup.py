@@ -16,8 +16,8 @@ if len(sys.argv) > 1:
 setup(
     name="vista-sdk",
     version=version,
-    author="Anders Fredriksen",
-    author_email="anders.fredriksen@dnv.com",
+    author="DNV Vista",
+    author_email="vista@dnv.com",
     description="SDKs and tools relating to DNVs Vessel Information Structure (VIS),"
     "ISO 19847, ISO 19848 standards",
     url="https://github.com/dnv-opensource/vista-sdk",
