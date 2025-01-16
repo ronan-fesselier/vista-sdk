@@ -55,6 +55,8 @@ public class GmodVersioningTests
             ["221.31/C1141.41/C664.2/C471", "221.31/C1141.41/C664.2/C471",],
             //new string[] { "354.2/C1096", "354.2/C1096" }, // Was deleted, as path to root is gone
             ["514/E15", "514"],
+            ["244.1i/H101.111/H401", "244.1i/H101.11/H407.1/H401", VisVersion.v3_7a, VisVersion.v3_8a],
+        // ["851/H231", "851", VisVersion.v3_6a, VisVersion.v3_7a], // Effect of SD - no idea how to version this
         ];
     public static IEnumerable<object[]> Valid_Test_Data_FullPath =>
 
@@ -64,14 +66,19 @@ public class GmodVersioningTests
 
     [Theory]
     [MemberData(nameof(Valid_Test_Data_Path))]
-    public void Test_GmodVersioning_ConvertPath(string inputPath, string expectedPath)
+    public void Test_GmodVersioning_ConvertPath(
+        string inputPath,
+        string expectedPath,
+        VisVersion sourceVersion = VisVersion.v3_4a,
+        VisVersion targetVersion = VisVersion.v3_6a
+    )
     {
-        var targetGmod = VIS.Instance.GetGmod(VisVersion.v3_6a);
+        var targetGmod = VIS.Instance.GetGmod(targetVersion);
 
-        var sourcePath = GmodPath.Parse(inputPath, VisVersion.v3_4a);
+        var sourcePath = GmodPath.Parse(inputPath, sourceVersion);
         var parsedPath = targetGmod.TryParsePath(expectedPath, out var parsedTargetPath);
 
-        var targetPath = VIS.Instance.ConvertPath(VisVersion.v3_4a, sourcePath, targetGmod.VisVersion);
+        var targetPath = VIS.Instance.ConvertPath(sourcePath.VisVersion, sourcePath, targetGmod.VisVersion);
         Assert.NotNull(targetPath);
 
         var nodesWithLocation = sourcePath
