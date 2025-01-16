@@ -379,15 +379,18 @@ public class LocalIdQueryTests
     public void Test_Use_Case_3()
     {
         // Only match 100% matches
-        var codebooks = VIS.Instance.GetCodebooks(VIS.LatestVisVersion);
-        var gmod = VIS.Instance.GetGmod(VIS.LatestVisVersion);
         var localId = LocalId.Parse("/dnv-v2/vis-3-7a/433.1-S/C322.91/S205/meta/qty-conductivity/detail-relative");
+        var builder = localId.Builder;
+        var visVersion = localId.VisVersion;
+
         var query = LocalIdQueryBuilder
             .From(localId)
             .WithTags(builder => builder.WithAllowOtherTags(false).Build())
             .Build();
         Assert.True(query.Match(localId));
-        var builder = localId.Builder;
+
+        var gmod = VIS.Instance.GetGmod(visVersion);
+        var codebooks = VIS.Instance.GetCodebooks(visVersion);
 
         var l1 = builder.WithMetadataTag(codebooks.CreateTag(CodebookName.Content, "random")).Build();
         var l2 = builder.WithPrimaryItem(gmod.ParsePath("433.1-1S")).Build();
