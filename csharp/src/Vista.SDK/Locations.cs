@@ -62,7 +62,7 @@ public sealed class Locations
             );
             _relativeLocations.Add(relativeLocation);
 
-            // TODO : Create new LocationGroup for H and V
+            // Not interested in horizontal and vertical codes
             if (relativeLocationsDto.Code is 'H' or 'V')
                 continue;
 
