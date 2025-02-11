@@ -1,34 +1,38 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Vista.SDK.Experimental.Transport;
-using Vista.SDK.Experimental.Transport.DataList;
-using Property = Vista.SDK.Experimental.Transport.DataList.Property;
+using Vista.SDK.Experimental.Transport.Json.DataList;
+using Domain = Vista.SDK.Experimental.Transport.DataList;
 
 namespace Vista.SDK.Experimental.Tests.Transport;
 
 public partial class IsoMessageTests
 {
-    public static DataListPackage TestDataListPackage =>
-        new DataListPackage(
-            new Package(
-                new Header(
+    public static Domain.DataListPackage TestDataListPackage =>
+        new Domain.DataListPackage(
+            new Domain.Package(
+                new Domain.Header(
                     AssetIdentifier.Parse("IMO1234567"),
-                    new ConfigurationReference("DataList.xml", "1.0", DateTimeOffset.Parse("2016-01-01T00:00:00Z")),
-                    new VersionInformation("some_naming_rule", "2.0", "http://somewhere.net"),
+                    new Domain.ConfigurationReference(
+                        "DataList.xml",
+                        "1.0",
+                        DateTimeOffset.Parse("2016-01-01T00:00:00Z")
+                    ),
+                    new Domain.VersionInformation("some_naming_rule", "2.0", "http://somewhere.net"),
                     "Author1",
                     DateTimeOffset.Parse("2015-12-01T00:00:00Z"),
                     new Dictionary<string, object>() { ["nr:CustomHeaderElement"] = "Vender specific headers" }
                 ),
-                new DataList(
-                    new Data[]
-                    {
-                        new Data(
-                            new Experimental.Transport.DataList.DataId(
+                new Domain.DataList(
+
+                    [
+                        new Domain.Data(
+                            new Domain.DataId(
                                 PMSLocalId.Parse(
                                     "/dnv-v2-experimental/vis-3-6a/411.1/C101.661i-F/C621/meta/maint.cat-preventive/act.type-service"
                                 ),
                                 "0010",
-                                new NameObject(
+                                new Domain.NameObject(
                                     "Naming_Rule",
                                     new Dictionary<string, object>()
                                     {
@@ -36,11 +40,11 @@ public partial class IsoMessageTests
                                     }
                                 )
                             ),
-                            new Property(
-                                new DataType("Inst", UpdateCycle: 1, CalculationPeriod: null),
-                                new Format(
+                            new Domain.Property(
+                                new Domain.DataType("Inst", 1.0, null),
+                                new Domain.Format(
                                     "Decimal",
-                                    new Restriction(
+                                    new Domain.Restriction(
                                         Enumeration: null,
                                         FractionDigits: 1,
                                         Length: null,
@@ -55,7 +59,7 @@ public partial class IsoMessageTests
                                         WhiteSpace: null
                                     )
                                 ),
-                                new Experimental.Transport.DataList.Range(1.0, 0.0),
+                                new Domain.Range(1.0, 0.0),
                                 null,
                                 "OPC_QUALITY",
                                 AlertPriority: null,
@@ -67,7 +71,7 @@ public partial class IsoMessageTests
                                 }
                             )
                         )
-                    }
+                    ]
                 )
             )
         );
@@ -85,8 +89,8 @@ public partial class IsoMessageTests
     {
         var message = TestDataListPackage;
 
-        var dto = Experimental.Transport.Json.DataList.Extensions.ToJsonDto(message);
-        var message2 = Experimental.Transport.Json.DataList.Extensions.ToDomainModel(dto);
+        var dto = message.ToJsonDto();
+        var message2 = dto.ToDomainModel();
         var localId1 = message.Package.DataList.Data[0].DataId.LocalId;
         var localId2 = message2.Package.DataList.Data[0].DataId.LocalId;
         localId1.Should().Be(localId2);

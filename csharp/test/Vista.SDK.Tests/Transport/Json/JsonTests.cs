@@ -1,13 +1,14 @@
-using System.Globalization;
 using System.Text.Json;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using ICSharpCode.SharpZipLib.BZip2;
 using Json.Schema;
 using Json.Schema.Serialization;
+using Vista.SDK.Transport;
 using Vista.SDK.Transport.Json;
 using Vista.SDK.Transport.Json.DataChannel;
 using Vista.SDK.Transport.Json.TimeSeriesData;
+using Domain = Vista.SDK.Transport.DataChannel;
 
 namespace Vista.SDK.Tests.Transport.Json;
 
@@ -149,6 +150,41 @@ public class JsonTests
         var dto = domainPackage.ToJsonDto();
 
         dto.Should().BeEquivalentTo(package, DataChannelListEquivalency);
+    }
+
+    [Theory]
+    [InlineData("Transport/Json/_files/DataChannelList.json")]
+    [InlineData("schemas/json/DataChannelList.sample.json")]
+    // [InlineData("schemas/json/DataChannelList.sample.compact.json")]
+    public async Task Test_DataChannelListId_Date_Consistency(string file)
+    {
+        await using var reader = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var package = await Serializer.DeserializeDataChannelListAsync(reader);
+        Assert.NotNull(package);
+
+        var domainPackage = package.ToDomainModel();
+        var dto = domainPackage.ToJsonDto();
+
+        var serialized = dto.Serialize();
+        var deserialized = Serializer.DeserializeDataChannelList(serialized);
+        Assert.NotNull(deserialized);
+        var utf8Serialized = JsonSerializer.SerializeToUtf8Bytes(package, Serializer.Options);
+        var utf8Deserialized = JsonSerializer.Deserialize<DataChannelListPackage>(utf8Serialized, Serializer.Options);
+        Assert.NotNull(utf8Deserialized);
+
+        dto.Should().BeEquivalentTo(package, DataChannelListEquivalency);
+
+        var dtoTimeStamp = dto.Package.Header.DataChannelListID.TimeStamp;
+        var domainTimeStamp = domainPackage.Package.Header.DataChannelListId.TimeStamp;
+        var packageTimestamp = package.Package.Header.DataChannelListID.TimeStamp;
+        var deserializedTimeStamp = deserialized.Package.Header.DataChannelListID.TimeStamp;
+        var utf8DeserializedTimeStamp = utf8Deserialized.Package.Header.DataChannelListID.TimeStamp;
+
+        Assert.Equal(dtoTimeStamp, domainTimeStamp);
+        Assert.Equal(dtoTimeStamp, packageTimestamp);
+        Assert.Equal(dtoTimeStamp, deserializedTimeStamp);
+        Assert.Equal(dtoTimeStamp, utf8DeserializedTimeStamp);
     }
 
     [Theory]
