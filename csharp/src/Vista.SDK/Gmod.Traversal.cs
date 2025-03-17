@@ -92,9 +92,9 @@ public sealed partial class Gmod
     )
     {
         var lastAssetFunction = fromPath.LastOrDefault(n => n.IsAssetFunctionNode);
-        remainingParents = Enumerable.Empty<GmodNode>();
+        remainingParents =  [];
 
-        var state = new PathExistsContext(to) { RemainingParents = remainingParents, };
+        var state = new PathExistsContext(to) { RemainingParents = remainingParents, FromPath =  [.. fromPath] };
 
         var reachedEnd = Traverse(
             state,
@@ -103,13 +103,12 @@ public sealed partial class Gmod
             {
                 if (node.Code != state.To.Code)
                     return TraversalHandlerResult.Continue;
-
                 List<GmodNode>? actualParents = null;
                 while (!parents[0].IsRoot)
                 {
                     if (actualParents is null)
                     {
-                        actualParents = new(parents);
+                        actualParents =  [.. parents];
                         parents = actualParents;
                     }
 
@@ -120,9 +119,23 @@ public sealed partial class Gmod
                     actualParents.Insert(0, parent.Parents[0]);
                 }
 
-                if (fromPath.All(qn => parents.Any(p => p.Code == qn.Code)))
+                // Validate parents
+                if (parents.Count < state.FromPath.Count)
+                    return TraversalHandlerResult.Continue;
+                // Must have same start order
+                var match = true;
+                for (int i = 0; i < state.FromPath.Count; i++)
                 {
-                    state.RemainingParents = parents.Where(p => !fromPath.Any(pp => pp.Code == p.Code)).ToArray();
+                    if (parents[i].Code != state.FromPath[i].Code)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    state.RemainingParents = parents.Where(p => !state.FromPath.Any(pp => pp.Code == p.Code)).ToArray();
                     return TraversalHandlerResult.Stop;
                 }
 
@@ -138,6 +151,7 @@ public sealed partial class Gmod
     record PathExistsContext(GmodNode To)
     {
         public IEnumerable<GmodNode> RemainingParents = Enumerable.Empty<GmodNode>();
+        public required IReadOnlyList<GmodNode> FromPath { get; init; }
     }
 
     private readonly record struct TraversalContext<TState>(

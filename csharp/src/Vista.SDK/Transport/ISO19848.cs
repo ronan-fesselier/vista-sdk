@@ -321,13 +321,21 @@ public abstract record Value
 {
     private Value() { }
 
-    public sealed record Decimal(decimal Value) : Value;
+    public sealed record String(string Value) : Value;
 
-    public sealed record Integer(int Value) : Value;
+    public sealed record Char(char Value) : Value;
 
     public sealed record Boolean(bool Value) : Value;
 
-    public sealed record String(string Value) : Value;
+    public sealed record Integer(int Value) : Value;
+
+    public sealed record UnsignedInteger(uint Value) : Value;
+
+    public sealed record Long(long Value) : Value;
+
+    public sealed record Double(double Value) : Value;
+
+    public sealed record Decimal(decimal Value) : Value;
 
     public sealed record DateTime(DateTimeOffset Value) : Value;
 }

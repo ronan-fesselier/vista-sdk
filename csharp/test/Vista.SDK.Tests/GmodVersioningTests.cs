@@ -56,6 +56,7 @@ public class GmodVersioningTests
             //new string[] { "354.2/C1096", "354.2/C1096" }, // Was deleted, as path to root is gone
             ["514/E15", "514"],
             ["244.1i/H101.111/H401", "244.1i/H101.11/H407.1/H401", VisVersion.v3_7a, VisVersion.v3_8a],
+            ["1346/S201.1/C151.31/S110.2/C111.1/C109.16/C509", "1346/S201.1/C151.31/S110.2/C111.1/C109.126/C509", VisVersion.v3_7a, VisVersion.v3_8a]
         // ["851/H231", "851", VisVersion.v3_6a, VisVersion.v3_7a], // Effect of SD - no idea how to version this
         ];
     public static IEnumerable<object[]> Valid_Test_Data_FullPath =>
