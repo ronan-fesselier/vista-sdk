@@ -136,4 +136,38 @@ public class ISO19848Tests
         else
             Assert.IsType<FormatDataTypes.ParseResult.Invalid>(result);
     }
+
+    [Theory]
+    [InlineData("Decimal", "0.1", true)]
+    [InlineData("DateTime", "1994-11-20T10:25:33Z", true)]
+    [InlineData("DateTime", "1994-11-20T10", false)]
+    public void Test_FormatDataType_Parse_Valid(string type, string value, bool expectedResult)
+    {
+        var iso = ISO19848.Instance;
+        var types = iso.GetFormatDataTypes(ISO19848Version.v2024);
+        Assert.NotNull(types);
+        var result = types.Parse(type);
+
+        var ok = Assert.IsType<FormatDataTypes.ParseResult.Ok>(result);
+        Assert.Equal(ok.TypeName.Type, type);
+        if (expectedResult)
+        {
+            bool parsed = ok.TypeName.Match(value, d => true, s => true, b => true, i => true, dt => true);
+            Assert.True(parsed);
+        }
+        else
+        {
+            Assert.Throws<ValidationException>(() =>
+            {
+                string parsed = ok.TypeName.Match(
+                    value,
+                    d => d.ToString(),
+                    s => s.ToString(),
+                    b => b.ToString(),
+                    i => i.ToString(),
+                    dt => dt.ToString()
+                );
+            });
+        }
+    }
 }

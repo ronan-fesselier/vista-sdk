@@ -48,7 +48,7 @@ public sealed record VersionInformation
 }
 
 // DataChannelList
-public sealed record DataChannelList() : ICollection<DataChannel>
+public sealed record DataChannelList : ICollection<DataChannel>
 {
     private List<DataChannel> dataChannels = new();
     private Dictionary<string, DataChannel> shortIdMap = new();

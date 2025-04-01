@@ -1,30 +1,66 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using ICSharpCode.SharpZipLib.BZip2;
 using Json.Schema;
 using Json.Schema.Serialization;
-using Vista.SDK.Transport;
 using Vista.SDK.Transport.Json;
 using Vista.SDK.Transport.Json.DataChannel;
 using Vista.SDK.Transport.Json.TimeSeriesData;
-using Domain = Vista.SDK.Transport.DataChannel;
 
 namespace Vista.SDK.Tests.Transport.Json;
 
 public class JsonTests
 {
-    [Fact]
-    public void Test_ISO8601_DateTimeOffset()
+    [Theory]
+    [InlineData("2022-04-04T20:44:31Z", true)]
+    [InlineData("2022-04-04T20:44:31.1234567Z", true)]
+    [InlineData("2022-04-04T20:44:31.123456789Z", true)]
+    [InlineData("2022-04-04T20:44:31.1234567+00:00", true)]
+    [InlineData("2022-04-04T20:44:31.1234567-00:00", true)]
+    [InlineData("2022-04-04T20:44:31.1234567+01:00", true)]
+    [InlineData("2022-04-04T20:44:31.1234567-01:00", true)]
+    [InlineData("2022-04-04T20:44:31.1234567-01", false)]
+    [InlineData("20-11-1994T20:44:31Z", false)]
+    public void Test_ISO8601_DateTimeOffset(string value, bool expectedResult)
     {
-        var pattern = DateTimeConverter.Pattern;
-        var provider = DateTimeConverter.Provider;
-        var styles = DateTimeConverter.Style;
+        var converter = new DatetimeOffsetConverter();
 
-        var str = "2022-04-04T20:44:31Z";
+        if (expectedResult)
+        {
+            var json = $"\"{value}\"";
+            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+            reader.Read();
 
-        Assert.True(DateTimeOffset.TryParseExact(str, pattern, provider, styles, out var dto));
-        Assert.Equal(str, dto.ToString(pattern, provider));
+            var readResult = converter.Read(ref reader, typeof(DateTimeOffset), Serializer.Options);
+
+            using var memoryStream = new MemoryStream();
+            using var writer = new Utf8JsonWriter(memoryStream);
+
+            converter.Write(writer, readResult, Serializer.Options);
+            writer.Flush();
+
+            var resultJson = Encoding.UTF8.GetString(memoryStream.ToArray());
+            var resultValue = JsonSerializer.Deserialize<string>(resultJson, Serializer.Options);
+
+            var writeReader = new Utf8JsonReader(Encoding.UTF8.GetBytes(resultJson));
+            writeReader.Read();
+            var writeResult = converter.Read(ref writeReader, typeof(DateTimeOffset), Serializer.Options);
+
+            Assert.Equal(readResult, writeResult);
+        }
+        else
+        {
+            Assert.Throws<FormatException>(() =>
+            {
+                var json = $"\"{value}\"";
+                var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+                reader.Read();
+                converter.Read(ref reader, typeof(DateTimeOffset), Serializer.Options);
+            });
+        }
     }
 
     [Theory]

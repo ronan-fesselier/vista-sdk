@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Vista.SDK.Transport.Json.DataChannel;
 using Vista.SDK.Transport.Json.TimeSeriesData;
 
@@ -9,37 +10,49 @@ namespace Vista.SDK.Transport.Json;
 
 public class DateTimeConverter : JsonConverter<DateTime>
 {
-    public static readonly string Pattern = "yyyy-MM-ddTHH:mm:ssZ";
     public static readonly IFormatProvider Provider = CultureInfo.InvariantCulture.DateTimeFormat;
     public static readonly DateTimeStyles Style = DateTimeStyles.None;
 
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         Debug.Assert(typeToConvert == typeof(DateTime));
-        return DateTime.ParseExact(reader.GetString() ?? string.Empty, Pattern, Provider, Style);
+        var value = reader.GetString() ?? string.Empty;
+
+        if (!DatetimeOffsetConverter.Iso8601StrictRegex.IsMatch(value))
+            throw new FormatException($"Invalid ISO 8601-1 format: '{value}'");
+
+        return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).DateTime;
     }
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.ToString(Pattern, CultureInfo.InvariantCulture));
+        writer.WriteStringValue(value.ToString("o", CultureInfo.InvariantCulture));
     }
 }
 
 public class DatetimeOffsetConverter : JsonConverter<DateTimeOffset>
 {
-    public static readonly string Pattern = DateTimeConverter.Pattern;
+    internal static readonly Regex Iso8601StrictRegex = new Regex(
+        @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
     public static readonly IFormatProvider Provider = DateTimeConverter.Provider;
     public static readonly DateTimeStyles Style = DateTimeConverter.Style;
 
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         Debug.Assert(typeToConvert == typeof(DateTimeOffset));
-        return DateTimeOffset.ParseExact(reader.GetString() ?? string.Empty, Pattern, Provider, Style);
+        var value = reader.GetString() ?? string.Empty;
+
+        if (!Iso8601StrictRegex.IsMatch(value))
+            throw new FormatException($"Invalid ISO 8601-1 format: '{value}'");
+
+        return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
     }
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.ToString(Pattern, CultureInfo.InvariantCulture));
+        writer.WriteStringValue(value.ToString("o", CultureInfo.InvariantCulture));
     }
 }
 

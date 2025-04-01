@@ -207,10 +207,10 @@ public sealed record TimeSeriesData
     }
 }
 
-public sealed record TabularData(int dataChannels = 0, int dataSets = 0)
+public sealed record TabularData
 {
-    public required List<DataChannelId>? DataChannelIds { get; set; } = new(dataChannels);
-    public required List<TabularDataSet>? DataSets { get; set; } = new(dataSets);
+    public required List<DataChannelId>? DataChannelIds { get; set; }
+    public required List<TabularDataSet>? DataSets { get; set; }
 
     public int? NumberOfDataSets => DataSets?.Count;
     public int? NumberOfDataChannels => DataChannelIds?.Count;
