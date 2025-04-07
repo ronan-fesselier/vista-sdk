@@ -28,22 +28,33 @@ namespace dnv::vista::sdk
 	{
 	}
 
+	ImoNumber ImoNumber::Parse( const char* value )
+	{
+		if ( value == nullptr )
+			throw std::invalid_argument( "Null IMO number string" );
+
+		return Parse( std::string( value ) );
+	}
+
 	ImoNumber ImoNumber::Parse( const std::string& value )
 	{
+		if ( value.empty() )
+			throw std::invalid_argument( "Empty IMO number string" );
+
 		auto result = TryParse( value );
 		if ( !result )
-		{
 			throw std::invalid_argument( "Failed to parse ImoNumber: " + value );
-		}
+
 		return *result;
 	}
 
 	std::optional<ImoNumber> ImoNumber::TryParse( const std::string& value )
 	{
 		if ( value.empty() )
-		{
 			return std::nullopt;
-		}
+
+		if ( value.find_first_of( " \t\n\r\f\v" ) != std::string::npos )
+			return std::nullopt;
 
 		std::string processed = value;
 
@@ -70,9 +81,7 @@ namespace dnv::vista::sdk
 		}
 
 		if ( num == 0 || !IsValid( num ) )
-		{
 			return std::nullopt;
-		}
 
 		return ImoNumber( num, true );
 	}
@@ -87,21 +96,28 @@ namespace dnv::vista::sdk
 	// For example, for IMO 9074729: (9×7) + (0×6) + (7×5) + (4×4) + (7×3) + (2×2) = 139
 	bool ImoNumber::IsValid( int imoNumber )
 	{
+		// IMO numbers must be 7 digits
 		if ( imoNumber < 1000000 || imoNumber > 9999999 )
-		{
 			return false;
-		}
 
-		unsigned char digits[7] = {};
-		GetDigits( imoNumber, digits );
-
-		int checkDigit = 0;
-		for ( int i = 1; i < 7; i++ )
+		int digits[7];
+		int temp = imoNumber;
+		for ( int i = 6; i >= 0; i-- )
 		{
-			checkDigit += ( i + 1 ) * digits[i];
+			digits[i] = temp % 10;
+			temp /= 10;
 		}
 
-		return ( imoNumber % 10 ) == ( checkDigit % 10 );
+		int checkSum = 0;
+		for ( int i = 0; i < 6; i++ )
+		{
+			checkSum += digits[i] * ( 7 - i );
+		}
+
+		int calculatedCheckDigit = checkSum % 10;
+		int providedCheckDigit = digits[6];
+
+		return providedCheckDigit == calculatedCheckDigit;
 	}
 
 	void ImoNumber::GetDigits( int number, unsigned char* digits )

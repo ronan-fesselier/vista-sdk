@@ -48,9 +48,6 @@ target_include_directories(vista-sdk
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(vista-sdk PRIVATE spdlog::spdlog_header_only)
 
-find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(vista-sdk PRIVATE nlohmann_json::nlohmann_json)
-
 find_package(RapidJSON CONFIG REQUIRED)
 target_link_libraries(vista-sdk PRIVATE RapidJSON rapidjson)
 

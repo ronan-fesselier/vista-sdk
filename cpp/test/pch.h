@@ -31,6 +31,5 @@
 
 /* Libs */
 #include <gtest/gtest.h>
-#include <nlohmann/json.hpp>
 #include <zlib.h>
 #include <spdlog/spdlog.h>

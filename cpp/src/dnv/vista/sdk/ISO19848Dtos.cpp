@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/ISO19848Dtos.h"
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace dnv::vista::sdk
 {
@@ -30,14 +32,59 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	void to_json( nlohmann::json& j, const DataChannelTypeNameDto& dto )
+	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const DataChannelTypeNameDto& dto )
 	{
-		j = { { "type", dto.type }, { "description", dto.description } };
+		writer.StartObject();
+
+		writer.Key( "type" );
+		writer.String( dto.type.c_str() );
+
+		writer.Key( "description" );
+		writer.String( dto.description.c_str() );
+
+		writer.EndObject();
 	}
 
-	void from_json( const nlohmann::json& j, DataChannelTypeNameDto& dto )
+	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const DataChannelTypeNamesDto& dto )
 	{
-		j.at( "type" ).get_to( dto.type );
-		j.at( "description" ).get_to( dto.description );
+		writer.StartObject();
+
+		writer.Key( "values" );
+		writer.StartArray();
+		for ( const auto& value : dto.values )
+		{
+			SerializeToJson( writer, value );
+		}
+		writer.EndArray();
+
+		writer.EndObject();
+	}
+
+	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const FormatDataTypeDto& dto )
+	{
+		writer.StartObject();
+
+		writer.Key( "type" );
+		writer.String( dto.type.c_str() );
+
+		writer.Key( "description" );
+		writer.String( dto.description.c_str() );
+
+		writer.EndObject();
+	}
+
+	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const FormatDataTypesDto& dto )
+	{
+		writer.StartObject();
+
+		writer.Key( "values" );
+		writer.StartArray();
+		for ( const auto& value : dto.values )
+		{
+			SerializeToJson( writer, value );
+		}
+		writer.EndArray();
+
+		writer.EndObject();
 	}
 }

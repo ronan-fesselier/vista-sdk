@@ -30,6 +30,8 @@ namespace dnv::vista::sdk
 		 */
 		explicit ImoNumber( const std::string& value );
 
+		static ImoNumber Parse( const char* value );
+
 		/**
 		 * @brief Parse a string into an IMO number
 		 * @param value The string to parse

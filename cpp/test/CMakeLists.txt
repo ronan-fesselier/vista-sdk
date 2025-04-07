@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
 find_package(spdlog CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
@@ -24,7 +23,6 @@ if(NOT TARGET ${TEST})
 		GTest::gtest_main
 		GTest::gtest
 		spdlog::spdlog_header_only
-		nlohmann_json::nlohmann_json
 	)
 
 	target_include_directories(${TEST} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)

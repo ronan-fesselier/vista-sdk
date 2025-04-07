@@ -30,6 +30,5 @@
 #include <vector>
 
 /* Libs */
-#include <nlohmann/json.hpp>
 #include <zlib.h>
 #include <spdlog/spdlog.h>
