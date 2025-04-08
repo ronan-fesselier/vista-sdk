@@ -31,5 +31,7 @@
 
 /* Libs */
 #include <gtest/gtest.h>
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <zlib.h>
 #include <spdlog/spdlog.h>

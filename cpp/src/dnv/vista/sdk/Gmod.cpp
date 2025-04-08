@@ -45,10 +45,10 @@ namespace dnv::vista::sdk
 
 		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
 
-		for ( const auto& [key, node] : m_nodeMap )
-		{
-			// SPDLOG_INFO( "Node added to GMOD map: {}", key );
-		}
+		// for ( const auto& [key, node] : m_nodeMap )
+		//{
+		//  SPDLOG_INFO( "Node added to GMOD map: {}", key );
+		//}
 	}
 
 	Gmod::Gmod( VisVersion version, const std::unordered_map<std::string, GmodNode>& nodeMap )
@@ -69,10 +69,10 @@ namespace dnv::vista::sdk
 
 		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
 
-		for ( const auto& [key, node] : m_nodeMap )
-		{
-			//	SPDLOG_INFO( "Node added to GMOD map: {}", key );
-		}
+		// for ( const auto& [key, node] : m_nodeMap )
+		//{
+		//	SPDLOG_INFO( "Node added to GMOD map: {}", key );
+		//}
 	}
 
 	VisVersion Gmod::GetVisVersion() const

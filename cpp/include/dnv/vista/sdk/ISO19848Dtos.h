@@ -1,26 +1,24 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <rapidjson/document.h>
-
 namespace dnv::vista::sdk
 {
 	/**
 	 * @brief Data Transfer Object (DTO) for a single data channel type name
 	 *
 	 * Represents a type name and its description as defined in ISO 19848.
+	 * Maps to C# record: DataChannelTypeNameDto(string Type, string Description)
 	 */
 	struct DataChannelTypeNameDto
 	{
 		/**
-		 * @brief Constructor
-		 * @param type The type name
-		 * @param description The description of the type
+		 * @brief Type name (JSON: "type")
 		 */
-		DataChannelTypeNameDto(
-			const std::string& type,
-			const std::string& description );
+		std::string type;
+
+		/**
+		 * @brief Description of the type (JSON: "description")
+		 */
+		std::string description;
 
 		/**
 		 * @brief Default constructor
@@ -28,101 +26,86 @@ namespace dnv::vista::sdk
 		DataChannelTypeNameDto() = default;
 
 		/**
-		 * @brief Type name
+		 * @brief Constructor with parameters
+		 * @param type The type name
+		 * @param description The description of the type
 		 */
-		std::string type;
-
-		/**
-		 * @brief Description of the type
-		 */
-		std::string description;
+		DataChannelTypeNameDto(
+			std::string type,
+			std::string description );
 
 		/**
 		 * @brief Deserialize from JSON
 		 * @param json JSON value to deserialize from
 		 * @return Deserialized DTO
 		 */
-		static DataChannelTypeNameDto FromJson( const rapidjson::Value& json )
-		{
-			DataChannelTypeNameDto dto;
+		static DataChannelTypeNameDto FromJson( const rapidjson::Value& json );
 
-			if ( json.HasMember( "type" ) && json["type"].IsString() )
-				dto.type = json["type"].GetString();
-
-			if ( json.HasMember( "description" ) && json["description"].IsString() )
-				dto.description = json["description"].GetString();
-
-			return dto;
-		}
+		/**
+		 * @brief Serialize to JSON
+		 * @param allocator JSON allocator to use
+		 * @return JSON value representation
+		 */
+		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
 	};
 
 	/**
 	 * @brief Data Transfer Object (DTO) for a collection of data channel type names
 	 *
 	 * Represents a collection of data channel type names and their descriptions.
+	 * Maps to C# record: DataChannelTypeNamesDto(DataChannelTypeNameDto[] Values)
 	 */
 	struct DataChannelTypeNamesDto
 	{
+		/**
+		 * @brief Collection of data channel type name values (JSON: "values")
+		 */
+		std::vector<DataChannelTypeNameDto> values;
+
 		/**
 		 * @brief Default constructor
 		 */
 		DataChannelTypeNamesDto() = default;
 
 		/**
-		 * @brief Collection of data channel type name values
-		 */
-		std::vector<DataChannelTypeNameDto> values;
-
-		/**
-		 * @brief Constructor
+		 * @brief Constructor with parameters
 		 * @param values A collection of data channel type name values
 		 */
 		explicit DataChannelTypeNamesDto(
-			const std::vector<DataChannelTypeNameDto>& values );
+			std::vector<DataChannelTypeNameDto> values );
 
 		/**
 		 * @brief Deserialize from JSON
 		 * @param json JSON value to deserialize from
 		 * @return Deserialized DTO
 		 */
-		static DataChannelTypeNamesDto FromJson( const rapidjson::Value& json )
-		{
-			DataChannelTypeNamesDto dto;
+		static DataChannelTypeNamesDto FromJson( const rapidjson::Value& json );
 
-			if ( json.HasMember( "values" ) && json["values"].IsArray() )
-			{
-				for ( const auto& item : json["values"].GetArray() )
-				{
-					try
-					{
-						dto.values.push_back( DataChannelTypeNameDto::FromJson( item ) );
-					}
-					catch ( const std::exception& e )
-					{
-						SPDLOG_ERROR( "Warning: Skipping malformed data channel type name: {}", e.what() );
-					}
-				}
-			}
-
-			return dto;
-		}
+		/**
+		 * @brief Serialize to JSON
+		 * @param allocator JSON allocator to use
+		 * @return JSON value representation
+		 */
+		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
 	};
 
 	/**
 	 * @brief Data Transfer Object (DTO) for a single format data type
 	 *
 	 * Represents a format data type and its description as defined in ISO 19848.
+	 * Maps to C# record: FormatDataTypeDto(string Type, string Description)
 	 */
 	struct FormatDataTypeDto
 	{
 		/**
-		 * @brief Constructor
-		 * @param type The type name
-		 * @param description The description of the type
+		 * @brief Type name (JSON: "type")
 		 */
-		FormatDataTypeDto(
-			const std::string& type,
-			const std::string& description );
+		std::string type;
+
+		/**
+		 * @brief Description of the type (JSON: "description")
+		 */
+		std::string description;
 
 		/**
 		 * @brief Default constructor
@@ -130,47 +113,41 @@ namespace dnv::vista::sdk
 		FormatDataTypeDto() = default;
 
 		/**
-		 * @brief Type name
+		 * @brief Constructor with parameters
+		 * @param type The type name
+		 * @param description The description of the type
 		 */
-		std::string type;
-
-		/**
-		 * @brief Description of the type
-		 */
-		std::string description;
+		FormatDataTypeDto(
+			std::string type,
+			std::string description );
 
 		/**
 		 * @brief Deserialize from JSON
 		 * @param json JSON value to deserialize from
 		 * @return Deserialized DTO
 		 */
-		static FormatDataTypeDto FromJson( const rapidjson::Value& json )
-		{
-			FormatDataTypeDto dto;
+		static FormatDataTypeDto FromJson( const rapidjson::Value& json );
 
-			if ( json.HasMember( "type" ) && json["type"].IsString() )
-				dto.type = json["type"].GetString();
-
-			if ( json.HasMember( "description" ) && json["description"].IsString() )
-				dto.description = json["description"].GetString();
-
-			return dto;
-		}
+		/**
+		 * @brief Serialize to JSON
+		 * @param allocator JSON allocator to use
+		 * @return JSON value representation
+		 */
+		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
 	};
 
 	/**
 	 * @brief Data Transfer Object (DTO) for a collection of format data types
 	 *
 	 * Represents a collection of format data types and their descriptions.
+	 * Maps to C# record: FormatDataTypesDto(FormatDataTypeDto[] Values)
 	 */
 	struct FormatDataTypesDto
 	{
 		/**
-		 * @brief Constructor
-		 * @param values A collection of format data type values
+		 * @brief Collection of format data type values (JSON: "values")
 		 */
-		explicit FormatDataTypesDto(
-			const std::vector<FormatDataTypeDto>& values );
+		std::vector<FormatDataTypeDto> values;
 
 		/**
 		 * @brief Default constructor
@@ -178,35 +155,24 @@ namespace dnv::vista::sdk
 		FormatDataTypesDto() = default;
 
 		/**
-		 * @brief Collection of format data type values
+		 * @brief Constructor with parameters
+		 * @param values A collection of format data type values
 		 */
-		std::vector<FormatDataTypeDto> values;
+		explicit FormatDataTypesDto(
+			std::vector<FormatDataTypeDto> values );
 
 		/**
 		 * @brief Deserialize from JSON
 		 * @param json JSON value to deserialize from
 		 * @return Deserialized DTO
 		 */
-		static FormatDataTypesDto FromJson( const rapidjson::Value& json )
-		{
-			FormatDataTypesDto dto;
+		static FormatDataTypesDto FromJson( const rapidjson::Value& json );
 
-			if ( json.HasMember( "values" ) && json["values"].IsArray() )
-			{
-				for ( const auto& item : json["values"].GetArray() )
-				{
-					try
-					{
-						dto.values.push_back( FormatDataTypeDto::FromJson( item ) );
-					}
-					catch ( const std::exception& e )
-					{
-						SPDLOG_ERROR( "Warning: Skipping malformed format data type: {}", e.what() );
-					}
-				}
-			}
-
-			return dto;
-		}
+		/**
+		 * @brief Serialize to JSON
+		 * @param allocator JSON allocator to use
+		 * @return JSON value representation
+		 */
+		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
 	};
 }

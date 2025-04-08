@@ -1,90 +1,155 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/ISO19848Dtos.h"
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 
 namespace dnv::vista::sdk
 {
 	DataChannelTypeNameDto::DataChannelTypeNameDto(
-		const std::string& type,
-		const std::string& description )
-		: type( type ), description( description )
+		std::string type,
+		std::string description )
+		: type( std::move( type ) ), description( std::move( description ) )
 	{
 	}
 
-	DataChannelTypeNamesDto::DataChannelTypeNamesDto(
-		const std::vector<DataChannelTypeNameDto>& values )
-		: values( values )
+	DataChannelTypeNameDto DataChannelTypeNameDto::FromJson( const rapidjson::Value& json )
 	{
+		DataChannelTypeNameDto dto;
+
+		if ( json.HasMember( "type" ) && json["type"].IsString() )
+			dto.type = json["type"].GetString();
+
+		if ( json.HasMember( "description" ) && json["description"].IsString() )
+			dto.description = json["description"].GetString();
+
+		return dto;
+	}
+
+	rapidjson::Value DataChannelTypeNameDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		rapidjson::Value obj( rapidjson::kObjectType );
+
+		obj.AddMember( "type", rapidjson::Value( type.c_str(), allocator ).Move(), allocator );
+		obj.AddMember( "description", rapidjson::Value( description.c_str(), allocator ).Move(), allocator );
+
+		return obj;
+	}
+
+	// DataChannelTypeNamesDto implementation
+	DataChannelTypeNamesDto::DataChannelTypeNamesDto(
+		std::vector<DataChannelTypeNameDto> values )
+		: values( std::move( values ) )
+	{
+	}
+
+	DataChannelTypeNamesDto DataChannelTypeNamesDto::FromJson( const rapidjson::Value& json )
+	{
+		DataChannelTypeNamesDto dto;
+
+		if ( json.HasMember( "values" ) && json["values"].IsArray() )
+		{
+			dto.values.reserve( json["values"].Size() );
+			for ( const auto& item : json["values"].GetArray() )
+			{
+				try
+				{
+					dto.values.push_back( DataChannelTypeNameDto::FromJson( item ) );
+				}
+				catch ( const std::exception& e )
+				{
+					SPDLOG_ERROR( "Warning: Skipping malformed data channel type name: {}", e.what() );
+				}
+			}
+		}
+
+		return dto;
+	}
+
+	rapidjson::Value DataChannelTypeNamesDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		rapidjson::Value obj( rapidjson::kObjectType );
+
+		rapidjson::Value valuesArray( rapidjson::kArrayType );
+		for ( const auto& value : values )
+		{
+			valuesArray.PushBack( value.ToJson( allocator ), allocator );
+		}
+
+		obj.AddMember( "values", valuesArray, allocator );
+
+		return obj;
 	}
 
 	FormatDataTypeDto::FormatDataTypeDto(
-		const std::string& type,
-		const std::string& description )
-		: type( type ), description( description )
+		std::string type,
+		std::string description )
+		: type( std::move( type ) ), description( std::move( description ) )
 	{
+	}
+
+	FormatDataTypeDto FormatDataTypeDto::FromJson( const rapidjson::Value& json )
+	{
+		FormatDataTypeDto dto;
+
+		if ( json.HasMember( "type" ) && json["type"].IsString() )
+			dto.type = json["type"].GetString();
+
+		if ( json.HasMember( "description" ) && json["description"].IsString() )
+			dto.description = json["description"].GetString();
+
+		return dto;
+	}
+
+	rapidjson::Value FormatDataTypeDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		rapidjson::Value obj( rapidjson::kObjectType );
+
+		obj.AddMember( "type", rapidjson::Value( type.c_str(), allocator ).Move(), allocator );
+		obj.AddMember( "description", rapidjson::Value( description.c_str(), allocator ).Move(), allocator );
+
+		return obj;
 	}
 
 	FormatDataTypesDto::FormatDataTypesDto(
-		const std::vector<FormatDataTypeDto>& values )
-		: values( values )
+		std::vector<FormatDataTypeDto> values )
+		: values( std::move( values ) )
 	{
 	}
 
-	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const DataChannelTypeNameDto& dto )
+	FormatDataTypesDto FormatDataTypesDto::FromJson( const rapidjson::Value& json )
 	{
-		writer.StartObject();
+		FormatDataTypesDto dto;
 
-		writer.Key( "type" );
-		writer.String( dto.type.c_str() );
-
-		writer.Key( "description" );
-		writer.String( dto.description.c_str() );
-
-		writer.EndObject();
-	}
-
-	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const DataChannelTypeNamesDto& dto )
-	{
-		writer.StartObject();
-
-		writer.Key( "values" );
-		writer.StartArray();
-		for ( const auto& value : dto.values )
+		if ( json.HasMember( "values" ) && json["values"].IsArray() )
 		{
-			SerializeToJson( writer, value );
+			dto.values.reserve( json["values"].Size() );
+			for ( const auto& item : json["values"].GetArray() )
+			{
+				try
+				{
+					dto.values.push_back( FormatDataTypeDto::FromJson( item ) );
+				}
+				catch ( const std::exception& e )
+				{
+					SPDLOG_ERROR( "Warning: Skipping malformed format data type: {}", e.what() );
+				}
+			}
 		}
-		writer.EndArray();
 
-		writer.EndObject();
+		return dto;
 	}
 
-	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const FormatDataTypeDto& dto )
+	rapidjson::Value FormatDataTypesDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
 	{
-		writer.StartObject();
+		rapidjson::Value obj( rapidjson::kObjectType );
 
-		writer.Key( "type" );
-		writer.String( dto.type.c_str() );
-
-		writer.Key( "description" );
-		writer.String( dto.description.c_str() );
-
-		writer.EndObject();
-	}
-
-	void SerializeToJson( rapidjson::Writer<rapidjson::StringBuffer>& writer, const FormatDataTypesDto& dto )
-	{
-		writer.StartObject();
-
-		writer.Key( "values" );
-		writer.StartArray();
-		for ( const auto& value : dto.values )
+		rapidjson::Value valuesArray( rapidjson::kArrayType );
+		for ( const auto& value : values )
 		{
-			SerializeToJson( writer, value );
+			valuesArray.PushBack( value.ToJson( allocator ), allocator );
 		}
-		writer.EndArray();
 
-		writer.EndObject();
+		obj.AddMember( "values", valuesArray, allocator );
+
+		return obj;
 	}
 }

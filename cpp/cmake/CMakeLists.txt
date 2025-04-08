@@ -1,5 +1,36 @@
 cmake_minimum_required(VERSION 3.14)
 
+set(VISTA_SDK_INCLUDES
+	../include/dnv/vista/sdk/ChdDictionary.h
+	../include/dnv/vista/sdk/Codebook.h
+	../include/dnv/vista/sdk/Codebooks.h
+	../include/dnv/vista/sdk/CodebookName.h
+	../include/dnv/vista/sdk/CodebooksDto.h
+	../include/dnv/vista/sdk/EmbeddedResource.h
+	../include/dnv/vista/sdk/Gmod.h
+	../include/dnv/vista/sdk/GmodDto.h
+	../include/dnv/vista/sdk/GmodNode.h
+	../include/dnv/vista/sdk/GmodPath.h
+	../include/dnv/vista/sdk/GmodVersioning.h
+	../include/dnv/vista/sdk/GmodVersioningDto.h
+	../include/dnv/vista/sdk/ILocalId.h
+	../include/dnv/vista/sdk/ILocalIdBuilder.h
+	../include/dnv/vista/sdk/IUniversalIdBuilder.h
+	../include/dnv/vista/sdk/IUniversalId.h
+	../include/dnv/vista/sdk/ImoNumber.h
+	../include/dnv/vista/sdk/ISO19848Dtos.h
+	../include/dnv/vista/sdk/LocalId.h
+	../include/dnv/vista/sdk/LocalIdBuilder.h
+	../include/dnv/vista/sdk/LocalIdItems.h
+	../include/dnv/vista/sdk/Locations.h
+	../include/dnv/vista/sdk/LocationsDto.h
+	../include/dnv/vista/sdk/MetadataTag.h
+	../include/dnv/vista/sdk/ParsingErrors.h
+	../include/dnv/vista/sdk/UniversalIdBuilder.h
+	../include/dnv/vista/sdk/UniversalId.h
+	../include/dnv/vista/sdk/VIS.h
+	../include/dnv/vista/sdk/VisVersion.h
+)
 
 set(VISTA_SDK_SOURCES
 	../src/dnv/vista/sdk/ChdDictionary.cpp
@@ -33,7 +64,7 @@ set(VISTA_SDK_SOURCES
 	../src/dnv/vista/sdk/VisVersion.cpp
 )
 
-add_library(vista-sdk SHARED ${VISTA_SDK_SOURCES})
+add_library(vista-sdk SHARED ${VISTA_SDK_INCLUDES} ${VISTA_SDK_SOURCES})
 
 target_precompile_headers(vista-sdk PRIVATE ../src/dnv/vista/sdk/pch.h)
 

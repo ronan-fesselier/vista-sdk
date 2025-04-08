@@ -5,12 +5,6 @@
 #include "dnv/vista/sdk/GmodDto.h"
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 #include "dnv/vista/sdk/LocationsDto.h"
-#include <zlib.h>
-#include <rapidjson/document.h>
-#include <sstream>
-#include <stdexcept>
-#include <algorithm>
-#include <iterator>
 
 namespace dnv::vista::sdk
 {

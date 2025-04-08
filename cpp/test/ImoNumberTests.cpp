@@ -1,8 +1,6 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/ImoNumber.h"
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
 
 using namespace dnv::vista::sdk;
 

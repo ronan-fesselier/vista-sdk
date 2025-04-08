@@ -30,5 +30,7 @@
 #include <vector>
 
 /* Libs */
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <zlib.h>
 #include <spdlog/spdlog.h>
