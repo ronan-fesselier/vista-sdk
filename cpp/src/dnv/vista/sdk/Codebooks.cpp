@@ -11,16 +11,26 @@ namespace dnv::vista::sdk
 	Codebooks::Codebooks( VisVersion version, const CodebooksDto& dto )
 		: m_visVersion( version )
 	{
+		constexpr int numCodebooks = static_cast<int>( CodebookName::Detail );
+		m_codebooks.resize( numCodebooks );
+
 		for ( const auto& typeDto : dto.items )
 		{
 			Codebook codebook( typeDto );
-			m_codebooks[static_cast<int>( codebook.GetName() ) - 1] = codebook;
+			int index = static_cast<int>( codebook.GetName() ) - 1;
+
+			if ( index >= 0 && index < numCodebooks )
+				m_codebooks[index] = codebook;
+			else
+				SPDLOG_WARN( "Invalid codebook name index: {}", index );
 		}
 
 		std::unordered_map<std::string, std::vector<std::string>> emptyValues;
 		CodebookDto detailsDto( "detail", emptyValues );
 		Codebook detailsCodebook( detailsDto );
-		m_codebooks[static_cast<int>( CodebookName::Detail ) - 1] = detailsCodebook;
+		int detailIndex = static_cast<int>( CodebookName::Detail ) - 1;
+		if ( detailIndex >= 0 && detailIndex < numCodebooks )
+			m_codebooks[detailIndex] = detailsCodebook;
 	}
 
 	VisVersion Codebooks::GetVisVersion() const
@@ -130,7 +140,7 @@ namespace dnv::vista::sdk
 
 	Codebooks::Iterator Codebooks::end() const
 	{
-		return Iterator( &m_codebooks, (int)m_codebooks.size() );
+		return Iterator( &m_codebooks, static_cast<int>( m_codebooks.size() ) );
 	}
 
 	Codebooks::Enumerator Codebooks::GetEnumerator() const

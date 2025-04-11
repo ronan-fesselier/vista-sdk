@@ -10,5 +10,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vista.SDK.System.Text.Json\Vista.SDK.System.Text.Json.csproj" />
   </ItemGroup>
-
 </Project>

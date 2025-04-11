@@ -376,7 +376,7 @@ namespace dnv::vista::sdk
 		}
 		catch ( const std::exception& e )
 		{
-			std::cerr << "Error in GmodPath::TryParse: " << e.what() << std::endl;
+			SPDLOG_ERROR( "Error in GmodPath::TryParse: {}", e.what() );
 			return false;
 		}
 	}
@@ -425,8 +425,7 @@ namespace dnv::vista::sdk
 		}
 		catch ( const std::exception& e )
 		{
-			(void)e;
-			std::cerr << "Error in GmodPath::TryParseFullPath: " << e.what() << std::endl;
+			SPDLOG_ERROR( "Error in GmodPath::TryParseFullPath: {}", e.what() );
 			return false;
 		}
 	}
@@ -442,8 +441,7 @@ namespace dnv::vista::sdk
 		}
 		catch ( const std::exception& e )
 		{
-			(void)e;
-			std::cerr << "Error in GmodPath::TryParseFullPath: " << e.what() << std::endl;
+			SPDLOG_ERROR( "Error in GmodPath::TryParseFullPath: {}", e.what() );
 			return false;
 		}
 	}
@@ -452,7 +450,7 @@ namespace dnv::vista::sdk
 	{
 		auto result = ParseFullPathInternal( pathStr, gmod, locations );
 
-		if ( auto okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result ) )
+		if ( auto* okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result ) )
 		{
 			path = okResult->path;
 			return true;
@@ -640,10 +638,7 @@ namespace dnv::vista::sdk
 
 				Gmod::TraversalHandlerResult result = visitor( *child );
 
-				if ( result != Gmod::TraversalHandlerResult::Stop )
-				{
-					parents.pop_back();
-				}
+				parents.pop_back();
 
 				if ( result == Gmod::TraversalHandlerResult::Stop )
 				{
@@ -670,6 +665,7 @@ namespace dnv::vista::sdk
 	GmodParsePathResult::Err::Err( const std::string& error )
 		: error( error )
 	{
+		SPDLOG_ERROR( "GmodParsePathResult::Err: {}", error );
 	}
 
 	GmodPath::Enumerator::Iterator::Iterator( Enumerator& enumerator, bool end )

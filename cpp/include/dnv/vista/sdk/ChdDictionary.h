@@ -34,20 +34,15 @@ namespace dnv::vista::sdk
 		{
 		public:
 			/**
-			 * @brief Larsson hash function
-			 * @param hash The current hash value
-			 * @param ch The character to hash
-			 * @return The updated hash value
-			 */
-			static inline uint32_t LarssonHash( uint32_t hash, uint8_t ch );
-
-			/**
 			 * @brief FNV-1a hash function
 			 * @param hash The current hash value
 			 * @param ch The character to hash
 			 * @return The updated hash value
 			 */
-			static inline uint32_t Fnv( uint32_t hash, uint8_t ch );
+			static inline uint32_t Fnv( uint32_t hash, uint8_t ch )
+			{
+				return ( ch ^ hash ) * 0x01000193;
+			}
 
 			/**
 			 * @brief Seed mixing function for CHD algorithm
@@ -56,7 +51,10 @@ namespace dnv::vista::sdk
 			 * @param size The table size
 			 * @return The final table index
 			 */
-			static inline uint32_t Seed( uint32_t seed, uint32_t hash, uint64_t size );
+			static inline uint32_t Seed( uint32_t seed, uint32_t hash, uint64_t size )
+			{
+				return ( seed * hash ) & ( static_cast<uint32_t>( size ) - 1 );
+			}
 		};
 	}
 
@@ -65,6 +63,7 @@ namespace dnv::vista::sdk
 	 *
 	 * ChdDictionary provides O(1) lookup time with minimal memory overhead for read-only
 	 * dictionaries. It uses a two-level perfect hashing scheme that guarantees no collisions.
+	 * This implementation exactly matches the C# version's behavior.
 	 *
 	 * @tparam TValue The type of values stored in the dictionary
 	 */
@@ -110,7 +109,7 @@ namespace dnv::vista::sdk
 		 * @brief Try to get a value by key
 		 * @param key The key to look up
 		 * @param[out] value Pointer to store the value if found
-		 * @return True if the key was found, false otherwise
+		 * @return True if the key was found via perfect hash match, false otherwise
 		 */
 		bool TryGetValue( std::string_view key, TValue* value ) const;
 

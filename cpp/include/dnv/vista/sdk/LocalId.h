@@ -141,12 +141,10 @@ namespace dnv::vista::sdk
 		MetaPosition,
 		MetaDetail,
 
-		// For "other" errors
 		EmptyState = 100,
 		Formatting = 101,
 		Completeness = 102,
 
-		// UniversalId
 		NamingEntity = 200,
 		IMONumber = 201
 	};

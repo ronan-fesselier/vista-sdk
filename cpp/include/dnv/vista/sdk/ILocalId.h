@@ -1,11 +1,12 @@
 #pragma once
 
+#include "dnv/vista/sdk/ParsingErrors.h"
+#include "dnv/vista/sdk/VisVersion.h"
+#include "dnv/vista/sdk/GmodPath.h"
+#include "dnv/vista/sdk/MetadataTag.h"
+
 namespace dnv::vista::sdk
 {
-	enum class VisVersion;
-	class MetadataTag;
-	class GmodPath;
-	class ParsingErrors;
 	/**
 	 * @brief Interface for Local ID
 	 *
@@ -78,4 +79,33 @@ namespace dnv::vista::sdk
 		 */
 		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId );
 	};
+
+	template <typename T>
+	T ILocalId<T>::Parse( const std::string& localIdStr )
+	{
+		ParsingErrors errors;
+		std::optional<T> localId;
+		if ( !TryParse( localIdStr, errors, localId ) )
+		{
+			SPDLOG_ERROR( "Failed to parse LocalId: {}", localIdStr );
+			throw std::invalid_argument( "Failed to parse LocalId: " + errors.ToString() );
+		}
+		return *localId;
+	}
+
+	template <typename T>
+	bool ILocalId<T>::TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId )
+	{
+		try
+		{
+			localId = T( localIdStr );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error: Exception during parsing: {}", e.what() );
+			localId.reset();
+			return false;
+		}
+	}
 }

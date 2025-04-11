@@ -1,7 +1,9 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/ChdDictionary.h"
+
 #include "dnv/vista/sdk/GmodNode.h"
+#include "dnv/vista/sdk/Codebooks.h"
 
 namespace dnv::vista::sdk
 {
@@ -16,33 +18,13 @@ namespace dnv::vista::sdk
 		{
 			throw std::invalid_argument( "Invalid operation" );
 		}
-
-		uint32_t Hashing::LarssonHash( uint32_t hash, uint8_t ch )
-		{
-			return 37 * hash + ch;
-		}
-
-		uint32_t Hashing::Fnv( uint32_t hash, uint8_t ch )
-		{
-			return ( ch ^ hash ) * 0x01000193;
-		}
-
-		uint32_t Hashing::Seed( uint32_t seed, uint32_t hash, uint64_t size )
-		{
-			auto x = seed + hash;
-			x ^= x >> 12;
-			x ^= x << 25;
-			x ^= x >> 27;
-
-			return static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( size - 1 ) );
-		}
 	}
 
 	template <typename TValue>
 	ChdDictionary<TValue>::ChdDictionary( const std::vector<std::pair<std::string, TValue>>& items )
 	{
 		uint64_t size = 1;
-		while ( size < static_cast<uint64_t>( items.size() ) )
+		while ( size < items.size() )
 			size *= 2;
 
 		size *= 2;
@@ -51,53 +33,53 @@ namespace dnv::vista::sdk
 
 		for ( size_t i = 0; i < items.size(); i++ )
 		{
-			std::string_view k = items[i].first;
-			uint32_t hash = Hash( k );
-			h[hash & ( size - 1 )].push_back( { static_cast<int>( i + 1 ), hash } );
+			const auto& key = items[i].first;
+			uint32_t hash = Hash( key );
+			auto index = hash & ( size - 1 );
+			h[index].push_back( { static_cast<int>( i + 1 ), hash } );
 		}
 
-		std::sort( h.begin(), h.end(), []( const auto& i, const auto& j ) {
-			return j.size() - i.size();
-		} );
+		std::sort( h.begin(), h.end(),
+			[]( const auto& a, const auto& b ) { return a.size() > b.size(); } );
 
 		std::vector<int> indices( size, 0 );
 		std::vector<int> seeds( size, 0 );
 
-		size_t index;
-		for ( index = 0; index < h.size() && h[index].size() > 1; ++index )
+		size_t index = 0;
+		for ( ; index < h.size() && h[index].size() > 1; ++index )
 		{
 			const auto& subKeys = h[index];
 
 			uint32_t seed = 0;
 			std::unordered_map<uint32_t, int> entries;
 
-			while ( true )
+			bool retry;
+			do
 			{
+				retry = false;
 				++seed;
-				bool success = true;
+				entries.clear();
 
-				for ( const auto& [idx, hash] : subKeys )
+				for ( const auto& k : subKeys )
 				{
-					uint32_t seededHash = internal::Hashing::Seed( seed, hash, size );
+					uint32_t hash = internal::Hashing::Seed( seed, k.second, size );
 
-					if ( entries.find( seededHash ) == entries.end() && indices[seededHash] == 0 )
+					if ( entries.find( hash ) == entries.end() && indices[hash] == 0 )
 					{
-						entries[seededHash] = idx;
+						entries[hash] = k.first;
 					}
 					else
 					{
-						entries.clear();
-						success = false;
+						retry = true;
 						break;
 					}
 				}
+			} while ( retry );
 
-				if ( success )
-					break;
+			for ( const auto& entry : entries )
+			{
+				indices[entry.first] = entry.second;
 			}
-
-			for ( const auto& [seededHash, idx] : entries )
-				indices[seededHash] = idx;
 
 			seeds[subKeys[0].second & ( size - 1 )] = static_cast<int>( seed );
 		}
@@ -118,14 +100,18 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		for ( size_t i = 0; index < h.size() && h[index].size() > 0; i++ )
+		int freeIndex = 0;
+		for ( size_t i = 0; index < h.size() && h[index].size() > 0; i++, index++ )
 		{
-			const auto& k = h[index++][0];
-			int dst = free[i];
-			indices[dst] = k.first - 1;
-			m_table[dst] = items[k.first - 1];
+			const auto& k = h[index][0];
 
-			seeds[k.second & ( size - 1 )] = 0 - ( dst + 1 );
+			if ( freeIndex < free.size() )
+			{
+				int slotIndex = free[freeIndex++];
+				m_table[slotIndex] = items[k.first - 1];
+
+				seeds[k.second & ( size - 1 )] = -( slotIndex + 1 );
+			}
 		}
 
 		m_seeds = std::move( seeds );
@@ -134,27 +120,23 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
 	{
-		for ( auto& kvp : m_table )
+		TValue* value = nullptr;
+		if ( !TryGetValue( key, value ) )
 		{
-			if ( kvp.first == key )
-			{
-				return kvp.second;
-			}
+			internal::ThrowHelper::ThrowKeyNotFoundException( key );
 		}
-		throw std::out_of_range( "Key not found in ChdDictionary" );
+		return *value;
 	}
 
 	template <typename TValue>
 	const TValue& ChdDictionary<TValue>::operator[]( std::string_view key ) const
 	{
-		for ( const auto& kvp : m_table )
+		TValue* value = nullptr;
+		if ( !TryGetValue( key, value ) )
 		{
-			if ( kvp.first == key )
-			{
-				return kvp.second;
-			}
+			internal::ThrowHelper::ThrowKeyNotFoundException( key );
 		}
-		throw std::out_of_range( "Key not found in ChdDictionary" );
+		return *value;
 	}
 
 	template <typename TValue>
@@ -170,11 +152,13 @@ namespace dnv::vista::sdk
 		uint32_t hash = Hash( key );
 		uint64_t size = m_table.size();
 		auto index = hash & ( size - 1 );
+
 		int seed = m_seeds[index];
 
 		if ( seed < 0 )
 		{
 			const auto& kvp = m_table[0 - seed - 1];
+
 			if ( key != kvp.first )
 			{
 				if ( value )
@@ -190,12 +174,14 @@ namespace dnv::vista::sdk
 		{
 			index = internal::Hashing::Seed( static_cast<uint32_t>( seed ), hash, size );
 			const auto& kvp = m_table[index];
+
 			if ( key != kvp.first )
 			{
 				if ( value )
 					*value = TValue{};
 				return false;
 			}
+
 			if ( value )
 				*value = kvp.second;
 			return true;
@@ -205,19 +191,14 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	uint32_t ChdDictionary<TValue>::Hash( std::string_view key )
 	{
-		static_assert( sizeof( char ) == 1 || sizeof( char ) == 2, "Char size must be either 1 or 2 bytes" );
-
-		uint32_t hash = 0x811C9DC5;
-		const char* data = key.data();
-		size_t size = key.size() * sizeof( char );
-
-		for ( size_t i = 0; i < size; i += 2 )
+		uint32_t hash = 0x811C9DC5; // FNV-1a base
+		for ( size_t i = 0; i < key.size(); i++ )
 		{
-			hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( data[i] ) );
-			if ( i + 1 < size )
-				hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( data[i + 1] ) );
-		}
+			hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( key[i] ) );
 
+			if ( sizeof( char ) == 2 ) // C# uses 16-bit chars, C++ uses 8-bit chars
+				hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( key[i] >> 8 ) );
+		}
 		return hash;
 	}
 
@@ -250,16 +231,7 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++()
 	{
-		do
-		{
-			++m_index;
-		} while ( static_cast<size_t>( m_index ) < m_table->size() && ( *m_table )[m_index].first.empty() );
-
-		if ( static_cast<size_t>( m_index ) >= m_table->size() )
-		{
-			m_index = static_cast<int>( m_table->size() );
-		}
-
+		++m_index;
 		return *this;
 	}
 
@@ -292,28 +264,21 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::begin() const
 	{
-		Iterator it( &m_table, -1 );
-		++it;
-		return it;
+		return Iterator( &m_table, 0 );
 	}
 
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::end() const
 	{
-		if ( m_table.size() > static_cast<size_t>( std::numeric_limits<int>::max() ) )
-		{
-			throw std::overflow_error( "Size exceeds the maximum value of int" );
-		}
 		return Iterator( &m_table, static_cast<int>( m_table.size() ) );
 	}
 
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Enumerator ChdDictionary<TValue>::GetEnumerator() const
 	{
-		return Iterator( &m_table, -1 );
+		return begin();
 	}
 
-	template class ChdDictionary<int>;
-	template class ChdDictionary<std::string>;
-	template class ChdDictionary<class GmodNode>;
+	template class ChdDictionary<GmodNode>;
+	template class ChdDictionary<Codebook>;
 }

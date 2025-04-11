@@ -10,12 +10,6 @@ namespace dnv::vista::sdk
 	 */
 	struct GmodVersioningAssignmentChangeDto
 	{
-		/** @brief Previous assignment value (JSON: "oldAssignment") */
-		std::string oldAssignment;
-
-		/** @brief Current assignment value (JSON: "currentAssignment") */
-		std::string currentAssignment;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -45,6 +39,12 @@ namespace dnv::vista::sdk
 		 * @return The serialized JSON value
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/** @brief Previous assignment value (JSON: "oldAssignment") */
+		std::string oldAssignment;
+
+		/** @brief Current assignment value (JSON: "currentAssignment") */
+		std::string currentAssignment;
 	};
 
 	/**
@@ -56,24 +56,6 @@ namespace dnv::vista::sdk
 	 */
 	struct GmodNodeConversionDto
 	{
-		/** @brief Set of operations to apply (JSON: "operations") */
-		std::unordered_set<std::string> operations;
-
-		/** @brief Source node code (JSON: "source") */
-		std::string source;
-
-		/** @brief Target node code (JSON: "target") */
-		std::string target;
-
-		/** @brief Old assignment code (JSON: "oldAssignment") */
-		std::string oldAssignment;
-
-		/** @brief New assignment code (JSON: "newAssignment") */
-		std::string newAssignment;
-
-		/** @brief Whether to delete assignment (JSON: "deleteAssignment") */
-		bool deleteAssignment = false;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -115,6 +97,24 @@ namespace dnv::vista::sdk
 		 * @return The serialized JSON value
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/** @brief Set of operations to apply (JSON: "operations") */
+		std::unordered_set<std::string> operations;
+
+		/** @brief Source node code (JSON: "source") */
+		std::string source;
+
+		/** @brief Target node code (JSON: "target") */
+		std::string target;
+
+		/** @brief Old assignment code (JSON: "oldAssignment") */
+		std::string oldAssignment;
+
+		/** @brief New assignment code (JSON: "newAssignment") */
+		std::string newAssignment;
+
+		/** @brief Whether to delete assignment (JSON: "deleteAssignment") */
+		bool deleteAssignment = false;
 	};
 
 	/**
@@ -125,12 +125,6 @@ namespace dnv::vista::sdk
 	 */
 	struct GmodVersioningDto
 	{
-		/** @brief VIS version identifier (JSON: "visRelease") */
-		std::string visVersion;
-
-		/** @brief Map of node codes to their conversion information (JSON: "items") */
-		std::unordered_map<std::string, GmodNodeConversionDto> items;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -160,5 +154,11 @@ namespace dnv::vista::sdk
 		 * @return The serialized JSON value
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/** @brief VIS version identifier (JSON: "visRelease") */
+		std::string visVersion;
+
+		/** @brief Map of node codes to their conversion information (JSON: "items") */
+		std::unordered_map<std::string, GmodNodeConversionDto> items;
 	};
 }

@@ -325,7 +325,6 @@ namespace dnv::vista::sdk
 	{
 		if ( !m_location.has_value() )
 			return m_code;
-
 		return m_code + "-" + m_location->ToString();
 	}
 
@@ -359,7 +358,7 @@ namespace dnv::vista::sdk
 		m_childrenSet.clear();
 		for ( const auto& child : m_children )
 		{
-			m_childrenSet.insert( child->m_code );
+			m_childrenSet.insert( child->GetCode() );
 		}
 	}
 }

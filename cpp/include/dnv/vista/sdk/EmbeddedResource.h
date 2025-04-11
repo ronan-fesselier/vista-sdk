@@ -67,7 +67,7 @@ namespace dnv::vista::sdk
 		 */
 		static std::optional<FormatDataTypesDto> GetFormatDataTypes( const std::string& version );
 
-		// private:
+	private:
 		/**
 		 * @brief Get resource stream for specific resource name
 		 * @param resourceName Resource name

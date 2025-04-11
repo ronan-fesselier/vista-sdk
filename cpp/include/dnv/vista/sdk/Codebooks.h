@@ -27,6 +27,10 @@ namespace dnv::vista::sdk
 		 * @param dto The codebooks data transfer object
 		 */
 		Codebooks( VisVersion version, const CodebooksDto& dto );
+
+		/**
+		 * @brief Default constructor
+		 */
 		Codebooks() = default;
 
 		/**

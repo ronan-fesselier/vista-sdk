@@ -104,95 +104,6 @@ namespace dnv::vista::sdk
 		return decompressedBuffer;
 	}
 
-	std::optional<std::unordered_map<std::string, GmodVersioningDto>> EmbeddedResource::GetGmodVersioning()
-	{
-		auto resourceNames = GetResourceNames();
-
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
-			[]( const std::string& name ) {
-				return name.find( "gmod-vis-versioning" ) != std::string::npos &&
-					   name.find( ".gz" ) != std::string::npos;
-			} );
-
-		if ( it == resourceNames.end() )
-		{
-			return std::nullopt;
-		}
-
-		try
-		{
-			auto stream = GetDecompressedStream( *it );
-			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
-				std::istreambuf_iterator<char>() );
-
-			rapidjson::Document versioningJson;
-			versioningJson.Parse( jsonStr.c_str() );
-
-			if ( versioningJson.HasParseError() )
-			{
-				throw std::runtime_error( "Failed to parse GMOD versioning JSON." );
-			}
-
-			std::unordered_map<std::string, GmodVersioningDto> versioningMap;
-			for ( auto it = versioningJson.MemberBegin(); it != versioningJson.MemberEnd(); ++it )
-			{
-				GmodVersioningDto dto = GmodVersioningDto::FromJson( it->value );
-				versioningMap[it->name.GetString()] = std::move( dto );
-			}
-
-			return versioningMap;
-		}
-		catch ( const std::exception& e )
-		{
-			std::cerr << "Error parsing GMOD versioning resource: " << e.what() << std::endl;
-			return std::nullopt;
-		}
-	}
-
-	std::optional<LocationsDto> EmbeddedResource::GetLocations( const std::string& visVersion )
-	{
-		auto resourceNames = GetResourceNames();
-
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
-			[&visVersion]( const std::string& name ) {
-				return name.find( "locations" ) != std::string::npos &&
-					   name.find( visVersion ) != std::string::npos &&
-					   name.find( ".gz" ) != std::string::npos;
-			} );
-
-		if ( it == resourceNames.end() )
-		{
-			return std::nullopt;
-		}
-
-		try
-		{
-			auto stream = GetDecompressedStream( *it );
-			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
-				std::istreambuf_iterator<char>() );
-
-			rapidjson::Document locationsJson;
-			locationsJson.Parse( jsonStr.c_str() );
-
-			if ( locationsJson.HasParseError() )
-			{
-				throw std::runtime_error( "Failed to parse Locations JSON." );
-			}
-
-			return LocationsDto::FromJson( locationsJson );
-		}
-		catch ( const std::exception& e )
-		{
-			std::cerr << "Error parsing Locations resource: " << e.what() << std::endl;
-			return std::nullopt;
-		}
-	}
-
-	std::optional<DataChannelTypeNamesDto> EmbeddedResource::GetDataChannelTypeNames( const std::string& version )
-	{
-		return std::optional<DataChannelTypeNamesDto>();
-	}
-
 	std::shared_ptr<std::istream> EmbeddedResource::GetStream( const std::string& resourceName )
 	{
 		std::vector<std::string> possiblePaths = {
@@ -209,8 +120,7 @@ namespace dnv::vista::sdk
 			fileStream = std::make_shared<std::ifstream>( path, std::ios::binary );
 			if ( fileStream->is_open() )
 			{
-				SPDLOG_INFO( "Found resource at path:  {}", path );
-
+				SPDLOG_INFO( "Found resource at path: {}", path );
 				return fileStream;
 			}
 			attemptedPaths += path + ", ";
@@ -222,7 +132,38 @@ namespace dnv::vista::sdk
 
 	std::vector<std::string> EmbeddedResource::GetVisVersions()
 	{
-		return std::vector<std::string>();
+		auto resourceNames = GetResourceNames();
+		std::vector<std::string> visVersions;
+
+		for ( const auto& resourceName : resourceNames )
+		{
+			if ( resourceName.find( "gmod" ) != std::string::npos &&
+				 resourceName.find( "versioning" ) == std::string::npos &&
+				 resourceName.find( ".gz" ) != std::string::npos )
+			{
+				try
+				{
+					auto stream = GetDecompressedStream( resourceName );
+					std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
+						std::istreambuf_iterator<char>() );
+
+					rapidjson::Document gmodJson;
+					gmodJson.Parse( jsonStr.c_str() );
+
+					if ( !gmodJson.HasParseError() && gmodJson.HasMember( "visRelease" ) &&
+						 gmodJson["visRelease"].IsString() )
+					{
+						visVersions.push_back( gmodJson["visRelease"].GetString() );
+					}
+				}
+				catch ( const std::exception& e )
+				{
+					SPDLOG_ERROR( "Error parsing GMOD for version extraction: {}", e.what() );
+				}
+			}
+		}
+
+		return visVersions;
 	}
 
 	std::optional<GmodDto> EmbeddedResource::GetGmod( const std::string& visVersion )
@@ -233,13 +174,13 @@ namespace dnv::vista::sdk
 
 		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
 			[&visVersion]( const std::string& name ) {
-				return name.find( "gmod-vis-" + visVersion ) != std::string::npos && name.find( ".gz" ) != std::string::npos;
+				return name.find( "gmod-vis-" + visVersion ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos;
 			} );
 
 		if ( it == resourceNames.end() )
 		{
 			SPDLOG_ERROR( "GMOD resource not found for version: {}.", visVersion );
-
 			return std::nullopt;
 		}
 
@@ -257,18 +198,15 @@ namespace dnv::vista::sdk
 			if ( gmodJson.HasParseError() )
 			{
 				SPDLOG_ERROR( "Failed to parse GMOD JSON." );
-
 				return std::nullopt;
 			}
 
 			SPDLOG_INFO( "Successfully loaded GMOD DTO for version: {} ", visVersion );
-
 			return GmodDto::FromJson( gmodJson );
 		}
 		catch ( const std::exception& e )
 		{
 			SPDLOG_ERROR( "Error parsing GMOD resource: {} ", e.what() );
-
 			return std::nullopt;
 		}
 	}
@@ -301,7 +239,7 @@ namespace dnv::vista::sdk
 			if ( codebooksJson.HasParseError() )
 			{
 				SPDLOG_ERROR( "Failed to parse Codebooks JSON." );
-				throw std::runtime_error( "Failed to parse Codebooks JSON." );
+				return std::nullopt;
 			}
 
 			return CodebooksDto::FromJson( codebooksJson );
@@ -309,7 +247,174 @@ namespace dnv::vista::sdk
 		catch ( const std::exception& e )
 		{
 			SPDLOG_ERROR( "Error parsing Codebooks resource: {} ", e.what() );
+			return std::nullopt;
+		}
+	}
 
+	std::optional<std::unordered_map<std::string, GmodVersioningDto>> EmbeddedResource::GetGmodVersioning()
+	{
+		auto resourceNames = GetResourceNames();
+
+		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+			[]( const std::string& name ) {
+				return name.find( "gmod-vis-versioning" ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos;
+			} );
+
+		if ( it == resourceNames.end() )
+		{
+			return std::nullopt;
+		}
+
+		try
+		{
+			auto stream = GetDecompressedStream( *it );
+			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
+				std::istreambuf_iterator<char>() );
+
+			rapidjson::Document versioningJson;
+			versioningJson.Parse( jsonStr.c_str() );
+
+			if ( versioningJson.HasParseError() )
+			{
+				SPDLOG_ERROR( "Failed to parse GMOD versioning JSON." );
+				return std::nullopt;
+			}
+
+			std::unordered_map<std::string, GmodVersioningDto> versioningMap;
+			for ( auto it = versioningJson.MemberBegin(); it != versioningJson.MemberEnd(); ++it )
+			{
+				GmodVersioningDto dto = GmodVersioningDto::FromJson( it->value );
+				versioningMap[it->name.GetString()] = std::move( dto );
+			}
+
+			return versioningMap;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error parsing GMOD versioning resource: {}", e.what() );
+			return std::nullopt;
+		}
+	}
+
+	std::optional<LocationsDto> EmbeddedResource::GetLocations( const std::string& visVersion )
+	{
+		auto resourceNames = GetResourceNames();
+
+		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+			[&visVersion]( const std::string& name ) {
+				return name.find( "locations" ) != std::string::npos &&
+					   name.find( visVersion ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos;
+			} );
+
+		if ( it == resourceNames.end() )
+		{
+			return std::nullopt;
+		}
+
+		try
+		{
+			auto stream = GetDecompressedStream( *it );
+			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
+				std::istreambuf_iterator<char>() );
+
+			rapidjson::Document locationsJson;
+			locationsJson.Parse( jsonStr.c_str() );
+
+			if ( locationsJson.HasParseError() )
+			{
+				SPDLOG_ERROR( "Failed to parse Locations JSON." );
+				return std::nullopt;
+			}
+
+			return LocationsDto::FromJson( locationsJson );
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error parsing Locations resource: {}", e.what() );
+			return std::nullopt;
+		}
+	}
+
+	std::optional<DataChannelTypeNamesDto> EmbeddedResource::GetDataChannelTypeNames( const std::string& version )
+	{
+		auto resourceNames = GetResourceNames();
+
+		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+			[&version]( const std::string& name ) {
+				return name.find( "data-channel-type-names" ) != std::string::npos &&
+					   name.find( "iso19848" ) != std::string::npos &&
+					   name.find( version ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos;
+			} );
+
+		if ( it == resourceNames.end() )
+		{
+			return std::nullopt;
+		}
+
+		try
+		{
+			auto stream = GetDecompressedStream( *it );
+			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
+				std::istreambuf_iterator<char>() );
+
+			rapidjson::Document dtNamesJson;
+			dtNamesJson.Parse( jsonStr.c_str() );
+
+			if ( dtNamesJson.HasParseError() )
+			{
+				SPDLOG_ERROR( "Failed to parse DataChannelTypeNames JSON." );
+				return std::nullopt;
+			}
+
+			return DataChannelTypeNamesDto::FromJson( dtNamesJson );
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error parsing DataChannelTypeNames resource: {}", e.what() );
+			return std::nullopt;
+		}
+	}
+
+	std::optional<FormatDataTypesDto> EmbeddedResource::GetFormatDataTypes( const std::string& version )
+	{
+		auto resourceNames = GetResourceNames();
+
+		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+			[&version]( const std::string& name ) {
+				return name.find( "format-data-types" ) != std::string::npos &&
+					   name.find( "iso19848" ) != std::string::npos &&
+					   name.find( version ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos;
+			} );
+
+		if ( it == resourceNames.end() )
+		{
+			return std::nullopt;
+		}
+
+		try
+		{
+			auto stream = GetDecompressedStream( *it );
+			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
+				std::istreambuf_iterator<char>() );
+
+			rapidjson::Document fdTypesJson;
+			fdTypesJson.Parse( jsonStr.c_str() );
+
+			if ( fdTypesJson.HasParseError() )
+			{
+				SPDLOG_ERROR( "Failed to parse FormatDataTypes JSON." );
+				return std::nullopt;
+			}
+
+			return FormatDataTypesDto::FromJson( fdTypesJson );
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error parsing FormatDataTypes resource: {}", e.what() );
 			return std::nullopt;
 		}
 	}

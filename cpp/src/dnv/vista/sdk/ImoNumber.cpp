@@ -96,7 +96,6 @@ namespace dnv::vista::sdk
 	// For example, for IMO 9074729: (9×7) + (0×6) + (7×5) + (4×4) + (7×3) + (2×2) = 139
 	bool ImoNumber::IsValid( int imoNumber )
 	{
-		// IMO numbers must be 7 digits
 		if ( imoNumber < 1000000 || imoNumber > 9999999 )
 			return false;
 

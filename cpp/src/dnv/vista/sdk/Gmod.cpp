@@ -44,11 +44,6 @@ namespace dnv::vista::sdk
 		}
 
 		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
-
-		// for ( const auto& [key, node] : m_nodeMap )
-		//{
-		//  SPDLOG_INFO( "Node added to GMOD map: {}", key );
-		//}
 	}
 
 	Gmod::Gmod( VisVersion version, const std::unordered_map<std::string, GmodNode>& nodeMap )
@@ -68,11 +63,6 @@ namespace dnv::vista::sdk
 		}
 
 		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
-
-		// for ( const auto& [key, node] : m_nodeMap )
-		//{
-		//	SPDLOG_INFO( "Node added to GMOD map: {}", key );
-		//}
 	}
 
 	VisVersion Gmod::GetVisVersion() const
@@ -186,13 +176,15 @@ namespace dnv::vista::sdk
 
 	bool Gmod::TryParseFromFullPath( const std::string& item, std::optional<GmodPath>& path ) const
 	{
-		if ( !path.has_value() )
+		GmodPath tempPath;
+
+		if ( GmodPath::TryParseFullPath( item, m_visVersion, tempPath ) )
 		{
-			path.emplace();
+			path = std::move( tempPath );
+			return true;
 		}
 
-		auto p = path.value();
-		return GmodPath::TryParseFullPath( item, m_visVersion, p );
+		return false;
 	}
 
 	bool Gmod::IsPotentialParent( const std::string& type )

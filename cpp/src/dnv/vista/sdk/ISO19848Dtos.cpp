@@ -34,7 +34,6 @@ namespace dnv::vista::sdk
 		return obj;
 	}
 
-	// DataChannelTypeNamesDto implementation
 	DataChannelTypeNamesDto::DataChannelTypeNamesDto(
 		std::vector<DataChannelTypeNameDto> values )
 		: values( std::move( values ) )

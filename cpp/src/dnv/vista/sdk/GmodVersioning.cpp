@@ -24,6 +24,7 @@ namespace dnv::vista::sdk
 		if ( type == "AssignmentDelete" )
 			return ConversionType::AssignmentDelete;
 
+		SPDLOG_ERROR( "Unknown conversion type: {}", type );
 		throw std::invalid_argument( "Unknown conversion type: " + type );
 	}
 
@@ -86,10 +87,23 @@ namespace dnv::vista::sdk
 	void GmodVersioning::ValidateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const
 	{
 		if ( !VisVersionExtensions::IsValid( sourceVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid source version: {}", static_cast<int>( sourceVersion ) );
 			throw std::invalid_argument( "Invalid source version" );
+		}
 
 		if ( !VisVersionExtensions::IsValid( targetVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid target version: {}", static_cast<int>( targetVersion ) );
 			throw std::invalid_argument( "Invalid target version" );
+		}
+
+		if ( sourceVersion >= targetVersion )
+		{
+			SPDLOG_ERROR( "Source version {} must be earlier than target version {}", static_cast<int>( sourceVersion ),
+				static_cast<int>( targetVersion ) );
+			throw std::invalid_argument( "Source version must be earlier than target version" );
+		}
 	}
 
 	void GmodVersioning::ValidateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const
@@ -97,7 +111,18 @@ namespace dnv::vista::sdk
 		ValidateSourceAndTargetVersions( sourceVersion, targetVersion );
 
 		if ( sourceVersion == targetVersion )
+		{
+			SPDLOG_ERROR( "Source and target versions are the same: {} = {}", static_cast<int>( sourceVersion ),
+				static_cast<int>( targetVersion ) );
 			throw std::invalid_argument( "Source and target versions are the same" );
+		}
+
+		if ( static_cast<int>( targetVersion ) - static_cast<int>( sourceVersion ) != 1 )
+		{
+			SPDLOG_ERROR( "Target version {} must be one version higher than source version {}", static_cast<int>( targetVersion ),
+				static_cast<int>( sourceVersion ) );
+			throw std::invalid_argument( "Target version must be one version higher than source version" );
+		}
 	}
 
 	bool GmodVersioning::TryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const
@@ -213,7 +238,7 @@ namespace dnv::vista::sdk
 
 			if ( convertedPath )
 			{
-				primaryItem.emplace( *convertedPath );
+				primaryItem = std::move( convertedPath );
 			}
 			else
 			{
@@ -224,9 +249,14 @@ namespace dnv::vista::sdk
 		std::optional<GmodPath> secondaryItem;
 		if ( sourceLocalId.GetSecondaryItem().has_value() )
 		{
-			if ( auto convertedPath = ConvertPath( *sourceLocalId.GetVisVersion(), *sourceLocalId.GetSecondaryItem(), targetVersion ) )
+			auto convertedPath = ConvertPath(
+				*sourceLocalId.GetVisVersion(),
+				sourceLocalId.GetSecondaryItem().value(),
+				targetVersion );
+
+			if ( convertedPath )
 			{
-				secondaryItem.emplace( *convertedPath );
+				secondaryItem = std::move( convertedPath );
 			}
 			else
 			{
