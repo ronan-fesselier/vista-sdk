@@ -33,6 +33,11 @@ jobs:
     - name: Set up CMake
       uses: lukka/get-cmake@latest
 
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+      with:
+        version: 1.11.1
+
     # Set up vcpkg cache
     - name: Cache vcpkg
       uses: actions/cache@v3
