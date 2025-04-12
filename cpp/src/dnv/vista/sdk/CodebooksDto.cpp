@@ -10,6 +10,7 @@ namespace dnv::vista::sdk
 
 		if ( !json.HasMember( "name" ) || !json["name"].IsString() )
 		{
+			SPDLOG_ERROR( "Codebook JSON missing required 'name' field or field is not a string" );
 			throw std::invalid_argument( "Codebook JSON missing required 'name' field or field is not a string" );
 		}
 
@@ -96,6 +97,7 @@ namespace dnv::vista::sdk
 
 		if ( !json.HasMember( "visRelease" ) || !json["visRelease"].IsString() )
 		{
+			SPDLOG_ERROR( "Codebooks JSON missing required 'visRelease' field or field is not a string" );
 			throw std::invalid_argument( "Codebooks JSON missing required 'visRelease' field or field is not a string" );
 		}
 

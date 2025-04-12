@@ -9,11 +9,15 @@ namespace dnv::vista::sdk
 		const std::optional<GmodPath>& primaryItem,
 		const std::optional<GmodPath>& secondaryItem )
 	{
-		auto v2 = *secondaryItem;
-		auto v1 = *primaryItem;
+		if ( primaryItem.has_value() )
+		{
+			m_primaryItem = primaryItem;
+		}
 
-		m_primaryItem.emplace( v1 );
-		m_secondaryItem.emplace( v2 );
+		if ( secondaryItem.has_value() )
+		{
+			m_secondaryItem = secondaryItem;
+		}
 	}
 
 	LocalIdItems& LocalIdItems::operator=( const LocalIdItems& other )

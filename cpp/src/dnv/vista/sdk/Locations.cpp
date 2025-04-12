@@ -121,6 +121,7 @@ namespace dnv::vista::sdk
 		int index = static_cast<int>( key ) - 1;
 		if ( index >= m_table.size() )
 		{
+			SPDLOG_ERROR( "Index out of range for LocationCharDict: {}", index );
 			throw std::runtime_error( "Unsupported code: " + std::to_string( static_cast<int>( key ) ) );
 		}
 		return m_table[index];
@@ -175,7 +176,10 @@ namespace dnv::vista::sdk
 			else if ( relLocDto.code == 'F' || relLocDto.code == 'A' )
 				key = LocationGroup::Longitudinal;
 			else
+			{
+				SPDLOG_ERROR( "Unsupported code: {}", relLocDto.code );
 				throw std::runtime_error( std::string( "Unsupported code: " ) + relLocDto.code );
+			}
 
 			if ( m_groups.find( key ) == m_groups.end() )
 				m_groups[key] = std::vector<RelativeLocation>();
@@ -210,6 +214,7 @@ namespace dnv::vista::sdk
 		Location location;
 		if ( !TryParseInternal( locationStr, locationStr, location, errorBuilder ) )
 		{
+			SPDLOG_ERROR( "Invalid value for location: {}", locationStr );
 			throw std::invalid_argument( "Invalid value for location: " + locationStr +
 										 ", errors: " + errorBuilder.Build().ToString() );
 		}
@@ -224,6 +229,7 @@ namespace dnv::vista::sdk
 		Location location;
 		if ( !TryParseInternal( locationStr, std::nullopt, location, errorBuilder ) )
 		{
+			SPDLOG_ERROR( "Invalid value for location: {}", locationStr );
 			throw std::invalid_argument( "Invalid value for location: " + std::string( locationStr ) +
 										 ", errors: " + errorBuilder.Build().ToString() );
 		}

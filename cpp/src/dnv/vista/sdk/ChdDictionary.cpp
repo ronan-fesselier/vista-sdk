@@ -11,11 +11,13 @@ namespace dnv::vista::sdk
 	{
 		void ThrowHelper::ThrowKeyNotFoundException( std::string_view key )
 		{
+			SPDLOG_ERROR( "Key not found: {}", key );
 			throw std::out_of_range( "No value associated to key: " + std::string( key ) );
 		}
 
 		void ThrowHelper::ThrowInvalidOperationException()
 		{
+			SPDLOG_ERROR( "Invalid operation" );
 			throw std::invalid_argument( "Invalid operation" );
 		}
 	}
@@ -191,21 +193,27 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	uint32_t ChdDictionary<TValue>::Hash( std::string_view key )
 	{
-		uint32_t hash = 0x811C9DC5; // FNV-1a base
+		uint32_t hash = 0x811C9DC5;
+
 		for ( size_t i = 0; i < key.size(); i++ )
 		{
-			hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( key[i] ) );
+			uint8_t lowByte = static_cast<uint8_t>( key[i] );
+			hash = ( lowByte ^ hash ) * 0x01000193;
 
-			if ( sizeof( char ) == 2 ) // C# uses 16-bit chars, C++ uses 8-bit chars
-				hash = internal::Hashing::Fnv( hash, static_cast<uint8_t>( key[i] >> 8 ) );
+			uint8_t highByte = 0;
+			hash = ( highByte ^ hash ) * 0x01000193;
 		}
 		return hash;
 	}
-
 	template <typename TValue>
 	ChdDictionary<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, int index )
 		: m_table( table ), m_index( index )
 	{
+		if ( m_table != nullptr && index == 0 )
+		{
+			while ( m_index < m_table->size() && ( *m_table )[m_index].first.empty() )
+				++m_index;
+		}
 	}
 
 	template <typename TValue>
@@ -214,8 +222,7 @@ namespace dnv::vista::sdk
 		if ( static_cast<size_t>( m_index ) >= m_table->size() )
 			internal::ThrowHelper::ThrowInvalidOperationException();
 
-		m_current = ( *m_table )[m_index];
-		return m_current;
+		return ( *m_table )[m_index];
 	}
 
 	template <typename TValue>
@@ -224,14 +231,25 @@ namespace dnv::vista::sdk
 		if ( static_cast<size_t>( m_index ) >= m_table->size() )
 			internal::ThrowHelper::ThrowInvalidOperationException();
 
-		m_current = ( *m_table )[m_index];
-		return &m_current;
+		return &( ( *m_table )[m_index] );
 	}
 
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++()
 	{
-		++m_index;
+		if ( m_table == nullptr )
+			return *this;
+
+		while ( ++m_index < m_table->size() )
+		{
+			const auto& entry = ( *m_table )[m_index];
+			if ( !entry.first.empty() )
+			{
+				return *this;
+			}
+		}
+
+		m_index = static_cast<int>( m_table->size() );
 		return *this;
 	}
 
@@ -264,7 +282,18 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::begin() const
 	{
-		return Iterator( &m_table, 0 );
+		SPDLOG_INFO( "Creating iterator - table has {} entries", m_table.size() );
+
+		for ( size_t i = 0; i < m_table.size(); i++ )
+		{
+			if ( !m_table[i].first.empty() )
+			{
+				SPDLOG_INFO( "Found first valid entry at {}: key={}", i, m_table[i].first );
+				return Iterator( &m_table, static_cast<int>( i ) );
+			}
+		}
+
+		return end();
 	}
 
 	template <typename TValue>

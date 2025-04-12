@@ -32,7 +32,10 @@ namespace dnv::vista::sdk
 		else if ( prefix == "detail" )
 			return CodebookName::Detail;
 		else
+		{
+			SPDLOG_ERROR( "Unknown prefix: {}", prefix );
 			throw std::invalid_argument( "unknown prefix: " + std::string( prefix ) );
+		}
 	}
 
 	std::string CodebookNames::ToPrefix( CodebookName name )
@@ -62,7 +65,10 @@ namespace dnv::vista::sdk
 			case CodebookName::Detail:
 				return "detail";
 			default:
+			{
+				SPDLOG_ERROR( "Unknown codebook: {}", static_cast<int>( name ) );
 				throw std::invalid_argument( "unknown codebook: " + std::to_string( static_cast<int>( name ) ) );
+			}
 		}
 	}
 }

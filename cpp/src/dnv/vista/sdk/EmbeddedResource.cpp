@@ -68,6 +68,7 @@ namespace dnv::vista::sdk
 
 		if ( inflateInit2( &zs, 16 + MAX_WBITS ) != Z_OK )
 		{
+			SPDLOG_ERROR( "Failed to initialize zlib for decompression" );
 			throw std::runtime_error( "Failed to initialize zlib for decompression" );
 		}
 
@@ -92,6 +93,7 @@ namespace dnv::vista::sdk
 			if ( ret != Z_OK && ret != Z_STREAM_END )
 			{
 				inflateEnd( &zs );
+				SPDLOG_ERROR( "Decompression failed with error code: {}", ret );
 				throw std::runtime_error( "Decompression failed" );
 			}
 
@@ -126,6 +128,7 @@ namespace dnv::vista::sdk
 			attemptedPaths += path + ", ";
 		}
 
+		SPDLOG_ERROR( "Failed to open resource file: {}. Attempted paths: {}", resourceName, attemptedPaths );
 		throw std::runtime_error( "Failed to open resource file: " + resourceName +
 								  ". Attempted paths: " + attemptedPaths );
 	}

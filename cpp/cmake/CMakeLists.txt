@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.24)
 
 set(VISTA_SDK_INCLUDES
 	../include/dnv/vista/sdk/ChdDictionary.h

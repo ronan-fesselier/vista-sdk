@@ -189,6 +189,7 @@ namespace dnv::vista::sdk
 		auto result = TryWithVisVersion( visVersion, succeeded );
 		if ( !succeeded )
 		{
+			SPDLOG_ERROR( "Invalid VisVersion string: {}", visVersion );
 			throw std::invalid_argument( "Invalid VisVersion string: " + visVersion );
 		}
 		return result;
@@ -254,6 +255,7 @@ namespace dnv::vista::sdk
 		LocalIdBuilder result = TryWithPrimaryItem( item, succeeded );
 		if ( !succeeded )
 		{
+			SPDLOG_ERROR( "Invalid primary item: {}", item.ToString() );
 			throw std::invalid_argument( "Invalid primary item" );
 		}
 		return result;
@@ -292,6 +294,7 @@ namespace dnv::vista::sdk
 		LocalIdBuilder result = TryWithSecondaryItem( item, succeeded );
 		if ( !succeeded )
 		{
+			SPDLOG_ERROR( "Invalid secondary item: {}", item.ToString() );
 			throw std::invalid_argument( "Invalid secondary item" );
 		}
 		return result;
@@ -330,6 +333,7 @@ namespace dnv::vista::sdk
 		LocalIdBuilder result = TryWithMetadataTag( metadataTag, succeeded );
 		if ( !succeeded )
 		{
+			SPDLOG_ERROR( "Invalid metadata tag: {}", metadataTag.ToString() );
 			throw std::invalid_argument( "Invalid metadata tag: " + metadataTag.ToString() );
 		}
 		return result;
@@ -521,9 +525,15 @@ namespace dnv::vista::sdk
 	LocalId LocalIdBuilder::Build() const
 	{
 		if ( IsEmpty() )
+		{
+			SPDLOG_ERROR( "Cannot build to LocalId from empty LocalIdBuilder" );
 			throw std::invalid_argument( "Cannot build to LocalId from empty LocalIdBuilder" );
+		}
 		if ( !IsValid() )
+		{
+			SPDLOG_ERROR( "Cannot build to LocalId from invalid LocalIdBuilder" );
 			throw std::invalid_argument( "Cannot build to LocalId from invalid LocalIdBuilder" );
+		}
 
 		return LocalId( *this );
 	}
@@ -598,7 +608,10 @@ namespace dnv::vista::sdk
 	void LocalIdBuilder::ToString( std::stringstream& builder ) const
 	{
 		if ( !m_visVersion.has_value() )
+		{
+			SPDLOG_ERROR( "No VisVersion configured on LocalId" );
 			throw std::invalid_argument( "No VisVersion configured on LocalId" );
+		}
 
 		std::string namingRule = "/" + NamingRule + "/";
 		builder << namingRule;
@@ -652,6 +665,7 @@ namespace dnv::vista::sdk
 		std::optional<LocalIdBuilder> builder;
 		if ( !TryParse( localIdStr, errors, builder ) )
 		{
+			SPDLOG_ERROR( "Failed to parse LocalId: {}", errors.ToString() );
 			throw std::invalid_argument( "Failed to parse LocalId: " + errors.ToString() );
 		}
 		return *builder;

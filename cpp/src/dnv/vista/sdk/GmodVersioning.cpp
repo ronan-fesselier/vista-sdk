@@ -226,7 +226,10 @@ namespace dnv::vista::sdk
 		const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const
 	{
 		if ( !sourceLocalId.GetVisVersion().has_value() )
+		{
+			SPDLOG_ERROR( "Cannot convert local ID without a specific VIS version" );
 			throw std::invalid_argument( "Cannot convert local ID without a specific VIS version" );
+		}
 
 		std::optional<GmodPath> primaryItem;
 		if ( sourceLocalId.GetPrimaryItem().has_value() )
@@ -315,7 +318,10 @@ namespace dnv::vista::sdk
 
 		if ( std::any_of( qualifyingNodes.begin(), qualifyingNodes.end(),
 				 []( const auto& pair ) { return pair.second.GetCode().empty(); } ) )
+		{
+			SPDLOG_ERROR( "Failed to convert node forward" );
 			throw std::runtime_error( "Failed to convert node forward" );
+		}
 
 		std::vector<GmodNode> potentialParents;
 		for ( size_t i = 0; i < qualifyingNodes.size() - 1; ++i )
@@ -393,6 +399,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !addToPath( path, targetNode ) )
 				{
+					SPDLOG_ERROR( "Failed to add node to path: parent-child relationship broken" );
 					throw std::runtime_error( "Failed to add node to path: parent-child relationship broken" );
 				}
 			}
@@ -422,6 +429,7 @@ namespace dnv::vista::sdk
 						{
 							if ( !addToPath( path, targetNode ) )
 							{
+								SPDLOG_ERROR( "Failed to add node to path: parent-child relationship broken" );
 								throw std::runtime_error( "Failed to add node to path: parent-child relationship broken" );
 							}
 						}
@@ -431,6 +439,7 @@ namespace dnv::vista::sdk
 				{
 					if ( !addToPath( path, targetNode ) )
 					{
+						SPDLOG_ERROR( "Failed to add node to path: parent-child relationship broken" );
 						throw std::runtime_error( "Failed to add node to path: parent-child relationship broken" );
 					}
 				}
@@ -443,6 +452,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !addToPath( path, targetNode ) )
 				{
+					SPDLOG_ERROR( "Failed to add node to path: parent-child relationship broken" );
 					throw std::runtime_error( "Failed to add node to path: parent-child relationship broken" );
 				}
 			}
@@ -455,6 +465,7 @@ namespace dnv::vista::sdk
 
 		if ( path.empty() )
 		{
+			SPDLOG_ERROR( "Failed to build path: no nodes added" );
 			throw std::runtime_error( "Failed to build path: no nodes added" );
 		}
 
@@ -464,6 +475,7 @@ namespace dnv::vista::sdk
 		int missingLinkAt = -1;
 		if ( !GmodPath::IsValid( potentialParents, *targetEndNode, missingLinkAt ) )
 		{
+			SPDLOG_ERROR( "Failed to create a valid path. Missing link at: {}", missingLinkAt );
 			throw std::runtime_error( "Failed to create a valid path. Missing link at: " +
 									  std::to_string( missingLinkAt ) );
 		}

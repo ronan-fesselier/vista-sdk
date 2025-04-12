@@ -14,7 +14,7 @@
 
 namespace dnv::vista::sdk
 {
-	const VisVersion VIS::LatestVisVersion = VisVersion::v3_8a;
+	const VisVersion VIS::LatestVisVersion = VisVersionExtensions::GetLatestVersion();
 	const std::string VIS::m_versioning = "versioning";
 
 	VIS& VIS::Instance()
@@ -45,7 +45,10 @@ namespace dnv::vista::sdk
 		return m_gmodDtoCache.GetOrCreate( visVersion, [visVersion]() {
 			auto dto = LoadGmodDto( visVersion );
 			if ( !dto )
-				throw std::runtime_error( "Invalid state" );
+			{
+				SPDLOG_ERROR( "Failed to load GMOD DTO for version: {} ", VisVersionExtensions::ToVersionString( visVersion ) );
+				throw std::runtime_error( "Failed to load GMOD DTO for version" );
+			}
 			return *dto;
 		} );
 	}
@@ -58,7 +61,10 @@ namespace dnv::vista::sdk
 	Gmod VIS::GetGmod( VisVersion visVersion ) const
 	{
 		if ( !VisVersionExtensions::IsValid( visVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid VIS version: {} ", static_cast<int>( visVersion ) );
 			throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( visVersion ) ) );
+		}
 
 		SPDLOG_INFO( "Attempting to load GMOD for version:{} ", VisVersionExtensions::ToVersionString( visVersion ) );
 
@@ -75,7 +81,10 @@ namespace dnv::vista::sdk
 		for ( const auto& version : visVersions )
 		{
 			if ( !VisVersionExtensions::IsValid( version ) )
+			{
+				SPDLOG_ERROR( "Invalid VIS version: {} ", static_cast<int>( version ) );
 				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
+			}
 		}
 
 		std::set<VisVersion> versions( visVersions.begin(), visVersions.end() );
@@ -94,7 +103,11 @@ namespace dnv::vista::sdk
 		return m_gmodVersioningDtoCache.GetOrCreate( m_versioning, []() {
 			auto dtos = EmbeddedResource::GetGmodVersioning();
 			if ( !dtos )
-				throw std::invalid_argument( "Invalid state" );
+			{
+				SPDLOG_ERROR( "Failed to load GMOD versioning DTO" );
+				throw std::invalid_argument( "Failed to load GMOD versioning DTO" );
+			}
+
 			return *dtos;
 		} );
 	}
@@ -112,7 +125,10 @@ namespace dnv::vista::sdk
 		return m_codebooksDtoCache.GetOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::GetCodebooks( VisVersionExtensions::ToVersionString( visVersion ) );
 			if ( !dto )
-				throw std::runtime_error( "Invalid state" );
+			{
+				SPDLOG_ERROR( "Failed to load codebooks DTO for version: {} ", VisVersionExtensions::ToVersionString( visVersion ) );
+				throw std::runtime_error( "Failed to load codebooks DTO for version" );
+			}
 			return *dto;
 		} );
 	}
@@ -130,8 +146,10 @@ namespace dnv::vista::sdk
 		for ( const auto& version : visVersions )
 		{
 			if ( !VisVersionExtensions::IsValid( version ) )
-				throw std::invalid_argument( "Invalid VIS version: " +
-											 std::to_string( static_cast<int>( version ) ) );
+			{
+				SPDLOG_ERROR( "Invalid VIS version: {} ", static_cast<int>( version ) );
+				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
+			}
 		}
 
 		std::set<VisVersion> versions( visVersions.begin(), visVersions.end() );
@@ -150,7 +168,10 @@ namespace dnv::vista::sdk
 		return m_locationsDtoCache.GetOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::GetLocations( VisVersionExtensions::ToVersionString( visVersion ) );
 			if ( !dto )
-				throw std::runtime_error( "Invalid state" );
+			{
+				SPDLOG_ERROR( "Failed to load locations DTO for version: {} ", VisVersionExtensions::ToVersionString( visVersion ) );
+				throw std::runtime_error( "Failed to load locations DTO for version" );
+			}
 			return *dto;
 		} );
 	}
@@ -168,8 +189,10 @@ namespace dnv::vista::sdk
 		for ( const auto& version : visVersions )
 		{
 			if ( !VisVersionExtensions::IsValid( version ) )
-				throw std::invalid_argument( "Invalid VIS version: " +
-											 std::to_string( static_cast<int>( version ) ) );
+			{
+				SPDLOG_ERROR( "Invalid VIS version: {} ", static_cast<int>( version ) );
+				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
+			}
 		}
 
 		std::set<VisVersion> versions( visVersions.begin(), visVersions.end() );

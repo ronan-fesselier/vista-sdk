@@ -15,9 +15,15 @@ namespace dnv::vista::sdk
 		: m_builder( builder )
 	{
 		if ( m_builder.IsEmpty() )
+		{
+			SPDLOG_ERROR( "LocalId cannot be constructed from empty LocalIdBuilder" );
 			throw std::invalid_argument( "LocalId cannot be constructed from empty LocalIdBuilder" );
+		}
 		if ( !m_builder.IsValid() )
+		{
+			SPDLOG_ERROR( "LocalId cannot be constructed from invalid LocalIdBuilder" );
 			throw std::invalid_argument( "LocalId cannot be constructed from invalid LocalIdBuilder" );
+		}
 	}
 
 	const LocalIdBuilder& LocalId::GetBuilder() const

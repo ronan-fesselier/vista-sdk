@@ -37,7 +37,11 @@ namespace dnv::vista::sdk
 	bool MetadataTag::operator==( const MetadataTag& other ) const
 	{
 		if ( m_name != other.m_name )
+		{
+			SPDLOG_ERROR( "Can't compare tags with different names: {} vs {}", CodebookNames::ToPrefix( m_name ),
+				CodebookNames::ToPrefix( other.m_name ) );
 			throw std::invalid_argument( "Can't compare tags with different names" );
+		}
 
 		return m_value == other.m_value;
 	}
@@ -97,17 +101,16 @@ namespace dnv::vista::sdk
 				prefix = "detail";
 				break;
 			default:
+			{
+				SPDLOG_ERROR( "Unknown metadata tag: {}", static_cast<int>( m_name ) );
 				throw std::invalid_argument( "Unknown metadata tag: " +
 											 std::to_string( static_cast<int>( m_name ) ) );
+			}
 		}
 
-		auto append = [&builder]( const std::string& str ) {
-			builder << str;
-		};
-
-		append( prefix );
-		append( IsCustom() ? std::to_string( '~' ) : std::to_string( '-' ) );
-		append( m_value );
-		append( std::to_string( separator ) );
+		builder << prefix;
+		builder << ( IsCustom() ? '~' : '-' );
+		builder << m_value;
+		builder << separator;
 	}
 }

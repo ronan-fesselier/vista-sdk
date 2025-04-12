@@ -11,16 +11,6 @@ namespace dnv::vista::sdk
 	struct DataChannelTypeNameDto
 	{
 		/**
-		 * @brief Type name (JSON: "type")
-		 */
-		std::string type;
-
-		/**
-		 * @brief Description of the type (JSON: "description")
-		 */
-		std::string description;
-
-		/**
 		 * @brief Default constructor
 		 */
 		DataChannelTypeNameDto() = default;
@@ -47,6 +37,16 @@ namespace dnv::vista::sdk
 		 * @return JSON value representation
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/**
+		 * @brief Type name (JSON: "type")
+		 */
+		std::string type;
+
+		/**
+		 * @brief Description of the type (JSON: "description")
+		 */
+		std::string description;
 	};
 
 	/**
@@ -57,11 +57,6 @@ namespace dnv::vista::sdk
 	 */
 	struct DataChannelTypeNamesDto
 	{
-		/**
-		 * @brief Collection of data channel type name values (JSON: "values")
-		 */
-		std::vector<DataChannelTypeNameDto> values;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -87,6 +82,11 @@ namespace dnv::vista::sdk
 		 * @return JSON value representation
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/**
+		 * @brief Collection of data channel type name values (JSON: "values")
+		 */
+		std::vector<DataChannelTypeNameDto> values;
 	};
 
 	/**
@@ -97,16 +97,6 @@ namespace dnv::vista::sdk
 	 */
 	struct FormatDataTypeDto
 	{
-		/**
-		 * @brief Type name (JSON: "type")
-		 */
-		std::string type;
-
-		/**
-		 * @brief Description of the type (JSON: "description")
-		 */
-		std::string description;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -134,6 +124,15 @@ namespace dnv::vista::sdk
 		 * @return JSON value representation
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		/**
+		 * @brief Type name (JSON: "type")
+		 */
+		std::string type;
+
+		/**
+		 * @brief Description of the type (JSON: "description")
+		 */
+		std::string description;
 	};
 
 	/**
@@ -144,11 +143,6 @@ namespace dnv::vista::sdk
 	 */
 	struct FormatDataTypesDto
 	{
-		/**
-		 * @brief Collection of format data type values (JSON: "values")
-		 */
-		std::vector<FormatDataTypeDto> values;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -174,5 +168,10 @@ namespace dnv::vista::sdk
 		 * @return JSON value representation
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/**
+		 * @brief Collection of format data type values (JSON: "values")
+		 */
+		std::vector<FormatDataTypeDto> values;
 	};
 }

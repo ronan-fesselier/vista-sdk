@@ -34,6 +34,7 @@ namespace dnv::vista::sdk
 	{
 		if ( !IsValid() )
 		{
+			SPDLOG_ERROR( "Invalid UniversalIdBuilder state" );
 			throw std::invalid_argument( "Invalid UniversalIdBuilder state" );
 		}
 		return UniversalId( std::make_shared<UniversalIdBuilder>( *this ) );
@@ -103,10 +104,12 @@ namespace dnv::vista::sdk
 	{
 		if ( !m_imoNumber.has_value() )
 		{
+			SPDLOG_ERROR( "Invalid UniversalIdBuilder state: Missing IMO Number" );
 			throw std::invalid_argument( "Invalid UniversalIdBuilder state: Missing IMO Number" );
 		}
 		if ( !m_localId.has_value() )
 		{
+			SPDLOG_ERROR( "Invalid UniversalIdBuilder state: Missing LocalId" );
 			throw std::invalid_argument( "Invalid UniversalIdBuilder state: Missing LocalId" );
 		}
 
@@ -145,7 +148,6 @@ namespace dnv::vista::sdk
 		if ( !TryParse( universalIdStr, errors, builder ) )
 		{
 			SPDLOG_ERROR( "Failed to parse UniversalId: {}", universalIdStr );
-
 			throw std::invalid_argument( "Failed to parse UniversalId: " + universalIdStr );
 		}
 		return *builder;
@@ -153,16 +155,125 @@ namespace dnv::vista::sdk
 
 	bool UniversalIdBuilder::TryParse( const std::string& universalIdStr, ParsingErrors& errors, std::shared_ptr<UniversalIdBuilder>& builder )
 	{
+		builder = nullptr;
+
+		LocalIdParsingErrorBuilder errorBuilder = LocalIdParsingErrorBuilder::Create();
+
 		if ( universalIdStr.empty() )
 		{
+			AddError( errorBuilder, LocalIdParsingState::NamingRule, "Failed to find localId start segment" );
+			errors = errorBuilder.Build();
 			return false;
 		}
 
-		builder = std::make_shared<UniversalIdBuilder>();
+		size_t localIdStartIndex = universalIdStr.find( "/dnv-v" );
+		if ( localIdStartIndex == std::string::npos )
+		{
+			AddError( errorBuilder, LocalIdParsingState::NamingRule, "Failed to find localId start segment" );
+			errors = errorBuilder.Build();
+			return false;
+		}
 
-		builder->m_imoNumber = ImoNumber( 1234567 ); // TODO Replace with actual parsing logic
-		builder->m_localId = LocalIdBuilder();		 // TODO Replace with actual parsing logic
+		std::string universalIdSegment = universalIdStr.substr( 0, localIdStartIndex );
+		std::string localIdSegment = universalIdStr.substr( localIdStartIndex );
 
+		std::optional<LocalIdBuilder> localIdBuilder;
+		ParsingErrors parseErrors;
+		if ( !LocalIdBuilder::TryParse( localIdSegment, parseErrors, localIdBuilder ) )
+		{
+			// Merge any errors from LocalIdBuilder parsing
+			errors = errorBuilder.Build();
+			std::vector<ParsingErrors::ErrorEntry> combinedErrors;
+			for ( const auto& err : errors )
+				combinedErrors.push_back( err );
+			for ( const auto& err : parseErrors )
+				combinedErrors.push_back( err );
+
+			errors = ParsingErrors( combinedErrors );
+
+			return false;
+		}
+
+		std::optional<ImoNumber> imoNumber;
+
+		LocalIdParsingState state = LocalIdParsingState::NamingEntity;
+		size_t i = 0;
+
+		while ( state <= LocalIdParsingState::IMONumber )
+		{
+			if ( i >= universalIdSegment.length() )
+				break;
+
+			size_t nextSlash = universalIdSegment.find( '/', i );
+			std::string segment;
+
+			if ( nextSlash == std::string::npos )
+			{
+				segment = universalIdSegment.substr( i );
+			}
+			else
+			{
+				segment = universalIdSegment.substr( i, nextSlash - i );
+			}
+
+			switch ( state )
+			{
+				case LocalIdParsingState::NamingRule:
+				case LocalIdParsingState::VisVersion:
+				case LocalIdParsingState::PrimaryItem:
+				case LocalIdParsingState::SecondaryItem:
+				case LocalIdParsingState::ItemDescription:
+				case LocalIdParsingState::MetaQuantity:
+				case LocalIdParsingState::MetaContent:
+				case LocalIdParsingState::MetaCalculation:
+				case LocalIdParsingState::MetaState:
+				case LocalIdParsingState::MetaCommand:
+				case LocalIdParsingState::MetaType:
+				case LocalIdParsingState::MetaPosition:
+				case LocalIdParsingState::MetaDetail:
+				case LocalIdParsingState::EmptyState:
+				case LocalIdParsingState::Formatting:
+				case LocalIdParsingState::Completeness:
+					break; 
+				case LocalIdParsingState::NamingEntity:
+					if ( segment != LocalIdBuilder::NamingRule )
+					{
+						AddError( errorBuilder, state, "Naming entity segment didn't match. Found: " + segment );
+					}
+					break;
+
+				case LocalIdParsingState::IMONumber:
+					std::optional<ImoNumber> imo = ImoNumber::TryParse( segment );
+					if ( !imo.has_value() )
+					{
+						AddError( errorBuilder, state, "Invalid IMO number segment" );
+					}
+					else
+					{
+						imoNumber = imo;
+					}
+					break;
+
+		
+			}
+
+			state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+			i += segment.length() + 1;
+		}
+
+		std::optional<VisVersion> visVersion = localIdBuilder->GetVisVersion();
+		if ( !visVersion.has_value() )
+		{
+			AddError( errorBuilder, LocalIdParsingState::VisVersion, nullptr );
+			errors = errorBuilder.Build();
+			return false;
+		}
+
+		builder = std::make_shared<UniversalIdBuilder>( Create( visVersion.value() ) );
+		builder->TryWithLocalId( *localIdBuilder );
+		builder->TryWithImoNumber( imoNumber );
+
+		errors = errorBuilder.Build();
 		return true;
 	}
 
@@ -176,7 +287,6 @@ namespace dnv::vista::sdk
 		if ( m_predefinedErrorMessages.find( state ) == m_predefinedErrorMessages.end() )
 		{
 			SPDLOG_ERROR( "Couldn't find predefined message for the given state" );
-
 			throw std::invalid_argument( "Couldn't find predefined message for the given state." );
 		}
 

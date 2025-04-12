@@ -17,11 +17,13 @@ namespace dnv::vista::sdk
 		{
 			if ( m_parents.empty() )
 			{
+				SPDLOG_ERROR( "Invalid GmodPath: no parents, and the node is not the root of the Gmod." );
 				throw std::invalid_argument( "Invalid GmodPath: no parents, and the node is not the root of the Gmod." );
 			}
 
 			if ( !m_parents.front().IsRoot() )
 			{
+				SPDLOG_ERROR( "Invalid GmodPath: the first parent should be the root of the Gmod." );
 				throw std::invalid_argument( "Invalid GmodPath: the first parent should be the root of the Gmod." );
 			}
 
@@ -32,6 +34,7 @@ namespace dnv::vista::sdk
 
 				if ( !parent.IsChild( child ) )
 				{
+					SPDLOG_ERROR( "Invalid GmodPath: a child node is not linked to its parent." );
 					throw std::invalid_argument( "Invalid GmodPath: a child node is not linked to its parent." );
 				}
 			}
@@ -98,6 +101,7 @@ namespace dnv::vista::sdk
 	{
 		if ( depth < 0 || depth > static_cast<int>( m_parents.size() ) )
 		{
+			SPDLOG_ERROR( "Index out of range for GmodPath indexer" );
 			throw std::out_of_range( "Index out of range for GmodPath indexer" );
 		}
 		return ( depth < static_cast<int>( m_parents.size() ) ) ? m_parents[depth] : m_node;
@@ -107,6 +111,7 @@ namespace dnv::vista::sdk
 	{
 		if ( depth < 0 || depth > static_cast<int>( m_parents.size() ) )
 		{
+			SPDLOG_ERROR( "Index out of range for GmodPath indexer" );
 			throw std::out_of_range( "Index out of range for GmodPath indexer" );
 		}
 		return ( depth < static_cast<int>( m_parents.size() ) ) ? m_parents[depth] : m_node;
@@ -230,6 +235,7 @@ namespace dnv::vista::sdk
 	{
 		if ( nodeDepth < 0 || nodeDepth >= GetLength() )
 		{
+			SPDLOG_ERROR( "Node depth is out of range" );
 			throw std::out_of_range( "Node depth is out of range" );
 		}
 
@@ -360,6 +366,7 @@ namespace dnv::vista::sdk
 		GmodPath path( std::vector<GmodNode>(), GmodNode(), false );
 		if ( !TryParse( item, visVersion, path ) )
 		{
+			SPDLOG_ERROR( "Failed to parse GmodPath" );
 			throw std::invalid_argument( "Failed to parse GmodPath" );
 		}
 		return path;
@@ -386,6 +393,7 @@ namespace dnv::vista::sdk
 		GmodPath path( std::vector<GmodNode>(), GmodNode(), false );
 		if ( !TryParse( item, gmod, locations, path ) )
 		{
+			SPDLOG_ERROR( "Failed to parse GmodPath" );
 			throw std::invalid_argument( "Failed to parse GmodPath" );
 		}
 		return path;
@@ -409,6 +417,7 @@ namespace dnv::vista::sdk
 		GmodPath path( std::vector<GmodNode>(), GmodNode(), false );
 		if ( !TryParseFullPath( pathStr, visVersion, path ) )
 		{
+			SPDLOG_ERROR( "Failed to parse full GmodPath" );
 			throw std::invalid_argument( "Failed to parse full GmodPath" );
 		}
 		return path;
@@ -529,7 +538,10 @@ namespace dnv::vista::sdk
 	GmodParsePathResult GmodPath::ParseInternal( const std::string& item, const Gmod& gmod, const Locations& locations )
 	{
 		if ( gmod.GetVisVersion() != locations.GetVisVersion() )
+		{
+			SPDLOG_ERROR( "Got different VIS versions for Gmod and Locations arguments" );
 			throw std::invalid_argument( "Got different VIS versions for Gmod and Locations arguments" );
+		}
 
 		if ( item.empty() || std::all_of( item.begin(), item.end(), []( char c ) { return std::isspace( c ); } ) )
 			return GmodParsePathResult::Err( "Item is empty" );
@@ -715,6 +727,7 @@ namespace dnv::vista::sdk
 	{
 		if ( fromDepth && ( *fromDepth < 0 || *fromDepth > static_cast<int>( path.GetLength() ) ) )
 		{
+			SPDLOG_ERROR( "fromDepth is out of range" );
 			throw std::out_of_range( "fromDepth is out of range" );
 		}
 
@@ -780,6 +793,7 @@ namespace dnv::vista::sdk
 	{
 		if ( !m_path )
 		{
+			SPDLOG_ERROR( "Tried to build individualizable set twice" );
 			throw std::runtime_error( "Tried to build individualizable set twice" );
 		}
 
@@ -826,6 +840,7 @@ namespace dnv::vista::sdk
 	{
 		if ( nodes.empty() )
 		{
+			SPDLOG_ERROR( "GmodIndividualizableSet cannot be empty" );
 			throw std::invalid_argument( "GmodIndividualizableSet cannot be empty" );
 		}
 
@@ -834,6 +849,7 @@ namespace dnv::vista::sdk
 			const auto& node = ( *m_path )[nodes[i]];
 			if ( !node.IsIndividualizable( i == static_cast<int>( nodes.size() ) - 1, nodes.size() > 1 ) )
 			{
+				SPDLOG_ERROR( "GmodIndividualizableSet nodes must be individualizable" );
 				throw std::invalid_argument( "GmodIndividualizableSet nodes must be individualizable" );
 			}
 		}
@@ -843,6 +859,7 @@ namespace dnv::vista::sdk
 		{
 			if ( ( *m_path )[nodes[i]].GetLocation() != location )
 			{
+				SPDLOG_ERROR( "GmodIndividualizableSet nodes have different locations" );
 				throw std::invalid_argument( "GmodIndividualizableSet nodes have different locations" );
 			}
 		}
@@ -852,6 +869,7 @@ namespace dnv::vista::sdk
 				 return node == m_path->GetNode() || node.IsLeafNode();
 			 } ) )
 		{
+			SPDLOG_ERROR( "GmodIndividualizableSet has no nodes that are part of the short path" );
 			throw std::invalid_argument( "GmodIndividualizableSet has no nodes that are part of the short path" );
 		}
 	}

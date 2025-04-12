@@ -20,7 +20,10 @@ namespace dnv::vista::sdk
 		else if ( name == "Custom" )
 			return PositionValidationResult::Custom;
 		else
+		{
+			SPDLOG_ERROR( "Unknown position validation result: {}", name );
 			throw std::invalid_argument( "Unknown position validation result: " + name );
+		}
 	}
 
 	CodebookStandardValues::CodebookStandardValues( CodebookName name, const std::unordered_set<std::string>& standardValues )
@@ -114,7 +117,10 @@ namespace dnv::vista::sdk
 		else if ( dto.name == "detail" )
 			m_name = CodebookName::Detail;
 		else
+		{
+			SPDLOG_ERROR( "Unknown metadata tag: {}", dto.name );
 			throw std::invalid_argument( "Unknown metadata tag: " + dto.name );
+		}
 
 		m_rawData = dto.values;
 
@@ -213,8 +219,11 @@ namespace dnv::vista::sdk
 	{
 		auto tag = TryCreateTag( value );
 		if ( !tag.has_value() )
+		{
+			SPDLOG_ERROR( "Invalid value for metadata tag: codebook={}, value={}", static_cast<int>( m_name ), value );
 			throw std::invalid_argument( "Invalid value for metadata tag: codebook=" +
 										 std::to_string( static_cast<int>( m_name ) ) + ", value=" + value );
+		}
 
 		return tag.value();
 	}

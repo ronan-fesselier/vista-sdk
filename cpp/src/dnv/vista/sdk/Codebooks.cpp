@@ -45,6 +45,8 @@ namespace dnv::vista::sdk
 		{
 			std::stringstream ss;
 			ss << "Invalid codebook name: " << static_cast<int>( name );
+
+			SPDLOG_ERROR( ss.str() );
 			throw std::invalid_argument( ss.str() );
 		}
 
@@ -74,7 +76,10 @@ namespace dnv::vista::sdk
 	Codebooks::Iterator::reference Codebooks::Iterator::operator*() const
 	{
 		if ( static_cast<size_t>( m_index ) >= m_codebooks->size() )
+		{
+			SPDLOG_ERROR( "Iterator out of range: index={}", m_index );
 			throw std::invalid_argument( "Iterator out of range" );
+		}
 
 		const Codebook& codebook = ( *m_codebooks )[m_index];
 		if ( !m_current.has_value() )
@@ -91,7 +96,10 @@ namespace dnv::vista::sdk
 	Codebooks::Iterator::pointer Codebooks::Iterator::operator->() const
 	{
 		if ( static_cast<size_t>( m_index ) >= m_codebooks->size() )
+		{
+			SPDLOG_ERROR( "Iterator out of range: index={}", m_index );
 			throw std::invalid_argument( "Iterator out of range" );
+		}
 
 		const Codebook& codebook = ( *m_codebooks )[m_index];
 		if ( !m_current.has_value() )

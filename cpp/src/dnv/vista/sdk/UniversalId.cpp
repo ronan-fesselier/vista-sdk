@@ -15,6 +15,7 @@ namespace dnv::vista::sdk
 	{
 		if ( !builder->IsValid() )
 		{
+			SPDLOG_ERROR( "Invalid UniversalId state" );
 			throw std::invalid_argument( "Invalid UniversalId state" );
 		}
 	}
@@ -23,6 +24,7 @@ namespace dnv::vista::sdk
 	{
 		if ( !m_builder->GetImoNumber().has_value() )
 		{
+			SPDLOG_ERROR( "Invalid ImoNumber" );
 			throw std::runtime_error( "Invalid ImoNumber" );
 		}
 		return m_imoNumber;

@@ -53,7 +53,12 @@ namespace dnv::vista::sdk
 			 */
 			static inline uint32_t Seed( uint32_t seed, uint32_t hash, uint64_t size )
 			{
-				return ( seed * hash ) & ( static_cast<uint32_t>( size ) - 1 );
+				uint32_t x = seed + hash;
+				x ^= x >> 12;
+				x ^= x << 25;
+				x ^= x >> 27;
+
+				return static_cast<uint32_t>( ( static_cast<uint64_t>( x ) * 0x2545F4914F6CDD1DUL ) & ( size - 1 ) );
 			}
 		};
 	}

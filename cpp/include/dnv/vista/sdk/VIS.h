@@ -305,6 +305,7 @@ namespace dnv::vista::sdk
 		Cache<std::string, GmodVersioning> m_gmodVersioningCache;
 		static const std::string m_versioning;
 
+	public:
 		/**
 		 * @brief Get the GMOD DTO for a specific VIS version
 		 * @param visVersion The VIS version

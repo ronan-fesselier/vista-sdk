@@ -23,10 +23,24 @@ namespace dnv::vista::sdk
 		 */
 		enum class TraversalHandlerResult
 		{
-			Continue,	 ///< Continue traversal
+			Stop,		 ///< Stop traversal completely
 			SkipSubtree, ///< Skip current subtree but continue traversal
-			Stop		 ///< Stop traversal completely
+			Continue	 ///< Continue traversal
 		};
+
+		/**
+		 * @brief Options for traversal operations
+		 */
+		struct TraversalOptions
+		{
+			static constexpr int DEFAULT_MAX_TRAVERSAL_OCCURRENCE = 1;
+			int MaxOccurrence;
+
+			TraversalOptions() : MaxOccurrence( DEFAULT_MAX_TRAVERSAL_OCCURRENCE ) {}
+			explicit TraversalOptions( int maxOccurrence ) : MaxOccurrence( maxOccurrence ) {}
+		};
+
+		using TraverseHandler = std::function<TraversalHandlerResult( const std::vector<GmodNode>&, const GmodNode& )>;
 
 	public:
 		/**
@@ -117,6 +131,71 @@ namespace dnv::vista::sdk
 		bool TryParseFromFullPath( const std::string& item, std::optional<GmodPath>& path ) const;
 
 		/**
+		 * @brief Traverse the GMOD hierarchy
+		 * @param handler The traversal handler function
+		 * @param options Optional traversal options
+		 * @return true if traversal completed, false if stopped early
+		 */
+		bool Traverse( const TraverseHandler& handler, const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Traverse the GMOD hierarchy from a specific node
+		 * @param startNode The node to start traversal from
+		 * @param handler The traversal handler function
+		 * @param options Optional traversal options
+		 * @return true if traversal completed, false if stopped early
+		 */
+		bool TraverseFrom(
+			const GmodNode& startNode,
+			const TraverseHandler& handler,
+			const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Traverse the GMOD hierarchy with state
+		 * @tparam TState Type of the state object
+		 * @param state State object passed to the handler
+		 * @param handler The traversal handler function that receives state
+		 * @param options Optional traversal options
+		 * @return true if traversal completed, false if stopped early
+		 */
+		template <typename TState>
+		bool Traverse(
+			TState& state,
+			const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
+			const TraversalOptions& options = {} ) const
+		{
+			return TraverseFrom( GetRootNode(), state, handler, options );
+		}
+
+		/**
+		 * @brief Traverse the GMOD hierarchy from a specific node with state
+		 * @tparam TState Type of the state object
+		 * @param startNode The node to start traversal from
+		 * @param state State object passed to the handler
+		 * @param handler The traversal handler function that receives state
+		 * @param options Optional traversal options
+		 * @return true if traversal completed, false if stopped early
+		 */
+		template <typename TState>
+		bool TraverseFrom(
+			const GmodNode& startNode,
+			TState& state,
+			const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
+			const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Check if a path exists between nodes
+		 * @param fromPath The starting path
+		 * @param to The destination node
+		 * @param[out] remainingParents Parents that remain after the common path
+		 * @return true if path exists, false otherwise
+		 */
+		bool PathExistsBetween(
+			const std::vector<GmodNode>& fromPath,
+			const GmodNode& to,
+			std::vector<GmodNode>& remainingParents ) const;
+
+		/**
 		 * @brief Check if a type is a potential parent
 		 * @param type The type to check
 		 * @return true if potential parent, false otherwise
@@ -203,6 +282,36 @@ namespace dnv::vista::sdk
 		static const inline std::vector<std::string> s_potentialParentScopeTypes = { "SELECTION", "GROUP", "LEAF" };
 		static const inline std::vector<std::string> s_leafTypes = { "ASSET FUNCTION LEAF", "PRODUCT FUNCTION LEAF" };
 
+		class Parents
+		{
+		public:
+			void Push( const GmodNode& parent );
+			void Pop();
+			int Occurrences( const GmodNode& node ) const;
+			const GmodNode* LastOrDefault() const;
+			const std::vector<GmodNode>& AsList() const;
+
+		private:
+			std::unordered_map<std::string, int> m_occurrences;
+			std::vector<GmodNode> m_parents;
+		};
+
+		template <typename TState>
+		TraversalHandlerResult TraverseNode(
+			Parents& parents,
+			const GmodNode& node,
+			TState& state,
+			const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
+			int maxOccurrence ) const;
+
+		struct PathExistsContext
+		{
+			PathExistsContext( const GmodNode& toNode ) : To( toNode ) {}
+			const GmodNode& To;
+			std::vector<GmodNode> RemainingParents;
+			std::vector<GmodNode> FromPath;
+		};
+
 	public:
 		/**
 		 * @brief Iterator for traversing GMOD nodes
@@ -281,4 +390,57 @@ namespace dnv::vista::sdk
 		 */
 		Iterator end() const;
 	};
+
+	template <typename TState>
+	bool Gmod::TraverseFrom(
+		const GmodNode& startNode,
+		TState& state,
+		const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
+		const TraversalOptions& options ) const
+	{
+		Parents parents;
+		return TraverseNode( parents, startNode, state, handler, options.MaxOccurrence ) == TraversalHandlerResult::Continue;
+	}
+
+	template <typename TState>
+	Gmod::TraversalHandlerResult Gmod::TraverseNode(
+		Parents& parents,
+		const GmodNode& node,
+		TState& state,
+		const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
+		int maxOccurrence ) const
+	{
+		if ( !node.GetMetadata().GetInstallSubstructure() )
+			return TraversalHandlerResult::Continue;
+
+		auto result = handler( state, parents.AsList(), node );
+		if ( result == TraversalHandlerResult::Stop || result == TraversalHandlerResult::SkipSubtree )
+			return result;
+
+		bool skipOccurrenceCheck = IsProductSelectionAssignment( parents.LastOrDefault(), &node );
+
+		if ( !skipOccurrenceCheck )
+		{
+			auto occ = parents.Occurrences( node );
+			if ( occ == maxOccurrence )
+				return TraversalHandlerResult::SkipSubtree;
+			if ( occ > maxOccurrence )
+			{
+				SPDLOG_ERROR( "Invalid state - node occurred more than expected" );
+				throw std::runtime_error( "Invalid state - node occurred more than expected" );
+			}
+		}
+
+		parents.Push( node );
+
+		for ( const GmodNode* child : node.GetChildren() )
+		{
+			result = TraverseNode( parents, *child, state, handler, maxOccurrence );
+			if ( result == TraversalHandlerResult::Stop )
+				return result;
+		}
+
+		parents.Pop();
+		return TraversalHandlerResult::Continue;
+	}
 }

@@ -10,6 +10,7 @@ namespace dnv::vista::sdk
 		std::ifstream file( filePath );
 		if ( !file.is_open() )
 		{
+			SPDLOG_ERROR( "Failed to open file: {}", filePath );
 			throw std::runtime_error( "Failed to open file: " + filePath );
 		}
 

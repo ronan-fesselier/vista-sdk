@@ -10,11 +10,13 @@ namespace dnv::vista::sdk
 
 		if ( !json.HasMember( "code" ) || !json["code"].IsString() || json["code"].GetStringLength() == 0 )
 		{
+			SPDLOG_ERROR( "Missing or invalid 'code' field in RelativeLocationsDto JSON." );
 			throw std::runtime_error( "Missing or invalid 'code' field in RelativeLocationsDto JSON." );
 		}
 
 		if ( !json.HasMember( "name" ) || !json["name"].IsString() )
 		{
+			SPDLOG_ERROR( "Missing or invalid 'name' field in RelativeLocationsDto JSON." );
 			throw std::runtime_error( "Missing or invalid 'name' field in RelativeLocationsDto JSON." );
 		}
 
@@ -53,6 +55,7 @@ namespace dnv::vista::sdk
 
 		if ( !json.HasMember( "visRelease" ) || !json["visRelease"].IsString() )
 		{
+			SPDLOG_ERROR( "Missing or invalid 'visRelease' field in LocationsDto JSON." );
 			throw std::runtime_error( "Missing or invalid 'visRelease' field in LocationsDto JSON." );
 		}
 

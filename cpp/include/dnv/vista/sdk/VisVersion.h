@@ -56,5 +56,11 @@ namespace dnv::vista::sdk
 		 * @return Vector containing all valid VisVersion values
 		 */
 		static std::vector<VisVersion> GetAllVersions();
+
+		/**
+		 * @brief Get the latest available VIS version
+		 * @return The latest VIS version
+		 */
+		static VisVersion GetLatestVersion();
 	};
 }

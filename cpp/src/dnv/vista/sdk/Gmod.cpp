@@ -77,7 +77,39 @@ namespace dnv::vista::sdk
 
 	const GmodNode& Gmod::operator[]( const std::string& key ) const
 	{
-		return m_nodeMap[key];
+		static GmodNode nullNode;
+
+		try
+		{
+			static thread_local std::unordered_map<std::string, GmodNode> nodeCache;
+
+			auto it = nodeCache.find( key );
+			if ( it != nodeCache.end() )
+			{
+				return it->second;
+			}
+
+			GmodNode node;
+			if ( TryGetNode( key, node ) )
+			{
+				auto result = nodeCache.insert_or_assign( key, std::move( node ) );
+				return result.first->second;
+			}
+
+			SPDLOG_WARN( "Node with key '{}' not found", key );
+			nodeCache[key] = nullNode;
+			return nodeCache[key];
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Exception in operator[]: {}", ex.what() );
+			return nullNode;
+		}
+		catch ( ... )
+		{
+			SPDLOG_ERROR( "Unknown exception in operator[]" );
+			return nullNode;
+		}
 	}
 
 	bool Gmod::TryGetNode( const std::string& code, GmodNode& node ) const
@@ -103,68 +135,56 @@ namespace dnv::vista::sdk
 
 	bool Gmod::TryParsePath( const std::string& item, std::optional<GmodPath>& path ) const
 	{
-		path = std::nullopt;
-
 		try
 		{
 			if ( item.empty() )
 			{
-				SPDLOG_WARN( "TryParsePath: Input path is empty." );
 				return false;
 			}
 
-			std::vector<std::string> parts;
-			size_t start = 0, end = 0;
-
-			while ( ( end = item.find( '/', start ) ) != std::string::npos )
-			{
-				if ( end > start )
-					parts.push_back( item.substr( start, end - start ) );
-				start = end + 1;
-			}
-
-			if ( start < item.size() )
-				parts.push_back( item.substr( start ) );
-
-			if ( parts.empty() )
-			{
-				SPDLOG_WARN( "TryParsePath: No valid parts found in the input path: {}", item );
-				return false;
-			}
-
-			std::vector<GmodNode> nodes;
-			for ( const auto& part : parts )
+			if ( item.find( '/' ) == std::string::npos )
 			{
 				GmodNode node;
-				if ( !TryGetNode( part, node ) )
+				if ( TryGetNode( item, node ) )
 				{
-					SPDLOG_WARN( "TryParsePath: Node '{}' not found in GMOD.", part );
+					GmodPath tempPath;
+					if ( GmodPath::TryParse( item, m_visVersion, tempPath ) )
+					{
+						path = std::move( tempPath );
+						return true;
+					}
+					else
+					{
+						SPDLOG_WARN( "TryParsePath: Failed to create path for code: {}", item );
+						return false;
+					}
+				}
+				else
+				{
+					SPDLOG_WARN( "TryParsePath: Node not found for code: {}", item );
 					return false;
 				}
-				nodes.push_back( node );
 			}
 
-			if ( nodes.empty() )
+			try
 			{
-				SPDLOG_WARN( "TryParsePath: No valid nodes resolved from the input path: {}", item );
+				path = GmodPath::Parse( item, m_visVersion );
+				return true;
+			}
+			catch ( const std::exception& ex )
+			{
+				SPDLOG_ERROR( "TryParsePath: Exception in Parse: {}", ex.what() );
 				return false;
 			}
-
-			GmodNode targetNode = nodes.back();
-			nodes.pop_back();
-			path = GmodPath( nodes, targetNode );
-
-			SPDLOG_INFO( "TryParsePath: Successfully parsed path: {}", item );
-			return true;
 		}
-		catch ( const std::exception& e )
+		catch ( const std::exception& ex )
 		{
-			SPDLOG_ERROR( "TryParsePath: Exception occurred: {}", e.what() );
+			SPDLOG_ERROR( "TryParsePath: Exception occurred: {}", ex.what() );
 			return false;
 		}
 		catch ( ... )
 		{
-			SPDLOG_ERROR( "TryParsePath: Unknown exception occurred." );
+			SPDLOG_ERROR( "TryParsePath: Unknown exception occurred" );
 			return false;
 		}
 	}
@@ -185,6 +205,97 @@ namespace dnv::vista::sdk
 		}
 
 		return false;
+	}
+
+	bool Gmod::Traverse( const TraverseHandler& handler, const TraversalOptions& options ) const
+	{
+		return TraverseFrom( GetRootNode(), handler, options );
+	}
+
+	bool Gmod::TraverseFrom( const GmodNode& startNode, const TraverseHandler& handler, const TraversalOptions& options ) const
+	{
+		struct StackItem
+		{
+			std::string nodeCode;
+			std::vector<std::string> parentCodes;
+		};
+
+		std::stack<StackItem> stack;
+
+		stack.push( { startNode.GetCode(), {} } );
+
+		while ( !stack.empty() )
+		{
+			auto item = stack.top();
+			stack.pop();
+
+			GmodNode currentNode;
+			if ( !TryGetNode( item.nodeCode, currentNode ) )
+			{
+				continue;
+			}
+
+			int occurrences = 0;
+			for ( const auto& code : item.parentCodes )
+			{
+				if ( code == item.nodeCode )
+				{
+					occurrences++;
+					if ( occurrences >= options.MaxOccurrence )
+					{
+						break;
+					}
+				}
+			}
+
+			if ( occurrences >= options.MaxOccurrence )
+			{
+				continue;
+			}
+
+			std::vector<GmodNode> parentNodes;
+			parentNodes.reserve( item.parentCodes.size() );
+
+			for ( const auto& parentCode : item.parentCodes )
+			{
+				GmodNode parentNode;
+				if ( TryGetNode( parentCode, parentNode ) )
+				{
+					parentNodes.push_back( std::move( parentNode ) );
+				}
+			}
+
+			auto result = handler( parentNodes, currentNode );
+
+			if ( result == TraversalHandlerResult::Stop )
+			{
+				return false;
+			}
+
+			if ( result != TraversalHandlerResult::SkipSubtree )
+			{
+				std::vector<std::string> newParentCodes = item.parentCodes;
+				newParentCodes.push_back( item.nodeCode );
+
+				const auto& children = currentNode.GetChildren();
+
+				for ( size_t i = 0; i < children.size(); ++i )
+				{
+					const GmodNode* child = nullptr;
+					if ( i < children.size() )
+					{
+						child = children[children.size() - 1 - i];
+					}
+
+					if ( child )
+					{
+						stack.push( { child->GetCode(), newParentCodes } );
+					}
+				}
+			}
+		}
+
+		return true;
 	}
 
 	bool Gmod::IsPotentialParent( const std::string& type )

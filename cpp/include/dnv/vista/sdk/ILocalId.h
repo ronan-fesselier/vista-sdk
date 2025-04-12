@@ -1,9 +1,9 @@
 #pragma once
 
-#include "dnv/vista/sdk/ParsingErrors.h"
-#include "dnv/vista/sdk/VisVersion.h"
-#include "dnv/vista/sdk/GmodPath.h"
-#include "dnv/vista/sdk/MetadataTag.h"
+#include "ParsingErrors.h"
+#include "VisVersion.h"
+#include "GmodPath.h"
+#include "MetadataTag.h"
 
 namespace dnv::vista::sdk
 {

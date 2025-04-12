@@ -8,6 +8,7 @@ namespace dnv::vista::sdk
 	{
 		if ( !IsValid( value ) )
 		{
+			SPDLOG_ERROR( "Invalid IMO number: {}", value );
 			throw std::invalid_argument( "Invalid IMO number: " + std::to_string( value ) );
 		}
 		m_value = value;
@@ -18,6 +19,7 @@ namespace dnv::vista::sdk
 		auto result = TryParse( value );
 		if ( !result )
 		{
+			SPDLOG_ERROR( "Invalid IMO number: {}", value );
 			throw std::invalid_argument( "Invalid IMO number: " + value );
 		}
 		m_value = static_cast<int>( *result );
@@ -31,7 +33,10 @@ namespace dnv::vista::sdk
 	ImoNumber ImoNumber::Parse( const char* value )
 	{
 		if ( value == nullptr )
+		{
+			SPDLOG_ERROR( "Null IMO number string" );
 			throw std::invalid_argument( "Null IMO number string" );
+		}
 
 		return Parse( std::string( value ) );
 	}
@@ -39,11 +44,17 @@ namespace dnv::vista::sdk
 	ImoNumber ImoNumber::Parse( const std::string& value )
 	{
 		if ( value.empty() )
+		{
+			SPDLOG_ERROR( "Empty IMO number string" );
 			throw std::invalid_argument( "Empty IMO number string" );
+		}
 
 		auto result = TryParse( value );
 		if ( !result )
+		{
+			SPDLOG_ERROR( "Failed to parse ImoNumber: {}", value );
 			throw std::invalid_argument( "Failed to parse ImoNumber: " + value );
+		}
 
 		return *result;
 	}
