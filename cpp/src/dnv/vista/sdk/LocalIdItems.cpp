@@ -9,25 +9,56 @@ namespace dnv::vista::sdk
 		const std::optional<GmodPath>& primaryItem,
 		const std::optional<GmodPath>& secondaryItem )
 	{
-		if ( primaryItem.has_value() )
+		try
 		{
-			m_primaryItem = primaryItem;
+			if ( primaryItem.has_value() )
+			{
+				SPDLOG_INFO( "LocalIdItems: primaryItem: {}", primaryItem->ToString() );
+				m_primaryItem = primaryItem;
+			}
+			else
+			{
+				SPDLOG_INFO( "LocalIdItems: primaryItem is empty" );
+			}
+
+			if ( secondaryItem.has_value() )
+			{
+				SPDLOG_INFO( "LocalIdItems: secondaryItem: {}", secondaryItem->ToString() );
+				m_secondaryItem = secondaryItem;
+			}
+			else
+			{
+				SPDLOG_INFO( "LocalIdItems: secondaryItem is empty" );
+			}
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "LocalIdItems: Error creating LocalIdItems: {}", e.what() );
+			throw std::invalid_argument( "Error creating LocalIdItems" );
+		}
+		catch ( ... )
+		{
+			SPDLOG_ERROR( "LocalIdItems: Unknown error creating LocalIdItems" );
+			throw std::runtime_error( "Unknown error creating LocalIdItems" );
 		}
 
-		if ( secondaryItem.has_value() )
-		{
-			m_secondaryItem = secondaryItem;
-		}
+		SPDLOG_INFO( "LocalIdItems: Created successfully" );
 	}
 
 	LocalIdItems& LocalIdItems::operator=( const LocalIdItems& other )
 	{
 		if ( this != &other )
 		{
-			m_primaryItem.emplace( other.m_primaryItem.value() );
-			m_secondaryItem.emplace( other.m_secondaryItem.value() );
+			m_primaryItem = other.m_primaryItem;
+			m_secondaryItem = other.m_secondaryItem;
 		}
 		return *this;
+	}
+
+	LocalIdItems::LocalIdItems( const LocalIdItems& other )
+	{
+		m_primaryItem = other.m_primaryItem;
+		m_secondaryItem = other.m_secondaryItem;
 	}
 
 	bool LocalIdItems::operator==( const LocalIdItems& other ) const
@@ -39,12 +70,6 @@ namespace dnv::vista::sdk
 	bool LocalIdItems::operator!=( const LocalIdItems& other ) const
 	{
 		return !( *this == other );
-	}
-
-	LocalIdItems::LocalIdItems( const LocalIdItems& other )
-	{
-		m_primaryItem.emplace( other.m_primaryItem.value() );
-		m_secondaryItem.emplace( other.m_secondaryItem.value() );
 	}
 
 	const std::optional<GmodPath>& LocalIdItems::GetPrimaryItem() const

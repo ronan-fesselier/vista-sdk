@@ -254,6 +254,9 @@ namespace dnv::vista::sdk
 			return nullptr;
 
 		const GmodNode* child = m_children[0];
+		if ( child == nullptr )
+			return nullptr;
+
 		if ( child->m_metadata.GetCategory() != "PRODUCT" )
 			return nullptr;
 
@@ -272,6 +275,9 @@ namespace dnv::vista::sdk
 			return nullptr;
 
 		const GmodNode* child = m_children[0];
+		if ( child == nullptr )
+			return nullptr;
+
 		if ( child->m_metadata.GetCategory().find( "PRODUCT" ) == std::string::npos )
 			return nullptr;
 

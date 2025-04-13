@@ -12,33 +12,6 @@ namespace dnv::vista::sdk
 	 */
 	struct GmodNodeDto
 	{
-		/** @brief Category classification of the node (e.g., "PRODUCT", "ASSET") */
-		std::string category;
-
-		/** @brief Type classification within the category (e.g., "SELECTION", "TYPE") */
-		std::string type;
-
-		/** @brief Unique code identifier for the node */
-		std::string code;
-
-		/** @brief Human-readable name of the node */
-		std::string name;
-
-		/** @brief Optional common name or alias */
-		std::optional<std::string> commonName;
-
-		/** @brief Optional detailed definition */
-		std::optional<std::string> definition;
-
-		/** @brief Optional common definition */
-		std::optional<std::string> commonDefinition;
-
-		/** @brief Optional installation flag */
-		std::optional<bool> installSubstructure;
-
-		/** @brief Optional mapping of normal assignment names */
-		std::optional<std::unordered_map<std::string, std::string>> normalAssignmentNames;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -98,6 +71,33 @@ namespace dnv::vista::sdk
 		 * @return The serialized JSON value
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/** @brief Category classification of the node (e.g., "PRODUCT", "ASSET") */
+		std::string category;
+
+		/** @brief Type classification within the category (e.g., "SELECTION", "TYPE") */
+		std::string type;
+
+		/** @brief Unique code identifier for the node */
+		std::string code;
+
+		/** @brief Human-readable name of the node */
+		std::string name;
+
+		/** @brief Optional common name or alias */
+		std::optional<std::string> commonName;
+
+		/** @brief Optional detailed definition */
+		std::optional<std::string> definition;
+
+		/** @brief Optional common definition */
+		std::optional<std::string> commonDefinition;
+
+		/** @brief Optional installation flag */
+		std::optional<bool> installSubstructure;
+
+		/** @brief Optional mapping of normal assignment names */
+		std::optional<std::unordered_map<std::string, std::string>> normalAssignmentNames;
 	};
 
 	/**
@@ -109,15 +109,6 @@ namespace dnv::vista::sdk
 	 */
 	struct GmodDto
 	{
-		/** @brief VIS version string (e.g., "3.8a") */
-		std::string visVersion;
-
-		/** @brief Collection of GMOD node DTOs */
-		std::vector<GmodNodeDto> items;
-
-		/** @brief Collection of relationships between nodes */
-		std::vector<std::vector<std::string>> relations;
-
 		/**
 		 * @brief Default constructor
 		 */
@@ -159,5 +150,14 @@ namespace dnv::vista::sdk
 		 * @return The serialized JSON value
 		 */
 		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+
+		/** @brief VIS version string (e.g., "3.8a") */
+		std::string visVersion;
+
+		/** @brief Collection of GMOD node DTOs */
+		std::vector<GmodNodeDto> items;
+
+		/** @brief Collection of relationships between nodes */
+		std::vector<std::vector<std::string>> relations;
 	};
 }

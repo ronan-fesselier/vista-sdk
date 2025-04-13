@@ -3,10 +3,6 @@
 #include "ILocalIdBuilder.h"
 #include "LocalIdItems.h"
 #include "MetadataTag.h"
-#include <optional>
-#include <vector>
-#include <unordered_map>
-#include <sstream>
 
 namespace dnv::vista::sdk
 {
@@ -15,6 +11,7 @@ namespace dnv::vista::sdk
 	class GmodPath;
 	class ParsingErrors;
 	class LocalId;
+	class LocalIdParsingErrorBuilder;
 
 	/**
 	 * @brief Builder class for LocalId objects, implementing the ILocalIdBuilder interface.
@@ -335,13 +332,14 @@ namespace dnv::vista::sdk
 		 */
 		LocalIdBuilder WithoutDetail();
 
-	private:
+	public:
 		/**
 		 * @brief Set quantity tag
 		 * @param quantity MetadataTag to set
 		 * @return Builder for method chaining
 		 */
-		LocalIdBuilder WithQuantity( const MetadataTag& quantity );
+		LocalIdBuilder
+		WithQuantity( const MetadataTag& quantity );
 
 		/**
 		 * @brief Set content tag
@@ -415,13 +413,7 @@ namespace dnv::vista::sdk
 		 */
 		static LocalIdBuilder Parse( const std::string& localIdStr );
 
-		/**
-		 * @brief Static method to try parsing a LocalId string
-		 * @param localIdStr String to parse
-		 * @param[out] localId Optional to receive the parsed builder
-		 * @return true if parsing succeeded
-		 */
-		static bool TryParse( const std::string& localIdStr, std::optional<LocalIdBuilder>& localId );
+		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId );
 
 		/**
 		 * @brief Static method to try parsing a LocalId string with detailed errors
@@ -430,7 +422,7 @@ namespace dnv::vista::sdk
 		 * @param[out] localId Optional to receive the parsed builder
 		 * @return true if parsing succeeded
 		 */
-		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId );
+		static bool TryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder );
 
 		/**
 		 * @brief Equality operator

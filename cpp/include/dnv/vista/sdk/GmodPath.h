@@ -253,7 +253,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& item, VisVersion visVersion, GmodPath& path );
+		static bool TryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path );
 
 		/**
 		 * @brief Parse a path string using specific GMOD and Locations objects

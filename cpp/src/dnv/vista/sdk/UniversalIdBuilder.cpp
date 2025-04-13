@@ -181,7 +181,6 @@ namespace dnv::vista::sdk
 		ParsingErrors parseErrors;
 		if ( !LocalIdBuilder::TryParse( localIdSegment, parseErrors, localIdBuilder ) )
 		{
-			// Merge any errors from LocalIdBuilder parsing
 			errors = errorBuilder.Build();
 			std::vector<ParsingErrors::ErrorEntry> combinedErrors;
 			for ( const auto& err : errors )
@@ -234,7 +233,7 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::EmptyState:
 				case LocalIdParsingState::Formatting:
 				case LocalIdParsingState::Completeness:
-					break; 
+					break;
 				case LocalIdParsingState::NamingEntity:
 					if ( segment != LocalIdBuilder::NamingRule )
 					{
@@ -253,8 +252,6 @@ namespace dnv::vista::sdk
 						imoNumber = imo;
 					}
 					break;
-
-		
 			}
 
 			state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
@@ -314,16 +311,12 @@ namespace dnv::vista::sdk
 
 	ParsingErrors LocalIdParsingErrorBuilder::Build() const
 	{
-		if ( m_errors.empty() )
+		std::vector<ParsingErrors::ErrorEntry> errors;
+		for ( const auto& [state, message] : m_errors )
 		{
-			std::vector<ParsingErrors::ErrorEntry> convertedErrors;
-			for ( const auto& [result, message] : m_errors )
-			{
-				convertedErrors.emplace_back( std::to_string( static_cast<int>( result ) ), message );
-			}
-			return ParsingErrors( convertedErrors );
+			errors.push_back( std::make_tuple( std::to_string( static_cast<int>( state ) ), message ) );
 		}
-		return ParsingErrors( std::vector<ParsingErrors::ErrorEntry>{} );
+		return ParsingErrors( errors );
 	}
 
 	LocalIdParsingErrorBuilder LocalIdParsingErrorBuilder::Create()

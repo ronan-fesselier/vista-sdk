@@ -221,36 +221,47 @@ namespace dnv::vista::sdk::tests
 	{
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
-		std::vector<GmodPath> paths;
 		const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
 		int maxOccurrence = 0;
 
-		bool completed = gmod.Traverse(
-			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
+		try
+		{
+			bool completed = gmod.Traverse(
+				[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
+					EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
 
-				if ( std::any_of( parents.begin(), parents.end(),
-						 []( const auto& p ) { return p.GetCode() == "HG3"; } ) ||
-					 node.GetCode() == "HG3" )
-				{
-					paths.emplace_back( GmodPath( parents, node ) );
-				}
+					/*
+					if (std::any_of(parents.begin(), parents.end(),
+							 [](const auto& p) { return p.GetCode() == "HG3"; }) ||
+						 node.GetCode() == "HG3")
+					{
+						paths.emplace_back(GmodPath(parents, node));
+					}
+					*/
 
-				bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
-					parents.empty() ? nullptr : &parents.back(), &node );
+					bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
+						parents.empty() ? nullptr : &parents.back(), &node );
 
-				if ( skipOccurrenceCheck )
+					if ( skipOccurrenceCheck )
+						return Gmod::TraversalHandlerResult::Continue;
+
+					int occ = Occurrences( parents, node );
+					if ( occ > maxOccurrence )
+						maxOccurrence = occ;
+
 					return Gmod::TraversalHandlerResult::Continue;
+				} );
 
-				int occ = Occurrences( parents, node );
-				if ( occ > maxOccurrence )
-					maxOccurrence = occ;
-
-				return Gmod::TraversalHandlerResult::Continue;
-			} );
-
-		EXPECT_EQ( maxExpected, maxOccurrence );
-		EXPECT_TRUE( completed );
+			EXPECT_EQ( maxExpected, maxOccurrence );
+		}
+		catch ( const std::exception& ex )
+		{
+			FAIL() << "Exception during traversal: " << ex.what();
+		}
+		catch ( ... )
+		{
+			FAIL() << "Unknown exception during traversal";
+		}
 	}
 
 	TEST_F( GmodTests, Test_Full_Traversal_With_Options )

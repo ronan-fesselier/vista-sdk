@@ -363,27 +363,122 @@ namespace dnv::vista::sdk
 
 	GmodPath GmodPath::Parse( const std::string& item, VisVersion visVersion )
 	{
-		GmodPath path( std::vector<GmodNode>(), GmodNode(), false );
+		SPDLOG_INFO( "Parsing GmodPath: {}", item );
+		std::optional<GmodPath> path;
+
 		if ( !TryParse( item, visVersion, path ) )
 		{
 			SPDLOG_ERROR( "Failed to parse GmodPath" );
 			throw std::invalid_argument( "Failed to parse GmodPath" );
 		}
-		return path;
+		return *path;
 	}
 
-	bool GmodPath::TryParse( const std::string& item, VisVersion visVersion, GmodPath& path )
+	bool GmodPath::TryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path )
 	{
+		SPDLOG_INFO( "TryParse: Attempting to parse path: {}", item );
+
 		try
 		{
-			VIS vis;
+			path = std::nullopt;
+
+			if ( item.empty() || std::all_of( item.begin(), item.end(), []( char c ) { return std::isspace( c ); } ) )
+				return false;
+
+			std::string trimmedItem = item;
+			trimmedItem.erase( 0, trimmedItem.find_first_not_of( " \t\n\r\f\v" ) );
+			trimmedItem.erase( trimmedItem.find_last_not_of( " \t\n\r\f\v" ) + 1 );
+			if ( trimmedItem[0] == '/' )
+				trimmedItem.erase( 0, 1 );
+
+			std::queue<PathNode> parts;
+			std::istringstream iss( trimmedItem );
+			std::string partStr;
+
+			while ( std::getline( iss, partStr, '/' ) )
+			{
+				size_t dashPos = partStr.find( '-' );
+				if ( dashPos != std::string::npos )
+				{
+					std::string code = partStr.substr( 0, dashPos );
+					std::string locStr = partStr.substr( dashPos + 1 );
+
+					VIS& vis = VIS::Instance();
+					const auto& gmod = vis.GetGmod( visVersion );
+					const auto& locations = vis.GetLocations( visVersion );
+
+					GmodNode tempNode;
+					if ( !gmod.TryGetNode( code, tempNode ) )
+					{
+						SPDLOG_ERROR( "Failed to get GmodNode for {}", partStr );
+						return false;
+					}
+
+					Location location;
+					if ( !locations.TryParse( locStr, location ) )
+					{
+						SPDLOG_ERROR( "Failed to parse location {}", locStr );
+						return false;
+					}
+
+					parts.emplace( code, std::make_optional( location ) );
+				}
+				else
+				{
+					VIS& vis = VIS::Instance();
+					const auto& gmod = vis.GetGmod( visVersion );
+
+					GmodNode tempNode;
+					if ( !gmod.TryGetNode( partStr, tempNode ) )
+					{
+						SPDLOG_ERROR( "Failed to get GmodNode for {}", partStr );
+						return false;
+					}
+
+					parts.emplace( partStr );
+				}
+			}
+
+			if ( parts.empty() )
+			{
+				SPDLOG_ERROR( "Failed to find any parts" );
+				return false;
+			}
+
+			PathNode toFind = parts.front();
+			parts.pop();
+
+			VIS& vis = VIS::Instance();
 			const auto& gmod = vis.GetGmod( visVersion );
 			const auto& locations = vis.GetLocations( visVersion );
-			return TryParse( item, gmod, locations, path );
+
+			GmodNode baseNode;
+			if ( !gmod.TryGetNode( toFind.code, baseNode ) )
+			{
+				SPDLOG_ERROR( "Failed to find base node" );
+				return false;
+			}
+
+			ParseContext context( parts );
+			context.toFind = toFind;
+
+			if ( !context.path )
+			{
+				SPDLOG_ERROR( "Failed to find path after traversal" );
+				return false;
+			}
+
+			path = std::move( *context.path );
+			return true;
 		}
-		catch ( const std::exception& e )
+		catch ( const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Error in GmodPath::TryParse: {}", e.what() );
+			SPDLOG_ERROR( "Error in GmodPath::TryParse: {}", ex.what() );
+			return false;
+		}
+		catch ( ... )
+		{
+			SPDLOG_ERROR( "Unknown error in GmodPath::TryParse" );
 			return false;
 		}
 	}
