@@ -61,6 +61,3 @@ message(STATUS "  Copy resources: ${VISTA_SDK_COPY_RESOURCES}")
 message(STATUS "  Resources source: ${VISTA_SDK_RESOURCE_DIR}")
 message(STATUS "  Resources destination: ${VISTA_SDK_OUTPUT_DIR}/resources")
 message(STATUS "  Output directory: ${VISTA_SDK_OUTPUT_DIR}")
-
-#Set SPDLOG LEVEL TO WARN:
-

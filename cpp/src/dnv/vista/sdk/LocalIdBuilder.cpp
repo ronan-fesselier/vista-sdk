@@ -684,724 +684,725 @@ namespace dnv::vista::sdk
 	void AdvanceParser( size_t& i, const std::string& segment )
 	{
 		i += segment.length() + 1;
+	}
 
-		void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state )
+	void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state )
+	{
+		i += segment.length() + 1;
+		state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+	}
+
+	void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state, LocalIdParsingState nextState )
+	{
+		i += segment.length() + 1;
+		state = nextState;
+	}
+
+	void AdvanceState( LocalIdParsingState& state, LocalIdParsingState nextState )
+	{
+		state = nextState;
+	}
+
+	std::pair<size_t, size_t> GetNextStateIndexes( const std::string& span, LocalIdParsingState state )
+	{
+		size_t customIndex = span.find( "~" );
+		size_t endOfCustomIndex = ( customIndex + 1 + 1 );
+
+		size_t metaIndex = span.find( "/meta" );
+		size_t endOfMetaIndex = ( metaIndex + 5 + 1 );
+		bool isVerbose = customIndex < metaIndex;
+
+		switch ( state )
 		{
-			i += segment.length() + 1;
-			state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-		}
-
-		void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state, LocalIdParsingState nextState )
-		{
-			i += segment.length() + 1;
-			state = nextState;
-		}
-
-		void AdvanceState( LocalIdParsingState & state, LocalIdParsingState nextState )
-		{
-			state = nextState;
-		}
-
-		std::pair<int, int> GetNextStateIndexes( const std::string& span, LocalIdParsingState state )
-		{
-			size_t customIndex = span.find( "~" );
-			size_t endOfCustomIndex = ( customIndex + 1 + 1 );
-
-			size_t metaIndex = span.find( "/meta" );
-			size_t endOfMetaIndex = ( metaIndex + 5 + 1 );
-			bool isVerbose = customIndex < metaIndex;
-
-			switch ( state )
+			case LocalIdParsingState::PrimaryItem:
 			{
-				case LocalIdParsingState::PrimaryItem:
-				{
-					size_t secIndex = span.find( "/sec" );
-					size_t endOfSecIndex = ( secIndex + 4 + 1 );
+				size_t secIndex = span.find( "/sec" );
+				size_t endOfSecIndex = ( secIndex + 4 + 1 );
 
-					if ( secIndex != std::string::npos )
-						return { secIndex, endOfSecIndex };
+				if ( secIndex != std::string::npos )
+					return { secIndex, endOfSecIndex };
 
-					if ( isVerbose && customIndex != std::string::npos )
-						return { customIndex, endOfCustomIndex };
+				if ( isVerbose && customIndex != std::string::npos )
+					return { customIndex, endOfCustomIndex };
 
-					return { metaIndex, endOfMetaIndex };
-				}
-
-				case LocalIdParsingState::SecondaryItem:
-					if ( isVerbose && customIndex != std::string::npos )
-						return { customIndex, endOfCustomIndex };
-					return { metaIndex, endOfMetaIndex };
-
-				default:
-					return { metaIndex, endOfMetaIndex };
+				return { metaIndex, endOfMetaIndex };
 			}
-		}
 
-		static std::optional<LocalIdParsingState> MetaPrefixToState( const std::string& prefix )
+			case LocalIdParsingState::SecondaryItem:
+				if ( isVerbose && customIndex != std::string::npos )
+					return { customIndex, endOfCustomIndex };
+				return { metaIndex, endOfMetaIndex };
+
+			default:
+				return { metaIndex, endOfMetaIndex };
+		}
+	}
+
+	static std::optional<LocalIdParsingState> MetaPrefixToState( const std::string& prefix )
+	{
+		if ( prefix == "qty" )
+			return LocalIdParsingState::MetaQuantity;
+		if ( prefix == "cnt" )
+			return LocalIdParsingState::MetaContent;
+		if ( prefix == "calc" )
+			return LocalIdParsingState::MetaCalculation;
+		if ( prefix == "state" )
+			return LocalIdParsingState::MetaState;
+		if ( prefix == "cmd" )
+			return LocalIdParsingState::MetaCommand;
+		if ( prefix == "type" )
+			return LocalIdParsingState::MetaType;
+		if ( prefix == "pos" )
+			return LocalIdParsingState::MetaPosition;
+		if ( prefix == "detail" )
+			return LocalIdParsingState::MetaDetail;
+
+		return std::nullopt;
+	}
+
+	static std::optional<LocalIdParsingState> NextParsingState( LocalIdParsingState prev )
+	{
+		switch ( prev )
 		{
-			if ( prefix == "qty" )
-				return LocalIdParsingState::MetaQuantity;
-			if ( prefix == "cnt" )
+			case LocalIdParsingState::MetaQuantity:
 				return LocalIdParsingState::MetaContent;
-			if ( prefix == "calc" )
+			case LocalIdParsingState::MetaContent:
 				return LocalIdParsingState::MetaCalculation;
-			if ( prefix == "state" )
+			case LocalIdParsingState::MetaCalculation:
 				return LocalIdParsingState::MetaState;
-			if ( prefix == "cmd" )
+			case LocalIdParsingState::MetaState:
 				return LocalIdParsingState::MetaCommand;
-			if ( prefix == "type" )
+			case LocalIdParsingState::MetaCommand:
 				return LocalIdParsingState::MetaType;
-			if ( prefix == "pos" )
+			case LocalIdParsingState::MetaType:
 				return LocalIdParsingState::MetaPosition;
-			if ( prefix == "detail" )
+			case LocalIdParsingState::MetaPosition:
 				return LocalIdParsingState::MetaDetail;
-
-			return std::nullopt;
+			default:
+				return std::nullopt;
 		}
+	}
 
-		static std::optional<LocalIdParsingState> NextParsingState( LocalIdParsingState prev )
+	static std::string CodebookNameToString( CodebookName name )
+	{
+		switch ( name )
 		{
-			switch ( prev )
-			{
-				case LocalIdParsingState::MetaQuantity:
-					return LocalIdParsingState::MetaContent;
-				case LocalIdParsingState::MetaContent:
-					return LocalIdParsingState::MetaCalculation;
-				case LocalIdParsingState::MetaCalculation:
-					return LocalIdParsingState::MetaState;
-				case LocalIdParsingState::MetaState:
-					return LocalIdParsingState::MetaCommand;
-				case LocalIdParsingState::MetaCommand:
-					return LocalIdParsingState::MetaType;
-				case LocalIdParsingState::MetaType:
-					return LocalIdParsingState::MetaPosition;
-				case LocalIdParsingState::MetaPosition:
-					return LocalIdParsingState::MetaDetail;
-				default:
-					return std::nullopt;
-			}
+			case CodebookName::Quantity:
+				return "Quantity";
+			case CodebookName::Content:
+				return "Content";
+			case CodebookName::Calculation:
+				return "Calculation";
+			case CodebookName::State:
+				return "State";
+			case CodebookName::Command:
+				return "Command";
+			case CodebookName::Type:
+				return "Type";
+			case CodebookName::FunctionalServices:
+				return "FunctionalServices";
+			case CodebookName::MaintenanceCategory:
+				return "MaintenanceCategory";
+			case CodebookName::ActivityType:
+				return "ActivityType";
+			case CodebookName::Position:
+				return "Position";
+			case CodebookName::Detail:
+				return "Detail";
+			default:
+				return "Unknown";
 		}
+	}
 
-		static std::string CodebookNameToString( CodebookName name )
+	static bool ParseMetatag(
+		CodebookName codebookName,
+		LocalIdParsingState& state,
+		size_t& i,
+		const std::string& segment,
+		std::optional<MetadataTag>& tag,
+		const Codebooks* codebooks,
+		LocalIdParsingErrorBuilder& errorBuilder )
+	{
+		if ( !codebooks )
+			return false;
+
+		size_t dashIndex = segment.find( '-' );
+		size_t tildeIndex = segment.find( '~' );
+		size_t prefixIndex = dashIndex == std::string::npos ? tildeIndex : dashIndex;
+		if ( prefixIndex == std::string::npos )
 		{
-			switch ( name )
-			{
-				case CodebookName::Quantity:
-					return "Quantity";
-				case CodebookName::Content:
-					return "Content";
-				case CodebookName::Calculation:
-					return "Calculation";
-				case CodebookName::State:
-					return "State";
-				case CodebookName::Command:
-					return "Command";
-				case CodebookName::Type:
-					return "Type";
-				case CodebookName::FunctionalServices:
-					return "FunctionalServices";
-				case CodebookName::MaintenanceCategory:
-					return "MaintenanceCategory";
-				case CodebookName::ActivityType:
-					return "ActivityType";
-				case CodebookName::Position:
-					return "Position";
-				case CodebookName::Detail:
-					return "Detail";
-				default:
-					return "Unknown";
-			}
-		}
-
-		static bool ParseMetatag(
-			CodebookName codebookName,
-			LocalIdParsingState & state,
-			size_t& i,
-			const std::string& segment,
-			std::optional<MetadataTag>& tag,
-			const Codebooks* codebooks,
-			LocalIdParsingErrorBuilder& errorBuilder )
-		{
-			if ( !codebooks )
-				return false;
-
-			size_t dashIndex = segment.find( '-' );
-			size_t tildeIndex = segment.find( '~' );
-			size_t prefixIndex = dashIndex == std::string::npos ? tildeIndex : dashIndex;
-			if ( prefixIndex == std::string::npos )
-			{
-				AddError(
-					errorBuilder,
-					state,
-					"Invalid metadata tag: missing prefix '-' or '~' in " + segment );
-				AdvanceParser( i, segment, state );
-				return true;
-			}
-
-			std::string prefix = segment.substr( 0, prefixIndex );
-
-			std::optional<LocalIdParsingState> actualState = MetaPrefixToState( prefix );
-			if ( !actualState.has_value() || actualState < state )
-			{
-				AddError( errorBuilder, state, "Invalid metadata tag: unknown prefix " + prefix );
-				return false;
-			}
-
-			if ( actualState > state )
-			{
-				AdvanceState( state, actualState.value() );
-				return true;
-			}
-
-			std::optional<LocalIdParsingState> nextState = NextParsingState( actualState.value() );
-
-			std::string value = segment.substr( prefixIndex + 1 );
-			if ( value.empty() )
-			{
-				AddError( errorBuilder, state, "Invalid " + CodebookNameToString( codebookName ) + " metadata tag: missing value" );
-				return false;
-			}
-
-			tag = codebooks->TryCreateTag( codebookName, value );
-			if ( !tag.has_value() )
-			{
-				if ( prefixIndex == tildeIndex )
-					AddError(
-						errorBuilder,
-						state,
-						"Invalid custom " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
-				else
-					AddError(
-						errorBuilder,
-						state,
-						"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
-
-				AdvanceParser( i, segment, state );
-				return true;
-			}
-
-			if ( prefixIndex == dashIndex && tag->IsCustom() )
-				AddError(
-					errorBuilder,
-					state,
-					"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: '" + value + "'. Use prefix '~' for custom values" );
-
-			if ( !nextState.has_value() )
-				AdvanceParser( i, segment, state );
-			else
-				AdvanceParser( i, segment, state, nextState.value() );
+			AddError(
+				errorBuilder,
+				state,
+				"Invalid metadata tag: missing prefix '-' or '~' in " + segment );
+			AdvanceParser( i, segment, state );
 			return true;
 		}
 
-		bool LocalIdBuilder::TryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder )
+		std::string prefix = segment.substr( 0, prefixIndex );
+
+		std::optional<LocalIdParsingState> actualState = MetaPrefixToState( prefix );
+		if ( !actualState.has_value() || actualState < state )
 		{
-			localIdBuilder = std::nullopt;
+			AddError( errorBuilder, state, "Invalid metadata tag: unknown prefix " + prefix );
+			return false;
+		}
 
-			if ( localIdStr.empty() )
-			{
-				errorBuilder.AddError(
-					LocalIdParsingState::Formatting,
-					"LocalId string is empty" );
-				return false;
-			}
+		if ( actualState > state )
+		{
+			AdvanceState( state, actualState.value() );
+			return true;
+		}
 
-			if ( localIdStr[0] != '/' )
-			{
+		std::optional<LocalIdParsingState> nextState = NextParsingState( actualState.value() );
+
+		std::string value = segment.substr( prefixIndex + 1 );
+		if ( value.empty() )
+		{
+			AddError( errorBuilder, state, "Invalid " + CodebookNameToString( codebookName ) + " metadata tag: missing value" );
+			return false;
+		}
+
+		tag = codebooks->TryCreateTag( codebookName, value );
+		if ( !tag.has_value() )
+		{
+			if ( prefixIndex == tildeIndex )
 				AddError(
 					errorBuilder,
-					LocalIdParsingState::Formatting,
-					"Invalid string format" );
-				return false;
+					state,
+					"Invalid custom " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
+			else
+				AddError(
+					errorBuilder,
+					state,
+					"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
+
+			AdvanceParser( i, segment, state );
+			return true;
+		}
+
+		if ( prefixIndex == dashIndex && tag->IsCustom() )
+			AddError(
+				errorBuilder,
+				state,
+				"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: '" + value + "'. Use prefix '~' for custom values" );
+
+		if ( !nextState.has_value() )
+			AdvanceParser( i, segment, state );
+		else
+			AdvanceParser( i, segment, state, nextState.value() );
+		return true;
+	}
+
+	bool LocalIdBuilder::TryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder )
+	{
+		localIdBuilder = std::nullopt;
+
+		if ( localIdStr.empty() )
+		{
+			errorBuilder.AddError(
+				LocalIdParsingState::Formatting,
+				"LocalId string is empty" );
+			return false;
+		}
+
+		if ( localIdStr[0] != '/' )
+		{
+			AddError(
+				errorBuilder,
+				LocalIdParsingState::Formatting,
+				"Invalid string format" );
+			return false;
+		}
+
+		VisVersion visVersion = static_cast<VisVersion>( std::numeric_limits<int>::max() );
+		const Gmod* gmod = nullptr;
+		const Codebooks* codebooks = nullptr;
+		std::optional<GmodPath> primaryItem;
+		std::optional<GmodPath> secondaryItem;
+		std::optional<MetadataTag> qty;
+		std::optional<MetadataTag> cnt;
+		std::optional<MetadataTag> calc;
+		std::optional<MetadataTag> stateTag;
+		std::optional<MetadataTag> cmd;
+		std::optional<MetadataTag> type;
+		std::optional<MetadataTag> pos;
+		std::optional<MetadataTag> detail;
+		bool verbose = false;
+		std::string predefinedMessage;
+		bool invalidSecondaryItem = false;
+
+		int primaryItemStart = -1;
+		int secondaryItemStart = -1;
+
+		LocalIdParsingState state = LocalIdParsingState::NamingRule;
+		size_t i = 1;
+
+		while ( state <= LocalIdParsingState::MetaDetail )
+		{
+			size_t nextStart = std::min( localIdStr.length(), i );
+			size_t nextSlash = localIdStr.find( '/', nextStart );
+			std::string segment;
+
+			if ( nextSlash == std::string::npos )
+			{
+				segment = localIdStr.substr( nextStart );
+			}
+			else
+			{
+				segment = localIdStr.substr( nextStart, nextSlash - nextStart );
 			}
 
-			VisVersion visVersion = static_cast<VisVersion>( std::numeric_limits<int>::max() );
-			const Gmod* gmod = nullptr;
-			const Codebooks* codebooks = nullptr;
-			std::optional<GmodPath> primaryItem;
-			std::optional<GmodPath> secondaryItem;
-			std::optional<MetadataTag> qty;
-			std::optional<MetadataTag> cnt;
-			std::optional<MetadataTag> calc;
-			std::optional<MetadataTag> stateTag;
-			std::optional<MetadataTag> cmd;
-			std::optional<MetadataTag> type;
-			std::optional<MetadataTag> pos;
-			std::optional<MetadataTag> detail;
-			bool verbose = false;
-			std::string predefinedMessage;
-			bool invalidSecondaryItem = false;
-
-			int primaryItemStart = -1;
-			int secondaryItemStart = -1;
-
-			LocalIdParsingState state = LocalIdParsingState::NamingRule;
-			size_t i = 1;
-
-			while ( state <= LocalIdParsingState::MetaDetail )
+			switch ( state )
 			{
-				size_t nextStart = std::min( localIdStr.length(), i );
-				size_t nextSlash = localIdStr.find( '/', nextStart );
-				std::string segment;
-
-				if ( nextSlash == std::string::npos )
-				{
-					segment = localIdStr.substr( nextStart );
-				}
-				else
-				{
-					segment = localIdStr.substr( nextStart, nextSlash - nextStart );
-				}
-
-				switch ( state )
-				{
-					case LocalIdParsingState::NamingRule:
-						if ( segment.empty() )
-						{
-							AddError( errorBuilder, LocalIdParsingState::NamingRule,
-								"Invalid naming rule prefix" );
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-							break;
-						}
-
-						if ( segment != NamingRule )
-						{
-							AddError( errorBuilder, LocalIdParsingState::NamingRule,
-								"Invalid naming rule prefix: " + segment );
-							return false;
-						}
-
-						AdvanceParser( i, segment, state );
-						break;
-
-					case LocalIdParsingState::VisVersion:
-						if ( segment.empty() )
-						{
-							AddError( errorBuilder, LocalIdParsingState::VisVersion,
-								"Missing VIS version" );
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-							break;
-						}
-
-						if ( segment.substr( 0, 4 ) != "vis-" )
-						{
-							AddError( errorBuilder, LocalIdParsingState::VisVersion,
-								"Invalid VIS version format: " + segment );
-							return false;
-						}
-
-						if ( !VisVersionExtensions::TryParse( segment.substr( 4 ), visVersion ) )
-						{
-							AddError( errorBuilder, LocalIdParsingState::VisVersion,
-								"Invalid VIS version: " + segment.substr( 4 ) );
-							return false;
-						}
-
-						try
-						{
-							VIS& vis = VIS::Instance();
-
-							const Gmod& gmodRef = vis.GetGmod( visVersion );
-							const Codebooks& codebooksRef = vis.GetCodebooks( visVersion );
-
-							gmod = &gmodRef;
-							codebooks = &codebooksRef;
-						}
-						catch ( ... )
-						{
-							SPDLOG_ERROR( "Failed to get Gmod or Codebooks for version: {}", static_cast<int>( visVersion ) );
-							return false;
-						}
-
-						if ( !gmod || !codebooks )
-							return false;
-
-						AdvanceParser( i, segment, state );
-						break;
-
-					case LocalIdParsingState::PrimaryItem:
+				case LocalIdParsingState::NamingRule:
+					if ( segment.empty() )
 					{
-						if ( segment.empty() )
+						AddError( errorBuilder, LocalIdParsingState::NamingRule,
+							"Invalid naming rule prefix" );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != NamingRule )
+					{
+						AddError( errorBuilder, LocalIdParsingState::NamingRule,
+							"Invalid naming rule prefix: " + segment );
+						return false;
+					}
+
+					AdvanceParser( i, segment, state );
+					break;
+
+				case LocalIdParsingState::VisVersion:
+					if ( segment.empty() )
+					{
+						AddError( errorBuilder, LocalIdParsingState::VisVersion,
+							"Missing VIS version" );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment.substr( 0, 4 ) != "vis-" )
+					{
+						AddError( errorBuilder, LocalIdParsingState::VisVersion,
+							"Invalid VIS version format: " + segment );
+						return false;
+					}
+
+					if ( !VisVersionExtensions::TryParse( segment.substr( 4 ), visVersion ) )
+					{
+						AddError( errorBuilder, LocalIdParsingState::VisVersion,
+							"Invalid VIS version: " + segment.substr( 4 ) );
+						return false;
+					}
+
+					try
+					{
+						VIS& vis = VIS::Instance();
+
+						const Gmod& gmodRef = vis.GetGmod( visVersion );
+						const Codebooks& codebooksRef = vis.GetCodebooks( visVersion );
+
+						gmod = &gmodRef;
+						codebooks = &codebooksRef;
+					}
+					catch ( ... )
+					{
+						SPDLOG_ERROR( "Failed to get Gmod or Codebooks for version: {}", static_cast<int>( visVersion ) );
+						return false;
+					}
+
+					if ( !gmod || !codebooks )
+						return false;
+
+					AdvanceParser( i, segment, state );
+					break;
+
+				case LocalIdParsingState::PrimaryItem:
+				{
+					if ( segment.empty() )
+					{
+						if ( primaryItemStart != -1 )
 						{
-							if ( primaryItemStart != -1 )
-							{
-								if ( !gmod )
-									return false;
+							if ( !gmod )
+								return false;
 
-								std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
-								if ( !gmod->TryParsePath( path, primaryItem ) )
-								{
-									AddError(
-										errorBuilder,
-										LocalIdParsingState::PrimaryItem,
-										"Invalid GmodPath in Primary item: " + path );
-								}
-							}
-							else
+							std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
+							if ( !gmod->TryParsePath( path, primaryItem ) )
 							{
-								AddError( errorBuilder, LocalIdParsingState::PrimaryItem, predefinedMessage );
+								AddError(
+									errorBuilder,
+									LocalIdParsingState::PrimaryItem,
+									"Invalid GmodPath in Primary item: " + path );
 							}
+						}
+						else
+						{
+							AddError( errorBuilder, LocalIdParsingState::PrimaryItem, predefinedMessage );
+						}
 
+						AddError(
+							errorBuilder,
+							LocalIdParsingState::PrimaryItem,
+							"Invalid or missing '/meta' prefix after Primary item" );
+
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					size_t dashIndex = segment.find( '-' );
+					std::string code;
+					if ( dashIndex == std::string::npos )
+					{
+						code = segment;
+					}
+					else
+					{
+						code = segment.substr( 0, dashIndex );
+					}
+
+					if ( !gmod )
+						return false;
+
+					if ( primaryItemStart == -1 )
+					{
+						GmodNode node;
+						if ( !gmod->TryGetNode( code, node ) )
+						{
 							AddError(
 								errorBuilder,
 								LocalIdParsingState::PrimaryItem,
-								"Invalid or missing '/meta' prefix after Primary item" );
-
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-							break;
+								"Invalid start GmodNode in Primary item: " + code );
 						}
 
-						size_t dashIndex = segment.find( '-' );
-						std::string code;
-						if ( dashIndex == std::string::npos )
-						{
-							code = segment;
-						}
-						else
-						{
-							code = segment.substr( 0, dashIndex );
-						}
+						primaryItemStart = i;
+						AdvanceParser( i, segment );
+					}
+					else
+					{
+						bool isSecSegment = segment == "sec";
+						bool isMetaSegment = segment == "meta";
+						bool isTildeSegment = !segment.empty() && segment[0] == '~';
 
-						if ( !gmod )
-							return false;
+						LocalIdParsingState nextState = state;
+						if ( isSecSegment )
+							nextState = LocalIdParsingState::SecondaryItem;
+						else if ( isMetaSegment )
+							nextState = LocalIdParsingState::MetaQuantity;
+						else if ( isTildeSegment )
+							nextState = LocalIdParsingState::ItemDescription;
 
-						if ( primaryItemStart == -1 )
+						if ( nextState != state )
 						{
-							GmodNode node;
-							if ( !gmod->TryGetNode( code, node ) )
+							std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
+							if ( !gmod->TryParsePath( path, primaryItem ) )
 							{
 								AddError(
 									errorBuilder,
 									LocalIdParsingState::PrimaryItem,
-									"Invalid start GmodNode in Primary item: " + code );
-							}
-
-							primaryItemStart = i;
-							AdvanceParser( i, segment );
-						}
-						else
-						{
-							bool isSecSegment = segment == "sec";
-							bool isMetaSegment = segment == "meta";
-							bool isTildeSegment = !segment.empty() && segment[0] == '~';
-
-							LocalIdParsingState nextState = state;
-							if ( isSecSegment )
-								nextState = LocalIdParsingState::SecondaryItem;
-							else if ( isMetaSegment )
-								nextState = LocalIdParsingState::MetaQuantity;
-							else if ( isTildeSegment )
-								nextState = LocalIdParsingState::ItemDescription;
-
-							if ( nextState != state )
-							{
-								std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
-								if ( !gmod->TryParsePath( path, primaryItem ) )
-								{
-									AddError(
-										errorBuilder,
-										LocalIdParsingState::PrimaryItem,
-										"Invalid GmodPath in Primary item: " + path );
-
-									auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
-									i = endOfNextStateIndex;
-									AdvanceState( state, nextState );
-									break;
-								}
-
-								if ( isTildeSegment )
-									AdvanceState( state, nextState );
-								else
-									AdvanceParser( i, segment, state, nextState );
-								break;
-							}
-
-							GmodNode node;
-							if ( !gmod->TryGetNode( code, node ) )
-							{
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::PrimaryItem,
-									"Invalid GmodNode in Primary item: " + code );
+									"Invalid GmodPath in Primary item: " + path );
 
 								auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
-
-								if ( nextStateIndex == -1 )
-								{
-									AddError(
-										errorBuilder,
-										LocalIdParsingState::PrimaryItem,
-										"Invalid or missing '/meta' prefix after Primary item" );
-									return false;
-								}
-
-								std::string nextSegment;
-								if ( nextStateIndex + 1 < localIdStr.length() )
-								{
-									size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
-									if ( nextSegSlash == std::string::npos )
-										nextSegment = localIdStr.substr( nextStateIndex + 1 );
-									else
-										nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
-								}
-
-								bool isNextSecSegment = nextSegment == "sec";
-								bool isNextMetaSegment = nextSegment == "meta";
-								bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
-
-								if ( isNextSecSegment )
-									nextState = LocalIdParsingState::SecondaryItem;
-								else if ( isNextMetaSegment )
-									nextState = LocalIdParsingState::MetaQuantity;
-								else if ( isNextTildeSegment )
-									nextState = LocalIdParsingState::ItemDescription;
-								else
-									throw std::runtime_error( "Inconsistent parsing state" );
-
-								std::string invalidPrimaryItemPath = localIdStr.substr( i, nextStateIndex - i );
-
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::PrimaryItem,
-									"Invalid GmodPath: Last part in Primary item: " + invalidPrimaryItemPath );
-
 								i = endOfNextStateIndex;
 								AdvanceState( state, nextState );
 								break;
 							}
 
-							AdvanceParser( i, segment );
-						}
-						break;
-					}
-
-					case LocalIdParsingState::SecondaryItem:
-					{
-						if ( segment.empty() )
-						{
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+							if ( isTildeSegment )
+								AdvanceState( state, nextState );
+							else
+								AdvanceParser( i, segment, state, nextState );
 							break;
 						}
 
-						size_t dashIndex = segment.find( '-' );
-						std::string code;
-						if ( dashIndex == std::string::npos )
+						GmodNode node;
+						if ( !gmod->TryGetNode( code, node ) )
 						{
-							code = segment;
-						}
-						else
-						{
-							code = segment.substr( 0, dashIndex );
-						}
+							AddError(
+								errorBuilder,
+								LocalIdParsingState::PrimaryItem,
+								"Invalid GmodNode in Primary item: " + code );
 
-						if ( !gmod )
-							return false;
+							auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
 
-						if ( secondaryItemStart == -1 )
-						{
-							GmodNode node;
-							if ( !gmod->TryGetNode( code, node ) )
+							if ( nextStateIndex == -1 )
 							{
 								AddError(
 									errorBuilder,
-									LocalIdParsingState::SecondaryItem,
-									"Invalid start GmodNode in Secondary item: " + code );
+									LocalIdParsingState::PrimaryItem,
+									"Invalid or missing '/meta' prefix after Primary item" );
+								return false;
 							}
 
-							secondaryItemStart = i;
-							AdvanceParser( i, segment );
-						}
-						else
-						{
-							bool isMetaSegment = segment == "meta";
-							bool isTildeSegment = !segment.empty() && segment[0] == '~';
-
-							LocalIdParsingState nextState = state;
-							if ( isMetaSegment )
-								nextState = LocalIdParsingState::MetaQuantity;
-							else if ( isTildeSegment )
-								nextState = LocalIdParsingState::ItemDescription;
-
-							if ( nextState != state )
+							std::string nextSegment;
+							if ( nextStateIndex + 1 < localIdStr.length() )
 							{
-								std::string path = localIdStr.substr( secondaryItemStart, i - 1 - secondaryItemStart );
-								if ( !gmod->TryParsePath( path, secondaryItem ) )
-								{
-									invalidSecondaryItem = true;
-									AddError(
-										errorBuilder,
-										LocalIdParsingState::SecondaryItem,
-										"Invalid GmodPath in Secondary item: " + path );
-
-									auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
-									i = endOfNextStateIndex;
-									AdvanceState( state, nextState );
-									break;
-								}
-
-								if ( isTildeSegment )
-									AdvanceState( state, nextState );
+								size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
+								if ( nextSegSlash == std::string::npos )
+									nextSegment = localIdStr.substr( nextStateIndex + 1 );
 								else
-									AdvanceParser( i, segment, state, nextState );
-								break;
+									nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
 							}
 
-							GmodNode node;
-							if ( !gmod->TryGetNode( code, node ) )
+							bool isNextSecSegment = nextSegment == "sec";
+							bool isNextMetaSegment = nextSegment == "meta";
+							bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
+
+							if ( isNextSecSegment )
+								nextState = LocalIdParsingState::SecondaryItem;
+							else if ( isNextMetaSegment )
+								nextState = LocalIdParsingState::MetaQuantity;
+							else if ( isNextTildeSegment )
+								nextState = LocalIdParsingState::ItemDescription;
+							else
+								throw std::runtime_error( "Inconsistent parsing state" );
+
+							std::string invalidPrimaryItemPath = localIdStr.substr( i, nextStateIndex - i );
+
+							AddError(
+								errorBuilder,
+								LocalIdParsingState::PrimaryItem,
+								"Invalid GmodPath: Last part in Primary item: " + invalidPrimaryItemPath );
+
+							i = endOfNextStateIndex;
+							AdvanceState( state, nextState );
+							break;
+						}
+
+						AdvanceParser( i, segment );
+					}
+					break;
+				}
+
+				case LocalIdParsingState::SecondaryItem:
+				{
+					if ( segment.empty() )
+					{
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					size_t dashIndex = segment.find( '-' );
+					std::string code;
+					if ( dashIndex == std::string::npos )
+					{
+						code = segment;
+					}
+					else
+					{
+						code = segment.substr( 0, dashIndex );
+					}
+
+					if ( !gmod )
+						return false;
+
+					if ( secondaryItemStart == -1 )
+					{
+						GmodNode node;
+						if ( !gmod->TryGetNode( code, node ) )
+						{
+							AddError(
+								errorBuilder,
+								LocalIdParsingState::SecondaryItem,
+								"Invalid start GmodNode in Secondary item: " + code );
+						}
+
+						secondaryItemStart = i;
+						AdvanceParser( i, segment );
+					}
+					else
+					{
+						bool isMetaSegment = segment == "meta";
+						bool isTildeSegment = !segment.empty() && segment[0] == '~';
+
+						LocalIdParsingState nextState = state;
+						if ( isMetaSegment )
+							nextState = LocalIdParsingState::MetaQuantity;
+						else if ( isTildeSegment )
+							nextState = LocalIdParsingState::ItemDescription;
+
+						if ( nextState != state )
+						{
+							std::string path = localIdStr.substr( secondaryItemStart, i - 1 - secondaryItemStart );
+							if ( !gmod->TryParsePath( path, secondaryItem ) )
 							{
 								invalidSecondaryItem = true;
 								AddError(
 									errorBuilder,
 									LocalIdParsingState::SecondaryItem,
-									"Invalid GmodNode in Secondary item: " + code );
+									"Invalid GmodPath in Secondary item: " + path );
 
 								auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
-								if ( nextStateIndex == -1 )
-								{
-									AddError(
-										errorBuilder,
-										LocalIdParsingState::SecondaryItem,
-										"Invalid or missing '/meta' prefix after Secondary item" );
-									return false;
-								}
-
-								std::string nextSegment;
-								if ( nextStateIndex + 1 < localIdStr.length() )
-								{
-									size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
-									if ( nextSegSlash == std::string::npos )
-										nextSegment = localIdStr.substr( nextStateIndex + 1 );
-									else
-										nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
-								}
-
-								bool isNextMetaSegment = nextSegment == "meta";
-								bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
-
-								if ( isNextMetaSegment )
-									nextState = LocalIdParsingState::MetaQuantity;
-								else if ( isNextTildeSegment )
-									nextState = LocalIdParsingState::ItemDescription;
-								else
-									throw std::runtime_error( "Inconsistent parsing state" );
-
-								std::string invalidSecondaryItemPath = localIdStr.substr( i, nextStateIndex - i );
-
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::SecondaryItem,
-									"Invalid GmodPath: Last part in Secondary item: " + invalidSecondaryItemPath );
-
 								i = endOfNextStateIndex;
 								AdvanceState( state, nextState );
 								break;
 							}
 
-							AdvanceParser( i, segment );
-						}
-						break;
-					}
-					case LocalIdParsingState::ItemDescription:
-					{
-						if ( segment.empty() )
-						{
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+							if ( isTildeSegment )
+								AdvanceState( state, nextState );
+							else
+								AdvanceParser( i, segment, state, nextState );
 							break;
 						}
 
-						verbose = true;
-
-						size_t metaIndex = localIdStr.find( "/meta" );
-						if ( metaIndex == std::string::npos )
+						GmodNode node;
+						if ( !gmod->TryGetNode( code, node ) )
 						{
-							AddError( errorBuilder, LocalIdParsingState::ItemDescription, predefinedMessage );
-							return false;
-						}
+							invalidSecondaryItem = true;
+							AddError(
+								errorBuilder,
+								LocalIdParsingState::SecondaryItem,
+								"Invalid GmodNode in Secondary item: " + code );
 
-						segment = localIdStr.substr( i, ( metaIndex + 5 ) - i );
+							auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
+							if ( nextStateIndex == -1 )
+							{
+								AddError(
+									errorBuilder,
+									LocalIdParsingState::SecondaryItem,
+									"Invalid or missing '/meta' prefix after Secondary item" );
+								return false;
+							}
 
-						AdvanceParser( i, segment, state );
-						break;
-					}
-					case LocalIdParsingState::MetaQuantity:
-					{
-						if ( segment.empty() )
-						{
-							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+							std::string nextSegment;
+							if ( nextStateIndex + 1 < localIdStr.length() )
+							{
+								size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
+								if ( nextSegSlash == std::string::npos )
+									nextSegment = localIdStr.substr( nextStateIndex + 1 );
+								else
+									nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
+							}
+
+							bool isNextMetaSegment = nextSegment == "meta";
+							bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
+
+							if ( isNextMetaSegment )
+								nextState = LocalIdParsingState::MetaQuantity;
+							else if ( isNextTildeSegment )
+								nextState = LocalIdParsingState::ItemDescription;
+							else
+								throw std::runtime_error( "Inconsistent parsing state" );
+
+							std::string invalidSecondaryItemPath = localIdStr.substr( i, nextStateIndex - i );
+
+							AddError(
+								errorBuilder,
+								LocalIdParsingState::SecondaryItem,
+								"Invalid GmodPath: Last part in Secondary item: " + invalidSecondaryItemPath );
+
+							i = endOfNextStateIndex;
+							AdvanceState( state, nextState );
 							break;
 						}
 
-						bool result = ParseMetatag(
-							CodebookName::Quantity,
-							state,
-							i,
-							segment,
-							qty,
-							codebooks,
-							errorBuilder );
-						if ( !result )
-							return false;
-						break;
+						AdvanceParser( i, segment );
 					}
-					case LocalIdParsingState::MetaContent:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaCalculation:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaState:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaCommand:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaType:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaPosition:
-					{
-						break;
-					}
-					case LocalIdParsingState::MetaDetail:
-					{
-						break;
-					}
-					default:
-					{
-						AdvanceParser( i, segment, state );
-						break;
-					}
-				}
-
-				if ( nextSlash == std::string::npos )
 					break;
+				}
+				case LocalIdParsingState::ItemDescription:
+				{
+					if ( segment.empty() )
+					{
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					verbose = true;
+
+					size_t metaIndex = localIdStr.find( "/meta" );
+					if ( metaIndex == std::string::npos )
+					{
+						AddError( errorBuilder, LocalIdParsingState::ItemDescription, predefinedMessage );
+						return false;
+					}
+
+					segment = localIdStr.substr( i, ( metaIndex + 5 ) - i );
+
+					AdvanceParser( i, segment, state );
+					break;
+				}
+				case LocalIdParsingState::MetaQuantity:
+				{
+					if ( segment.empty() )
+					{
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					bool result = ParseMetatag(
+						CodebookName::Quantity,
+						state,
+						i,
+						segment,
+						qty,
+						codebooks,
+						errorBuilder );
+					if ( !result )
+						return false;
+					break;
+				}
+				case LocalIdParsingState::MetaContent:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaCalculation:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaState:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaCommand:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaType:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaPosition:
+				{
+					break;
+				}
+				case LocalIdParsingState::MetaDetail:
+				{
+					break;
+				}
+				default:
+				{
+					AdvanceParser( i, segment, state );
+					break;
+				}
 			}
 
-			localIdBuilder = Create( visVersion )
-								 .TryWithPrimaryItem( primaryItem )
-								 .TryWithSecondaryItem( secondaryItem )
-								 .WithVerboseMode( verbose )
-								 .TryWithMetadataTag( qty )
-								 .TryWithMetadataTag( cnt )
-								 .TryWithMetadataTag( calc )
-								 .TryWithMetadataTag( stateTag )
-								 .TryWithMetadataTag( cmd )
-								 .TryWithMetadataTag( type )
-								 .TryWithMetadataTag( pos )
-								 .TryWithMetadataTag( detail );
-
-			if ( localIdBuilder->IsEmptyMetadata() )
-			{
-				AddError(
-					errorBuilder,
-					LocalIdParsingState::Completeness,
-					"No metadata tags specified. Local IDs require at least 1 metadata tag." );
-			}
-
-			return ( !errorBuilder.HasError() && !invalidSecondaryItem );
+			if ( nextSlash == std::string::npos )
+				break;
 		}
+
+		localIdBuilder = Create( visVersion )
+							 .TryWithPrimaryItem( primaryItem )
+							 .TryWithSecondaryItem( secondaryItem )
+							 .WithVerboseMode( verbose )
+							 .TryWithMetadataTag( qty )
+							 .TryWithMetadataTag( cnt )
+							 .TryWithMetadataTag( calc )
+							 .TryWithMetadataTag( stateTag )
+							 .TryWithMetadataTag( cmd )
+							 .TryWithMetadataTag( type )
+							 .TryWithMetadataTag( pos )
+							 .TryWithMetadataTag( detail );
+
+		if ( localIdBuilder->IsEmptyMetadata() )
+		{
+			AddError(
+				errorBuilder,
+				LocalIdParsingState::Completeness,
+				"No metadata tags specified. Local IDs require at least 1 metadata tag." );
+		}
+
+		return ( !errorBuilder.HasError() && !invalidSecondaryItem );
 	}
+}

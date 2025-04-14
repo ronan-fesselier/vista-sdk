@@ -65,14 +65,8 @@ namespace dnv::vista::sdk
 		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
 	}
 
-	VisVersion Gmod::GetVisVersion() const
+	Gmod::~Gmod()
 	{
-		return m_visVersion;
-	}
-
-	const GmodNode& Gmod::GetRootNode() const
-	{
-		return m_rootNode;
 	}
 
 	const GmodNode& Gmod::operator[]( const std::string& key ) const
@@ -110,6 +104,16 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "Unknown exception in operator[]" );
 			return nullNode;
 		}
+	}
+
+	VisVersion Gmod::GetVisVersion() const
+	{
+		return m_visVersion;
+	}
+
+	const GmodNode& Gmod::GetRootNode() const
+	{
+		return m_rootNode;
 	}
 
 	bool Gmod::TryGetNode( const std::string& code, GmodNode& node ) const
@@ -160,7 +164,54 @@ namespace dnv::vista::sdk
 
 	bool Gmod::Traverse( const TraverseHandler& handler, const TraversalOptions& options ) const
 	{
-		return false;
+		return Traverse( GetRootNode(), handler, options );
+	}
+
+	bool Gmod::Traverse( const GmodNode& rootNode, const TraverseHandler& handler, const TraversalOptions& options ) const
+	{
+		std::queue<std::pair<GmodNode, std::vector<GmodNode>>> queue;
+		queue.push( { rootNode, {} } );
+
+		std::unordered_map<std::string, int> visitCount;
+		size_t nodesVisited = 0;
+
+		while ( !queue.empty() && nodesVisited < options.maxNodes )
+		{
+			auto [current, parents] = queue.front();
+			queue.pop();
+
+			if ( visitCount[current.GetCode()]++ >= options.maxTraversalOccurrence )
+			{
+				continue;
+			}
+
+			nodesVisited++;
+
+			TraversalHandlerResult result = handler( parents, current );
+
+			if ( result == TraversalHandlerResult::Stop )
+			{
+				return true;
+			}
+
+			if ( result == TraversalHandlerResult::SkipSubtree )
+			{
+				continue;
+			}
+
+			if ( parents.size() < options.maxDepth )
+			{
+				std::vector<GmodNode> newParents = parents;
+				newParents.push_back( current );
+
+				for ( auto* child : current.GetChildren() )
+				{
+					queue.push( { *child, newParents } );
+				}
+			}
+		}
+
+		return true;
 	}
 
 	bool Gmod::IsLeafNode( const std::string& fullType )

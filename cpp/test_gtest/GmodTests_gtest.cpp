@@ -216,197 +216,198 @@ namespace dnv::vista::sdk::tests
 
 		node = gmod["H601"];
 		EXPECT_TRUE( node.ProductType() == nullptr );
+	}
 
-		TEST_F( GmodTests, Test_Node_With_Product_Selection )
+	TEST_F( GmodTests, Test_Node_With_Product_Selection )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		auto node = gmod["411.2"];
+		EXPECT_TRUE( node.ProductSelection() != nullptr );
+		EXPECT_TRUE( node.ProductType() == nullptr );
+
+		node = gmod["H601"];
+		EXPECT_TRUE( node.ProductSelection() == nullptr );
+	}
+
+	TEST_F( GmodTests, Test_Product_Selection )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		auto node = gmod["CS1"];
+		EXPECT_TRUE( node.IsProductSelection() );
+	}
+
+	struct MappabilityTestCase
+	{
+		std::string Code;
+		bool Mappable;
+	};
+
+	class MappabilityTests : public ::testing::TestWithParam<MappabilityTestCase>
+	{
+	};
+
+	TEST_P( MappabilityTests, Test_Mappability )
+	{
+		try
 		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+			const auto& testCase = GetParam();
 
-			auto node = gmod["411.2"];
-			EXPECT_TRUE( node.ProductSelection() != nullptr );
-			EXPECT_TRUE( node.ProductType() == nullptr );
+			auto& vis = VIS::Instance();
+			auto gmod = vis.GetGmod( VisVersion::v3_4a );
 
-			node = gmod["H601"];
-			EXPECT_TRUE( node.ProductSelection() == nullptr );
-		}
-
-		TEST_F( GmodTests, Test_Product_Selection )
-		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
-
-			auto node = gmod["CS1"];
-			EXPECT_TRUE( node.IsProductSelection() );
-		}
-
-		struct MappabilityTestCase
-		{
-			std::string Code;
-			bool Mappable;
-		};
-
-		class MappabilityTests : public ::testing::TestWithParam<MappabilityTestCase>
-		{
-		};
-
-		TEST_P( MappabilityTests, Test_Mappability )
-		{
-			try
+			GmodNode node;
+			if ( !gmod.TryGetNode( testCase.Code, node ) )
 			{
-				const auto& testCase = GetParam();
+				FAIL() << "Node '" << testCase.Code << "' not found.";
+				return;
+			}
 
-				auto& vis = VIS::Instance();
-				auto gmod = vis.GetGmod( VisVersion::v3_4a );
+			EXPECT_EQ( node.IsMappable(), testCase.Mappable )
+				<< "Mappability mismatch for node '" << testCase.Code << "'.";
+		}
+		catch ( const std::exception& ex )
+		{
+			FAIL() << "Exception during mappability test: " << ex.what();
+		}
+		catch ( ... )
+		{
+			FAIL() << "Unknown exception during mappability test";
+		}
+	}
 
-				GmodNode node;
-				if ( !gmod.TryGetNode( testCase.Code, node ) )
+	INSTANTIATE_TEST_SUITE_P(
+		GmodTests,
+		MappabilityTests,
+		::testing::Values(
+			MappabilityTestCase{ "VE", false },
+			MappabilityTestCase{ "300a", false },
+			MappabilityTestCase{ "300", true },
+			MappabilityTestCase{ "411", true },
+			MappabilityTestCase{ "410", true },
+			MappabilityTestCase{ "651.21s", false },
+			MappabilityTestCase{ "924.2", true },
+			MappabilityTestCase{ "411.1", false },
+			MappabilityTestCase{ "C101", true },
+			MappabilityTestCase{ "CS1", false },
+			MappabilityTestCase{ "C101.663", true },
+			MappabilityTestCase{ "C101.4", true },
+			MappabilityTestCase{ "C101.21s", false },
+			MappabilityTestCase{ "F201.11", true },
+			MappabilityTestCase{ "C101.211", false } ) );
+
+	TEST_F( GmodTests, Test_Full_Traversal )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		int pathCount = 0;
+		const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
+		int maxOccurrence = 0;
+
+		bool completed = gmod.Traverse(
+			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
+				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
+
+				if ( std::any_of( parents.begin(), parents.end(),
+						 []( const auto& p ) { return p.GetCode() == "HG3"; } ) ||
+					 node.GetCode() == "HG3" )
 				{
-					FAIL() << "Node '" << testCase.Code << "' not found.";
-					return;
+					pathCount++;
 				}
 
-				EXPECT_EQ( node.IsMappable(), testCase.Mappable )
-					<< "Mappability mismatch for node '" << testCase.Code << "'.";
-			}
-			catch ( const std::exception& ex )
-			{
-				FAIL() << "Exception during mappability test: " << ex.what();
-			}
-			catch ( ... )
-			{
-				FAIL() << "Unknown exception during mappability test";
-			}
-		}
+				bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
+					parents.empty() ? nullptr : &parents.back(), &node );
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodTests,
-			MappabilityTests,
-			::testing::Values(
-				MappabilityTestCase{ "VE", false },
-				MappabilityTestCase{ "300a", false },
-				MappabilityTestCase{ "300", true },
-				MappabilityTestCase{ "411", true },
-				MappabilityTestCase{ "410", true },
-				MappabilityTestCase{ "651.21s", false },
-				MappabilityTestCase{ "924.2", true },
-				MappabilityTestCase{ "411.1", false },
-				MappabilityTestCase{ "C101", true },
-				MappabilityTestCase{ "CS1", false },
-				MappabilityTestCase{ "C101.663", true },
-				MappabilityTestCase{ "C101.4", true },
-				MappabilityTestCase{ "C101.21s", false },
-				MappabilityTestCase{ "F201.11", true },
-				MappabilityTestCase{ "C101.211", false } ) );
-
-		TEST_F( GmodTests, Test_Full_Traversal )
-		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
-
-			int pathCount = 0;
-			const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
-			int maxOccurrence = 0;
-
-			bool completed = gmod.Traverse(
-				[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-					EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
-
-					if ( std::any_of( parents.begin(), parents.end(),
-							 []( const auto& p ) { return p.GetCode() == "HG3"; } ) ||
-						 node.GetCode() == "HG3" )
-					{
-						pathCount++;
-					}
-
-					bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
-						parents.empty() ? nullptr : &parents.back(), &node );
-
-					if ( skipOccurrenceCheck )
-						return Gmod::TraversalHandlerResult::Continue;
-
-					int occ = Occurrences( parents, node );
-					if ( occ > maxOccurrence )
-						maxOccurrence = occ;
-
+				if ( skipOccurrenceCheck )
 					return Gmod::TraversalHandlerResult::Continue;
-				} );
 
-			EXPECT_EQ( maxExpected, maxOccurrence );
-			EXPECT_TRUE( completed );
-			EXPECT_GT( pathCount, 0 );
-		}
+				int occ = Occurrences( parents, node );
+				if ( occ > maxOccurrence )
+					maxOccurrence = occ;
 
-		TEST_F( GmodTests, Test_Full_Traversal_With_Options )
-		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+				return Gmod::TraversalHandlerResult::Continue;
+			} );
 
-			const int maxExpected = 2;
-			int maxOccurrence = 0;
-
-			Gmod::TraversalOptions options;
-			options.MaxOccurrence = maxExpected;
-
-			bool completed = gmod.Traverse(
-				[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-					bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
-						parents.empty() ? nullptr : &parents.back(), &node );
-
-					if ( skipOccurrenceCheck )
-						return Gmod::TraversalHandlerResult::Continue;
-
-					int occ = Occurrences( parents, node );
-					if ( occ > maxOccurrence )
-						maxOccurrence = occ;
-
-					return Gmod::TraversalHandlerResult::Continue;
-				},
-				options );
-
-			EXPECT_EQ( maxExpected, maxOccurrence );
-			EXPECT_TRUE( completed );
-		}
-
-		TEST_F( GmodTests, Test_Partial_Traversal )
-		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
-
-			TraversalState state( 5 );
-
-			bool completed = gmod.Traverse(
-				[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-					EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
-					if ( ++state.NodeCount == state.StopAfter )
-						return Gmod::TraversalHandlerResult::Stop;
-					return Gmod::TraversalHandlerResult::Continue;
-				} );
-
-			EXPECT_EQ( state.StopAfter, state.NodeCount );
-			EXPECT_FALSE( completed );
-		}
-
-		TEST_F( GmodTests, Test_Full_Traversal_From )
-		{
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
-
-			TraversalState state( 0 );
-			GmodNode startNode = gmod["400a"];
-
-			// bool completed = gmod.TraverseFrom(
-			// 	startNode,
-			// 	[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-			// 		EXPECT_TRUE( parents.empty() || parents[0].GetCode() == "400a" );
-			// 		++state.NodeCount;
-			// 		return Gmod::TraversalHandlerResult::Continue;
-			// 	} );
-
-			// EXPECT_TRUE( completed );
-			EXPECT_GT( state.NodeCount, 0 );
-		}
-
-		INSTANTIATE_TEST_SUITE_P(
-			GmodTestSuite,
-			GmodTests,
-			::testing::Values(
-				VisVersion::v3_4a,
-				VisVersion::v3_5a,
-				VisVersion::v3_6a,
-				VisVersion::v3_7a,
-				VisVersion::v3_8a ) );
+		EXPECT_EQ( maxExpected, maxOccurrence );
+		EXPECT_TRUE( completed );
+		EXPECT_GT( pathCount, 0 );
 	}
+
+	TEST_F( GmodTests, Test_Full_Traversal_With_Options )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		const int maxExpected = 2;
+		int maxOccurrence = 0;
+
+		Gmod::TraversalOptions options;
+		options.maxTraversalOccurrence = maxExpected;
+
+		bool completed = gmod.Traverse(
+			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
+				bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
+					parents.empty() ? nullptr : &parents.back(), &node );
+
+				if ( skipOccurrenceCheck )
+					return Gmod::TraversalHandlerResult::Continue;
+
+				int occ = Occurrences( parents, node );
+				if ( occ > maxOccurrence )
+					maxOccurrence = occ;
+
+				return Gmod::TraversalHandlerResult::Continue;
+			},
+			options );
+
+		EXPECT_EQ( maxExpected, maxOccurrence );
+		EXPECT_TRUE( completed );
+	}
+
+	TEST_F( GmodTests, Test_Partial_Traversal )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		TraversalState state( 5 );
+
+		bool completed = gmod.Traverse(
+			[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
+				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
+				if ( ++state.NodeCount == state.StopAfter )
+					return Gmod::TraversalHandlerResult::Stop;
+				return Gmod::TraversalHandlerResult::Continue;
+			} );
+
+		EXPECT_EQ( state.StopAfter, state.NodeCount );
+		EXPECT_FALSE( completed );
+	}
+
+	TEST_F( GmodTests, Test_Full_Traversal_From )
+	{
+		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+
+		TraversalState state( 0 );
+		GmodNode startNode = gmod["400a"];
+
+		// bool completed = gmod.TraverseFrom(
+		// 	startNode,
+		// 	[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
+		// 		EXPECT_TRUE( parents.empty() || parents[0].GetCode() == "400a" );
+		// 		++state.NodeCount;
+		// 		return Gmod::TraversalHandlerResult::Continue;
+		// 	} );
+
+		// EXPECT_TRUE( completed );
+		EXPECT_GT( state.NodeCount, 0 );
+	}
+
+	INSTANTIATE_TEST_SUITE_P(
+		GmodTestSuite,
+		GmodTests,
+		::testing::Values(
+			VisVersion::v3_4a,
+			VisVersion::v3_5a,
+			VisVersion::v3_6a,
+			VisVersion::v3_7a,
+			VisVersion::v3_8a ) );
+}

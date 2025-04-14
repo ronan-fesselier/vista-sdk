@@ -92,7 +92,7 @@ namespace dnv::vista::sdk
 		std::unordered_map<VisVersion, Gmod> result;
 		for ( const auto& version : versions )
 		{
-			result[version] = GetGmod( version );
+			result.insert_or_assign( version, GetGmod( version ) );
 		}
 
 		return result;
