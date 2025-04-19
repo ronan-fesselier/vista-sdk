@@ -17,58 +17,103 @@ namespace dnv::vista::sdk
 	class ILocalId
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Lifecycle
+		//-------------------------------------------------------------------------
 		virtual ~ILocalId() = default;
+
+		//-------------------------------------------------------------------------
+		// Core Properties
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version
 		 */
-		virtual VisVersion GetVisVersion() const = 0;
+		virtual VisVersion getVisVersion() const = 0;
 
 		/**
 		 * @brief Check if verbose mode is enabled
 		 * @return True if verbose mode is enabled
 		 */
-		virtual bool GetVerboseMode() const = 0;
+		virtual bool getVerboseMode() const = 0;
 
 		/**
 		 * @brief Get the primary item
 		 * @return The primary item (GmodPath)
 		 */
-		virtual const GmodPath& GetPrimaryItem() const = 0;
+		virtual const GmodPath& getPrimaryItem() const = 0;
 
 		/**
 		 * @brief Get the secondary item
 		 * @return The secondary item, if present
 		 */
-		virtual std::optional<GmodPath> GetSecondaryItem() const = 0;
+		virtual std::optional<GmodPath> getSecondaryItem() const = 0;
+
+		//-------------------------------------------------------------------------
+		// Metadata Access
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Check if the Local ID has any custom tags
 		 * @return True if custom tags exist
 		 */
-		virtual bool HasCustomTag() const = 0;
+		virtual bool hasCustomTag() const = 0;
 
 		/**
 		 * @brief Get all metadata tags
-		 * @return A vector of metadata tags
+		 * @return A constant reference to the vector of metadata tags
 		 */
-		virtual std::vector<MetadataTag> GetMetadataTags() const = 0;
+		virtual const std::vector<MetadataTag> getMetadataTags() const = 0;
+
+		//-------------------------------------------------------------------------
+		// Conversion and Comparison
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Convert the Local ID to a string representation
 		 * @return The string representation of the Local ID
 		 */
-		virtual std::string ToString() const = 0;
+		virtual std::string toString() const = 0;
 
-	public:
+		/**
+		 * @brief Check if this Local ID equals another Local ID
+		 * @param other The Local ID to compare with
+		 * @return True if equal, false otherwise
+		 */
+		virtual bool equals( const T& other ) const = 0;
+
+		/**
+		 * @brief Equality operator
+		 * @param other The Local ID to compare with
+		 * @return True if equal, false otherwise
+		 */
+		bool operator==( const T& other ) const
+		{
+			return equals( other );
+		}
+
+		/**
+		 * @brief Inequality operator
+		 * @param other The Local ID to compare with
+		 * @return True if not equal, false otherwise
+		 */
+		bool operator!=( const T& other ) const
+		{
+			return !equals( other );
+		}
+
+		//-------------------------------------------------------------------------
+		// Static Parser Methods
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Parse a string into a Local ID
 		 * @param localIdStr The string to parse
 		 * @return The parsed Local ID
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		static T Parse( const std::string& localIdStr );
+		static T parse( const std::string& localIdStr );
 
 		/**
 		 * @brief Try to parse a string into a Local ID
@@ -77,33 +122,42 @@ namespace dnv::vista::sdk
 		 * @param localId Output parameter for the parsed Local ID
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId );
+		static bool tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId );
 	};
 
 	template <typename T>
-	T ILocalId<T>::Parse( const std::string& localIdStr )
+	T ILocalId<T>::parse( const std::string& localIdStr )
 	{
 		ParsingErrors errors;
 		std::optional<T> localId;
-		if ( !TryParse( localIdStr, errors, localId ) )
+		if ( !tryParse( localIdStr, errors, localId ) )
 		{
 			SPDLOG_ERROR( "Failed to parse LocalId: {}", localIdStr );
-			throw std::invalid_argument( "Failed to parse LocalId: " + errors.ToString() );
+			throw std::invalid_argument( "Failed to parse LocalId: " + errors.toString() );
 		}
 		return *localId;
 	}
 
 	template <typename T>
-	bool ILocalId<T>::TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId )
+	bool ILocalId<T>::tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<T>& localId )
 	{
 		try
 		{
 			localId = T( localIdStr );
+			SPDLOG_INFO( "Successfully parsed LocalId: {}", localIdStr );
 			return true;
 		}
 		catch ( const std::exception& e )
 		{
-			SPDLOG_ERROR( "Error: Exception during parsing: {}", e.what() );
+			SPDLOG_INFO( "LocalId parsing failed: {}", localIdStr );
+			SPDLOG_INFO( "Exception details: {}", e.what() );
+
+			std::string errorType = "ParseError";
+			if ( dynamic_cast<const std::invalid_argument*>( &e ) )
+				errorType = "InvalidFormatError";
+
+			errors.addError( errorType, e.what() );
+
 			localId.reset();
 			return false;
 		}

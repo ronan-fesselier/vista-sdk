@@ -9,7 +9,7 @@ namespace dnv::vista::sdk
 	class ParsingErrors;
 
 	/**
-	 * @brief Metadata for a GMOD (Generic Marine Object Dictionary) node
+	 * @brief Metadata for a GMOD (Generic Product Model) node
 	 *
 	 * Contains descriptive information about a node including its category, type,
 	 * name, and other optional properties as defined in ISO 19848.
@@ -120,10 +120,10 @@ namespace dnv::vista::sdk
 	};
 
 	/**
-	 * @brief A node in the Generic Marine Object Dictionary (GMOD)
+	 * @brief A node in the Generic Product Model (GMOD)
 	 *
-	 * Represents a single node in the hierarchical structure of the Generic Marine Object
-	 * Dictionary as defined by ISO 19848. Contains metadata, relationships to parent/child
+	 * Represents a single node in the hierarchical structure of the Generic Product Model
+	 * as defined by ISO 19848. Contains metadata, relationships to parent/child
 	 * nodes, and optional location information.
 	 */
 	class GmodNode
@@ -145,9 +145,9 @@ namespace dnv::vista::sdk
 		GmodNode( VisVersion version, const GmodNodeDto& dto );
 
 		/**
-		 * @brief Copy constructor (default)
+		 * @brief Copy constructor
 		 */
-		GmodNode( const GmodNode& ) = default;
+		GmodNode( const GmodNode& );
 
 		/**
 		 * @brief Copy assignment operator (default)

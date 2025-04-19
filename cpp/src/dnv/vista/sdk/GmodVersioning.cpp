@@ -139,8 +139,8 @@ namespace dnv::vista::sdk
 	GmodNode GmodVersioning::ConvertNodeInternal(
 		VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const
 	{
-		auto& vis = VIS::Instance();
-		const auto& targetGmod = vis.GetGmod( targetVersion );
+		auto& vis = VIS::instance();
+		const auto& targetGmod = vis.gmod( targetVersion );
 
 		std::string nextCode = sourceNode.GetCode();
 
@@ -155,7 +155,7 @@ namespace dnv::vista::sdk
 		}
 
 		GmodNode targetNode;
-		if ( !targetGmod.TryGetNode( nextCode, targetNode ) )
+		if ( !targetGmod.tryGetNode( nextCode, targetNode ) )
 		{
 			return GmodNode();
 		}
@@ -225,18 +225,18 @@ namespace dnv::vista::sdk
 	std::optional<LocalIdBuilder> GmodVersioning::ConvertLocalId(
 		const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const
 	{
-		if ( !sourceLocalId.GetVisVersion().has_value() )
+		if ( !sourceLocalId.getVisVersion().has_value() )
 		{
 			SPDLOG_ERROR( "Cannot convert local ID without a specific VIS version" );
 			throw std::invalid_argument( "Cannot convert local ID without a specific VIS version" );
 		}
 
 		std::optional<GmodPath> primaryItem;
-		if ( sourceLocalId.GetPrimaryItem().has_value() )
+		if ( sourceLocalId.getPrimaryItem().has_value() )
 		{
 			auto convertedPath = ConvertPath(
-				*sourceLocalId.GetVisVersion(),
-				sourceLocalId.GetPrimaryItem().value(),
+				*sourceLocalId.getVisVersion(),
+				sourceLocalId.getPrimaryItem().value(),
 				targetVersion );
 
 			if ( convertedPath )
@@ -250,11 +250,11 @@ namespace dnv::vista::sdk
 		}
 
 		std::optional<GmodPath> secondaryItem;
-		if ( sourceLocalId.GetSecondaryItem().has_value() )
+		if ( sourceLocalId.getSecondaryItem().has_value() )
 		{
 			auto convertedPath = ConvertPath(
-				*sourceLocalId.GetVisVersion(),
-				sourceLocalId.GetSecondaryItem().value(),
+				*sourceLocalId.getVisVersion(),
+				sourceLocalId.getSecondaryItem().value(),
 				targetVersion );
 
 			if ( convertedPath )
@@ -267,28 +267,28 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		return LocalIdBuilder::Create( targetVersion )
-			.TryWithPrimaryItem( primaryItem )
-			.TryWithSecondaryItem( secondaryItem )
-			.WithVerboseMode( sourceLocalId.GetVerboseMode() )
-			.TryWithMetadataTag( sourceLocalId.GetQuantity() )
-			.TryWithMetadataTag( sourceLocalId.GetContent() )
-			.TryWithMetadataTag( sourceLocalId.GetCalculation() )
-			.TryWithMetadataTag( sourceLocalId.GetState() )
-			.TryWithMetadataTag( sourceLocalId.GetCommand() )
-			.TryWithMetadataTag( sourceLocalId.GetType() )
-			.TryWithMetadataTag( sourceLocalId.GetPosition() )
-			.TryWithMetadataTag( sourceLocalId.GetDetail() );
+		return LocalIdBuilder::create( targetVersion )
+			.tryWithPrimaryItem( primaryItem )
+			.tryWithSecondaryItem( secondaryItem )
+			.withVerboseMode( sourceLocalId.getVerboseMode() )
+			.tryWithMetadataTag( sourceLocalId.getQuantity() )
+			.tryWithMetadataTag( sourceLocalId.getContent() )
+			.tryWithMetadataTag( sourceLocalId.getCalculation() )
+			.tryWithMetadataTag( sourceLocalId.getState() )
+			.tryWithMetadataTag( sourceLocalId.getCommand() )
+			.tryWithMetadataTag( sourceLocalId.getType() )
+			.tryWithMetadataTag( sourceLocalId.getPosition() )
+			.tryWithMetadataTag( sourceLocalId.getDetail() );
 	}
 
 	std::optional<LocalId> GmodVersioning::ConvertLocalId(
 		const LocalId& sourceLocalId, VisVersion targetVersion ) const
 	{
-		auto builder = ConvertLocalId( sourceLocalId.GetBuilder(), targetVersion );
+		auto builder = ConvertLocalId( sourceLocalId.getBuilder(), targetVersion );
 		if ( !builder.has_value() )
 			return std::nullopt;
 
-		return builder->Build();
+		return builder->build();
 	}
 
 	std::optional<GmodPath> GmodVersioning::ConvertPath(
@@ -303,8 +303,8 @@ namespace dnv::vista::sdk
 		if ( targetEndNode->IsRoot() )
 			return GmodPath( {}, *targetEndNode, true );
 
-		const auto& sourceGmod = VIS::Instance().GetGmod( sourceVersion );
-		const auto& targetGmod = VIS::Instance().GetGmod( targetVersion );
+		const auto& sourceGmod = VIS::instance().gmod( sourceVersion );
+		const auto& targetGmod = VIS::instance().gmod( targetVersion );
 
 		std::vector<std::pair<GmodNode, GmodNode>> qualifyingNodes;
 		for ( const auto& pathNode : sourcePath.GetFullPath() )

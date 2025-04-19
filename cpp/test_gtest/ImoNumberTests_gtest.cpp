@@ -16,7 +16,7 @@ protected:
 
 	std::vector<TestDataItem> testData;
 
-	void SetUp() override
+	virtual void SetUp() override
 	{
 		std::ifstream file;
 		file.open( "testdata/ImoNumbers.json" );
@@ -52,12 +52,12 @@ TEST_F( ImoNumberTests, TestValidation )
 {
 	for ( const auto& item : testData )
 	{
-		std::optional<ImoNumber> parsedImo = ImoNumber::TryParse( item.value );
+		std::optional<ImoNumber> parsedImo = ImoNumber::tryParse( item.value );
 
 		if ( item.success )
 		{
 			ASSERT_TRUE( parsedImo.has_value() ) << "Expected parsing to succeed for value: " << item.value;
-			EXPECT_NE( parsedImo->ToString(), "" ) << "Parsed IMO number should not be empty for value: " << item.value;
+			EXPECT_NE( parsedImo->toString(), "" ) << "Parsed IMO number should not be empty for value: " << item.value;
 		}
 		else
 		{
@@ -66,7 +66,7 @@ TEST_F( ImoNumberTests, TestValidation )
 
 		if ( item.output.has_value() )
 		{
-			EXPECT_EQ( parsedImo->ToString(), item.output.value() ) << "Expected output mismatch for value: " << item.value;
+			EXPECT_EQ( parsedImo->toString(), item.output.value() ) << "Expected output mismatch for value: " << item.value;
 		}
 	}
 }
@@ -78,7 +78,7 @@ TEST_F( ImoNumberTests, TestConstructorWithValidInteger )
 	} );
 
 	ImoNumber imo( 9785811 );
-	EXPECT_EQ( imo.ToString(), "IMO9785811" );
+	EXPECT_EQ( imo.toString(), "IMO9785811" );
 	EXPECT_EQ( static_cast<int>( imo ), 9785811 );
 }
 
@@ -116,22 +116,22 @@ TEST_F( ImoNumberTests, TestConstructorWithInvalidString )
 
 TEST_F( ImoNumberTests, TestStaticParseMethod )
 {
-	ImoNumber imo1 = ImoNumber::Parse( "9074729" );
-	EXPECT_EQ( imo1.ToString(), "IMO9074729" );
+	ImoNumber imo1 = ImoNumber::parse( "9074729" );
+	EXPECT_EQ( imo1.toString(), "IMO9074729" );
 
-	ImoNumber imo2 = ImoNumber::Parse( "IMO9785811" );
-	EXPECT_EQ( imo2.ToString(), "IMO9785811" );
+	ImoNumber imo2 = ImoNumber::parse( "IMO9785811" );
+	EXPECT_EQ( imo2.toString(), "IMO9785811" );
 
-	EXPECT_THROW( { ImoNumber::Parse( "invalid" ); }, std::invalid_argument );
+	EXPECT_THROW( { ImoNumber::parse( "invalid" ); }, std::invalid_argument );
 }
 
 TEST_F( ImoNumberTests, TestIsValidMethod )
 {
-	EXPECT_TRUE( ImoNumber::IsValid( 9074729 ) );
-	EXPECT_TRUE( ImoNumber::IsValid( 9785811 ) );
-	EXPECT_FALSE( ImoNumber::IsValid( 123 ) );
-	EXPECT_FALSE( ImoNumber::IsValid( 12345678 ) );
-	EXPECT_FALSE( ImoNumber::IsValid( 1234568 ) );
+	EXPECT_TRUE( ImoNumber::isValid( 9074729 ) );
+	EXPECT_TRUE( ImoNumber::isValid( 9785811 ) );
+	EXPECT_FALSE( ImoNumber::isValid( 123 ) );
+	EXPECT_FALSE( ImoNumber::isValid( 12345678 ) );
+	EXPECT_FALSE( ImoNumber::isValid( 1234568 ) );
 }
 
 TEST_F( ImoNumberTests, TestEqualityComparison )
@@ -146,28 +146,28 @@ TEST_F( ImoNumberTests, TestEqualityComparison )
 
 TEST_F( ImoNumberTests, TestPrefixHandling )
 {
-	ImoNumber imo1 = ImoNumber::Parse( "9074729" );
-	ImoNumber imo2 = ImoNumber::Parse( "IMO9074729" );
-	ImoNumber imo3 = ImoNumber::Parse( "imo9074729" );
+	ImoNumber imo1 = ImoNumber::parse( "9074729" );
+	ImoNumber imo2 = ImoNumber::parse( "IMO9074729" );
+	ImoNumber imo3 = ImoNumber::parse( "imo9074729" );
 
 	EXPECT_TRUE( imo1 == imo2 );
 	EXPECT_TRUE( imo1 == imo3 );
-	EXPECT_EQ( imo1.ToString(), "IMO9074729" );
-	EXPECT_EQ( imo2.ToString(), "IMO9074729" );
-	EXPECT_EQ( imo3.ToString(), "IMO9074729" );
+	EXPECT_EQ( imo1.toString(), "IMO9074729" );
+	EXPECT_EQ( imo2.toString(), "IMO9074729" );
+	EXPECT_EQ( imo3.toString(), "IMO9074729" );
 }
 
 TEST_F( ImoNumberTests, TestEdgeCases )
 {
-	EXPECT_TRUE( ImoNumber::TryParse( "IMO1000019" ).has_value() );
+	EXPECT_TRUE( ImoNumber::tryParse( "IMO1000019" ).has_value() );
 
-	EXPECT_FALSE( ImoNumber::TryParse( "IMO 9074729" ).has_value() );
-	EXPECT_FALSE( ImoNumber::TryParse( " IMO9074729" ).has_value() );
-	EXPECT_FALSE( ImoNumber::TryParse( "IMO9074729 " ).has_value() );
+	EXPECT_FALSE( ImoNumber::tryParse( "IMO 9074729" ).has_value() );
+	EXPECT_FALSE( ImoNumber::tryParse( " IMO9074729" ).has_value() );
+	EXPECT_FALSE( ImoNumber::tryParse( "IMO9074729 " ).has_value() );
 
-	EXPECT_FALSE( ImoNumber::TryParse( "" ).has_value() );
+	EXPECT_FALSE( ImoNumber::tryParse( "" ).has_value() );
 
-	EXPECT_THROW( { ImoNumber::Parse( nullptr ); }, std::invalid_argument );
+	EXPECT_THROW( { ImoNumber::parse( nullptr ); }, std::invalid_argument );
 }
 
 TEST_F( ImoNumberTests, TestHashFunction )

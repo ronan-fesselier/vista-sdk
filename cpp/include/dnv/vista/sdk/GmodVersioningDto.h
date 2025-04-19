@@ -6,7 +6,6 @@ namespace dnv::vista::sdk
 	 * @brief Data transfer object for GMOD node assignment changes
 	 *
 	 * Represents a change in assignment between VIS versions.
-	 * Maps to C# record: GmodVersioningAssignmentChangeDto(string OldAssignment, string CurrentAssignment)
 	 */
 	struct GmodVersioningAssignmentChangeDto
 	{
@@ -20,11 +19,7 @@ namespace dnv::vista::sdk
 		 * @param oldAssignment Previous assignment value
 		 * @param currentAssignment Current assignment value
 		 */
-		GmodVersioningAssignmentChangeDto(
-			std::string oldAssignment,
-			std::string currentAssignment )
-			: oldAssignment( std::move( oldAssignment ) ),
-			  currentAssignment( std::move( currentAssignment ) ) {}
+		GmodVersioningAssignmentChangeDto( std::string oldAssignment, std::string currentAssignment );
 
 		/**
 		 * @brief Deserialize a GmodVersioningAssignmentChangeDto from a RapidJSON object
@@ -32,6 +27,14 @@ namespace dnv::vista::sdk
 		 * @return The deserialized GmodVersioningAssignmentChangeDto
 		 */
 		static GmodVersioningAssignmentChangeDto FromJson( const rapidjson::Value& json );
+
+		/**
+		 * @brief Try to deserialize a GmodVersioningAssignmentChangeDto from a RapidJSON object
+		 * @param json The RapidJSON object to deserialize
+		 * @param dto Output parameter to receive the deserialized object
+		 * @return True if deserialization was successful, false otherwise
+		 */
+		static bool TryFromJson( const rapidjson::Value& json, GmodVersioningAssignmentChangeDto& dto );
 
 		/**
 		 * @brief Serialize this GmodVersioningAssignmentChangeDto to a RapidJSON Value
@@ -51,8 +54,6 @@ namespace dnv::vista::sdk
 	 * @brief Data transfer object for GMOD node conversion information
 	 *
 	 * Contains instructions for converting a node between VIS versions.
-	 * Maps to C# record: GmodNodeConversionDto(HashSet<string> Operations, string Source, string Target,
-	 *                                          string OldAssignment, string NewAssignment, bool DeleteAssignment)
 	 */
 	struct GmodNodeConversionDto
 	{
@@ -76,13 +77,7 @@ namespace dnv::vista::sdk
 			std::string target,
 			std::string oldAssignment,
 			std::string newAssignment,
-			bool deleteAssignment )
-			: operations( std::move( operations ) ),
-			  source( std::move( source ) ),
-			  target( std::move( target ) ),
-			  oldAssignment( std::move( oldAssignment ) ),
-			  newAssignment( std::move( newAssignment ) ),
-			  deleteAssignment( deleteAssignment ) {}
+			bool deleteAssignment );
 
 		/**
 		 * @brief Deserialize a GmodNodeConversionDto from a RapidJSON object
@@ -90,6 +85,14 @@ namespace dnv::vista::sdk
 		 * @return The deserialized GmodNodeConversionDto
 		 */
 		static GmodNodeConversionDto FromJson( const rapidjson::Value& json );
+
+		/**
+		 * @brief Try to deserialize a GmodNodeConversionDto from a RapidJSON object
+		 * @param json The RapidJSON object to deserialize
+		 * @param dto Output parameter to receive the deserialized object
+		 * @return True if deserialization was successful, false otherwise
+		 */
+		static bool TryFromJson( const rapidjson::Value& json, GmodNodeConversionDto& dto );
 
 		/**
 		 * @brief Serialize this GmodNodeConversionDto to a RapidJSON Value
@@ -121,7 +124,6 @@ namespace dnv::vista::sdk
 	 * @brief Data transfer object for GMOD version conversion information
 	 *
 	 * Contains all node conversion information for a specific VIS version.
-	 * Maps to C# record: GmodVersioningDto(string VisVersion, IReadOnlyDictionary<string, GmodNodeConversionDto> Items)
 	 */
 	struct GmodVersioningDto
 	{
@@ -135,11 +137,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion VIS version identifier
 		 * @param items Map of node codes to conversion information
 		 */
-		GmodVersioningDto(
-			std::string visVersion,
-			std::unordered_map<std::string, GmodNodeConversionDto> items )
-			: visVersion( std::move( visVersion ) ),
-			  items( std::move( items ) ) {}
+		GmodVersioningDto( std::string visVersion, std::unordered_map<std::string, GmodNodeConversionDto> items );
 
 		/**
 		 * @brief Deserialize a GmodVersioningDto from a RapidJSON object
@@ -147,6 +145,14 @@ namespace dnv::vista::sdk
 		 * @return The deserialized GmodVersioningDto
 		 */
 		static GmodVersioningDto FromJson( const rapidjson::Value& json );
+
+		/**
+		 * @brief Try to deserialize a GmodVersioningDto from a RapidJSON object
+		 * @param json The RapidJSON object to deserialize
+		 * @param dto Output parameter to receive the deserialized object
+		 * @return True if deserialization was successful, false otherwise
+		 */
+		static bool TryFromJson( const rapidjson::Value& json, GmodVersioningDto& dto );
 
 		/**
 		 * @brief Serialize this GmodVersioningDto to a RapidJSON Value

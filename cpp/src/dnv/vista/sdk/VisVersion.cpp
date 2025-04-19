@@ -19,7 +19,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::string VisVersionExtensions::ToVersionString( VisVersion version )
+	std::string VisVersionExtensions::toVersionString( VisVersion version )
 	{
 		switch ( version )
 		{

@@ -40,8 +40,8 @@ namespace dnv::vista::sdk::tests
 	protected:
 		static std::pair<VIS&, Gmod> GetVisAndGmod( VisVersion visVersion )
 		{
-			VIS& vis = VIS::Instance();
-			Gmod gmod = vis.GetGmod( visVersion );
+			VIS& vis = VIS::instance();
+			Gmod gmod = vis.gmod( visVersion );
 			return { vis, gmod };
 		}
 	};
@@ -52,7 +52,7 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( visVersion );
 
 		GmodNode tempNode;
-		ASSERT_TRUE( gmod.TryGetNode( std::string( "400a" ), tempNode ) ) << "Node '400a' not found in GMOD.";
+		ASSERT_TRUE( gmod.tryGetNode( std::string( "400a" ), tempNode ) ) << "Node '400a' not found in GMOD.";
 	}
 
 	TEST_P( GmodTests, Test_Gmod_Properties )
@@ -117,8 +117,7 @@ namespace dnv::vista::sdk::tests
 		auto visVersion = GetParam();
 		auto [vis, gmod] = GetVisAndGmod( visVersion );
 
-		auto gmodDto = vis.GetGmodDto( visVersion );
-		// ASSERT_TRUE( gmodDto != nullptr );
+		auto gmodDto = vis.gmodDto( visVersion );
 
 		{
 			std::unordered_set<std::string> seen;
@@ -133,7 +132,7 @@ namespace dnv::vista::sdk::tests
 				EXPECT_TRUE( insertResult.second ) << "Code: " << item.code;
 
 				GmodNode foundNode;
-				ASSERT_TRUE( gmod.TryGetNode( item.code, foundNode ) );
+				ASSERT_TRUE( gmod.tryGetNode( item.code, foundNode ) );
 				EXPECT_EQ( item.code, foundNode.GetCode() );
 				counter++;
 			}
@@ -150,22 +149,22 @@ namespace dnv::vista::sdk::tests
 				EXPECT_TRUE( insertResult.second ) << "Code: " << node.GetCode();
 
 				GmodNode foundNode;
-				ASSERT_TRUE( gmod.TryGetNode( node.GetCode(), foundNode ) );
+				ASSERT_TRUE( gmod.tryGetNode( node.GetCode(), foundNode ) );
 				EXPECT_EQ( node.GetCode(), foundNode.GetCode() );
 				counter++;
 			}
 		}
 
 		GmodNode notFoundNode;
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "ABC" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "SDFASDFSDAFb" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "✅" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "a✅b" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "ac✅bc" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "✅bc" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "a✅" ), notFoundNode ) );
-		EXPECT_FALSE( gmod.TryGetNode( std::string( "ag✅" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "ABC" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "SDFASDFSDAFb" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "✅" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "a✅b" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "ac✅bc" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "✅bc" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "a✅" ), notFoundNode ) );
+		EXPECT_FALSE( gmod.tryGetNode( std::string( "ag✅" ), notFoundNode ) );
 	}
 
 	TEST_F( GmodTests, Test_Gmod_Node_Equality )
@@ -202,7 +201,7 @@ namespace dnv::vista::sdk::tests
 		auto visVersion = GetParam();
 		auto [vis, gmod] = GetVisAndGmod( visVersion );
 
-		const auto& node = gmod.GetRootNode();
+		const auto& node = gmod.rootNode();
 		EXPECT_FALSE( node.GetChildren().empty() );
 	}
 
@@ -254,11 +253,11 @@ namespace dnv::vista::sdk::tests
 		{
 			const auto& testCase = GetParam();
 
-			auto& vis = VIS::Instance();
-			auto gmod = vis.GetGmod( VisVersion::v3_4a );
+			auto& vis = VIS::instance();
+			auto gmod = vis.gmod( VisVersion::v3_4a );
 
 			GmodNode node;
-			if ( !gmod.TryGetNode( testCase.Code, node ) )
+			if ( !gmod.tryGetNode( testCase.Code, node ) )
 			{
 				FAIL() << "Node '" << testCase.Code << "' not found.";
 				return;
@@ -305,7 +304,7 @@ namespace dnv::vista::sdk::tests
 		const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
 		int maxOccurrence = 0;
 
-		bool completed = gmod.Traverse(
+		bool completed = gmod.traverse(
 			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
 				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
 
@@ -316,7 +315,7 @@ namespace dnv::vista::sdk::tests
 					pathCount++;
 				}
 
-				bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
+				bool skipOccurrenceCheck = Gmod::isProductSelectionAssignment(
 					parents.empty() ? nullptr : &parents.back(), &node );
 
 				if ( skipOccurrenceCheck )
@@ -344,9 +343,9 @@ namespace dnv::vista::sdk::tests
 		Gmod::TraversalOptions options;
 		options.maxTraversalOccurrence = maxExpected;
 
-		bool completed = gmod.Traverse(
+		bool completed = gmod.traverse(
 			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-				bool skipOccurrenceCheck = Gmod::IsProductSelectionAssignment(
+				bool skipOccurrenceCheck = Gmod::isProductSelectionAssignment(
 					parents.empty() ? nullptr : &parents.back(), &node );
 
 				if ( skipOccurrenceCheck )
@@ -370,7 +369,7 @@ namespace dnv::vista::sdk::tests
 
 		TraversalState state( 5 );
 
-		bool completed = gmod.Traverse(
+		bool completed = gmod.traverse(
 			[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
 				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
 				if ( ++state.NodeCount == state.StopAfter )

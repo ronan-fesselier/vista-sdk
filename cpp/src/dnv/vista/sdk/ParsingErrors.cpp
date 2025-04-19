@@ -7,40 +7,57 @@ namespace dnv::vista::sdk
 	const ParsingErrors ParsingErrors::Empty = ParsingErrors();
 
 	ParsingErrors::ParsingErrors( const std::vector<ErrorEntry>& errors )
-		: _errors( errors )
+		: m_errors( errors )
 	{
+		SPDLOG_INFO( "ParsingErrors constructed with {} errors", m_errors.size() );
 	}
 
-	bool ParsingErrors::HasErrors() const
+	void ParsingErrors::addError( const std::string& type, const std::string& message )
 	{
-		return !_errors.empty();
+		m_errors.emplace_back( type, message );
+		SPDLOG_INFO( "Added parsing error: {} - {}", type, message );
 	}
 
-	bool ParsingErrors::HasErrorType( const std::string& type ) const
+	bool ParsingErrors::hasErrors() const
 	{
-		return std::any_of( _errors.begin(), _errors.end(),
+		return !m_errors.empty();
+	}
+
+	bool ParsingErrors::hasErrorType( const std::string& type ) const
+	{
+		bool found = std::any_of( m_errors.begin(), m_errors.end(),
 			[&type]( const ErrorEntry& error ) { return std::get<0>( error ) == type; } );
+
+		SPDLOG_INFO( "Error type '{}' {} found", type, found ? "was" : "was not" );
+		return found;
 	}
 
-	std::string ParsingErrors::ToString() const
+	bool ParsingErrors::isEmpty() const
 	{
-		if ( _errors.empty() )
+		return m_errors.empty();
+	}
+
+	std::string ParsingErrors::toString() const
+	{
+		if ( m_errors.empty() )
 			return "Success";
 
 		std::ostringstream builder;
 		builder << "Parsing errors:\n";
 
-		for ( const auto& [type, message] : _errors )
+		for ( const auto& [type, message] : m_errors )
 		{
 			builder << '\t' << type << " - " << message << '\n';
 		}
 
-		return builder.str();
+		std::string result = builder.str();
+		SPDLOG_TRACE( "ParsingErrors toString generated: {}", result );
+		return result;
 	}
 
 	bool ParsingErrors::operator==( const ParsingErrors& other ) const
 	{
-		return _errors == other._errors;
+		return m_errors == other.m_errors;
 	}
 
 	bool ParsingErrors::operator!=( const ParsingErrors& other ) const
@@ -49,23 +66,23 @@ namespace dnv::vista::sdk
 	}
 
 	ParsingErrors::Iterator::Iterator( const std::vector<ErrorEntry>* data, size_t index )
-		: _data( data ), _index( index )
+		: m_data( data ), m_index( index )
 	{
 	}
 
 	ParsingErrors::Iterator::reference ParsingErrors::Iterator::operator*() const
 	{
-		return ( *_data )[_index];
+		return ( *m_data )[m_index];
 	}
 
 	ParsingErrors::Iterator::pointer ParsingErrors::Iterator::operator->() const
 	{
-		return &( ( *_data )[_index] );
+		return &( ( *m_data )[m_index] );
 	}
 
 	ParsingErrors::Iterator& ParsingErrors::Iterator::operator++()
 	{
-		++_index;
+		++m_index;
 		return *this;
 	}
 
@@ -78,7 +95,7 @@ namespace dnv::vista::sdk
 
 	bool ParsingErrors::Iterator::operator==( const Iterator& other ) const
 	{
-		return _data == other._data && _index == other._index;
+		return m_data == other.m_data && m_index == other.m_index;
 	}
 
 	bool ParsingErrors::Iterator::operator!=( const Iterator& other ) const
@@ -88,11 +105,11 @@ namespace dnv::vista::sdk
 
 	ParsingErrors::Iterator ParsingErrors::begin() const
 	{
-		return Iterator( &_errors, 0 );
+		return Iterator( &m_errors, 0 );
 	}
 
 	ParsingErrors::Iterator ParsingErrors::end() const
 	{
-		return Iterator( &_errors, _errors.size() );
+		return Iterator( &m_errors, m_errors.size() );
 	}
 }

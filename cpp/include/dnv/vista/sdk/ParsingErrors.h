@@ -10,6 +10,10 @@ namespace dnv::vista::sdk
 	class ParsingErrors
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Types and Constants
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Represents a single parsing error entry.
 		 *
@@ -22,30 +26,55 @@ namespace dnv::vista::sdk
 		 */
 		static const ParsingErrors Empty;
 
+		//-------------------------------------------------------------------------
+		// Construction
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Constructs a ParsingErrors object.
 		 * @param errors A vector of error entries (default is an empty vector).
 		 */
 		ParsingErrors( const std::vector<ErrorEntry>& errors = {} );
 
+		//-------------------------------------------------------------------------
+		// Core Methods
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Adds a new error to the collection.
+		 * @param type The error type.
+		 * @param message The error message.
+		 */
+		void addError( const std::string& type, const std::string& message );
+
 		/**
 		 * @brief Checks if there are any errors.
 		 * @return True if there are errors, false otherwise.
 		 */
-		bool HasErrors() const;
+		bool hasErrors() const;
 
 		/**
 		 * @brief Checks if there is an error of a specific type.
 		 * @param type The type of error to check for.
 		 * @return True if an error of the specified type exists, false otherwise.
 		 */
-		bool HasErrorType( const std::string& type ) const;
+		bool hasErrorType( const std::string& type ) const;
+
+		/**
+		 * @brief Checks if the collection has no errors.
+		 * @return True if the collection is empty, false otherwise.
+		 */
+		bool isEmpty() const;
 
 		/**
 		 * @brief Converts the parsing errors to a string representation.
 		 * @return A string representation of the parsing errors.
 		 */
-		std::string ToString() const;
+		std::string toString() const;
+
+		//-------------------------------------------------------------------------
+		// Operators
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Equality operator.
@@ -60,6 +89,10 @@ namespace dnv::vista::sdk
 		 * @return True if the two ParsingErrors objects are not equal, false otherwise.
 		 */
 		bool operator!=( const ParsingErrors& other ) const;
+
+		//-------------------------------------------------------------------------
+		// Iterator Implementation
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Iterator for traversing parsing errors.
@@ -121,8 +154,8 @@ namespace dnv::vista::sdk
 			bool operator!=( const Iterator& other ) const;
 
 		private:
-			const std::vector<ErrorEntry>* _data; ///< Pointer to the vector of error entries.
-			size_t _index;						  ///< Current index of the iterator.
+			const std::vector<ErrorEntry>* m_data; ///< Pointer to the vector of error entries.
+			size_t m_index;						   ///< Current index of the iterator.
 		};
 
 		/**
@@ -138,6 +171,9 @@ namespace dnv::vista::sdk
 		Iterator end() const;
 
 	private:
-		std::vector<ErrorEntry> _errors; ///< Vector of error entries.
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
+		std::vector<ErrorEntry> m_errors; ///< Vector of error entries.
 	};
 }

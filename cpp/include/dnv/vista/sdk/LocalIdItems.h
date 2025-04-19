@@ -6,20 +6,72 @@ namespace dnv::vista::sdk
 {
 	/**
 	 * @brief Structure representing primary and secondary items for a LocalId
+	 * @note Internal implementation detail for LocalId functionality
 	 */
 	class LocalIdItems
 	{
-	private:
-		std::optional<GmodPath> m_primaryItem;
-		std::optional<GmodPath> m_secondaryItem;
-
 	public:
+		//-------------------------------------------------------------------------
+		// Constructors and Assignment
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Default constructor
 		 */
 		LocalIdItems() = default;
-		LocalIdItems& operator=( const LocalIdItems& other );
+
+		/**
+		 * @brief Copy constructor
+		 * @param other The object to copy from
+		 */
 		LocalIdItems( const LocalIdItems& other );
+
+		/**
+		 * @brief Assignment operator
+		 * @param other The object to copy from
+		 * @return Reference to this object
+		 */
+		LocalIdItems& operator=( const LocalIdItems& other );
+
+		/**
+		 * @brief Constructor with primary and secondary items
+		 * @param primaryItem Optional primary item
+		 * @param secondaryItem Optional secondary item
+		 */
+		LocalIdItems(
+			const std::optional<GmodPath>& primaryItem,
+			const std::optional<GmodPath>& secondaryItem );
+
+		//-------------------------------------------------------------------------
+		// Core Properties
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Get primary item
+		 * @return Optional primary item
+		 */
+		const std::optional<GmodPath>& getPrimaryItem() const;
+
+		/**
+		 * @brief Get secondary item
+		 * @return Optional secondary item
+		 */
+		const std::optional<GmodPath>& getSecondaryItem() const;
+
+		//-------------------------------------------------------------------------
+		// String Generation
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Append items to string builder
+		 * @param builder String stream to append to
+		 * @param verboseMode Whether to include verbose output
+		 */
+		void append( std::stringstream& builder, bool verboseMode ) const;
+
+		//-------------------------------------------------------------------------
+		// Comparison Operators
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Equality operator
@@ -35,42 +87,25 @@ namespace dnv::vista::sdk
 		 */
 		bool operator!=( const LocalIdItems& other ) const;
 
-		/**
-		 * @brief Constructor with primary and secondary items
-		 * @param primaryItem Optional primary item
-		 * @param secondaryItem Optional secondary item
-		 */
-		LocalIdItems(
-			const std::optional<GmodPath>& primaryItem,
-			const std::optional<GmodPath>& secondaryItem );
-
-		/**
-		 * @brief Get primary item
-		 * @return Optional primary item
-		 */
-		const std::optional<GmodPath>& GetPrimaryItem() const;
-
-		/**
-		 * @brief Get secondary item
-		 * @return Optional secondary item
-		 */
-		const std::optional<GmodPath>& GetSecondaryItem() const;
-
-		/**
-		 * @brief Append items to string builder
-		 * @param builder String stream to append to
-		 * @param verboseMode Whether to include verbose output
-		 */
-		void Append( std::stringstream& builder, bool verboseMode ) const;
-
 	private:
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
+		std::optional<GmodPath> m_primaryItem;
+		std::optional<GmodPath> m_secondaryItem;
+
+		//-------------------------------------------------------------------------
+		// Private Helper Methods
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Append common name with location
 		 * @param builder String stream to append to
 		 * @param commonName Common name to append
 		 * @param location Optional location string
 		 */
-		static void AppendCommonName( std::stringstream& builder,
+		static void appendCommonName(
+			std::stringstream& builder,
 			const std::string& commonName,
 			const std::optional<std::string>& location );
 	};

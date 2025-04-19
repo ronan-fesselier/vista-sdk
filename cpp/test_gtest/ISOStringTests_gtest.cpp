@@ -28,7 +28,7 @@ namespace dnv::vista::sdk
 
 		for ( const char ch : allAllowedCharacters )
 		{
-			EXPECT_TRUE( VIS::IsISOString( std::string( 1, ch ) ) ) << "Character: " << ch;
+			EXPECT_TRUE( VIS::isISOString( std::string( 1, ch ) ) ) << "Character: " << ch;
 		}
 	}
 
@@ -49,7 +49,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& testCase : testCases )
 		{
-			EXPECT_EQ( VIS::IsISOString( testCase.input ), testCase.expectedResult )
+			EXPECT_EQ( VIS::isISOString( testCase.input ), testCase.expectedResult )
 				<< "Input: " << testCase.input;
 		}
 	}
@@ -67,7 +67,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				bool match = VIS::IsISOLocalIdString( localIdStr );
+				bool match = VIS::isISOLocalIdString( localIdStr );
 				if ( !match )
 				{
 					errored.push_back( localIdStr );

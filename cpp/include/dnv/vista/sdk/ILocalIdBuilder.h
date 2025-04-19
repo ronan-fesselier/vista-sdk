@@ -1,264 +1,277 @@
 #pragma once
 
-#include "ILocalId.h"
 #include "ParsingErrors.h"
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
+#include "VisVersion.h"
+#include "GmodPath.h"
+#include "MetadataTag.h"
+#include "CodebookName.h"
 
 namespace dnv::vista::sdk
 {
-	class GmodPath;
-	class MetadataTag;
-	enum class CodebookName;
-	enum class VisVersion;
+	// Forward declaration for LocalIdBuilder to avoid circular includes
+	class LocalIdBuilder;
 
 	/**
-	 * @brief Interface for local ID builders with fluent builder pattern
+	 * @brief Interface for building Local IDs
 	 *
-	 * Defines the core properties and methods that all local ID builders must implement,
-	 * including access to essential components like version, items, and metadata tags.
-	 * Implementations should provide immutable builder pattern semantics for creating
-	 * local IDs according to ISO 19848.
+	 * This template interface provides the builder pattern for creating
+	 * Local ID objects with a fluent interface. Template parameters allow
+	 * for proper return type of builder methods in derived classes.
 	 *
-	 * @tparam TBuilder The concrete builder type (derived class, used for method chaining)
-	 * @tparam TResult The result type produced by Build() (typically LocalId)
+	 * @tparam TBuilder The concrete builder type (for method chaining)
+	 * @tparam TResult The result type that the builder produces
 	 */
 	template <typename TBuilder, typename TResult>
 	class ILocalIdBuilder
 	{
 	public:
-		/** @brief Virtual destructor */
+		//-------------------------------------------------------------------------
+		// Lifecycle
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Virtual destructor
+		 */
 		virtual ~ILocalIdBuilder() = default;
 
-		/**
-		 * @brief Get the VIS version associated with this local ID
-		 * @return The VIS version if set, or std::nullopt if not set
-		 */
-		virtual std::optional<VisVersion> GetVisVersion() const = 0;
+		//-------------------------------------------------------------------------
+		// Core Build Method
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Check if verbose mode is enabled
-		 * @return True if verbose mode is enabled, false otherwise
+		 * @brief Creates the final Local ID object
+		 * @return A new instance of the Local ID
 		 */
-		virtual bool GetVerboseMode() const = 0;
+		virtual TResult build() const = 0;
+
+		//-------------------------------------------------------------------------
+		// State Inspection Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Get the primary item path
-		 * @return Reference to the optional primary item path
+		 * @brief Gets the VIS version
+		 * @return The VIS version, if specified
 		 */
-		virtual const std::optional<GmodPath>& GetPrimaryItem() const = 0;
+		virtual std::optional<VisVersion> getVisVersion() const = 0;
 
 		/**
-		 * @brief Get the secondary item path
-		 * @return Reference to the optional secondary item path
+		 * @brief Checks if verbose mode is enabled
+		 * @return True if verbose mode is enabled
 		 */
-		virtual const std::optional<GmodPath>& GetSecondaryItem() const = 0;
+		virtual bool getVerboseMode() const = 0;
 
 		/**
-		 * @brief Check if this local ID has any custom tags
-		 * @return True if at least one custom tag exists, false otherwise
+		 * @brief Gets the primary item path
+		 * @return The primary item path, if specified
 		 */
-		virtual bool HasCustomTag() const = 0;
+		virtual const std::optional<GmodPath>& getPrimaryItem() const = 0;
 
 		/**
-		 * @brief Get all metadata tags
-		 * @return Vector of all metadata tags
+		 * @brief Gets the secondary item path
+		 * @return The secondary item path, if specified
 		 */
-		virtual std::vector<MetadataTag> GetMetadataTags() const = 0;
+		virtual const std::optional<GmodPath>& getSecondaryItem() const = 0;
 
 		/**
-		 * @brief Check if this local ID is valid
+		 * @brief Checks if the builder has a custom tag
+		 * @return True if a custom tag exists
+		 */
+		virtual bool hasCustomTag() const = 0;
+
+		/**
+		 * @brief Gets all metadata tags
+		 * @return A const reference to the vector of metadata tags
+		 */
+		virtual const std::vector<MetadataTag> getMetadataTags() const = 0;
+
+		/**
+		 * @brief Checks if the builder contains valid data for building a Local ID
 		 * @return True if valid, false otherwise
 		 */
-		virtual bool IsValid() const = 0;
+		virtual bool isValid() const = 0;
 
 		/**
-		 * @brief Check if this local ID is empty
+		 * @brief Checks if the builder has no data
 		 * @return True if empty, false otherwise
 		 */
-		virtual bool IsEmpty() const = 0;
+		virtual bool isEmpty() const = 0;
 
 		/**
-		 * @brief Convert to string representation
-		 * @return String representation of the local ID
+		 * @brief Gets the string representation of the builder state
+		 * @return String representation
 		 */
-		virtual std::string ToString() const = 0;
+		virtual std::string toString() const = 0;
 
-	public:
+		//-------------------------------------------------------------------------
+		// VIS Version Builder Methods
+		//-------------------------------------------------------------------------
+
 		/**
-		 * @brief Set the VIS version using a string
-		 * @param visVersion The VIS version as a string
-		 * @return New builder instance with the updated VIS version
-		 * @throws std::invalid_argument If the visVersion is invalid
+		 * @brief Sets the VIS version from a string
+		 * @param visVersion The VIS version string
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithVisVersion( const std::string& visVersion ) = 0;
+		virtual TBuilder withVisVersion( const std::string& visVersion ) = 0;
 
 		/**
-		 * @brief Set the VIS version
+		 * @brief Sets the VIS version
 		 * @param version The VIS version
-		 * @return New builder instance with the updated VIS version
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithVisVersion( VisVersion version ) = 0;
+		virtual TBuilder withVisVersion( VisVersion version ) = 0;
 
 		/**
-		 * @brief Try to set the VIS version
-		 * @param version Optional VIS version
-		 * @return New builder instance with the updated VIS version, or unchanged if version is nullopt
+		 * @brief Tries to set the VIS version
+		 * @param version The optional VIS version
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithVisVersion( const std::optional<VisVersion>& version ) = 0;
+		virtual TBuilder tryWithVisVersion( const std::optional<VisVersion>& version ) = 0;
 
 		/**
-		 * @brief Try to set the VIS version from a string
-		 * @param visVersionStr Optional VIS version string
-		 * @param[out] succeeded Set to true if version was successfully set, false otherwise
-		 * @return New builder instance with the updated VIS version, or unchanged if setting failed
+		 * @brief Tries to set the VIS version from a string
+		 * @param visVersionStr The optional VIS version string
+		 * @param succeeded Output parameter indicating success
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded ) = 0;
+		virtual TBuilder tryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded ) = 0;
 
 		/**
-		 * @brief Remove the VIS version
-		 * @return New builder instance with no VIS version
+		 * @brief Removes the VIS version
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithoutVisVersion() = 0;
+		virtual TBuilder withoutVisVersion() = 0;
 
 		/**
-		 * @brief Set verbose mode
-		 * @param verboseMode True to enable verbose mode, false otherwise
-		 * @return New builder instance with the updated verbose mode setting
+		 * @brief Sets the verbose mode
+		 * @param verboseMode True to enable verbose mode
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithVerboseMode( bool verboseMode ) = 0;
+		virtual TBuilder withVerboseMode( bool verboseMode ) = 0;
+
+		//-------------------------------------------------------------------------
+		// Primary Item Builder Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Set the primary item
-		 * @param item The GMOD path to set as primary item
-		 * @return New builder instance with the updated primary item
+		 * @brief Sets the primary item
+		 * @param item The primary item path
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithPrimaryItem( const GmodPath& item ) = 0;
+		virtual TBuilder withPrimaryItem( const GmodPath& item ) = 0;
 
 		/**
-		 * @brief Try to set the primary item
-		 * @param item Optional GMOD path to set as primary item
-		 * @return New builder instance with the updated primary item, or unchanged if item is nullopt
+		 * @brief Tries to set the primary item
+		 * @param item The optional primary item path
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithPrimaryItem( const std::optional<GmodPath>& item ) = 0;
+		virtual TBuilder tryWithPrimaryItem( const std::optional<GmodPath>& item ) = 0;
 
 		/**
-		 * @brief Try to set the primary item
-		 * @param item Optional GMOD path to set as primary item
-		 * @param[out] succeeded Set to true if item was successfully set, false otherwise
-		 * @return New builder instance with the updated primary item, or unchanged if setting failed
+		 * @brief Tries to set the primary item
+		 * @param item The optional primary item path
+		 * @param succeeded Output parameter indicating success
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithPrimaryItem( const std::optional<GmodPath>& item, bool& succeeded ) = 0;
+		virtual TBuilder tryWithPrimaryItem( const std::optional<GmodPath>& item, bool& succeeded ) = 0;
 
 		/**
-		 * @brief Remove the primary item
-		 * @return New builder instance with no primary item
+		 * @brief Removes the primary item
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithoutPrimaryItem() = 0;
+		virtual TBuilder withoutPrimaryItem() = 0;
+
+		//-------------------------------------------------------------------------
+		// Secondary Item Builder Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Set the secondary item
-		 * @param item The GMOD path to set as secondary item
-		 * @return New builder instance with the updated secondary item
+		 * @brief Sets the secondary item
+		 * @param item The secondary item path
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithSecondaryItem( const GmodPath& item ) = 0;
+		virtual TBuilder withSecondaryItem( const GmodPath& item ) = 0;
 
 		/**
-		 * @brief Try to set the secondary item
-		 * @param item Optional GMOD path to set as secondary item
-		 * @return New builder instance with the updated secondary item, or unchanged if item is nullopt
+		 * @brief Tries to set the secondary item
+		 * @param item The optional secondary item path
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithSecondaryItem( const std::optional<GmodPath>& item ) = 0;
+		virtual TBuilder tryWithSecondaryItem( const std::optional<GmodPath>& item ) = 0;
 
 		/**
-		 * @brief Try to set the secondary item
-		 * @param item Optional GMOD path to set as secondary item
-		 * @param[out] succeeded Set to true if item was successfully set, false otherwise
-		 * @return New builder instance with the updated secondary item, or unchanged if setting failed
+		 * @brief Tries to set the secondary item
+		 * @param item The optional secondary item path
+		 * @param succeeded Output parameter indicating success
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithSecondaryItem( const std::optional<GmodPath>& item, bool& succeeded ) = 0;
+		virtual TBuilder tryWithSecondaryItem( const std::optional<GmodPath>& item, bool& succeeded ) = 0;
 
 		/**
-		 * @brief Remove the secondary item
-		 * @return New builder instance with no secondary item
+		 * @brief Removes the secondary item
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithoutSecondaryItem() = 0;
+		virtual TBuilder withoutSecondaryItem() = 0;
+
+		//-------------------------------------------------------------------------
+		// Metadata Tag Builder Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Add a metadata tag
+		 * @brief Adds a metadata tag
 		 * @param metadataTag The metadata tag to add
-		 * @return New builder instance with the added metadata tag
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithMetadataTag( const MetadataTag& metadataTag ) = 0;
+		virtual TBuilder withMetadataTag( const MetadataTag& metadataTag ) = 0;
 
 		/**
-		 * @brief Try to add a metadata tag
-		 * @param metadataTag Optional metadata tag to add
-		 * @return New builder instance with the added metadata tag, or unchanged if tag is nullopt
+		 * @brief Tries to add a metadata tag
+		 * @param metadataTag The optional metadata tag
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithMetadataTag( const std::optional<MetadataTag>& metadataTag ) = 0;
+		virtual TBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag ) = 0;
 
 		/**
-		 * @brief Try to add a metadata tag
-		 * @param metadataTag Optional metadata tag to add
-		 * @param[out] succeeded Set to true if tag was successfully added, false otherwise
-		 * @return New builder instance with the added metadata tag, or unchanged if adding failed
+		 * @brief Tries to add a metadata tag
+		 * @param metadataTag The optional metadata tag
+		 * @param succeeded Output parameter indicating success
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder TryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded ) = 0;
+		virtual TBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded ) = 0;
 
 		/**
-		 * @brief Remove a metadata tag by codebook name
+		 * @brief Removes a metadata tag by codebook name
 		 * @param name The codebook name of the tag to remove
-		 * @return New builder instance with the specified tag removed
+		 * @return Builder instance for method chaining
 		 */
-		virtual TBuilder WithoutMetadataTag( CodebookName name ) = 0;
+		virtual TBuilder withoutMetadataTag( CodebookName name ) = 0;
+
+		//-------------------------------------------------------------------------
+		// Static Factory Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Build the final result object
-		 * @return The constructed result object
-		 * @throws std::invalid_argument If the builder state is invalid
-		 */
-		virtual TResult Build() const = 0;
-
-		/**
-		 * @brief Parse a local ID string into a builder
-		 * @param localIdStr The local ID string to parse
-		 * @return The builder representing the parsed local ID
+		 * @brief Parses a string into a builder
+		 * @param localIdStr The string to parse
+		 * @return A new builder instance
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		static TBuilder Parse( const std::string& localIdStr )
-		{
-			ParsingErrors errors;
-			std::optional<TBuilder> builder;
-			if ( !TryParse( localIdStr, errors, builder ) )
-			{
-				SPDLOG_ERROR( "Failed to parse LocalId: {}", localIdStr );
-				throw std::invalid_argument( "Failed to parse LocalId: " + errors.ToString() );
-			}
-			return builder.value();
-		}
+		static TBuilder parse( const std::string& localIdStr );
 
 		/**
-		 * @brief Try to parse a local ID string
-		 * @param localIdStr The local ID string to parse
-		 * @param[out] localId The optional builder to receive the result
+		 * @brief Tries to parse a string into a builder
+		 * @param localIdStr The string to parse
+		 * @param localId Output parameter for the parsed builder
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& localIdStr, std::optional<TBuilder>& localId )
-		{
-			ParsingErrors errors;
-			return TryParse( localIdStr, errors, localId );
-		}
+		static bool tryParse( const std::string& localIdStr, std::optional<TBuilder>& localId );
 
 		/**
-		 * @brief Try to parse a local ID string with detailed error information
-		 * @param localIdStr The local ID string to parse
-		 * @param[out] errors Object to receive parsing errors
-		 * @param[out] localId The optional builder to receive the result
+		 * @brief Tries to parse a string into a builder with error information
+		 * @param localIdStr The string to parse
+		 * @param errors Output parameter for parsing errors
+		 * @param localId Output parameter for the parsed builder
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<TBuilder>& localId );
+		static bool tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<TBuilder>& localId );
 	};
 }

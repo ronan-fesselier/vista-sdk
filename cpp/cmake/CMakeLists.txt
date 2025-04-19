@@ -5,6 +5,7 @@
 # Include headers and sources
 set(VISTA_SDK_INCLUDES
     ../include/dnv/vista/sdk/ChdDictionary.h
+    ../include/dnv/vista/sdk/ChdDictionary.hpp
     ../include/dnv/vista/sdk/Codebook.h
     ../include/dnv/vista/sdk/Codebooks.h
     ../include/dnv/vista/sdk/CodebookName.h
@@ -18,6 +19,7 @@ set(VISTA_SDK_INCLUDES
     ../include/dnv/vista/sdk/GmodVersioningDto.h
     ../include/dnv/vista/sdk/ILocalId.h
     ../include/dnv/vista/sdk/ILocalIdBuilder.h
+    ../include/dnv/vista/sdk/ILocalIdBuilder.hpp
     ../include/dnv/vista/sdk/IUniversalIdBuilder.h
     ../include/dnv/vista/sdk/IUniversalId.h
     ../include/dnv/vista/sdk/ImoNumber.h
@@ -92,6 +94,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE RapidJSON rapidjson)
 find_package(ZLIB REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${ZLIB_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
+
+find_package(cpuid CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE cpuid::cpuid)
 
 # Tests
 #if(VISTA_SDK_BUILD_TESTS)

@@ -3,12 +3,11 @@
 namespace dnv::vista::sdk
 {
 	/**
-	 * @brief Data transfer object for a GMOD (Generic Marine Object Dictionary) node
+	 * @brief Data transfer object for a GMOD (Generic Product Model) node
 	 *
-	 * Represents a node in the Generic Marine Object Dictionary as defined by ISO 19848.
+	 * Represents a node in the Generic Product Model as defined by ISO 19848.
 	 * Contains all metadata associated with a node including its category, type, code, name,
 	 * and optional attributes.
-	 * Maps to C# record: GmodNodeDto(string Category, string Type, string Code, string Name, string? CommonName, ...)
 	 */
 	struct GmodNodeDto
 	{
@@ -39,23 +38,14 @@ namespace dnv::vista::sdk
 			std::optional<std::string> definition = std::nullopt,
 			std::optional<std::string> commonDefinition = std::nullopt,
 			std::optional<bool> installSubstructure = std::nullopt,
-			std::optional<std::unordered_map<std::string, std::string>> normalAssignmentNames = std::nullopt )
-			: category( std::move( category ) ),
-			  type( std::move( type ) ),
-			  code( std::move( code ) ),
-			  name( std::move( name ) ),
-			  commonName( std::move( commonName ) ),
-			  definition( std::move( definition ) ),
-			  commonDefinition( std::move( commonDefinition ) ),
-			  installSubstructure( installSubstructure ),
-			  normalAssignmentNames( std::move( normalAssignmentNames ) ) {}
+			std::optional<std::unordered_map<std::string, std::string>> normalAssignmentNames = std::nullopt );
 
 		/**
 		 * @brief Deserialize a GmodNodeDto from a RapidJSON object
 		 * @param json The RapidJSON object to deserialize
 		 * @return The deserialized GmodNodeDto
 		 */
-		static GmodNodeDto FromJson( const rapidjson::Value& json );
+		static GmodNodeDto fromJson( const rapidjson::Value& json );
 
 		/**
 		 * @brief Try to deserialize a GmodNodeDto from a RapidJSON object
@@ -63,14 +53,14 @@ namespace dnv::vista::sdk
 		 * @param dto Output parameter to receive the deserialized object
 		 * @return True if deserialization was successful, false otherwise
 		 */
-		static bool TryFromJson( const rapidjson::Value& json, GmodNodeDto& dto );
+		static bool tryFromJson( const rapidjson::Value& json, GmodNodeDto& dto );
 
 		/**
 		 * @brief Serialize this GmodNodeDto to a RapidJSON Value
 		 * @param allocator The JSON value allocator to use
 		 * @return The serialized JSON value
 		 */
-		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
 
 		/** @brief Category classification of the node (e.g., "PRODUCT", "ASSET") */
 		std::string category;
@@ -101,11 +91,10 @@ namespace dnv::vista::sdk
 	};
 
 	/**
-	 * @brief Data transfer object for a complete GMOD (Generic Marine Object Dictionary)
+	 * @brief Data transfer object for a complete GMOD (Generic Product Model)
 	 *
-	 * Represents the entire Generic Marine Object Dictionary for a specific VIS version,
+	 * Represents the entire Generic Product Model for a specific VIS version,
 	 * containing all nodes and their relationships as defined in ISO 19848.
-	 * Maps to C# record: GmodDto(string VisVersion, GmodNodeDto[] Items, string[][] Relations)
 	 */
 	struct GmodDto
 	{
@@ -124,17 +113,14 @@ namespace dnv::vista::sdk
 		GmodDto(
 			std::string visVersion,
 			std::vector<GmodNodeDto> items,
-			std::vector<std::vector<std::string>> relations )
-			: visVersion( std::move( visVersion ) ),
-			  items( std::move( items ) ),
-			  relations( std::move( relations ) ) {}
+			std::vector<std::vector<std::string>> relations );
 
 		/**
 		 * @brief Deserialize a GmodDto from a RapidJSON object
 		 * @param json The RapidJSON object to deserialize
 		 * @return The deserialized GmodDto
 		 */
-		static GmodDto FromJson( const rapidjson::Value& json );
+		static GmodDto fromJson( const rapidjson::Value& json );
 
 		/**
 		 * @brief Try to deserialize a GmodDto from a RapidJSON object
@@ -142,14 +128,14 @@ namespace dnv::vista::sdk
 		 * @param dto Output parameter to receive the deserialized object
 		 * @return True if deserialization was successful, false otherwise
 		 */
-		static bool TryFromJson( const rapidjson::Value& json, GmodDto& dto );
+		static bool tryFromJson( const rapidjson::Value& json, GmodDto& dto );
 
 		/**
 		 * @brief Serialize this GmodDto to a RapidJSON Value
 		 * @param allocator The JSON value allocator to use
 		 * @return The serialized JSON value
 		 */
-		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
 
 		/** @brief VIS version string (e.g., "3.8a") */
 		std::string visVersion;

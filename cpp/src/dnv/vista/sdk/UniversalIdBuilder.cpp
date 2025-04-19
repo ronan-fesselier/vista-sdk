@@ -22,12 +22,12 @@ namespace dnv::vista::sdk
 
 	bool UniversalIdBuilder::IsValid() const
 	{
-		return m_imoNumber.has_value() && m_localId.has_value() && m_localId->IsValid();
+		return m_imoNumber.has_value() && m_localId.has_value() && m_localId->isValid();
 	}
 
 	UniversalIdBuilder UniversalIdBuilder::Create( VisVersion version )
 	{
-		return UniversalIdBuilder().WithLocalId( LocalIdBuilder::Create( version ) );
+		return UniversalIdBuilder().WithLocalId( LocalIdBuilder::create( version ) );
 	}
 
 	UniversalId UniversalIdBuilder::Build() const
@@ -115,8 +115,8 @@ namespace dnv::vista::sdk
 
 		std::ostringstream builder;
 		builder << NamingEntity << "/";
-		builder << m_imoNumber->ToString();
-		builder << m_localId->ToString();
+		builder << m_imoNumber->toString();
+		builder << m_localId->toString();
 
 		return builder.str();
 	}
@@ -132,11 +132,11 @@ namespace dnv::vista::sdk
 		size_t hash = 0;
 		if ( m_imoNumber.has_value() )
 		{
-			hash ^= hasher( m_imoNumber->ToString() );
+			hash ^= hasher( m_imoNumber->toString() );
 		}
 		if ( m_localId.has_value() )
 		{
-			hash ^= hasher( m_localId->ToString() );
+			hash ^= hasher( m_localId->toString() );
 		}
 		return hash;
 	}
@@ -157,12 +157,12 @@ namespace dnv::vista::sdk
 	{
 		builder = nullptr;
 
-		LocalIdParsingErrorBuilder errorBuilder = LocalIdParsingErrorBuilder::Create();
+		LocalIdParsingErrorBuilder errorBuilder = LocalIdParsingErrorBuilder::create();
 
 		if ( universalIdStr.empty() )
 		{
 			AddError( errorBuilder, LocalIdParsingState::NamingRule, "Failed to find localId start segment" );
-			errors = errorBuilder.Build();
+			errors = errorBuilder.build();
 			return false;
 		}
 
@@ -170,7 +170,7 @@ namespace dnv::vista::sdk
 		if ( localIdStartIndex == std::string::npos )
 		{
 			AddError( errorBuilder, LocalIdParsingState::NamingRule, "Failed to find localId start segment" );
-			errors = errorBuilder.Build();
+			errors = errorBuilder.build();
 			return false;
 		}
 
@@ -179,9 +179,9 @@ namespace dnv::vista::sdk
 
 		std::optional<LocalIdBuilder> localIdBuilder;
 		ParsingErrors parseErrors;
-		if ( !LocalIdBuilder::TryParse( localIdSegment, parseErrors, localIdBuilder ) )
+		if ( !LocalIdBuilder::tryParse( localIdSegment, parseErrors, localIdBuilder ) )
 		{
-			errors = errorBuilder.Build();
+			errors = errorBuilder.build();
 			std::vector<ParsingErrors::ErrorEntry> combinedErrors;
 			for ( const auto& err : errors )
 				combinedErrors.push_back( err );
@@ -242,7 +242,7 @@ namespace dnv::vista::sdk
 					break;
 
 				case LocalIdParsingState::IMONumber:
-					std::optional<ImoNumber> imo = ImoNumber::TryParse( segment );
+					std::optional<ImoNumber> imo = ImoNumber::tryParse( segment );
 					if ( !imo.has_value() )
 					{
 						AddError( errorBuilder, state, "Invalid IMO number segment" );
@@ -258,11 +258,11 @@ namespace dnv::vista::sdk
 			i += segment.length() + 1;
 		}
 
-		std::optional<VisVersion> visVersion = localIdBuilder->GetVisVersion();
+		std::optional<VisVersion> visVersion = localIdBuilder->getVisVersion();
 		if ( !visVersion.has_value() )
 		{
 			AddError( errorBuilder, LocalIdParsingState::VisVersion, nullptr );
-			errors = errorBuilder.Build();
+			errors = errorBuilder.build();
 			return false;
 		}
 
@@ -270,57 +270,12 @@ namespace dnv::vista::sdk
 		builder->TryWithLocalId( *localIdBuilder );
 		builder->TryWithImoNumber( imoNumber );
 
-		errors = errorBuilder.Build();
+		errors = errorBuilder.build();
 		return true;
 	}
 
 	void UniversalIdBuilder::AddError( LocalIdParsingErrorBuilder& errorBuilder, LocalIdParsingState state, const std::string& message )
 	{
-		errorBuilder.AddError( state, message );
-	}
-
-	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::AddError( LocalIdParsingState state )
-	{
-		if ( m_predefinedErrorMessages.find( state ) == m_predefinedErrorMessages.end() )
-		{
-			SPDLOG_ERROR( "Couldn't find predefined message for the given state" );
-			throw std::invalid_argument( "Couldn't find predefined message for the given state." );
-		}
-
-		m_errors.emplace_back( state, m_predefinedErrorMessages.at( state ) );
-		return *this;
-	}
-
-	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::AddError( LocalIdParsingState state, const std::string& message )
-	{
-		if ( message.empty() )
-		{
-			return AddError( state );
-		}
-
-		SPDLOG_ERROR( "Error: {}", message );
-
-		m_errors.emplace_back( state, message );
-		return *this;
-	}
-
-	bool LocalIdParsingErrorBuilder::HasError() const
-	{
-		return !m_errors.empty();
-	}
-
-	ParsingErrors LocalIdParsingErrorBuilder::Build() const
-	{
-		std::vector<ParsingErrors::ErrorEntry> errors;
-		for ( const auto& [state, message] : m_errors )
-		{
-			errors.push_back( std::make_tuple( std::to_string( static_cast<int>( state ) ), message ) );
-		}
-		return ParsingErrors( errors );
-	}
-
-	LocalIdParsingErrorBuilder LocalIdParsingErrorBuilder::Create()
-	{
-		return LocalIdParsingErrorBuilder();
+		errorBuilder.addError( state, message );
 	}
 }

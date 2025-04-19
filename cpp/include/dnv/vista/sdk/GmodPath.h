@@ -12,7 +12,7 @@ namespace dnv::vista::sdk
 	enum class VisVersion;
 
 	/**
-	 * @brief Represents a path in the Generic Marine Object Dictionary (GMOD)
+	 * @brief Represents a path in the Generic Product Model (GMOD)
 	 *
 	 * A GmodPath consists of a sequence of parent nodes and a target node,
 	 * forming a hierarchical path through the GMOD structure as defined in ISO 19848.
@@ -21,36 +21,7 @@ namespace dnv::vista::sdk
 	class GmodPath
 	{
 	public:
-		/**
-		 * @brief Default constructor
-		 *
-		 * Creates an empty path with no nodes.
-		 */
-		GmodPath() = default;
-
-		/**
-		 * @brief Copy constructor
-		 * @param other The path to copy
-		 */
-		GmodPath( const GmodPath& other );
-
-		/**
-		 * @brief Copy assignment operator
-		 * @param other The path to copy
-		 * @return Reference to this path after assignment
-		 */
-		GmodPath& operator=( const GmodPath& other );
-
-		/**
-		 * @brief Move constructor
-		 */
-		GmodPath( GmodPath&& ) noexcept = default;
-
-		/**
-		 * @brief Move assignment operator
-		 * @return Reference to this path after move assignment
-		 */
-		GmodPath& operator=( GmodPath&& ) noexcept = default;
+		GmodPath() = default; // TODO Delete later
 
 		/**
 		 * @brief Construct a path from parent nodes and target node
@@ -63,9 +34,71 @@ namespace dnv::vista::sdk
 		GmodPath( std::vector<GmodNode> parents, GmodNode node, bool skipVerify = false );
 
 		/**
+		 * @brief Copy constructor
+		 * @param other The path to copy
+		 */
+		GmodPath( const GmodPath& other );
+
+		/**
+		 * @brief Move constructor
+		 */
+		GmodPath( GmodPath&& ) noexcept;
+
+		/**
 		 * @brief Destructor
 		 */
-		~GmodPath() = default;
+		~GmodPath();
+
+		/**
+		 * @brief Copy assignment operator
+		 * @param other The path to copy
+		 * @return Reference to this path after assignment
+		 */
+		GmodPath& operator=( const GmodPath& other );
+
+		/**
+		 * @brief Move assignment operator
+		 * @return Reference to this path after move assignment
+		 */
+		GmodPath& operator=( GmodPath&& ) noexcept;
+
+		/**
+		 * @brief Equality comparison
+		 *
+		 * Paths are equal if they have the same nodes at the same positions,
+		 * including their location information.
+		 *
+		 * @param other The path to compare with
+		 * @return True if paths are equal
+		 */
+		bool operator==( const GmodPath& other ) const;
+
+		/**
+		 * @brief Inequality comparison
+		 * @param other The path to compare with
+		 * @return True if paths are not equal
+		 */
+		bool operator!=( const GmodPath& other ) const;
+
+		/**
+		 * @brief Access a node at a specific depth in the path
+		 *
+		 * @param depth Zero-based depth index (0 is root, GetLength()-1 is target node)
+		 * @return Const reference to the node at specified depth
+		 * @throws std::out_of_range If depth is out of valid range
+		 */
+		const GmodNode& operator[]( int depth ) const;
+
+		/**
+		 * @brief Access a node at a specific depth in the path (non-const version)
+		 *
+		 * @param depth Zero-based depth index (0 is root, GetLength()-1 is target node)
+		 * @return Reference to the node at specified depth
+		 * @throws std::out_of_range If depth is out of valid range
+		 */
+		GmodNode& operator[]( int depth );
+
+		size_t getHashCode() const;
 
 		/**
 		 * @brief Get the full path as depth-node pairs
@@ -102,24 +135,6 @@ namespace dnv::vista::sdk
 		 * @return True if the target node can be mapped to other nodes
 		 */
 		bool IsMappable() const;
-
-		/**
-		 * @brief Access a node at a specific depth in the path
-		 *
-		 * @param depth Zero-based depth index (0 is root, GetLength()-1 is target node)
-		 * @return Const reference to the node at specified depth
-		 * @throws std::out_of_range If depth is out of valid range
-		 */
-		const GmodNode& operator[]( int depth ) const;
-
-		/**
-		 * @brief Access a node at a specific depth in the path (non-const version)
-		 *
-		 * @param depth Zero-based depth index (0 is root, GetLength()-1 is target node)
-		 * @return Reference to the node at specified depth
-		 * @throws std::out_of_range If depth is out of valid range
-		 */
-		GmodNode& operator[]( int depth );
 
 		/**
 		 * @brief Create a copy of this path with all locations removed
@@ -169,24 +184,6 @@ namespace dnv::vista::sdk
 		void ToStringDump( std::stringstream& builder ) const;
 
 		/**
-		 * @brief Equality comparison
-		 *
-		 * Paths are equal if they have the same nodes at the same positions,
-		 * including their location information.
-		 *
-		 * @param other The path to compare with
-		 * @return True if paths are equal
-		 */
-		bool operator==( const GmodPath& other ) const;
-
-		/**
-		 * @brief Inequality comparison
-		 * @param other The path to compare with
-		 * @return True if paths are not equal
-		 */
-		bool operator!=( const GmodPath& other ) const;
-
-		/**
 		 * @brief Get normal assignment name for a node at specific depth
 		 *
 		 * @param nodeDepth The depth of the node to get the name for
@@ -201,6 +198,12 @@ namespace dnv::vista::sdk
 		std::vector<std::pair<int, std::string>> GetCommonNames() const;
 
 		/**
+		 * @brief Check if the path contains any individualizable nodes
+		 * @return True if at least one node in the path is individualizable
+		 */
+		bool IsIndividualizable() const;
+
+		/**
 		 * @brief Get all individualizable sets in this path
 		 *
 		 * An individualizable set is a group of nodes that can be assigned
@@ -209,12 +212,6 @@ namespace dnv::vista::sdk
 		 * @return Vector of individualizable sets
 		 */
 		std::vector<GmodIndividualizableSet> GetIndividualizableSets() const;
-
-		/**
-		 * @brief Check if the path contains any individualizable nodes
-		 * @return True if at least one node in the path is individualizable
-		 */
-		bool IsIndividualizable() const;
 
 		/**
 		 * @brief Validate a path structure
@@ -437,11 +434,14 @@ namespace dnv::vista::sdk
 			/** @brief Reference to the path being enumerated */
 			const GmodPath& m_path;
 
-			/** @brief Current depth in the path */
-			int m_currentDepth;
+			/** @brief Current position index in the path */
+			int m_current;
 
-			/** @brief Current depth-node pair */
-			std::pair<int, std::reference_wrapper<const GmodNode>> m_current;
+			/** @brief Current depth value */
+			int m_depth;
+
+			/** @brief Initial depth to start from */
+			std::optional<int> m_fromDepth;
 		};
 	};
 
@@ -483,6 +483,7 @@ namespace dnv::vista::sdk
 		 * @param path The parsed path
 		 */
 		explicit Ok( const GmodPath& path );
+		Ok( GmodPath&& p );
 	};
 
 	/**

@@ -87,7 +87,7 @@ namespace dnv::vista::sdk
 	}
 
 	GmodNode::GmodNode()
-		: m_code( "" ), m_location( std::nullopt ), m_visVersion( VisVersion::v3_8a ),
+		: m_code( "" ), m_location( std::nullopt ), m_visVersion( VisVersion::v3_8a ), // TODO
 		  m_metadata( "", "", "", std::nullopt, std::nullopt, std::nullopt, std::nullopt, {} ),
 		  m_children(), m_parents(), m_childrenSet()
 	{
@@ -106,6 +106,32 @@ namespace dnv::vista::sdk
 									   dto.normalAssignmentNames ? *dto.normalAssignmentNames : std::unordered_map<std::string, std::string>() ),
 		  m_children(), m_parents(), m_childrenSet()
 	{
+	}
+
+	GmodNode::GmodNode( const GmodNode& other )
+		: m_code( other.m_code ),
+		  m_location( other.m_location ),
+		  m_visVersion( other.m_visVersion ),
+		  m_metadata( other.m_metadata ),
+		  m_childrenSet( other.m_childrenSet )
+	{
+		m_children.reserve( other.m_children.size() );
+		for ( const auto child : other.m_children )
+		{
+			if ( child != nullptr )
+			{
+				m_children.push_back( child );
+			}
+		}
+
+		m_parents.reserve( other.m_parents.size() );
+		for ( const auto parent : other.m_parents )
+		{
+			if ( parent != nullptr )
+			{
+				m_parents.push_back( parent );
+			}
+		}
 	}
 
 	const std::string& GmodNode::GetCode() const
@@ -150,8 +176,8 @@ namespace dnv::vista::sdk
 
 	GmodNode GmodNode::WithLocation( const std::string& locationStr ) const
 	{
-		Locations locations = VIS::Instance().GetLocations( m_visVersion );
-		Location location = locations.Parse( locationStr );
+		Locations locations = VIS::instance().locations( m_visVersion );
+		Location location = locations.parse( locationStr );
 
 		GmodNode result = *this;
 		result.m_location = location;
@@ -160,10 +186,10 @@ namespace dnv::vista::sdk
 
 	GmodNode GmodNode::TryWithLocation( const std::string& locationStr ) const
 	{
-		Locations locations = VIS::Instance().GetLocations( m_visVersion );
+		Locations locations = VIS::instance().locations( m_visVersion );
 		Location location;
 
-		if ( !locations.TryParse( std::string_view( locationStr ), location ) )
+		if ( !locations.tryParse( std::string_view( locationStr ), location ) )
 			return *this;
 
 		return WithLocation( locationStr );
@@ -171,10 +197,10 @@ namespace dnv::vista::sdk
 
 	GmodNode GmodNode::TryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const
 	{
-		Locations locations = VIS::Instance().GetLocations( m_visVersion );
+		Locations locations = VIS::instance().locations( m_visVersion );
 		Location location;
 
-		if ( !locations.TryParse( std::string_view( locationStr ), location, errors ) )
+		if ( !locations.tryParse( std::string_view( locationStr ), location, errors ) )
 			return *this;
 
 		return WithLocation( locationStr );
@@ -232,17 +258,17 @@ namespace dnv::vista::sdk
 
 	bool GmodNode::IsProductSelection() const
 	{
-		return Gmod::IsProductSelection( m_metadata );
+		return Gmod::isProductSelection( m_metadata );
 	}
 
 	bool GmodNode::IsProductType() const
 	{
-		return Gmod::IsProductType( m_metadata );
+		return Gmod::isProductType( m_metadata );
 	}
 
 	bool GmodNode::IsAsset() const
 	{
-		return Gmod::IsAsset( m_metadata );
+		return Gmod::isAsset( m_metadata );
 	}
 
 	const GmodNode* GmodNode::ProductType() const
@@ -299,17 +325,17 @@ namespace dnv::vista::sdk
 
 	bool GmodNode::IsLeafNode() const
 	{
-		return Gmod::IsLeafNode( m_metadata );
+		return Gmod::isLeafNode( m_metadata );
 	}
 
 	bool GmodNode::IsFunctionNode() const
 	{
-		return Gmod::IsFunctionNode( m_metadata );
+		return Gmod::isFunctionNode( m_metadata );
 	}
 
 	bool GmodNode::IsAssetFunctionNode() const
 	{
-		return Gmod::IsAssetFunctionNode( m_metadata );
+		return Gmod::isAssetFunctionNode( m_metadata );
 	}
 
 	bool GmodNode::IsRoot() const
@@ -329,21 +355,23 @@ namespace dnv::vista::sdk
 
 	std::string GmodNode::ToString() const
 	{
-		if ( !m_location.has_value() )
-			return m_code;
-		return m_code + "-" + m_location->ToString();
+		if ( m_location.has_value() )
+		{
+			return m_code + "-" + m_location->toString();
+		}
+		return m_code;
 	}
 
 	void GmodNode::ToString( std::stringstream& builder ) const
 	{
-		if ( !m_location.has_value() )
+		builder << m_code;
+
+		if ( m_location.has_value() )
 		{
-			builder << m_code;
+			builder << "-" << m_location->toString();
 		}
-		else
-		{
-			builder << m_code << "-" << m_location->ToString();
-		}
+
+		SPDLOG_INFO( "GmodNode::ToString: {}", builder.str() );
 	}
 
 	void GmodNode::AddChild( GmodNode* child )

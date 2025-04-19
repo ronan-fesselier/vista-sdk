@@ -25,20 +25,20 @@ namespace dnv::vista::sdk
 		 * @return The IMO number.
 		 * @throws std::runtime_error If the IMO number is invalid.
 		 */
-		const ImoNumber& GetImoNumber() const override;
+		virtual const ImoNumber& GetImoNumber() const override;
 
 		/**
 		 * Gets the local ID.
 		 * @return The local ID.
 		 */
-		const LocalId& GetLocalId() const override;
+		virtual const LocalId& GetLocalId() const override;
 
 		/**
 		 * Checks equality with another UniversalId.
 		 * @param other The other UniversalId to compare.
 		 * @return True if equal, false otherwise.
 		 */
-		bool Equals( const UniversalId& other ) const;
+		bool equals( const UniversalId& other ) const;
 
 		/**
 		 * Parses a UniversalId from a string.
@@ -46,7 +46,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed UniversalId.
 		 * @throws std::invalid_argument If parsing fails.
 		 */
-		static UniversalId Parse( const std::string& universalIdStr );
+		static UniversalId parse( const std::string& universalIdStr );
 
 		/**
 		 * Tries to parse a UniversalId from a string.
@@ -55,19 +55,19 @@ namespace dnv::vista::sdk
 		 * @param universalId The parsed UniversalId if successful.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		static bool TryParse( const std::string& universalIdStr, ParsingErrors& errors, std::unique_ptr<UniversalId>& universalId );
+		static bool tryParse( const std::string& universalIdStr, ParsingErrors& errors, std::unique_ptr<UniversalId>& universalId );
 
 		/**
 		 * Converts the UniversalId to a string representation.
 		 * @return The string representation.
 		 */
-		std::string ToString() const;
+		std::string toString() const;
 
 		/**
 		 * Gets the hash code of the UniversalId.
 		 * @return The hash code.
 		 */
-		size_t GetHashCode() const;
+		size_t hashCode() const;
 
 	private:
 		std::shared_ptr<IUniversalIdBuilder> m_builder;

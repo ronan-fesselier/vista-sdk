@@ -11,8 +11,9 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	DataChannelTypeNameDto DataChannelTypeNameDto::FromJson( const rapidjson::Value& json )
+	DataChannelTypeNameDto DataChannelTypeNameDto::fromJson( const rapidjson::Value& json )
 	{
+		SPDLOG_INFO( "Parsing DataChannelTypeNameDto from JSON" );
 		DataChannelTypeNameDto dto;
 
 		if ( json.HasMember( "type" ) && json["type"].IsString() )
@@ -21,11 +22,28 @@ namespace dnv::vista::sdk
 		if ( json.HasMember( "description" ) && json["description"].IsString() )
 			dto.description = json["description"].GetString();
 
+		SPDLOG_INFO( "Parsed DataChannelTypeNameDto: type={}, description={}",
+			dto.type, dto.description );
 		return dto;
 	}
 
-	rapidjson::Value DataChannelTypeNameDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	bool DataChannelTypeNameDto::tryFromJson( const rapidjson::Value& json, DataChannelTypeNameDto& dto )
 	{
+		try
+		{
+			dto = fromJson( json );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error deserializing DataChannelTypeNameDto: {}", e.what() );
+			return false;
+		}
+	}
+
+	rapidjson::Value DataChannelTypeNameDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		SPDLOG_INFO( "Serializing DataChannelTypeNameDto: type={}", type );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		obj.AddMember( "type", rapidjson::Value( type.c_str(), allocator ).Move(), allocator );
@@ -40,41 +58,69 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	DataChannelTypeNamesDto DataChannelTypeNamesDto::FromJson( const rapidjson::Value& json )
+	DataChannelTypeNamesDto DataChannelTypeNamesDto::fromJson( const rapidjson::Value& json )
 	{
+		SPDLOG_INFO( "Parsing data channel type names from JSON" );
 		DataChannelTypeNamesDto dto;
 
 		if ( json.HasMember( "values" ) && json["values"].IsArray() )
 		{
-			dto.values.reserve( json["values"].Size() );
+			size_t valueCount = json["values"].Size();
+			SPDLOG_INFO( "Found {} data channel type entries to parse", valueCount );
+
+			dto.values.reserve( valueCount );
+			size_t successCount = 0;
+
 			for ( const auto& item : json["values"].GetArray() )
 			{
 				try
 				{
-					dto.values.push_back( DataChannelTypeNameDto::FromJson( item ) );
+					dto.values.push_back( DataChannelTypeNameDto::fromJson( item ) );
+					successCount++;
 				}
 				catch ( const std::exception& e )
 				{
-					SPDLOG_ERROR( "Warning: Skipping malformed data channel type name: {}", e.what() );
+					SPDLOG_ERROR( "Skipping malformed data channel type name: {}", e.what() );
 				}
 			}
+
+			SPDLOG_INFO( "Successfully parsed {}/{} data channel type names",
+				successCount, valueCount );
+		}
+		else
+		{
+			SPDLOG_WARN( "No 'values' array found in data channel type names JSON" );
 		}
 
 		return dto;
 	}
 
-	rapidjson::Value DataChannelTypeNamesDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	bool DataChannelTypeNamesDto::tryFromJson( const rapidjson::Value& json, DataChannelTypeNamesDto& dto )
 	{
+		try
+		{
+			dto = fromJson( json );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error deserializing DataChannelTypeNamesDto: {}", e.what() );
+			return false;
+		}
+	}
+
+	rapidjson::Value DataChannelTypeNamesDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		SPDLOG_INFO( "Serializing {} data channel type names to JSON", values.size() );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		rapidjson::Value valuesArray( rapidjson::kArrayType );
 		for ( const auto& value : values )
 		{
-			valuesArray.PushBack( value.ToJson( allocator ), allocator );
+			valuesArray.PushBack( value.toJson( allocator ), allocator );
 		}
 
 		obj.AddMember( "values", valuesArray, allocator );
-
 		return obj;
 	}
 
@@ -85,8 +131,9 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	FormatDataTypeDto FormatDataTypeDto::FromJson( const rapidjson::Value& json )
+	FormatDataTypeDto FormatDataTypeDto::fromJson( const rapidjson::Value& json )
 	{
+		SPDLOG_INFO( "Parsing FormatDataTypeDto from JSON" );
 		FormatDataTypeDto dto;
 
 		if ( json.HasMember( "type" ) && json["type"].IsString() )
@@ -95,11 +142,28 @@ namespace dnv::vista::sdk
 		if ( json.HasMember( "description" ) && json["description"].IsString() )
 			dto.description = json["description"].GetString();
 
+		SPDLOG_INFO( "Parsed FormatDataTypeDto: type={}, description={}",
+			dto.type, dto.description );
 		return dto;
 	}
 
-	rapidjson::Value FormatDataTypeDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	bool FormatDataTypeDto::tryFromJson( const rapidjson::Value& json, FormatDataTypeDto& dto )
 	{
+		try
+		{
+			dto = fromJson( json );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error deserializing FormatDataTypeDto: {}", e.what() );
+			return false;
+		}
+	}
+
+	rapidjson::Value FormatDataTypeDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		SPDLOG_INFO( "Serializing FormatDataTypeDto: type={}", type );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		obj.AddMember( "type", rapidjson::Value( type.c_str(), allocator ).Move(), allocator );
@@ -114,41 +178,69 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	FormatDataTypesDto FormatDataTypesDto::FromJson( const rapidjson::Value& json )
+	FormatDataTypesDto FormatDataTypesDto::fromJson( const rapidjson::Value& json )
 	{
+		SPDLOG_INFO( "Parsing format data types from JSON" );
 		FormatDataTypesDto dto;
 
 		if ( json.HasMember( "values" ) && json["values"].IsArray() )
 		{
-			dto.values.reserve( json["values"].Size() );
+			size_t valueCount = json["values"].Size();
+			SPDLOG_INFO( "Found {} format data type entries to parse", valueCount );
+
+			dto.values.reserve( valueCount );
+			size_t successCount = 0;
+
 			for ( const auto& item : json["values"].GetArray() )
 			{
 				try
 				{
-					dto.values.push_back( FormatDataTypeDto::FromJson( item ) );
+					dto.values.push_back( FormatDataTypeDto::fromJson( item ) );
+					successCount++;
 				}
 				catch ( const std::exception& e )
 				{
-					SPDLOG_ERROR( "Warning: Skipping malformed format data type: {}", e.what() );
+					SPDLOG_ERROR( "Skipping malformed format data type: {}", e.what() );
 				}
 			}
+
+			SPDLOG_INFO( "Successfully parsed {}/{} format data types",
+				successCount, valueCount );
+		}
+		else
+		{
+			SPDLOG_WARN( "No 'values' array found in format data types JSON" );
 		}
 
 		return dto;
 	}
 
-	rapidjson::Value FormatDataTypesDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	bool FormatDataTypesDto::tryFromJson( const rapidjson::Value& json, FormatDataTypesDto& dto )
 	{
+		try
+		{
+			dto = fromJson( json );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Error deserializing FormatDataTypesDto: {}", e.what() );
+			return false;
+		}
+	}
+
+	rapidjson::Value FormatDataTypesDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
+	{
+		SPDLOG_INFO( "Serializing {} format data types to JSON", values.size() );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		rapidjson::Value valuesArray( rapidjson::kArrayType );
 		for ( const auto& value : values )
 		{
-			valuesArray.PushBack( value.ToJson( allocator ), allocator );
+			valuesArray.PushBack( value.toJson( allocator ), allocator );
 		}
 
 		obj.AddMember( "values", valuesArray, allocator );
-
 		return obj;
 	}
 }

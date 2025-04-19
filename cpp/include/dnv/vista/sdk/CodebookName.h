@@ -10,6 +10,8 @@ namespace dnv::vista::sdk
 	 */
 	enum class CodebookName
 	{
+		Unknown = 0,
+
 		Quantity = 1,		 ///< Represents physical quantities and units (prefix: qty)
 		Content,			 ///< Represents content types (prefix: cnt)
 		Calculation,		 ///< Represents calculation methods (prefix: calc)
@@ -38,7 +40,7 @@ namespace dnv::vista::sdk
 		 * @return The corresponding CodebookName value
 		 * @throws std::invalid_argument If the prefix is empty or unknown
 		 */
-		static CodebookName FromPrefix( const std::string_view prefix );
+		static CodebookName fromPrefix( const std::string_view prefix );
 
 		/**
 		 * @brief Convert a CodebookName to its string prefix
@@ -46,6 +48,6 @@ namespace dnv::vista::sdk
 		 * @return The corresponding string prefix (e.g., "pos" for Position)
 		 * @throws std::invalid_argument If the name is unknown
 		 */
-		static std::string ToPrefix( CodebookName name );
+		static std::string toPrefix( CodebookName name );
 	};
 }

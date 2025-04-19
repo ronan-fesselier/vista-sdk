@@ -40,6 +40,32 @@ else()
 	message(WARNING "Resources directory not found: ${VISTA_SDK_RESOURCES_DIR}. Skipping resource copy.")
 endif()
 
+include(CheckCXXSourceCompiles)
+
+# Test if SSE4.2 is available
+check_cxx_source_compiles("
+#include <immintrin.h>
+int main() {
+    unsigned int crc = 0;
+    const char* data = \"test\";
+    crc = _mm_crc32_u8(crc, data[0]);
+    return 0;
+}
+" HAVE_SSE42)
+
+if(HAVE_SSE42)
+    message(STATUS "SSE4.2 support detected")
+    add_compile_definitions(HAS_SSE42=1)
+
+    if(MSVC)
+        add_compile_options(/arch:AVX)
+    else()
+        add_compile_options(-msse4.2)
+    endif()
+else()
+    message(STATUS "SSE4.2 support not detected")
+    add_compile_definitions(HAS_SSE42=0)
+endif()
 
 
 # Add subdirectories

@@ -11,8 +11,8 @@ namespace dnv::vista::sdk::tests
 {
 	inline std::pair<VIS&, Gmod> GetVisAndGmod( VisVersion visVersion )
 	{
-		VIS& vis = VIS::Instance();
-		Gmod gmod = vis.GetGmod( visVersion );
+		VIS& vis = VIS::instance();
+		Gmod gmod = vis.gmod( visVersion );
 		return { vis, gmod };
 	}
 
@@ -20,45 +20,45 @@ namespace dnv::vista::sdk::tests
 	{
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
-		const auto& codebooks = vis.GetCodebooks( VisVersion::v3_4a );
-		const auto& positionCodebook = codebooks.GetCodebook( CodebookName::Position );
+		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
+		const auto& positionCodebook = codebooks.codebook( CodebookName::Position );
 
-		SPDLOG_INFO( "Position codebook standard values count: {}", positionCodebook.GetStandardValues().Count() );
-		for ( auto& val : positionCodebook.GetStandardValues() )
+		SPDLOG_INFO( "Position codebook standard values count: {}", positionCodebook.standardValues().count() );
+		for ( auto& val : positionCodebook.standardValues() )
 		{
 			SPDLOG_INFO( "Standard value: {}", val );
 		}
 
-		ASSERT_GT( positionCodebook.GetStandardValues().Count(), 0 );
+		ASSERT_GT( positionCodebook.standardValues().count(), 0 );
 	}
 
 	TEST( CodebooksTests, Test_Codebooks_AccessMethods )
 	{
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
-		const auto& codebooks = vis.GetCodebooks( VisVersion::v3_4a );
+		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
 
 		const auto& positionCodebook1 = codebooks[CodebookName::Position];
-		const auto& positionCodebook2 = codebooks.GetCodebook( CodebookName::Position );
+		const auto& positionCodebook2 = codebooks.codebook( CodebookName::Position );
 
-		ASSERT_TRUE( positionCodebook1.HasStandardValue( "centre" ) );
-		ASSERT_TRUE( positionCodebook2.HasStandardValue( "centre" ) );
+		ASSERT_TRUE( positionCodebook1.hasStandardValue( "centre" ) );
+		ASSERT_TRUE( positionCodebook2.hasStandardValue( "centre" ) );
 	}
 
 	TEST( CodebooksTests, Test_Codebooks_Equality )
 	{
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
-		const auto& codebooks = vis.GetCodebooks( VisVersion::v3_4a );
+		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
 
 		const auto& positionCodebook1 = codebooks[CodebookName::Position];
-		const auto& positionCodebook2 = codebooks.GetCodebook( CodebookName::Position );
+		const auto& positionCodebook2 = codebooks.codebook( CodebookName::Position );
 
-		ASSERT_TRUE( positionCodebook1.HasStandardValue( "centre" ) );
-		ASSERT_TRUE( positionCodebook2.HasStandardValue( "centre" ) );
+		ASSERT_TRUE( positionCodebook1.hasStandardValue( "centre" ) );
+		ASSERT_TRUE( positionCodebook2.hasStandardValue( "centre" ) );
 
-		ASSERT_EQ( positionCodebook1.GetStandardValues().Count(),
-			positionCodebook2.GetStandardValues().Count() );
+		ASSERT_EQ( positionCodebook1.standardValues().count(),
+			positionCodebook2.standardValues().count() );
 	}
 
 	TEST( CodebooksTests, Test_CodebookName_Properties )

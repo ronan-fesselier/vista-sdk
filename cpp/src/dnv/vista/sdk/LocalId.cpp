@@ -14,114 +14,135 @@ namespace dnv::vista::sdk
 	LocalId::LocalId( const LocalIdBuilder& builder )
 		: m_builder( builder )
 	{
-		if ( m_builder.IsEmpty() )
+		if ( m_builder.isEmpty() )
 		{
 			SPDLOG_ERROR( "LocalId cannot be constructed from empty LocalIdBuilder" );
 			throw std::invalid_argument( "LocalId cannot be constructed from empty LocalIdBuilder" );
 		}
-		if ( !m_builder.IsValid() )
+		if ( !m_builder.isValid() )
 		{
 			SPDLOG_ERROR( "LocalId cannot be constructed from invalid LocalIdBuilder" );
 			throw std::invalid_argument( "LocalId cannot be constructed from invalid LocalIdBuilder" );
 		}
 	}
 
-	const LocalIdBuilder& LocalId::GetBuilder() const
+	const LocalIdBuilder& LocalId::getBuilder() const
 	{
 		return m_builder;
 	}
 
-	VisVersion LocalId::GetVisVersion() const
+	VisVersion LocalId::getVisVersion() const
 	{
-		return *m_builder.GetVisVersion();
+		return *m_builder.getVisVersion();
 	}
 
-	bool LocalId::GetVerboseMode() const
+	bool LocalId::getVerboseMode() const
 	{
-		return m_builder.GetVerboseMode();
+		return m_builder.getVerboseMode();
 	}
 
-	const GmodPath& LocalId::GetPrimaryItem() const
+	const GmodPath& LocalId::getPrimaryItem() const
 	{
-		return *m_builder.GetPrimaryItem();
+		return *m_builder.getPrimaryItem();
 	}
 
-	std::optional<GmodPath> LocalId::GetSecondaryItem() const
+	std::optional<GmodPath> LocalId::getSecondaryItem() const
 	{
-		return m_builder.GetSecondaryItem();
+		return m_builder.getSecondaryItem();
 	}
 
-	std::vector<MetadataTag> LocalId::GetMetadataTags() const
+	const std::vector<MetadataTag> LocalId::getMetadataTags() const
 	{
-		return m_builder.GetMetadataTags();
+		return m_builder.getMetadataTags();
 	}
 
-	std::optional<MetadataTag> LocalId::GetQuantity() const
+	std::optional<MetadataTag> LocalId::getQuantity() const
 	{
-		return m_builder.GetQuantity();
+		return m_builder.getQuantity();
 	}
 
-	std::optional<MetadataTag> LocalId::GetContent() const
+	std::optional<MetadataTag> LocalId::getContent() const
 	{
-		return m_builder.GetContent();
+		return m_builder.getContent();
 	}
 
-	std::optional<MetadataTag> LocalId::GetCalculation() const
+	std::optional<MetadataTag> LocalId::getCalculation() const
 	{
-		return m_builder.GetCalculation();
+		return m_builder.getCalculation();
 	}
 
-	std::optional<MetadataTag> LocalId::GetState() const
+	std::optional<MetadataTag> LocalId::getState() const
 	{
-		return m_builder.GetState();
+		return m_builder.getState();
 	}
 
-	std::optional<MetadataTag> LocalId::GetCommand() const
+	std::optional<MetadataTag> LocalId::getCommand() const
 	{
-		return m_builder.GetCommand();
+		return m_builder.getCommand();
 	}
 
-	std::optional<MetadataTag> LocalId::GetType() const
+	std::optional<MetadataTag> LocalId::getType() const
 	{
-		return m_builder.GetType();
+		return m_builder.getType();
 	}
 
-	std::optional<MetadataTag> LocalId::GetPosition() const
+	std::optional<MetadataTag> LocalId::getPosition() const
 	{
-		return m_builder.GetPosition();
+		return m_builder.getPosition();
 	}
 
-	std::optional<MetadataTag> LocalId::GetDetail() const
+	std::optional<MetadataTag> LocalId::getDetail() const
 	{
-		return m_builder.GetDetail();
+		return m_builder.getDetail();
 	}
 
-	bool LocalId::HasCustomTag() const
+	bool LocalId::hasCustomTag() const
 	{
-		return m_builder.HasCustomTag();
+		return m_builder.hasCustomTag();
 	}
 
-	std::string LocalId::ToString() const
+	std::string LocalId::toString() const
 	{
-		return m_builder.ToString();
+		SPDLOG_INFO( "Converting LocalId to string" );
+		return m_builder.toString();
 	}
 
-	LocalId LocalId::Parse( const std::string& localIdStr )
+	LocalId LocalId::parse( const std::string& localIdStr )
 	{
-		return LocalIdBuilder::Parse( localIdStr ).Build();
+		SPDLOG_INFO( "Parsing LocalId from string: {}", localIdStr );
+		return LocalIdBuilder::parse( localIdStr ).build();
 	}
 
-	bool LocalId::TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalId>& localId )
+	bool LocalId::tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalId>& localId )
 	{
+		SPDLOG_INFO( "Attempting to parse LocalId from: {}", localIdStr );
+
 		std::optional<LocalIdBuilder> localIdBuilder;
-		if ( !LocalIdBuilder::TryParse( localIdStr, errors, localIdBuilder ) )
+		if ( !LocalIdBuilder::tryParse( localIdStr, errors, localIdBuilder ) )
 		{
+			SPDLOG_ERROR( "LocalId parsing failed" );
 			localId = std::nullopt;
 			return false;
 		}
 
-		localId.emplace( localIdBuilder->Build() );
-		return true;
+		SPDLOG_INFO( "LocalId parsing succeeded, building final LocalId" );
+		try
+		{
+			localId.emplace( localIdBuilder->build() );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Failed to build LocalId after parsing: {}", e.what() );
+			errors.addError( "BuildError", e.what() );
+			localId = std::nullopt;
+			return false;
+		}
+	}
+
+	bool LocalId::equals( const LocalId& other ) const
+	{
+		return m_builder == other.m_builder;
 	}
 
 	bool LocalId::operator==( const LocalId& other ) const
@@ -134,8 +155,64 @@ namespace dnv::vista::sdk
 		return !( *this == other );
 	}
 
-	size_t LocalId::GetHashCode() const
+	size_t LocalId::getHashCode() const
 	{
-		return m_builder.GetHashCode();
+		return m_builder.getHashCode();
+	}
+
+	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError( LocalIdParsingState state )
+	{
+		auto it = m_predefinedErrorMessages.find( state );
+		if ( it != m_predefinedErrorMessages.end() )
+		{
+			m_errors.emplace_back( state, it->second );
+			SPDLOG_INFO( "Added predefined parsing error: {}", it->second );
+		}
+		return *this;
+	}
+
+	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError( LocalIdParsingState state, const std::string& message )
+	{
+		m_errors.emplace_back( state, message );
+		SPDLOG_INFO( "Added custom parsing error for state {}: {}", static_cast<int>( state ), message );
+		return *this;
+	}
+
+	bool LocalIdParsingErrorBuilder::hasError() const
+	{
+		return !m_errors.empty();
+	}
+
+	ParsingErrors LocalIdParsingErrorBuilder::build() const
+	{
+		ParsingErrors errors;
+		for ( const auto& [state, message] : m_errors )
+		{
+			std::string stateStr;
+			switch ( state )
+			{
+				case LocalIdParsingState::NamingRule:
+					stateStr = "NamingRule";
+					break;
+				case LocalIdParsingState::VisVersion:
+					stateStr = "VisVersion";
+					break;
+				case LocalIdParsingState::PrimaryItem:
+					stateStr = "PrimaryItem";
+					break;
+
+				default:
+					stateStr = "State" + std::to_string( static_cast<int>( state ) );
+					break;
+			}
+
+			errors.addError( stateStr, message );
+		}
+		return errors;
+	}
+
+	LocalIdParsingErrorBuilder LocalIdParsingErrorBuilder::create()
+	{
+		return LocalIdParsingErrorBuilder();
 	}
 }

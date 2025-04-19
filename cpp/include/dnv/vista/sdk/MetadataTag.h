@@ -14,6 +14,10 @@ namespace dnv::vista::sdk
 	class MetadataTag
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Constructors
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Constructs a MetadataTag object.
 		 * @param name The name of the metadata tag (from the CodebookName enumeration).
@@ -22,29 +26,60 @@ namespace dnv::vista::sdk
 		 */
 		MetadataTag( CodebookName name, const std::string& value, bool isCustom = false );
 
+		//-------------------------------------------------------------------------
+		// Accessor Methods
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Gets the name of the metadata tag.
 		 * @return The name of the metadata tag.
 		 */
-		CodebookName GetName() const;
+		CodebookName name() const;
 
 		/**
 		 * @brief Gets the value of the metadata tag.
 		 * @return A reference to the string value of the metadata tag.
 		 */
-		const std::string& GetValue() const;
+		const std::string& value() const;
 
 		/**
 		 * @brief Checks if the metadata tag is custom.
 		 * @return True if the tag is custom, false otherwise.
 		 */
-		bool IsCustom() const;
+		bool isCustom() const;
 
 		/**
 		 * @brief Gets the prefix character for the metadata tag.
 		 * @return '~' if the tag is custom, '-' otherwise.
 		 */
-		char GetPrefix() const;
+		char prefix() const;
+
+		/**
+		 * @brief Gets the hash code of the metadata tag.
+		 * @return The hash code of the tag's value.
+		 */
+		size_t hashCode() const;
+
+		//-------------------------------------------------------------------------
+		// String Conversion Methods
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Converts the metadata tag to a string representation.
+		 * @return A string representation of the metadata tag.
+		 */
+		std::string toString() const;
+
+		/**
+		 * @brief Appends the metadata tag to a string stream.
+		 * @param builder The string stream to append to.
+		 * @param separator The separator character to use (default is '/').
+		 */
+		void toString( std::ostringstream& builder, char separator = '/' ) const;
+
+		//-------------------------------------------------------------------------
+		// Operators
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Implicit conversion to a string.
@@ -67,28 +102,13 @@ namespace dnv::vista::sdk
 		 */
 		bool operator!=( const MetadataTag& other ) const;
 
-		/**
-		 * @brief Gets the hash code of the metadata tag.
-		 * @return The hash code of the tag's value.
-		 */
-		size_t GetHashCode() const;
-
-		/**
-		 * @brief Converts the metadata tag to a string representation.
-		 * @return A string representation of the metadata tag.
-		 */
-		std::string ToString() const;
-
-		/**
-		 * @brief Appends the metadata tag to a string stream.
-		 * @param builder The string stream to append to.
-		 * @param separator The separator character to use (default is '/').
-		 */
-		void ToString( std::ostringstream& builder, char separator = '/' ) const;
-
 	private:
+		//-------------------------------------------------------------------------
+		// Private Members
+		//-------------------------------------------------------------------------
+
 		CodebookName m_name; ///< The name of the metadata tag.
 		std::string m_value; ///< The value of the metadata tag.
-		bool m_isCustom;	 ///< Indicates whether the tag is custom.
+		bool m_custom;		 ///< Indicates whether the tag is custom.
 	};
 }

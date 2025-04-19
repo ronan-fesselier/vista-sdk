@@ -10,12 +10,12 @@ namespace dnv::vista::sdk
 	class CodebookTest : public ::testing::Test
 	{
 	protected:
-		VIS& vis = VIS::Instance();
+		VIS& vis = VIS::instance();
 		Codebooks codebooks;
 
-		void SetUp() override
+		virtual void SetUp() override
 		{
-			codebooks = vis.GetCodebooks( VisVersion::v3_4a );
+			codebooks = vis.codebooks( VisVersion::v3_4a );
 		}
 	};
 
@@ -29,8 +29,8 @@ namespace dnv::vista::sdk
 
 		for ( const auto& [input, expectedOutput] : testCases )
 		{
-			auto validPosition = codebookType.ValidatePosition( input );
-			auto parsedExpectedOutput = PositionValidationResults::FromString( expectedOutput );
+			auto validPosition = codebookType.validatePosition( input );
+			auto parsedExpectedOutput = PositionValidationResults::fromString( expectedOutput );
 
 			EXPECT_EQ( parsedExpectedOutput, validPosition ) << "Failed for position: " << input;
 		}
@@ -45,8 +45,8 @@ namespace dnv::vista::sdk
 		{
 			auto positions = codebooks[CodebookName::Position];
 
-			EXPECT_FALSE( positions.HasStandardValue( invalidStandardValue ) );
-			EXPECT_TRUE( positions.HasStandardValue( validStandardValue ) );
+			EXPECT_FALSE( positions.hasStandardValue( invalidStandardValue ) );
+			EXPECT_TRUE( positions.hasStandardValue( validStandardValue ) );
 		}
 	}
 
@@ -54,8 +54,8 @@ namespace dnv::vista::sdk
 	{
 		auto positions = codebooks[CodebookName::Position];
 
-		EXPECT_TRUE( positions.HasStandardValue( "upper" ) );
-		const auto& rawData = positions.GetRawData();
+		EXPECT_TRUE( positions.hasStandardValue( "upper" ) );
+		const auto& rawData = positions.rawData();
 		EXPECT_TRUE( rawData.find( "Vertical" ) != rawData.end() );
 		EXPECT_NE( std::find( rawData.at( "Vertical" ).begin(), rawData.at( "Vertical" ).end(), "upper" ),
 			rawData.at( "Vertical" ).end() );
@@ -78,10 +78,10 @@ namespace dnv::vista::sdk
 		{
 			const auto& states = codebooks[CodebookName::State];
 
-			EXPECT_FALSE( states.HasGroup( data.invalidGroup ) );
-			EXPECT_TRUE( states.HasStandardValue( data.validValue ) );
-			EXPECT_TRUE( states.HasGroup( data.validGroup ) );
-			EXPECT_TRUE( states.HasStandardValue( data.secondValidValue ) );
+			EXPECT_FALSE( states.hasGroup( data.invalidGroup ) );
+			EXPECT_TRUE( states.hasStandardValue( data.validValue ) );
+			EXPECT_TRUE( states.hasGroup( data.validGroup ) );
+			EXPECT_TRUE( states.hasStandardValue( data.secondValidValue ) );
 		}
 	}
 
@@ -106,47 +106,47 @@ namespace dnv::vista::sdk
 		{
 			const auto& codebookType = codebooks[CodebookName::Position];
 
-			auto metadataTag1 = codebookType.CreateTag( data.firstTag );
-			EXPECT_EQ( metadataTag1.GetValue(), data.firstTag );
-			EXPECT_FALSE( metadataTag1.IsCustom() );
+			auto metadataTag1 = codebookType.createTag( data.firstTag );
+			EXPECT_EQ( metadataTag1.value(), data.firstTag );
+			EXPECT_FALSE( metadataTag1.isCustom() );
 
-			auto metadataTag2 = codebookType.CreateTag( data.secondTag );
-			EXPECT_EQ( metadataTag2.GetValue(), data.secondTag );
-			EXPECT_FALSE( metadataTag2.IsCustom() );
+			auto metadataTag2 = codebookType.createTag( data.secondTag );
+			EXPECT_EQ( metadataTag2.value(), data.secondTag );
+			EXPECT_FALSE( metadataTag2.isCustom() );
 
-			auto metadataTag3 = codebookType.CreateTag( data.thirdTag );
-			EXPECT_EQ( metadataTag3.GetValue(), data.thirdTag );
-			EXPECT_FALSE( metadataTag3.IsCustom() );
-			EXPECT_EQ( metadataTag3.GetPrefix(), data.thirdTagPrefix );
+			auto metadataTag3 = codebookType.createTag( data.thirdTag );
+			EXPECT_EQ( metadataTag3.value(), data.thirdTag );
+			EXPECT_FALSE( metadataTag3.isCustom() );
+			EXPECT_EQ( metadataTag3.prefix(), data.thirdTagPrefix );
 
-			auto metadataTag4 = codebookType.CreateTag( data.customTag );
-			EXPECT_EQ( metadataTag4.GetValue(), data.customTag );
-			EXPECT_TRUE( metadataTag4.IsCustom() );
-			EXPECT_EQ( metadataTag4.GetPrefix(), data.customTagPrefix );
+			auto metadataTag4 = codebookType.createTag( data.customTag );
+			EXPECT_EQ( metadataTag4.value(), data.customTag );
+			EXPECT_TRUE( metadataTag4.isCustom() );
+			EXPECT_EQ( metadataTag4.prefix(), data.customTagPrefix );
 
-			EXPECT_THROW( codebookType.CreateTag( data.firstInvalidTag ), std::invalid_argument );
-			EXPECT_EQ( codebookType.TryCreateTag( data.firstInvalidTag ), std::nullopt );
+			EXPECT_THROW( codebookType.createTag( data.firstInvalidTag ), std::invalid_argument );
+			EXPECT_EQ( codebookType.tryCreateTag( data.firstInvalidTag ), std::nullopt );
 
-			EXPECT_THROW( codebookType.CreateTag( data.secondInvalidTag ), std::invalid_argument );
-			EXPECT_EQ( codebookType.TryCreateTag( data.secondInvalidTag ), std::nullopt );
+			EXPECT_THROW( codebookType.createTag( data.secondInvalidTag ), std::invalid_argument );
+			EXPECT_EQ( codebookType.tryCreateTag( data.secondInvalidTag ), std::nullopt );
 		}
 	}
 
 	TEST_F( CodebookTest, Test_Get_Groups )
 	{
-		const auto& groups = codebooks[CodebookName::Position].GetGroups();
-		EXPECT_GT( groups.Count(), 1 );
+		const auto& groups = codebooks[CodebookName::Position].groups();
+		EXPECT_GT( groups.count(), 1 );
 
-		EXPECT_TRUE( groups.Contains( "Vertical" ) );
-		const auto& rawData = codebooks[CodebookName::Position].GetRawData();
+		EXPECT_TRUE( groups.contains( "Vertical" ) );
+		const auto& rawData = codebooks[CodebookName::Position].rawData();
 
-		EXPECT_EQ( groups.Count(), rawData.size() - 1 );
+		EXPECT_EQ( groups.count(), rawData.size() - 1 );
 		EXPECT_TRUE( rawData.find( "Vertical" ) != rawData.end() );
 	}
 
 	TEST_F( CodebookTest, Test_Iterate_Groups )
 	{
-		const auto& groups = codebooks[CodebookName::Position].GetGroups();
+		const auto& groups = codebooks[CodebookName::Position].groups();
 		int count = 0;
 		for ( const auto& group : groups )
 		{
@@ -159,7 +159,7 @@ namespace dnv::vista::sdk
 
 	TEST_F( CodebookTest, Test_Iterate_Values )
 	{
-		const auto& values = codebooks[CodebookName::Position].GetStandardValues();
+		const auto& values = codebooks[CodebookName::Position].standardValues();
 		int count = 0;
 		for ( const auto& value : values )
 		{
@@ -186,12 +186,12 @@ namespace dnv::vista::sdk
 		{
 			const auto& codebook = codebooks[CodebookName::Detail];
 
-			EXPECT_TRUE( codebook.TryCreateTag( data.validCustomTag ).has_value() );
-			EXPECT_EQ( codebook.TryCreateTag( data.firstInvalidCustomTag ), std::nullopt );
-			EXPECT_EQ( codebook.TryCreateTag( data.secondInvalidCustomTag ), std::nullopt );
+			EXPECT_TRUE( codebook.tryCreateTag( data.validCustomTag ).has_value() );
+			EXPECT_EQ( codebook.tryCreateTag( data.firstInvalidCustomTag ), std::nullopt );
+			EXPECT_EQ( codebook.tryCreateTag( data.secondInvalidCustomTag ), std::nullopt );
 
-			EXPECT_THROW( codebook.CreateTag( data.firstInvalidCustomTag ), std::invalid_argument );
-			EXPECT_THROW( codebook.CreateTag( data.secondInvalidCustomTag ), std::invalid_argument );
+			EXPECT_THROW( codebook.createTag( data.firstInvalidCustomTag ), std::invalid_argument );
+			EXPECT_THROW( codebook.createTag( data.secondInvalidCustomTag ), std::invalid_argument );
 		}
 	}
 }

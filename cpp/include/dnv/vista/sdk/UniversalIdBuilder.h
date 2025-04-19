@@ -22,24 +22,24 @@ namespace dnv::vista::sdk
 	public:
 		UniversalIdBuilder() = default;
 
-		std::optional<ImoNumber> GetImoNumber() const override;
-		std::optional<LocalIdBuilder> GetLocalId() const override;
-		bool IsValid() const override;
+		virtual std::optional<ImoNumber> GetImoNumber() const override;
+		virtual std::optional<LocalIdBuilder> GetLocalId() const override;
+		virtual bool IsValid() const override;
 
 		static UniversalIdBuilder Create( VisVersion version );
 		UniversalId Build() const;
 
-		UniversalIdBuilder WithLocalId( const LocalIdBuilder& localId ) override;
-		UniversalIdBuilder WithoutLocalId() override;
-		UniversalIdBuilder TryWithLocalId( const std::optional<LocalIdBuilder>& localId ) override;
-		UniversalIdBuilder TryWithLocalId( const std::optional<LocalIdBuilder>& localId, bool& succeeded ) override;
+		virtual UniversalIdBuilder WithLocalId( const LocalIdBuilder& localId ) override;
+		virtual UniversalIdBuilder WithoutLocalId() override;
+		virtual UniversalIdBuilder TryWithLocalId( const std::optional<LocalIdBuilder>& localId ) override;
+		virtual UniversalIdBuilder TryWithLocalId( const std::optional<LocalIdBuilder>& localId, bool& succeeded ) override;
 
-		UniversalIdBuilder WithImoNumber( const ImoNumber& imoNumber ) override;
-		UniversalIdBuilder TryWithImoNumber( const std::optional<ImoNumber>& imoNumber ) override;
-		UniversalIdBuilder TryWithImoNumber( const std::optional<ImoNumber>& imoNumber, bool& succeeded ) override;
-		UniversalIdBuilder WithoutImoNumber() override;
+		virtual UniversalIdBuilder WithImoNumber( const ImoNumber& imoNumber ) override;
+		virtual UniversalIdBuilder TryWithImoNumber( const std::optional<ImoNumber>& imoNumber ) override;
+		virtual UniversalIdBuilder TryWithImoNumber( const std::optional<ImoNumber>& imoNumber, bool& succeeded ) override;
+		virtual UniversalIdBuilder WithoutImoNumber() override;
 
-		std::string ToString() const override;
+		virtual std::string ToString() const override;
 		bool Equals( const UniversalIdBuilder& other ) const;
 		size_t GetHashCode() const;
 

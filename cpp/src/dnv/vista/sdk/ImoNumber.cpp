@@ -6,31 +6,37 @@ namespace dnv::vista::sdk
 {
 	ImoNumber::ImoNumber( int value )
 	{
-		if ( !IsValid( value ) )
+		if ( !isValid( value ) )
 		{
 			SPDLOG_ERROR( "Invalid IMO number: {}", value );
 			throw std::invalid_argument( "Invalid IMO number: " + std::to_string( value ) );
 		}
+
 		m_value = value;
+		SPDLOG_INFO( "Created IMO number: {}", m_value );
 	}
 
 	ImoNumber::ImoNumber( const std::string& value )
 	{
-		auto result = TryParse( value );
+		auto result = tryParse( value );
 		if ( !result )
 		{
-			SPDLOG_ERROR( "Invalid IMO number: {}", value );
+			SPDLOG_ERROR( "Invalid IMO number string: '{}'", value );
 			throw std::invalid_argument( "Invalid IMO number: " + value );
 		}
+
 		m_value = static_cast<int>( *result );
+		SPDLOG_INFO( "Created IMO number: {} from string '{}'", m_value, value );
 	}
 
-	ImoNumber::ImoNumber( int value, bool ) noexcept
+	ImoNumber::ImoNumber( int value, bool bUnused ) noexcept
 		: m_value( value )
 	{
+		(void)bUnused;
+		SPDLOG_INFO( "Created pre-validated IMO number: {}", m_value );
 	}
 
-	ImoNumber ImoNumber::Parse( const char* value )
+	ImoNumber ImoNumber::parse( const char* value )
 	{
 		if ( value == nullptr )
 		{
@@ -38,10 +44,10 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Null IMO number string" );
 		}
 
-		return Parse( std::string( value ) );
+		return parse( std::string( value ) );
 	}
 
-	ImoNumber ImoNumber::Parse( const std::string& value )
+	ImoNumber ImoNumber::parse( const std::string& value )
 	{
 		if ( value.empty() )
 		{
@@ -49,32 +55,42 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Empty IMO number string" );
 		}
 
-		auto result = TryParse( value );
+		auto result = tryParse( value );
 		if ( !result )
 		{
-			SPDLOG_ERROR( "Failed to parse ImoNumber: {}", value );
+			SPDLOG_ERROR( "Failed to parse ImoNumber: '{}'", value );
 			throw std::invalid_argument( "Failed to parse ImoNumber: " + value );
 		}
 
+		SPDLOG_INFO( "Successfully parsed IMO number: {}", static_cast<int>( *result ) );
 		return *result;
 	}
 
-	std::optional<ImoNumber> ImoNumber::TryParse( const std::string& value )
+	std::optional<ImoNumber> ImoNumber::tryParse( const std::string& value )
 	{
 		if ( value.empty() )
+		{
+			SPDLOG_INFO( "Empty IMO number string" );
 			return std::nullopt;
+		}
 
 		if ( value.find_first_of( " \t\n\r\f\v" ) != std::string::npos )
+		{
+			SPDLOG_INFO( "IMO number contains whitespace: '{}'", value );
 			return std::nullopt;
+		}
 
 		std::string processed = value;
 
-		if ( processed.size() >= 3 &&
-			 ( processed[0] == 'I' || processed[0] == 'i' ) &&
-			 ( processed[1] == 'M' || processed[1] == 'm' ) &&
-			 ( processed[2] == 'O' || processed[2] == 'o' ) )
+		bool hasImoPrefix = processed.size() >= 3 &&
+							( std::toupper( processed[0] ) == 'I' ) &&
+							( std::toupper( processed[1] ) == 'M' ) &&
+							( std::toupper( processed[2] ) == 'O' );
+
+		if ( hasImoPrefix )
 		{
 			processed = processed.substr( 3 );
+			SPDLOG_INFO( "Removed IMO prefix, remaining: '{}'", processed );
 		}
 
 		int num = 0;
@@ -84,19 +100,26 @@ namespace dnv::vista::sdk
 		}
 		catch ( const std::invalid_argument& )
 		{
+			SPDLOG_INFO( "Failed to convert '{}' to integer", processed );
 			return std::nullopt;
 		}
 		catch ( const std::out_of_range& )
 		{
+			SPDLOG_INFO( "IMO number out of valid integer range: '{}'", processed );
 			return std::nullopt;
 		}
 
-		if ( num == 0 || !IsValid( num ) )
+		if ( num == 0 || !isValid( num ) )
+		{
+			SPDLOG_INFO( "Invalid IMO number format or checksum: {}", num );
 			return std::nullopt;
+		}
 
+		SPDLOG_INFO( "Successfully parsed IMO number {} from string '{}'", num, value );
 		return ImoNumber( num, true );
 	}
 
+	// IMO number validation according to the standard:
 	// https://en.wikipedia.org/wiki/IMO_number
 	// An IMO number is made of the three letters "IMO" followed by a seven-digit number.
 	// This consists of a six-digit sequential unique number followed by a check digit.
@@ -105,10 +128,14 @@ namespace dnv::vista::sdk
 	// of 2 to 7 corresponding to their position from right to left.
 	// The rightmost digit of this sum is the check digit.
 	// For example, for IMO 9074729: (9×7) + (0×6) + (7×5) + (4×4) + (7×3) + (2×2) = 139
-	bool ImoNumber::IsValid( int imoNumber )
+	// The rightmost digit (9) must equal checksum mod 10 (139 % 10 = 9)
+	bool ImoNumber::isValid( int imoNumber )
 	{
 		if ( imoNumber < 1000000 || imoNumber > 9999999 )
+		{
+			SPDLOG_INFO( "IMO number outside valid range: {}", imoNumber );
 			return false;
+		}
 
 		int digits[7];
 		int temp = imoNumber;
@@ -127,30 +154,27 @@ namespace dnv::vista::sdk
 		int calculatedCheckDigit = checkSum % 10;
 		int providedCheckDigit = digits[6];
 
-		return providedCheckDigit == calculatedCheckDigit;
+		bool isValid = ( providedCheckDigit == calculatedCheckDigit );
+
+		SPDLOG_INFO( "Validating IMO {}: checksum={}, calculated={}, provided={}, valid={}",
+			imoNumber, checkSum, calculatedCheckDigit, providedCheckDigit, isValid );
+
+		return isValid;
 	}
 
-	void ImoNumber::GetDigits( int number, unsigned char* digits )
+	void ImoNumber::digits( int number, unsigned char* digits )
 	{
 		int current = number;
 		int index = 0;
 
 		while ( current > 0 )
 		{
-			if ( current < 10 )
-			{
-				digits[index++] = static_cast<unsigned char>( current );
-				break;
-			}
-
-			int next = current / 10;
-			int digit = current - next * 10;
-			digits[index++] = static_cast<unsigned char>( digit );
-			current = next;
+			digits[index++] = static_cast<unsigned char>( current % 10 );
+			current /= 10;
 		}
 	}
 
-	std::string ImoNumber::ToString() const
+	std::string ImoNumber::toString() const
 	{
 		return "IMO" + std::to_string( m_value );
 	}

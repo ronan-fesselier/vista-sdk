@@ -7,7 +7,7 @@
 
 namespace dnv::vista::sdk
 {
-	PositionValidationResult PositionValidationResults::FromString( const std::string& name )
+	PositionValidationResult PositionValidationResults::fromString( const std::string& name )
 	{
 		if ( name == "Valid" )
 			return PositionValidationResult::Valid;
@@ -31,12 +31,12 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	size_t CodebookStandardValues::Count() const
+	size_t CodebookStandardValues::count() const
 	{
 		return m_standardValues.size();
 	}
 
-	bool CodebookStandardValues::Contains( const std::string& tagValue ) const
+	bool CodebookStandardValues::contains( const std::string& tagValue ) const
 	{
 		if ( m_name == CodebookName::Position )
 		{
@@ -72,12 +72,12 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	size_t CodebookGroups::Count() const
+	size_t CodebookGroups::count() const
 	{
 		return m_groups.size();
 	}
 
-	bool CodebookGroups::Contains( const std::string& group ) const
+	bool CodebookGroups::contains( const std::string& group ) const
 	{
 		return m_groups.find( group ) != m_groups.end();
 	}
@@ -154,70 +154,79 @@ namespace dnv::vista::sdk
 		m_groups = CodebookGroups( groupSet );
 	}
 
-	CodebookName Codebook::GetName() const
+	CodebookName Codebook::name() const
 	{
 		return m_name;
 	}
 
-	const CodebookGroups& Codebook::GetGroups() const
+	const CodebookGroups& Codebook::groups() const
 	{
 		return m_groups;
 	}
 
-	const CodebookStandardValues& Codebook::GetStandardValues() const
+	const CodebookStandardValues& Codebook::standardValues() const
 	{
 		return m_standardValues;
 	}
 
-	const std::unordered_map<std::string, std::vector<std::string>>& Codebook::GetRawData() const
+	const std::unordered_map<std::string, std::vector<std::string>>& Codebook::rawData() const
 	{
 		return m_rawData;
 	}
 
-	bool Codebook::HasGroup( const std::string& group ) const
+	bool Codebook::hasGroup( const std::string& group ) const
 	{
-		return m_groups.Contains( group );
+		return m_groups.contains( group );
 	}
 
-	bool Codebook::HasStandardValue( const std::string& value ) const
+	bool Codebook::hasStandardValue( const std::string& value ) const
 	{
-		return m_standardValues.Contains( value );
+		return m_standardValues.contains( value );
 	}
 
-	std::optional<MetadataTag> Codebook::TryCreateTag( const std::string_view valueView ) const
+	std::optional<MetadataTag> Codebook::tryCreateTag( const std::string_view valueView ) const
 	{
-		if ( valueView.empty() )
+		if ( valueView.empty() || std::all_of( valueView.begin(), valueView.end(),
+									  []( unsigned char c ) { return std::isspace( c ); } ) )
+		{
+			SPDLOG_INFO( "Rejecting empty or whitespace-only value" );
 			return std::nullopt;
-
-		if ( std::all_of( valueView.begin(), valueView.end(), []( unsigned char c ) { return std::isspace( c ); } ) )
-			return std::nullopt;
+		}
 
 		std::string value{ valueView };
 		bool isCustom = false;
 
 		if ( m_name == CodebookName::Position )
 		{
-			auto positionValidity = ValidatePosition( value );
+			auto positionValidity = validatePosition( value );
 			if ( static_cast<int>( positionValidity ) < 100 )
+			{
+				SPDLOG_INFO( "Position validation failed with result: {}",
+					static_cast<int>( positionValidity ) );
 				return std::nullopt;
+			}
 
-			if ( positionValidity == PositionValidationResult::Custom )
-				isCustom = true;
+			isCustom = ( positionValidity == PositionValidationResult::Custom );
 		}
 		else
 		{
-			if ( !VIS::IsISOString( value ) )
+			if ( !VIS::isISOString( value ) )
+			{
+				SPDLOG_INFO( "Value is not an ISO string: {}", value );
 				return std::nullopt;
-			if ( m_name != CodebookName::Detail && !m_standardValues.Contains( value ) )
+			}
+
+			if ( m_name != CodebookName::Detail && !m_standardValues.contains( value ) )
 				isCustom = true;
 		}
 
+		SPDLOG_INFO( "Creating tag with value: {}, custom: {}", value, isCustom );
 		return MetadataTag( m_name, value, isCustom );
 	}
 
-	MetadataTag Codebook::CreateTag( const std::string& value ) const
+	MetadataTag Codebook::createTag( const std::string& value ) const
 	{
-		auto tag = TryCreateTag( value );
+		auto tag = tryCreateTag( value );
 		if ( !tag.has_value() )
 		{
 			SPDLOG_ERROR( "Invalid value for metadata tag: codebook={}, value={}", static_cast<int>( m_name ), value );
@@ -228,11 +237,11 @@ namespace dnv::vista::sdk
 		return tag.value();
 	}
 
-	PositionValidationResult Codebook::ValidatePosition( const std::string& position ) const
+	PositionValidationResult Codebook::validatePosition( const std::string& position ) const
 	{
 		if ( position.empty() ||
 			 std::all_of( position.begin(), position.end(), []( unsigned char c ) { return std::isspace( c ); } ) ||
-			 !VIS::IsISOString( position ) )
+			 !VIS::isISOString( position ) )
 		{
 			return PositionValidationResult::Invalid;
 		}
@@ -243,7 +252,7 @@ namespace dnv::vista::sdk
 		if ( trimmedPosition.length() != position.length() )
 			return PositionValidationResult::Invalid;
 
-		if ( m_standardValues.Contains( position ) )
+		if ( m_standardValues.contains( position ) )
 			return PositionValidationResult::Valid;
 
 		try
@@ -281,7 +290,7 @@ namespace dnv::vista::sdk
 		std::vector<PositionValidationResult> validations;
 		for ( const auto& positionStr : positions )
 		{
-			validations.push_back( ValidatePosition( positionStr ) );
+			validations.push_back( validatePosition( positionStr ) );
 		}
 
 		if ( std::any_of( validations.begin(), validations.end(),

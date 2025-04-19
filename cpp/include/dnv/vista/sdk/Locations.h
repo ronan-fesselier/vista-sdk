@@ -23,6 +23,18 @@ namespace dnv::vista::sdk
 	};
 
 	/**
+	 * @brief Enumeration of location validation results
+	 */
+	enum class LocationValidationResult
+	{
+		Invalid,		  ///< The location is invalid
+		InvalidCode,	  ///< The location code is invalid
+		InvalidOrder,	  ///< The location order is invalid
+		NullOrWhiteSpace, ///< The location is null or whitespace
+		Valid			  ///< The location is valid
+	};
+
+	/**
 	 * @brief Represents a location in the VIS system
 	 */
 	class Location
@@ -39,23 +51,35 @@ namespace dnv::vista::sdk
 		 */
 		explicit Location( const std::string& value );
 
+		//-------------------------------------------------------------------------
+		// Accessor Methods
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Get the location value
 		 * @return The location value as a string
 		 */
-		const std::string& GetValue() const;
+		const std::string& value() const;
+
+		//-------------------------------------------------------------------------
+		// Conversion Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Convert the location to a string
 		 * @return The string representation of the location
 		 */
-		std::string ToString() const;
+		std::string toString() const;
 
 		/**
 		 * @brief Implicit conversion to string
 		 * @return The location value as a string
 		 */
 		operator std::string() const;
+
+		//-------------------------------------------------------------------------
+		// Comparison Operators
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Equality operator
@@ -88,38 +112,48 @@ namespace dnv::vista::sdk
 		 * @param location The location object
 		 * @param definition Optional definition of the location
 		 */
-		RelativeLocation( char code, const std::string& name, const Location& location,
+		RelativeLocation( char code,
+			const std::string& name,
+			const Location& location,
 			const std::optional<std::string>& definition = std::nullopt );
+
+		//-------------------------------------------------------------------------
+		// Accessor Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Get the location code
 		 * @return The location code
 		 */
-		char GetCode() const;
+		char code() const;
 
 		/**
 		 * @brief Get the location name
 		 * @return The location name
 		 */
-		const std::string& GetName() const;
+		const std::string& name() const;
 
 		/**
 		 * @brief Get the location definition
 		 * @return The optional location definition
 		 */
-		const std::optional<std::string>& GetDefinition() const;
+		const std::optional<std::string>& definition() const;
 
 		/**
 		 * @brief Get the location object
 		 * @return The location object
 		 */
-		const Location& GetLocation() const;
+		const Location& location() const;
 
 		/**
 		 * @brief Get the hash code of the location
 		 * @return The hash code
 		 */
-		size_t GetHashCode() const;
+		size_t hashCode() const;
+
+		//-------------------------------------------------------------------------
+		// Comparison Operators
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Equality operator
@@ -143,18 +177,6 @@ namespace dnv::vista::sdk
 	};
 
 	/**
-	 * @brief Enumeration of location validation results
-	 */
-	enum class LocationValidationResult
-	{
-		Invalid,		  ///< The location is invalid
-		InvalidCode,	  ///< The location code is invalid
-		InvalidOrder,	  ///< The location order is invalid
-		NullOrWhiteSpace, ///< The location is null or whitespace
-		Valid			  ///< The location is valid
-	};
-
-	/**
 	 * @brief Dictionary for managing location characters
 	 */
 	class LocationCharDict
@@ -164,7 +186,11 @@ namespace dnv::vista::sdk
 		 * @brief Constructor with a specified size
 		 * @param size The size of the dictionary
 		 */
-		explicit LocationCharDict( size_t size = 4 );
+		explicit LocationCharDict();
+
+		//-------------------------------------------------------------------------
+		// Accessor Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Access a location character by key
@@ -180,10 +206,10 @@ namespace dnv::vista::sdk
 		 * @param existingValue Output parameter for the existing value, if any
 		 * @return True if the value was added, false otherwise
 		 */
-		bool TryAdd( LocationGroup key, char value, std::optional<char>& existingValue );
+		bool tryAdd( LocationGroup key, char value, std::optional<char>& existingValue );
 
 	private:
-		std::vector<std::optional<char>> m_table; ///< The dictionary table
+		std::array<std::optional<char>, 4> m_table; ///< The dictionary table for 4 groups
 	};
 
 	/**
@@ -192,6 +218,10 @@ namespace dnv::vista::sdk
 	class Locations
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Constructors
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Default constructor
 		 */
@@ -204,23 +234,31 @@ namespace dnv::vista::sdk
 		 */
 		explicit Locations( VisVersion version, const LocationsDto& dto );
 
+		//-------------------------------------------------------------------------
+		// Accessor Methods
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version
 		 */
-		VisVersion GetVisVersion() const;
+		VisVersion visVersion() const;
 
 		/**
 		 * @brief Get the relative locations
 		 * @return A vector of relative locations
 		 */
-		const std::vector<RelativeLocation>& GetRelativeLocations() const;
+		const std::vector<RelativeLocation>& relativeLocations() const;
 
 		/**
 		 * @brief Get the location groups
 		 * @return A map of location groups to relative locations
 		 */
-		const std::unordered_map<LocationGroup, std::vector<RelativeLocation>>& GetGroups() const;
+		const std::unordered_map<LocationGroup, std::vector<RelativeLocation>>& groups() const;
+
+		//-------------------------------------------------------------------------
+		// Parsing Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Parse a location string
@@ -228,7 +266,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed location
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		Location Parse( const std::string& locationStr );
+		Location parse( const std::string& locationStr );
 
 		/**
 		 * @brief Parse a location string view
@@ -236,7 +274,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed location
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		Location Parse( std::string_view locationStr );
+		Location parse( std::string_view locationStr );
 
 		/**
 		 * @brief Try to parse a location string
@@ -244,7 +282,7 @@ namespace dnv::vista::sdk
 		 * @param location Output parameter for the parsed location
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		bool TryParse( const std::optional<std::string>& value, Location& location ) const;
+		bool tryParse( const std::optional<std::string>& value, Location& location ) const;
 
 		/**
 		 * @brief Try to parse a location string with errors
@@ -253,7 +291,7 @@ namespace dnv::vista::sdk
 		 * @param errors Output parameter for parsing errors
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		bool TryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors );
+		bool tryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors );
 
 		/**
 		 * @brief Try to parse a location string view
@@ -261,7 +299,7 @@ namespace dnv::vista::sdk
 		 * @param location Output parameter for the parsed location
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		bool TryParse( std::string_view value, Location& location );
+		bool tryParse( std::string_view value, Location& location );
 
 		/**
 		 * @brief Try to parse a location string view with errors
@@ -270,14 +308,12 @@ namespace dnv::vista::sdk
 		 * @param errors Output parameter for parsing errors
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		bool TryParse( std::string_view value, Location& location, ParsingErrors& errors );
+		bool tryParse( std::string_view value, Location& location, ParsingErrors& errors );
 
 	private:
-		std::vector<char> m_locationCodes;										   ///< The location codes
-		std::vector<RelativeLocation> m_relativeLocations;						   ///< The relative locations
-		std::unordered_map<char, LocationGroup> m_reversedGroups;				   ///< The reversed groups
-		VisVersion m_visVersion;												   ///< The VIS version
-		std::unordered_map<LocationGroup, std::vector<RelativeLocation>> m_groups; ///< The location groups
+		//-------------------------------------------------------------------------
+		// Private Helper Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Add an error to the error builder
@@ -285,7 +321,7 @@ namespace dnv::vista::sdk
 		 * @param name The validation result
 		 * @param message The error message
 		 */
-		static void AddError( LocationParsingErrorBuilder& errorBuilder,
+		static void addError( LocationParsingErrorBuilder& errorBuilder,
 			LocationValidationResult name,
 			const std::string& message );
 
@@ -297,7 +333,7 @@ namespace dnv::vista::sdk
 		 * @param errorBuilder The error builder
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		bool TryParseInternal( std::string_view span,
+		bool tryParseInternal( std::string_view span,
 			const std::optional<std::string>& originalStr,
 			Location& location,
 			LocationParsingErrorBuilder& errorBuilder ) const;
@@ -310,6 +346,16 @@ namespace dnv::vista::sdk
 		 * @param number Output parameter for the parsed integer
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParseInt( std::string_view span, int start, int length, int& number );
+		static bool tryParseInt( std::string_view span, int start, int length, int& number );
+
+		//-------------------------------------------------------------------------
+		// Private Member Variables
+		//-------------------------------------------------------------------------
+
+		std::vector<char> m_locationCodes;										   ///< The location codes
+		std::vector<RelativeLocation> m_relativeLocations;						   ///< The relative locations
+		std::unordered_map<char, LocationGroup> m_reversedGroups;				   ///< The reversed groups
+		VisVersion m_visVersion;												   ///< The VIS version
+		std::unordered_map<LocationGroup, std::vector<RelativeLocation>> m_groups; ///< The location groups
 	};
 }

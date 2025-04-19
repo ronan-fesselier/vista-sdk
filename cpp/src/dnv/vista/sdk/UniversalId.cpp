@@ -10,7 +10,7 @@ namespace dnv::vista::sdk
 {
 	UniversalId::UniversalId( const std::shared_ptr<IUniversalIdBuilder>& builder )
 		: m_builder( builder ),
-		  m_localId( builder->GetLocalId().value().Build() ),
+		  m_localId( builder->GetLocalId().value().build() ),
 		  m_imoNumber( builder->GetImoNumber().value() )
 	{
 		if ( !builder->IsValid() )
@@ -35,18 +35,18 @@ namespace dnv::vista::sdk
 		return m_localId;
 	}
 
-	bool UniversalId::Equals( const UniversalId& other ) const
+	bool UniversalId::equals( const UniversalId& other ) const
 	{
 		return m_builder->ToString() == other.m_builder->ToString();
 	}
 
-	UniversalId UniversalId::Parse( const std::string& universalIdStr )
+	UniversalId UniversalId::parse( const std::string& universalIdStr )
 	{
 		auto builder = UniversalIdBuilder::Parse( universalIdStr );
 		return builder.Build();
 	}
 
-	bool UniversalId::TryParse( const std::string& universalIdStr, ParsingErrors& errors, std::unique_ptr<UniversalId>& universalId )
+	bool UniversalId::tryParse( const std::string& universalIdStr, ParsingErrors& errors, std::unique_ptr<UniversalId>& universalId )
 	{
 		std::shared_ptr<UniversalIdBuilder> builder;
 		if ( !UniversalIdBuilder::TryParse( universalIdStr, errors, builder ) )
@@ -59,12 +59,12 @@ namespace dnv::vista::sdk
 		return true;
 	}
 
-	std::string UniversalId::ToString() const
+	std::string UniversalId::toString() const
 	{
 		return m_builder->ToString();
 	}
 
-	size_t UniversalId::GetHashCode() const
+	size_t UniversalId::hashCode() const
 	{
 		return std::hash<std::string>{}( m_builder->ToString() );
 	}

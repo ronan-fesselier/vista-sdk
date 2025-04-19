@@ -5,10 +5,11 @@
 #include "dnv/vista/sdk/GmodDto.h"
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 #include "dnv/vista/sdk/LocationsDto.h"
+#include "dnv/vista/sdk/ISO19848Dtos.h"
 
 namespace dnv::vista::sdk
 {
-	std::vector<std::string> EmbeddedResource::GetResourceNames()
+	std::vector<std::string> EmbeddedResource::resourceNames()
 	{
 		std::vector<std::string> resourceNames;
 
@@ -45,6 +46,8 @@ namespace dnv::vista::sdk
 				{
 					break;
 				}
+
+				SPDLOG_INFO( "No resources found in directory: {}", dir );
 			}
 			catch ( const std::exception& e )
 			{
@@ -55,9 +58,9 @@ namespace dnv::vista::sdk
 		return resourceNames;
 	}
 
-	std::shared_ptr<std::istream> EmbeddedResource::GetDecompressedStream( const std::string& resourceName )
+	std::shared_ptr<std::istream> EmbeddedResource::decompressedStream( const std::string& resourceName )
 	{
-		auto compressedStream = GetStream( resourceName );
+		auto compressedStream = stream( resourceName );
 
 		auto decompressedBuffer = std::make_shared<std::stringstream>();
 
@@ -71,6 +74,8 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "Failed to initialize zlib for decompression" );
 			throw std::runtime_error( "Failed to initialize zlib for decompression" );
 		}
+
+		SPDLOG_INFO( "Decompressing resource: {}", resourceName );
 
 		std::vector<char> compressedData(
 			( std::istreambuf_iterator<char>( *compressedStream ) ),
@@ -103,10 +108,12 @@ namespace dnv::vista::sdk
 		inflateEnd( &zs );
 		decompressedBuffer->seekg( 0 );
 
+		SPDLOG_INFO( "Decompressed size: {}", decompressedBuffer->str().size() );
+
 		return decompressedBuffer;
 	}
 
-	std::shared_ptr<std::istream> EmbeddedResource::GetStream( const std::string& resourceName )
+	std::shared_ptr<std::istream> EmbeddedResource::stream( const std::string& resourceName )
 	{
 		std::vector<std::string> possiblePaths = {
 			"resources/" + resourceName,
@@ -126,6 +133,8 @@ namespace dnv::vista::sdk
 				return fileStream;
 			}
 			attemptedPaths += path + ", ";
+
+			SPDLOG_INFO( "Failed to open resource file: {}", path );
 		}
 
 		SPDLOG_ERROR( "Failed to open resource file: {}. Attempted paths: {}", resourceName, attemptedPaths );
@@ -133,12 +142,12 @@ namespace dnv::vista::sdk
 								  ". Attempted paths: " + attemptedPaths );
 	}
 
-	std::vector<std::string> EmbeddedResource::GetVisVersions()
+	std::vector<std::string> EmbeddedResource::visVersions()
 	{
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
 		std::vector<std::string> visVersions;
 
-		for ( const auto& resourceName : resourceNames )
+		for ( const auto& resourceName : names )
 		{
 			if ( resourceName.find( "gmod" ) != std::string::npos &&
 				 resourceName.find( "versioning" ) == std::string::npos &&
@@ -146,7 +155,7 @@ namespace dnv::vista::sdk
 			{
 				try
 				{
-					auto stream = GetDecompressedStream( resourceName );
+					auto stream = decompressedStream( resourceName );
 					std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 						std::istreambuf_iterator<char>() );
 
@@ -158,6 +167,9 @@ namespace dnv::vista::sdk
 					{
 						visVersions.push_back( gmodJson["visRelease"].GetString() );
 					}
+
+					SPDLOG_INFO( "Found GMOD resource: {} with VIS version: {}", resourceName,
+						gmodJson["visRelease"].GetString() );
 				}
 				catch ( const std::exception& e )
 				{
@@ -169,29 +181,34 @@ namespace dnv::vista::sdk
 		return visVersions;
 	}
 
-	std::optional<GmodDto> EmbeddedResource::GetGmod( const std::string& visVersion )
+	std::optional<GmodDto> EmbeddedResource::gmod( const std::string& visVersion )
 	{
 		SPDLOG_INFO( "Fetching GMOD resource for version: {}", visVersion );
 
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
+		SPDLOG_INFO( "Found {} total resources to search", names.size() );
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
-				return name.find( "gmod-vis-" + visVersion ) != std::string::npos &&
-					   name.find( ".gz" ) != std::string::npos;
+				return name.find( "gmod" ) != std::string::npos &&
+					   name.find( visVersion ) != std::string::npos &&
+					   name.find( ".gz" ) != std::string::npos &&
+					   name.find( "versioning" ) == std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
-			SPDLOG_ERROR( "GMOD resource not found for version: {}.", visVersion );
+			SPDLOG_ERROR( "GMOD resource not found for version: {}", visVersion );
 			return std::nullopt;
 		}
 
+		SPDLOG_INFO( "Found matching GMOD resource: {}", *it );
+
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
-			SPDLOG_INFO( "Found resource at path: {}", *it );
+			auto startTime = std::chrono::high_resolution_clock::now();
 
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -200,39 +217,49 @@ namespace dnv::vista::sdk
 
 			if ( gmodJson.HasParseError() )
 			{
-				SPDLOG_ERROR( "Failed to parse GMOD JSON." );
+				SPDLOG_ERROR( "JSON parse error at offset {}: {}",
+					gmodJson.GetErrorOffset(),
+					rapidjson::GetParseError_En( gmodJson.GetParseError() ) );
 				return std::nullopt;
 			}
 
-			SPDLOG_INFO( "Successfully loaded GMOD DTO for version: {} ", visVersion );
-			return GmodDto::FromJson( gmodJson );
+			auto gmodDto = GmodDto::fromJson( gmodJson );
+
+			auto endTime = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
+
+			SPDLOG_INFO( "Successfully loaded GMOD DTO for version {} in {} ms",
+				visVersion, duration.count() );
+
+			return gmodDto;
 		}
 		catch ( const std::exception& e )
 		{
-			SPDLOG_ERROR( "Error parsing GMOD resource: {} ", e.what() );
+			SPDLOG_ERROR( "Error processing GMOD resource: {}", e.what() );
 			return std::nullopt;
 		}
 	}
 
-	std::optional<CodebooksDto> EmbeddedResource::GetCodebooks( const std::string& visVersion )
+	std::optional<CodebooksDto> EmbeddedResource::codebooks( const std::string& visVersion )
 	{
-		auto resourceNames = GetResourceNames();
+		SPDLOG_INFO( "Fetching Codebooks resource for version: {}", visVersion );
+		auto names = resourceNames();
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
 				return name.find( "codebooks" ) != std::string::npos &&
 					   name.find( visVersion ) != std::string::npos &&
 					   name.find( ".gz" ) != std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
 			return std::nullopt;
 		}
 
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -245,7 +272,11 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			return CodebooksDto::FromJson( codebooksJson );
+			SPDLOG_INFO( "Successfully loaded Codebooks DTO for version: {} ", visVersion );
+
+			auto result = CodebooksDto::fromJson( codebooksJson );
+
+			return result;
 		}
 		catch ( const std::exception& e )
 		{
@@ -254,24 +285,24 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::optional<std::unordered_map<std::string, GmodVersioningDto>> EmbeddedResource::GetGmodVersioning()
+	std::optional<std::unordered_map<std::string, GmodVersioningDto>> EmbeddedResource::gmodVersioning()
 	{
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[]( const std::string& name ) {
 				return name.find( "gmod-vis-versioning" ) != std::string::npos &&
 					   name.find( ".gz" ) != std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
 			return std::nullopt;
 		}
 
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -300,25 +331,25 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::optional<LocationsDto> EmbeddedResource::GetLocations( const std::string& visVersion )
+	std::optional<LocationsDto> EmbeddedResource::locations( const std::string& visVersion )
 	{
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
 				return name.find( "locations" ) != std::string::npos &&
 					   name.find( visVersion ) != std::string::npos &&
 					   name.find( ".gz" ) != std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
 			return std::nullopt;
 		}
 
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -331,7 +362,7 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			return LocationsDto::FromJson( locationsJson );
+			return LocationsDto::fromJson( locationsJson );
 		}
 		catch ( const std::exception& e )
 		{
@@ -340,11 +371,11 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::optional<DataChannelTypeNamesDto> EmbeddedResource::GetDataChannelTypeNames( const std::string& version )
+	std::optional<DataChannelTypeNamesDto> EmbeddedResource::dataChannelTypeNames( const std::string& version )
 	{
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[&version]( const std::string& name ) {
 				return name.find( "data-channel-type-names" ) != std::string::npos &&
 					   name.find( "iso19848" ) != std::string::npos &&
@@ -352,14 +383,14 @@ namespace dnv::vista::sdk
 					   name.find( ".gz" ) != std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
 			return std::nullopt;
 		}
 
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -372,7 +403,7 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			return DataChannelTypeNamesDto::FromJson( dtNamesJson );
+			return DataChannelTypeNamesDto::fromJson( dtNamesJson );
 		}
 		catch ( const std::exception& e )
 		{
@@ -381,11 +412,11 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::optional<FormatDataTypesDto> EmbeddedResource::GetFormatDataTypes( const std::string& version )
+	std::optional<FormatDataTypesDto> EmbeddedResource::formatDataTypes( const std::string& version )
 	{
-		auto resourceNames = GetResourceNames();
+		auto names = resourceNames();
 
-		auto it = std::find_if( resourceNames.begin(), resourceNames.end(),
+		auto it = std::find_if( names.begin(), names.end(),
 			[&version]( const std::string& name ) {
 				return name.find( "format-data-types" ) != std::string::npos &&
 					   name.find( "iso19848" ) != std::string::npos &&
@@ -393,14 +424,14 @@ namespace dnv::vista::sdk
 					   name.find( ".gz" ) != std::string::npos;
 			} );
 
-		if ( it == resourceNames.end() )
+		if ( it == names.end() )
 		{
 			return std::nullopt;
 		}
 
 		try
 		{
-			auto stream = GetDecompressedStream( *it );
+			auto stream = decompressedStream( *it );
 			std::string jsonStr( ( std::istreambuf_iterator<char>( *stream ) ),
 				std::istreambuf_iterator<char>() );
 
@@ -413,7 +444,7 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			return FormatDataTypesDto::FromJson( fdTypesJson );
+			return FormatDataTypesDto::fromJson( fdTypesJson );
 		}
 		catch ( const std::exception& e )
 		{

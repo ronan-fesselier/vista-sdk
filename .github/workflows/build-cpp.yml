@@ -20,6 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
+        simd: [ON, OFF]
 
     steps:
     - name: Checkout repository
@@ -57,11 +58,11 @@ jobs:
       id: build-cache
       with:
         path: |
-          ${{ github.workspace }}/build
-          !${{ github.workspace }}/build/Testing
-        key: build-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/cmake/**') }}
+          ${{ github.workspace }}/build-${{ matrix.simd }}
+          !${{ github.workspace }}/build-${{ matrix.simd }}/Testing
+        key: build-${{ runner.os }}-${{ matrix.build_type }}-simd${{ matrix.simd }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/cmake/**') }}
         restore-keys: |
-          build-${{ runner.os }}-${{ matrix.build_type }}-
+          build-${{ runner.os }}-${{ matrix.build_type }}-simd${{ matrix.simd }}-
 
     - name: Checkout vcpkg
       if: steps.vcpkg-cache.outputs.cache-hit != 'true'
@@ -83,14 +84,18 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B ${{ github.workspace }}/build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=20 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake -B ${{ github.workspace }}/build-${{ matrix.simd }} -G "Ninja" `
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+              -DCMAKE_CXX_STANDARD=20 `
+              -DENABLE_SSE42=${{ matrix.simd }} `
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
 
     - name: Build
       run: |
-        cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
+        cmake --build ${{ github.workspace }}/build-${{ matrix.simd }} --config ${{ matrix.build_type }}
 
     - name: Test
-      working-directory: ${{ github.workspace }}/build
+      working-directory: ${{ github.workspace }}/build-${{ matrix.simd }}
       run: |
         ctest -C ${{ matrix.build_type }} --output-on-failure
 
@@ -98,8 +103,54 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
-        name: cpp-build-windows-${{ matrix.build_type }}
+        name: cpp-build-windows-${{ matrix.build_type }}-simd${{ matrix.simd }}
         path: |
-          ${{ github.workspace }}/build/Testing
-          ${{ github.workspace }}/build/*.log
+          ${{ github.workspace }}/build-${{ matrix.simd }}/Testing
+          ${{ github.workspace }}/build-${{ matrix.simd }}/*.log
+        retention-days: 7
+
+  build-linux:
+    name: Build and Test C++ on Linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+        simd: [ON, OFF]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build libspdlog-dev libgtest-dev zlib1g-dev rapidjson-dev
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{ github.workspace }}/build-${{ matrix.simd }} -G "Ninja" \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DCMAKE_CXX_STANDARD=20 \
+              -DENABLE_SSE42=${{ matrix.simd }}
+
+    - name: Build
+      run: |
+        cmake --build ${{ github.workspace }}/build-${{ matrix.simd }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ github.workspace }}/build-${{ matrix.simd }}
+      run: |
+        ctest -C ${{ matrix.build_type }} --output-on-failure
+
+    - name: Upload build artifacts
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-build-linux-${{ matrix.build_type }}-simd${{ matrix.simd }}
+        path: |
+          ${{ github.workspace }}/build-${{ matrix.simd }}/Testing
+          ${{ github.workspace }}/build-${{ matrix.simd }}/*.log
         retention-days: 7

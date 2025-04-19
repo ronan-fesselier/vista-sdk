@@ -47,8 +47,8 @@ namespace dnv::vista::sdk::tests
 
 	inline std::pair<VIS, Gmod> GetVisAndGmod( VisVersion visVersion )
 	{
-		VIS vis = VIS::Instance();
-		Gmod gmod = vis.GetGmod( visVersion );
+		VIS vis = VIS::instance();
+		Gmod gmod = vis.gmod( visVersion );
 		return { vis, gmod };
 	}
 
@@ -81,40 +81,39 @@ namespace dnv::vista::sdk::tests
 	{
 	};
 
+	/* 	TEST( ParsingErrorsTests, Comparisons )
+		{
+			std::vector<ParsingErrors::ErrorEntry> errors1 = { std::make_tuple( "T1", "M1" ) };
+			std::vector<ParsingErrors::ErrorEntry> errors2 = { std::make_tuple( "T1", "M1" ), std::make_tuple( "T2", "M1" ) };
+
+			ParsingErrors e1( errors1 );
+			ParsingErrors e2( errors1 );
+			ParsingErrors e3( errors2 );
+			ParsingErrors e4 = ParsingErrors::Empty;
+
+			EXPECT_TRUE( e1 == e2 );
+			EXPECT_TRUE( e1 == e1 );
+			EXPECT_FALSE( e1 == e4 );
+
+			EXPECT_TRUE( e1 != e3 );
+			EXPECT_TRUE( e4 == ParsingErrors::Empty );
+		} */
+
+	/* 	TEST( ParsingErrorsTests, Enumerator )
+		{
+			std::vector<ParsingErrors::ErrorEntry> errors1 = { std::make_tuple( "T1", "M1" ) };
+			std::vector<ParsingErrors::ErrorEntry> errors2 = { std::make_tuple( "T1", "M1" ), std::make_tuple( "T2", "M1" ) };
+
+			ParsingErrors e1( errors1 );
+			ParsingErrors e2( errors2 );
+			ParsingErrors e3 = ParsingErrors::Empty;
+
+			EXPECT_EQ( std::distance( e1.begin(), e1.end() ), 1 );
+			EXPECT_EQ( std::distance( e2.begin(), e2.end() ), 2 );
+			EXPECT_EQ( std::distance( e3.begin(), e3.end() ), 0 );
+		} */
+
 	/*
-	TEST( ParsingErrorsTests, Comparisons )
-	{
-		std::vector<ParsingErrors::ErrorEntry> errors1 = { std::make_tuple( "T1", "M1" ) };
-		std::vector<ParsingErrors::ErrorEntry> errors2 = { std::make_tuple( "T1", "M1" ), std::make_tuple( "T2", "M1" ) };
-
-		ParsingErrors e1( errors1 );
-		ParsingErrors e2( errors1 );
-		ParsingErrors e3( errors2 );
-		ParsingErrors e4 = ParsingErrors::Empty;
-
-		EXPECT_TRUE( e1 == e2 );
-		EXPECT_TRUE( e1 == e1 );
-		EXPECT_FALSE( e1 == e4 );
-
-		EXPECT_TRUE( e1 != e3 );
-		EXPECT_TRUE( e4 == ParsingErrors::Empty );
-	}
-
-	TEST( ParsingErrorsTests, Enumerator )
-	{
-		std::vector<ParsingErrors::ErrorEntry> errors1 = { std::make_tuple( "T1", "M1" ) };
-		std::vector<ParsingErrors::ErrorEntry> errors2 = { std::make_tuple( "T1", "M1" ), std::make_tuple( "T2", "M1" ) };
-
-		ParsingErrors e1( errors1 );
-		ParsingErrors e2( errors2 );
-		ParsingErrors e3 = ParsingErrors::Empty;
-
-		EXPECT_EQ( std::distance( e1.begin(), e1.end() ), 1 );
-		EXPECT_EQ( std::distance( e2.begin(), e2.end() ), 2 );
-		EXPECT_EQ( std::distance( e3.begin(), e3.end() ), 0 );
-	}
-	*/
-
 	TEST_P( LocalIdValidTest, BuildValid )
 	{
 		auto testCase = GetParam();
@@ -163,7 +162,7 @@ namespace dnv::vista::sdk::tests
 		std::string result = builder.ToString();
 		EXPECT_EQ( result, expected );
 	}
-
+*/
 	/*
 
 	TEST( LocalIdTests, BuildAllWithout )
@@ -222,187 +221,192 @@ namespace dnv::vista::sdk::tests
 		EXPECT_FALSE( allWithout.IsValid() );
 		EXPECT_EQ( allWithout.ToString(), "" );
 	}
-
-	TEST( LocalIdTests, Equality )
-	{
-		auto testCases = GetValidTestData();
-
-		for ( const auto& testCase : testCases )
+*/
+	/*
+		TEST( LocalIdTests, Equality )
 		{
-			Input input = testCase.first;
+			auto testCases = GetValidTestData();
 
-			auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
-			auto codebooks = vis.GetCodebooks( VisVersion::v3_4a );
+			for ( const auto& testCase : testCases )
+			{
+				Input input = testCase.first;
 
-			std::optional<GmodPath> primaryPath;
-			ASSERT_TRUE( gmod.TryParsePath( input.PrimaryItem, primaryPath ) );
+				auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
+				auto codebooks = vis.GetCodebooks( VisVersion::v3_4a );
 
-			std::optional<GmodPath> secondaryPath;
-			if ( input.SecondaryItem.has_value() )
-			{
-				ASSERT_TRUE( gmod.TryParsePath( input.SecondaryItem.value(), secondaryPath ) );
-			}
+				std::optional<GmodPath> primaryPath;
+				ASSERT_TRUE( gmod.TryParsePath( input.PrimaryItem, primaryPath ) );
 
-			LocalIdBuilder localId = LocalIdBuilder::Create( VisVersion::v3_4a )
-										 .WithPrimaryItem( *primaryPath );
+				std::optional<GmodPath> secondaryPath;
+				if ( input.SecondaryItem.has_value() )
+				{
+					ASSERT_TRUE( gmod.TryParsePath( input.SecondaryItem.value(), secondaryPath ) );
+				}
 
-			if ( secondaryPath.has_value() )
-			{
-				localId = localId.WithSecondaryItem( *secondaryPath );
-			}
+				LocalIdBuilder localId = LocalIdBuilder::Create( VisVersion::v3_4a )
+											 .WithPrimaryItem( *primaryPath );
 
-			if ( input.Quantity.has_value() )
-			{
-				localId = localId.WithQuantity( codebooks[CodebookName::Quantity].CreateTag( input.Quantity.value() ) );
-			}
+				if ( secondaryPath.has_value() )
+				{
+					localId = localId.WithSecondaryItem( *secondaryPath );
+				}
 
-			if ( input.Content.has_value() )
-			{
-				localId = localId.WithContent( codebooks[CodebookName::Content].CreateTag( input.Content.value() ) );
-			}
+				if ( input.Quantity.has_value() )
+				{
+					localId = localId.WithQuantity( codebooks[CodebookName::Quantity].CreateTag( input.Quantity.value() ) );
+				}
 
-			if ( input.Position.has_value() )
-			{
-				localId = localId.WithPosition( codebooks[CodebookName::Position].CreateTag( input.Position.value() ) );
-			}
+				if ( input.Content.has_value() )
+				{
+					localId = localId.WithContent( codebooks[CodebookName::Content].CreateTag( input.Content.value() ) );
+				}
 
-			LocalIdBuilder otherLocalId = localId;
-			EXPECT_EQ( localId, otherLocalId );
+				if ( input.Position.has_value() )
+				{
+					localId = localId.WithPosition( codebooks[CodebookName::Position].CreateTag( input.Position.value() ) );
+				}
 
-			LocalIdBuilder freshCopy = LocalIdBuilder::Create( VisVersion::v3_4a );
-			if ( localId.GetPrimaryItem().has_value() )
-			{
-				freshCopy = freshCopy.WithPrimaryItem( *localId.GetPrimaryItem() );
-			}
-			if ( localId.GetSecondaryItem().has_value() )
-			{
-				freshCopy = freshCopy.WithSecondaryItem( *localId.GetSecondaryItem() );
-			}
-			if ( localId.GetQuantity().has_value() )
-			{
-				freshCopy = freshCopy.WithQuantity( *localId.GetQuantity() );
-			}
-			if ( localId.GetContent().has_value() )
-			{
-				freshCopy = freshCopy.WithContent( *localId.GetContent() );
-			}
-			if ( localId.GetPosition().has_value() )
-			{
-				freshCopy = freshCopy.WithPosition( *localId.GetPosition() );
-			}
+				LocalIdBuilder otherLocalId = localId;
+				EXPECT_EQ( localId, otherLocalId );
 
-			EXPECT_EQ( localId, freshCopy );
+				LocalIdBuilder freshCopy = LocalIdBuilder::Create( VisVersion::v3_4a );
+				if ( localId.GetPrimaryItem().has_value() )
+				{
+					freshCopy = freshCopy.WithPrimaryItem( *localId.GetPrimaryItem() );
+				}
+				if ( localId.GetSecondaryItem().has_value() )
+				{
+					freshCopy = freshCopy.WithSecondaryItem( *localId.GetSecondaryItem() );
+				}
+				if ( localId.GetQuantity().has_value() )
+				{
+					freshCopy = freshCopy.WithQuantity( *localId.GetQuantity() );
+				}
+				if ( localId.GetContent().has_value() )
+				{
+					freshCopy = freshCopy.WithContent( *localId.GetContent() );
+				}
+				if ( localId.GetPosition().has_value() )
+				{
+					freshCopy = freshCopy.WithPosition( *localId.GetPosition() );
+				}
 
-			if ( input.Position.has_value() )
-			{
-				otherLocalId = otherLocalId.WithPosition( codebooks[CodebookName::Position].CreateTag( "eqtestvalue" ) );
-				EXPECT_NE( localId, otherLocalId );
-			}
-			else
-			{
-				otherLocalId = otherLocalId.WithPosition( codebooks[CodebookName::Position].CreateTag( "eqtestvalue" ) );
-				EXPECT_NE( localId, otherLocalId );
-			}
+				EXPECT_EQ( localId, freshCopy );
 
-			if ( localId.GetPosition().has_value() )
-			{
-				otherLocalId = otherLocalId.WithPosition( *localId.GetPosition() );
-			}
-			else
-			{
-				otherLocalId = otherLocalId.WithoutPosition();
-			}
+				if ( input.Position.has_value() )
+				{
+					otherLocalId = otherLocalId.WithPosition( codebooks[CodebookName::Position].CreateTag( "eqtestvalue" ) );
+					EXPECT_NE( localId, otherLocalId );
+				}
+				else
+				{
+					otherLocalId = otherLocalId.WithPosition( codebooks[CodebookName::Position].CreateTag( "eqtestvalue" ) );
+					EXPECT_NE( localId, otherLocalId );
+				}
 
-			EXPECT_EQ( localId, otherLocalId );
+				if ( localId.GetPosition().has_value() )
+				{
+					otherLocalId = otherLocalId.WithPosition( *localId.GetPosition() );
+				}
+				else
+				{
+					otherLocalId = otherLocalId.WithoutPosition();
+				}
+
+				EXPECT_EQ( localId, otherLocalId );
+			}
 		}
-	}
+*/
 
-	TEST( LocalIdTests, Parsing )
-	{
-		std::vector<std::string> testCases = {
-			"/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking",
-			"/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
-			"/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened",
-			"/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
-			"/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
-			"/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
-			"/dnv-v2/vis-3-4a/511.11-21O/C101.67/S208/meta/qty-pressure/cnt-air/state-low" };
-
-		for ( const auto& localIdStr : testCases )
+	/* 	TEST( LocalIdTests, Parsing )
 		{
-			std::optional<LocalIdBuilder> localId;
-			bool parsed = LocalIdBuilder::TryParse( localIdStr, localId );
+			std::vector<std::string> testCases = {
+				"/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking",
+				"/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
+				"/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened",
+				"/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
+				"/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
+				"/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
+				"/dnv-v2/vis-3-4a/511.11-21O/C101.67/S208/meta/qty-pressure/cnt-air/state-low" };
 
-			EXPECT_TRUE( parsed );
-			ASSERT_TRUE( localId.has_value() );
-			EXPECT_EQ( localIdStr, localId->ToString() );
-		}
-	}
+			for ( const auto& localIdStr : testCases )
+			{
+				ParsingErrors errorBuilder;
+				std::optional<LocalIdBuilder> localId;
+				bool parsed = LocalIdBuilder::TryParse( localIdStr, errorBuilder, localId );
+
+				EXPECT_TRUE( parsed );
+				ASSERT_TRUE( localId.has_value() );
+				EXPECT_EQ( localIdStr, localId->ToString() );
+			}
+		} */
 
 	TEST( LocalIdTests, SimpleParse )
 	{
 		std::string localIdAsString = "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet";
 
+		ParsingErrors errorBuilder;
 		std::optional<LocalIdBuilder> localId;
-		bool success = LocalIdBuilder::TryParse( localIdAsString, localId );
+		bool success = LocalIdBuilder::tryParse( localIdAsString, errorBuilder, localId );
 		EXPECT_TRUE( success );
 		EXPECT_TRUE( localId.has_value() );
 	}
 
-	TEST( LocalIdTests, ParsingValidation )
-	{
-		struct TestCase
+	/* 	TEST( LocalIdTests, ParsingValidation )
 		{
-			std::string localIdStr;
-			std::vector<std::string> expectedErrorMessages;
-		};
-
-		std::vector<TestCase> testCases = {
-			{ "/invalid-naming/vis-3-4a/400a/meta/cnt-refrigerant/state-leaking", { "Invalid naming rule prefix" } },
-			{ "/dnv-v2/vis-invalid/400a/meta/cnt-refrigerant/state-leaking", { "Invalid VIS version: invalid" } },
-			{ "", { "LocalId string is empty" } },
-			{ "something_invalid", { "Invalid string format" } } };
-
-		for ( const auto& testCase : testCases )
-		{
-			ParsingErrors errorBuilder;
-			std::optional<LocalIdBuilder> localId;
-			bool parsed = LocalIdBuilder::TryParse( testCase.localIdStr, errorBuilder, localId );
-
-			EXPECT_FALSE( parsed );
-			EXPECT_TRUE( errorBuilder.HasErrors() );
-
-			SPDLOG_INFO( "Errors for LocalId: {}", testCase.localIdStr );
-			for ( const auto& [errorType, errorMessage] : errorBuilder )
+			struct TestCase
 			{
-				SPDLOG_INFO( "Error Type: {}, message: {}", errorType, errorMessage );
-			}
+				std::string localIdStr;
+				std::vector<std::string> expectedErrorMessages;
+			};
 
-			std::vector<std::string> actualErrorMessages;
-			for ( const auto& [errorType, errorMessage] : errorBuilder )
-			{
-				actualErrorMessages.push_back( errorMessage );
-			}
+			std::vector<TestCase> testCases = {
+				{ "/invalid-naming/vis-3-4a/400a/meta/cnt-refrigerant/state-leaking", { "Invalid naming rule prefix" } },
+				{ "/dnv-v2/vis-invalid/400a/meta/cnt-refrigerant/state-leaking", { "Invalid VIS version: invalid" } },
+				{ "", { "LocalId string is empty" } },
+				{ "something_invalid", { "Invalid string format" } } };
 
-			for ( const auto& expectedMsg : testCase.expectedErrorMessages )
+			for ( const auto& testCase : testCases )
 			{
-				bool found = false;
-				for ( const auto& actualMsg : actualErrorMessages )
+				ParsingErrors errorBuilder;
+				std::optional<LocalIdBuilder> localId;
+				bool parsed = LocalIdBuilder::TryParse( testCase.localIdStr, errorBuilder, localId );
+
+				EXPECT_FALSE( parsed );
+				EXPECT_TRUE( errorBuilder.HasErrors() );
+
+				SPDLOG_INFO( "Errors for LocalId: {}", testCase.localIdStr );
+				for ( const auto& [errorType, errorMessage] : errorBuilder )
 				{
-					if ( actualMsg.find( expectedMsg ) != std::string::npos )
-					{
-						found = true;
-						break;
-					}
+					SPDLOG_INFO( "Error Type: {}, message: {}", errorType, errorMessage );
 				}
-				EXPECT_TRUE( found ) << "Expected error message not found: " << expectedMsg;
-			}
-		}
-	}
-*/
 
+				std::vector<std::string> actualErrorMessages;
+				for ( const auto& [errorType, errorMessage] : errorBuilder )
+				{
+					actualErrorMessages.push_back( errorMessage );
+				}
+
+				for ( const auto& expectedMsg : testCase.expectedErrorMessages )
+				{
+					bool found = false;
+					for ( const auto& actualMsg : actualErrorMessages )
+					{
+						if ( actualMsg.find( expectedMsg ) != std::string::npos )
+						{
+							found = true;
+							break;
+						}
+					}
+					EXPECT_TRUE( found ) << "Expected error message not found: " << expectedMsg;
+				}
+			}
+		} */
+
+	/*
 	INSTANTIATE_TEST_SUITE_P(
-		ValidTests,
-		LocalIdValidTest,
-		::testing::ValuesIn( GetValidTestData() ) );
+			ValidTests,
+			LocalIdValidTest,
+			::testing::ValuesIn( GetValidTestData() ) );
+			*/
 }

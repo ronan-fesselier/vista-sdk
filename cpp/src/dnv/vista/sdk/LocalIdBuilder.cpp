@@ -1,15 +1,21 @@
 #include "pch.h"
 
-#include "dnv/vista/sdk/CodebookName.h"
-#include "dnv/vista/sdk/GmodPath.h"
-#include "dnv/vista/sdk/LocalId.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/VisVersion.h"
-#include "dnv/vista/sdk/VIS.h"
+#include "dnv/vista/sdk/LocalId.h"
+#include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
+#include "dnv/vista/sdk/MetadataTag.h"
+#include "dnv/vista/sdk/GmodPath.h"
+#include "dnv/vista/sdk/CodeBooks.h"
+#include "dnv/vista/sdk/VIS.h"
 
 namespace dnv::vista::sdk
 {
+	//-------------------------------------------------------------------------
+	// Constants
+	//-------------------------------------------------------------------------
+
 	const std::string LocalIdBuilder::NamingRule = "dnv-v2";
 
 	const std::vector<CodebookName> LocalIdBuilder::UsedCodebooks = {
@@ -23,108 +29,175 @@ namespace dnv::vista::sdk
 		CodebookName::Position,
 		CodebookName::Detail };
 
+	//-------------------------------------------------------------------------
+	// Constructors and Static Factories
+	//-------------------------------------------------------------------------
+
 	LocalIdBuilder::LocalIdBuilder()
-		: m_visVersion( std::nullopt ), m_verboseMode( false ), m_items(), m_quantity( std::nullopt ), m_content( std::nullopt ), m_calculation( std::nullopt ), m_state( std::nullopt ), m_command( std::nullopt ), m_type( std::nullopt ), m_position( std::nullopt ), m_detail( std::nullopt )
 	{
+		SPDLOG_INFO( "Created empty LocalIdBuilder" );
 	}
 
 	LocalIdBuilder::LocalIdBuilder( const LocalIdBuilder& other )
 		: m_visVersion( other.m_visVersion ), m_verboseMode( other.m_verboseMode ), m_items( other.m_items ), m_quantity( other.m_quantity ), m_content( other.m_content ), m_calculation( other.m_calculation ), m_state( other.m_state ), m_command( other.m_command ), m_type( other.m_type ), m_position( other.m_position ), m_detail( other.m_detail )
 	{
+		SPDLOG_INFO( "Created LocalIdBuilder via copy constructor" );
 	}
 
-	std::optional<VisVersion> LocalIdBuilder::GetVisVersion() const
+	LocalIdBuilder LocalIdBuilder::create( VisVersion version )
+	{
+		SPDLOG_INFO( "Creating LocalIdBuilder with VisVersion: {}", static_cast<int>( version ) );
+		LocalIdBuilder builder;
+		builder.m_visVersion = version;
+		return builder;
+	}
+
+	//-------------------------------------------------------------------------
+	// Core Interface Implementation (ILocalIdBuilder)
+	//-------------------------------------------------------------------------
+
+	LocalId LocalIdBuilder::build() const
+	{
+		try
+		{
+			SPDLOG_INFO( "Building LocalId from builder" );
+			return LocalId( *this );
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Failed to build LocalId: {}", ex.what() );
+			throw;
+		}
+	}
+
+	std::optional<VisVersion> LocalIdBuilder::getVisVersion() const
 	{
 		return m_visVersion;
 	}
 
-	bool LocalIdBuilder::GetVerboseMode() const
+	bool LocalIdBuilder::getVerboseMode() const
 	{
 		return m_verboseMode;
 	}
 
-	const LocalIdItems& LocalIdBuilder::GetItems() const
+	bool LocalIdBuilder::hasCustomTag() const
+	{
+		return ( m_quantity.has_value() && m_quantity->isCustom() ) ||
+			   ( m_calculation.has_value() && m_calculation->isCustom() ) ||
+			   ( m_content.has_value() && m_content->isCustom() ) ||
+			   ( m_position.has_value() && m_position->isCustom() ) ||
+			   ( m_state.has_value() && m_state->isCustom() ) ||
+			   ( m_command.has_value() && m_command->isCustom() ) ||
+			   ( m_type.has_value() && m_type->isCustom() ) ||
+			   ( m_detail.has_value() && m_detail->isCustom() );
+	}
+
+	bool LocalIdBuilder::isValid() const
+	{
+		if ( !m_visVersion.has_value() )
+			return false;
+
+		if ( !m_items.getPrimaryItem().has_value() )
+			return false;
+
+		return !isEmptyMetadata();
+	}
+
+	bool LocalIdBuilder::isEmpty() const
+	{
+		return !m_visVersion.has_value() &&
+			   !m_items.getPrimaryItem().has_value() &&
+			   !m_items.getSecondaryItem().has_value() &&
+			   isEmptyMetadata();
+	}
+
+	std::string LocalIdBuilder::toString() const
+	{
+		std::stringstream stream;
+		toString( stream );
+		return stream.str();
+	}
+
+	const LocalIdItems& LocalIdBuilder::getItems() const
 	{
 		return m_items;
 	}
 
-	const std::optional<GmodPath>& LocalIdBuilder::GetPrimaryItem() const
+	const std::optional<GmodPath>& LocalIdBuilder::getPrimaryItem() const
 	{
-		return m_items.GetPrimaryItem();
+		return m_items.getPrimaryItem();
 	}
 
-	const std::optional<GmodPath>& LocalIdBuilder::GetSecondaryItem() const
+	const std::optional<GmodPath>& LocalIdBuilder::getSecondaryItem() const
 	{
-		return m_items.GetSecondaryItem();
+		return m_items.getSecondaryItem();
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetQuantity() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getQuantity() const
 	{
 		return m_quantity;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetContent() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getContent() const
 	{
 		return m_content;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetCalculation() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getCalculation() const
 	{
 		return m_calculation;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetState() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getState() const
 	{
 		return m_state;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetCommand() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getCommand() const
 	{
 		return m_command;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetType() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getType() const
 	{
 		return m_type;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetPosition() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getPosition() const
 	{
 		return m_position;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::GetDetail() const
+	const std::optional<MetadataTag>& LocalIdBuilder::getDetail() const
 	{
 		return m_detail;
 	}
 
-	bool LocalIdBuilder::HasCustomTag() const
+	bool LocalIdBuilder::isEmptyMetadata() const
 	{
-		return ( m_quantity.has_value() && m_quantity->IsCustom() ) ||
-			   ( m_calculation.has_value() && m_calculation->IsCustom() ) ||
-			   ( m_content.has_value() && m_content->IsCustom() ) ||
-			   ( m_position.has_value() && m_position->IsCustom() ) ||
-			   ( m_state.has_value() && m_state->IsCustom() ) ||
-			   ( m_command.has_value() && m_command->IsCustom() ) ||
-			   ( m_type.has_value() && m_type->IsCustom() ) ||
-			   ( m_detail.has_value() && m_detail->IsCustom() );
+		return !m_quantity.has_value() &&
+			   !m_content.has_value() &&
+			   !m_calculation.has_value() &&
+			   !m_state.has_value() &&
+			   !m_command.has_value() &&
+			   !m_type.has_value() &&
+			   !m_position.has_value() &&
+			   !m_detail.has_value();
 	}
 
-	std::vector<MetadataTag> LocalIdBuilder::GetMetadataTags() const
+	const std::vector<MetadataTag> LocalIdBuilder::getMetadataTags() const
 	{
-		std::vector<MetadataTag> tags;
+		static thread_local std::vector<MetadataTag> tags;
+		tags.clear();
 
 		if ( m_quantity.has_value() )
 			tags.push_back( *m_quantity );
 
-		if ( m_calculation.has_value() )
-			tags.push_back( *m_calculation );
-
 		if ( m_content.has_value() )
 			tags.push_back( *m_content );
 
-		if ( m_position.has_value() )
-			tags.push_back( *m_position );
+		if ( m_calculation.has_value() )
+			tags.push_back( *m_calculation );
 
 		if ( m_state.has_value() )
 			tags.push_back( *m_state );
@@ -135,580 +208,509 @@ namespace dnv::vista::sdk
 		if ( m_type.has_value() )
 			tags.push_back( *m_type );
 
+		if ( m_position.has_value() )
+			tags.push_back( *m_position );
+
 		if ( m_detail.has_value() )
 			tags.push_back( *m_detail );
 
 		return tags;
 	}
 
-	bool LocalIdBuilder::IsValid() const
+	void LocalIdBuilder::toString( std::stringstream& builder ) const
 	{
-		return m_visVersion.has_value() &&
-			   m_items.GetPrimaryItem().has_value() &&
-			   ( m_quantity.has_value() ||
-				   m_calculation.has_value() ||
-				   m_content.has_value() ||
-				   m_position.has_value() ||
-				   m_state.has_value() ||
-				   m_command.has_value() ||
-				   m_type.has_value() ||
-				   m_detail.has_value() );
-	}
+		SPDLOG_INFO( "Converting LocalIdBuilder to string" );
 
-	bool LocalIdBuilder::IsEmpty() const
-	{
-		return !m_items.GetPrimaryItem().has_value() &&
-			   !m_items.GetSecondaryItem().has_value() &&
-			   !m_quantity.has_value() &&
-			   !m_calculation.has_value() &&
-			   !m_content.has_value() &&
-			   !m_position.has_value() &&
-			   !m_state.has_value() &&
-			   !m_command.has_value() &&
-			   !m_type.has_value() &&
-			   !m_detail.has_value();
-	}
-
-	bool LocalIdBuilder::IsEmptyMetadata() const
-	{
-		return !m_quantity.has_value() &&
-			   !m_calculation.has_value() &&
-			   !m_content.has_value() &&
-			   !m_position.has_value() &&
-			   !m_state.has_value() &&
-			   !m_command.has_value() &&
-			   !m_type.has_value() &&
-			   !m_detail.has_value();
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithVisVersion( const std::string& visVersion )
-	{
-		bool succeeded;
-		auto result = TryWithVisVersion( visVersion, succeeded );
-		if ( !succeeded )
+		if ( !m_visVersion.has_value() )
 		{
-			SPDLOG_ERROR( "Invalid VisVersion string: {}", visVersion );
-			throw std::invalid_argument( "Invalid VisVersion string: " + visVersion );
+			SPDLOG_ERROR( "Cannot convert LocalIdBuilder to string: missing VisVersion" );
+			return;
 		}
-		return result;
+
+		builder << NamingRule << "/v" << static_cast<int>( *m_visVersion ) << '/';
+		m_items.append( builder, m_verboseMode );
+
+		if ( !isEmptyMetadata() )
+		{
+			builder << "meta/";
+
+			if ( m_quantity.has_value() )
+			{
+				builder << "q/";
+				builder << m_quantity->value() << '/';
+			}
+
+			if ( m_content.has_value() )
+			{
+				builder << "c/";
+				builder << m_content->value() << '/';
+			}
+
+			if ( m_calculation.has_value() )
+			{
+				builder << "cal/";
+				builder << m_calculation->value() << '/';
+			}
+
+			if ( m_state.has_value() )
+			{
+				builder << "s/";
+				builder << m_state->value() << '/';
+			}
+
+			if ( m_command.has_value() )
+			{
+				builder << "cmd/";
+				builder << m_command->value() << '/';
+			}
+
+			if ( m_type.has_value() )
+			{
+				builder << "t/";
+				builder << m_type->value() << '/';
+			}
+
+			if ( m_position.has_value() )
+			{
+				builder << "pos/";
+				builder << m_position->value() << '/';
+			}
+
+			if ( m_detail.has_value() )
+			{
+				builder << "d/";
+				builder << m_detail->value() << '/';
+			}
+		}
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithVisVersion( VisVersion version )
+	//-------------------------------------------------------------------------
+	// Builder Methods - Core Properties
+	//-------------------------------------------------------------------------
+
+	LocalIdBuilder LocalIdBuilder::withVisVersion( const std::string& visVersion )
 	{
-		LocalIdBuilder result = *this;
+		try
+		{
+			SPDLOG_INFO( "Setting VisVersion from string: {}", visVersion );
+
+			VisVersion version = VisVersionExtensions::Parse( visVersion );
+
+			return withVisVersion( version );
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Invalid VisVersion string '{}': {}", visVersion, ex.what() );
+			throw std::invalid_argument( "Invalid VisVersion: " + visVersion );
+		}
+	}
+
+	LocalIdBuilder LocalIdBuilder::withVisVersion( VisVersion version )
+	{
+		SPDLOG_INFO( "Setting VisVersion: {}", static_cast<int>( version ) );
+		LocalIdBuilder result( *this );
 		result.m_visVersion = version;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithVisVersion( const std::optional<VisVersion>& version )
+	LocalIdBuilder LocalIdBuilder::tryWithVisVersion( const std::optional<VisVersion>& version )
 	{
 		if ( !version.has_value() )
 		{
+			SPDLOG_INFO( "Skipping VisVersion setting: value is empty" );
 			return *this;
 		}
 
-		LocalIdBuilder result = *this;
-		result.m_visVersion = version;
-		return result;
+		return withVisVersion( *version );
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded )
+	LocalIdBuilder LocalIdBuilder::tryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded )
 	{
+		succeeded = false;
+
 		if ( !visVersionStr.has_value() || visVersionStr->empty() )
 		{
-			succeeded = false;
+			SPDLOG_INFO( "Skipping VisVersion setting: string is empty" );
 			return *this;
 		}
 
-		VisVersion version;
-		if ( VisVersionExtensions::TryParse( *visVersionStr, version ) )
+		try
 		{
+			auto result = withVisVersion( *visVersionStr );
 			succeeded = true;
-			LocalIdBuilder result = *this;
-			result.m_visVersion = version;
 			return result;
 		}
-
-		succeeded = false;
-		return *this;
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Failed to set VisVersion: {}", ex.what() );
+			return *this;
+		}
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithoutVisVersion()
+	LocalIdBuilder LocalIdBuilder::withoutVisVersion()
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Removing VisVersion" );
+		LocalIdBuilder result( *this );
 		result.m_visVersion = std::nullopt;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithVerboseMode( bool verboseMode )
+	LocalIdBuilder LocalIdBuilder::withVerboseMode( bool verboseMode )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting verbose mode: {}", verboseMode );
+		LocalIdBuilder result( *this );
 		result.m_verboseMode = verboseMode;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithPrimaryItem( const GmodPath& item )
+	//-------------------------------------------------------------------------
+	// Builder Methods - Items
+	//-------------------------------------------------------------------------
+
+	LocalIdBuilder LocalIdBuilder::withPrimaryItem( const GmodPath& item )
 	{
-		bool succeeded;
-		LocalIdBuilder result = TryWithPrimaryItem( item, succeeded );
-		if ( !succeeded )
-		{
-			SPDLOG_ERROR( "Invalid primary item: {}", item.ToString() );
-			throw std::invalid_argument( "Invalid primary item" );
-		}
+		SPDLOG_INFO( "Setting primary item: {}", item.ToString() );
+		LocalIdBuilder result( *this );
+		result.m_items = LocalIdItems( item, m_items.getSecondaryItem() );
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithPrimaryItem( const std::optional<GmodPath>& item )
-	{
-		bool dummy;
-		return TryWithPrimaryItem( item, dummy );
-	}
-
-	LocalIdBuilder LocalIdBuilder::TryWithPrimaryItem( const std::optional<GmodPath>& item, bool& succeeded )
+	LocalIdBuilder LocalIdBuilder::tryWithPrimaryItem( const std::optional<GmodPath>& item )
 	{
 		if ( !item.has_value() )
 		{
-			succeeded = false;
+			SPDLOG_INFO( "Skipping primary item: value is empty" );
 			return *this;
 		}
 
-		succeeded = true;
-		LocalIdBuilder result = *this;
-		result.m_items = LocalIdItems( item, m_items.GetSecondaryItem() );
-		return result;
+		return withPrimaryItem( *item );
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithoutPrimaryItem()
+	LocalIdBuilder LocalIdBuilder::tryWithPrimaryItem( const std::optional<GmodPath>& item, bool& succeeded )
 	{
-		LocalIdBuilder result = *this;
-		result.m_items = LocalIdItems( std::nullopt, m_items.GetSecondaryItem() );
-		return result;
-	}
+		succeeded = false;
 
-	LocalIdBuilder LocalIdBuilder::WithSecondaryItem( const GmodPath& item )
-	{
-		bool succeeded;
-		LocalIdBuilder result = TryWithSecondaryItem( item, succeeded );
-		if ( !succeeded )
+		if ( !item.has_value() )
 		{
-			SPDLOG_ERROR( "Invalid secondary item: {}", item.ToString() );
-			throw std::invalid_argument( "Invalid secondary item" );
+			SPDLOG_INFO( "Skipping primary item: value is empty" );
+			return *this;
 		}
+
+		try
+		{
+			auto result = withPrimaryItem( *item );
+			succeeded = true;
+			return result;
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Failed to set primary item: {}", ex.what() );
+			return *this;
+		}
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutPrimaryItem()
+	{
+		SPDLOG_INFO( "Removing primary item" );
+		LocalIdBuilder result( *this );
+		result.m_items = LocalIdItems( std::nullopt, m_items.getSecondaryItem() );
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithSecondaryItem( const std::optional<GmodPath>& item )
+	LocalIdBuilder LocalIdBuilder::withSecondaryItem( const GmodPath& item )
 	{
-		bool dummy;
-		return TryWithSecondaryItem( item, dummy );
+		SPDLOG_INFO( "Setting secondary item: {}", item.ToString() );
+		LocalIdBuilder result( *this );
+		result.m_items = LocalIdItems( m_items.getPrimaryItem(), item );
+		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithSecondaryItem( const std::optional<GmodPath>& item, bool& succeeded )
+	LocalIdBuilder LocalIdBuilder::tryWithSecondaryItem( const std::optional<GmodPath>& item )
 	{
 		if ( !item.has_value() )
 		{
-			succeeded = false;
+			SPDLOG_INFO( "Skipping secondary item: value is empty" );
 			return *this;
 		}
 
-		succeeded = true;
-		LocalIdBuilder result = *this;
-		result.m_items = LocalIdItems( m_items.GetPrimaryItem(), item );
-		return result;
+		return withSecondaryItem( *item );
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithoutSecondaryItem()
+	LocalIdBuilder LocalIdBuilder::tryWithSecondaryItem( const std::optional<GmodPath>& item, bool& succeeded )
 	{
-		LocalIdBuilder result = *this;
-		result.m_items = LocalIdItems( m_items.GetPrimaryItem(), std::nullopt );
-		return result;
-	}
+		succeeded = false;
 
-	LocalIdBuilder LocalIdBuilder::WithMetadataTag( const MetadataTag& metadataTag )
-	{
-		bool succeeded;
-		LocalIdBuilder result = TryWithMetadataTag( metadataTag, succeeded );
-		if ( !succeeded )
+		if ( !item.has_value() )
 		{
-			SPDLOG_ERROR( "Invalid metadata tag: {}", metadataTag.ToString() );
-			throw std::invalid_argument( "Invalid metadata tag: " + metadataTag.ToString() );
+			SPDLOG_INFO( "Skipping secondary item: value is empty" );
+			return *this;
 		}
+
+		try
+		{
+			auto result = withSecondaryItem( *item );
+			succeeded = true;
+			return result;
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Failed to set secondary item: {}", ex.what() );
+			return *this;
+		}
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutSecondaryItem()
+	{
+		SPDLOG_INFO( "Removing secondary item" );
+		LocalIdBuilder result( *this );
+		result.m_items = LocalIdItems( m_items.getPrimaryItem(), std::nullopt );
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithMetadataTag( const std::optional<MetadataTag>& metadataTag )
+	//-------------------------------------------------------------------------
+	// Builder Methods - General Metadata Tags
+	//-------------------------------------------------------------------------
+
+	LocalIdBuilder LocalIdBuilder::withMetadataTag( const MetadataTag& metadataTag )
 	{
-		bool succeeded;
-		return TryWithMetadataTag( metadataTag, succeeded );
+		SPDLOG_INFO( "Adding metadata tag: {} ({})",
+			static_cast<int>( metadataTag.name() ),
+			metadataTag.value() );
+
+		switch ( metadataTag.name() )
+		{
+			case CodebookName::Quantity:
+				return withQuantity( metadataTag );
+			case CodebookName::Content:
+				return withContent( metadataTag );
+			case CodebookName::Calculation:
+				return withCalculation( metadataTag );
+			case CodebookName::State:
+				return withState( metadataTag );
+			case CodebookName::Command:
+				return withCommand( metadataTag );
+			case CodebookName::Type:
+				return withType( metadataTag );
+			case CodebookName::Position:
+				return withPosition( metadataTag );
+			case CodebookName::Detail:
+				return withDetail( metadataTag );
+			default:
+				SPDLOG_ERROR( "Unsupported codebook for metadata tag: {}",
+					static_cast<int>( metadataTag.name() ) );
+				throw std::invalid_argument( "Unsupported codebook for metadata tag" );
+		}
 	}
 
-	LocalIdBuilder LocalIdBuilder::TryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded )
+	LocalIdBuilder LocalIdBuilder::tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag )
 	{
 		if ( !metadataTag.has_value() )
 		{
-			succeeded = false;
+			SPDLOG_INFO( "Skipping metadata tag: value is empty" );
 			return *this;
 		}
 
-		succeeded = true;
-		switch ( metadataTag->GetName() )
+		return withMetadataTag( *metadataTag );
+	}
+
+	LocalIdBuilder LocalIdBuilder::tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded )
+	{
+		succeeded = false;
+
+		if ( !metadataTag.has_value() )
 		{
-			case CodebookName::Quantity:
-				return WithQuantity( *metadataTag );
-			case CodebookName::Content:
-				return WithContent( *metadataTag );
-			case CodebookName::Calculation:
-				return WithCalculation( *metadataTag );
-			case CodebookName::State:
-				return WithState( *metadataTag );
-			case CodebookName::Command:
-				return WithCommand( *metadataTag );
-			case CodebookName::Type:
-				return WithType( *metadataTag );
-			case CodebookName::Position:
-				return WithPosition( *metadataTag );
-			case CodebookName::Detail:
-				return WithDetail( *metadataTag );
-			default:
-				succeeded = false;
-				return *this;
+			SPDLOG_INFO( "Skipping metadata tag: value is empty" );
+			return *this;
+		}
+
+		try
+		{
+			auto result = withMetadataTag( *metadataTag );
+			succeeded = true;
+			return result;
+		}
+		catch ( const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Failed to set metadata tag: {}", ex.what() );
+			return *this;
 		}
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithoutMetadataTag( CodebookName name )
+	LocalIdBuilder LocalIdBuilder::withoutMetadataTag( CodebookName name )
 	{
+		SPDLOG_INFO( "Removing metadata tag: {}", static_cast<int>( name ) );
+
 		switch ( name )
 		{
 			case CodebookName::Quantity:
-				return WithoutQuantity();
+				return withoutQuantity();
 			case CodebookName::Content:
-				return WithoutContent();
+				return withoutContent();
 			case CodebookName::Calculation:
-				return WithoutCalculation();
+				return withoutCalculation();
 			case CodebookName::State:
-				return WithoutState();
+				return withoutState();
 			case CodebookName::Command:
-				return WithoutCommand();
+				return withoutCommand();
 			case CodebookName::Type:
-				return WithoutType();
+				return withoutType();
 			case CodebookName::Position:
-				return WithoutPosition();
+				return withoutPosition();
 			case CodebookName::Detail:
-				return WithoutDetail();
+				return withoutDetail();
 			default:
-				return *this;
+				SPDLOG_ERROR( "Unsupported codebook for metadata tag removal: {}",
+					static_cast<int>( name ) );
+				throw std::invalid_argument( "Unsupported codebook for metadata tag removal" );
 		}
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithoutQuantity()
-	{
-		LocalIdBuilder result = *this;
-		result.m_quantity = std::nullopt;
-		return result;
-	}
+	//-------------------------------------------------------------------------
+	// Builder Methods - Specific Metadata Tags
+	//-------------------------------------------------------------------------
 
-	LocalIdBuilder LocalIdBuilder::WithoutContent()
+	LocalIdBuilder LocalIdBuilder::withQuantity( const MetadataTag& quantity )
 	{
-		LocalIdBuilder result = *this;
-		result.m_content = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutCalculation()
-	{
-		LocalIdBuilder result = *this;
-		result.m_calculation = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutState()
-	{
-		LocalIdBuilder result = *this;
-		result.m_state = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutCommand()
-	{
-		LocalIdBuilder result = *this;
-		result.m_command = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutType()
-	{
-		LocalIdBuilder result = *this;
-		result.m_type = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutPosition()
-	{
-		LocalIdBuilder result = *this;
-		result.m_position = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithoutDetail()
-	{
-		LocalIdBuilder result = *this;
-		result.m_detail = std::nullopt;
-		return result;
-	}
-
-	LocalIdBuilder LocalIdBuilder::WithQuantity( const MetadataTag& quantity )
-	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting quantity tag: {}", quantity.value() );
+		LocalIdBuilder result( *this );
 		result.m_quantity = quantity;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithContent( const MetadataTag& content )
+	LocalIdBuilder LocalIdBuilder::withContent( const MetadataTag& content )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting content tag: {}", content.value() );
+		LocalIdBuilder result( *this );
 		result.m_content = content;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithCalculation( const MetadataTag& calculation )
+	LocalIdBuilder LocalIdBuilder::withCalculation( const MetadataTag& calculation )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting calculation tag: {}", calculation.value() );
+		LocalIdBuilder result( *this );
 		result.m_calculation = calculation;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithState( const MetadataTag& state )
+	LocalIdBuilder LocalIdBuilder::withState( const MetadataTag& state )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting state tag: {}", state.value() );
+		LocalIdBuilder result( *this );
 		result.m_state = state;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithCommand( const MetadataTag& command )
+	LocalIdBuilder LocalIdBuilder::withCommand( const MetadataTag& command )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting command tag: {}", command.value() );
+		LocalIdBuilder result( *this );
 		result.m_command = command;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithType( const MetadataTag& type )
+	LocalIdBuilder LocalIdBuilder::withType( const MetadataTag& type )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting type tag: {}", type.value() );
+		LocalIdBuilder result( *this );
 		result.m_type = type;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithPosition( const MetadataTag& position )
+	LocalIdBuilder LocalIdBuilder::withPosition( const MetadataTag& position )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting position tag: {}", position.value() );
+		LocalIdBuilder result( *this );
 		result.m_position = position;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::WithDetail( const MetadataTag& detail )
+	LocalIdBuilder LocalIdBuilder::withDetail( const MetadataTag& detail )
 	{
-		LocalIdBuilder result = *this;
+		SPDLOG_INFO( "Setting detail tag: {}", detail.value() );
+		LocalIdBuilder result( *this );
 		result.m_detail = detail;
 		return result;
 	}
 
-	LocalIdBuilder LocalIdBuilder::Create( VisVersion version )
+	LocalIdBuilder LocalIdBuilder::parse( const std::string& localIdStr )
 	{
-		LocalIdBuilder builder;
-		builder.m_visVersion = version;
-		return builder;
-	}
+		SPDLOG_INFO( "Parsing LocalId from string: {}", localIdStr );
 
-	LocalId LocalIdBuilder::Build() const
-	{
-		if ( IsEmpty() )
-		{
-			SPDLOG_ERROR( "Cannot build to LocalId from empty LocalIdBuilder" );
-			throw std::invalid_argument( "Cannot build to LocalId from empty LocalIdBuilder" );
-		}
-		if ( !IsValid() )
-		{
-			SPDLOG_ERROR( "Cannot build to LocalId from invalid LocalIdBuilder" );
-			throw std::invalid_argument( "Cannot build to LocalId from invalid LocalIdBuilder" );
-		}
-
-		return LocalId( *this );
-	}
-
-	bool LocalIdBuilder::operator==( const LocalIdBuilder& other ) const
-	{
-		return m_visVersion == other.m_visVersion &&
-			   m_verboseMode == other.m_verboseMode &&
-			   m_items == other.m_items &&
-			   m_quantity == other.m_quantity &&
-			   m_content == other.m_content &&
-			   m_calculation == other.m_calculation &&
-			   m_state == other.m_state &&
-			   m_command == other.m_command &&
-			   m_type == other.m_type &&
-			   m_position == other.m_position &&
-			   m_detail == other.m_detail;
-	}
-
-	bool LocalIdBuilder::operator!=( const LocalIdBuilder& other ) const
-	{
-		return !( *this == other );
-	}
-
-	size_t LocalIdBuilder::GetHashCode() const
-	{
-		size_t hash = 0;
-
-		auto hashCombine = [&hash]( const auto& value ) {
-			std::hash<std::remove_cv_t<std::remove_reference_t<decltype( value )>>> hasher;
-			hash ^= hasher( value ) + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
-		};
-
-		if ( m_visVersion.has_value() )
-			hashCombine( static_cast<int>( m_visVersion.value() ) );
-
-		hashCombine( m_verboseMode );
-
-		if ( m_items.GetPrimaryItem().has_value() )
-			hashCombine( m_items.GetPrimaryItem()->ToString() );
-
-		if ( m_items.GetSecondaryItem().has_value() )
-			hashCombine( m_items.GetSecondaryItem()->ToString() );
-
-		if ( m_quantity.has_value() )
-			hashCombine( m_quantity->ToString() );
-
-		if ( m_calculation.has_value() )
-			hashCombine( m_calculation->ToString() );
-
-		if ( m_content.has_value() )
-			hashCombine( m_content->ToString() );
-
-		if ( m_position.has_value() )
-			hashCombine( m_position->ToString() );
-
-		if ( m_state.has_value() )
-			hashCombine( m_state->ToString() );
-
-		if ( m_command.has_value() )
-			hashCombine( m_command->ToString() );
-
-		if ( m_type.has_value() )
-			hashCombine( m_type->ToString() );
-
-		if ( m_detail.has_value() )
-			hashCombine( m_detail->ToString() );
-
-		return hash;
-	}
-
-	void LocalIdBuilder::ToString( std::stringstream& builder ) const
-	{
-		if ( !m_visVersion.has_value() )
-		{
-			SPDLOG_ERROR( "No VisVersion configured on LocalId" );
-			throw std::invalid_argument( "No VisVersion configured on LocalId" );
-		}
-
-		std::string namingRule = "/" + NamingRule + "/";
-		builder << namingRule;
-
-		builder << "vis-";
-		builder << VisVersionExtensions::ToVersionString( *m_visVersion );
-		builder << '/';
-
-		m_items.Append( builder, m_verboseMode );
-
-		builder << "meta/";
-
-		auto appendMeta = [&builder]( const std::optional<MetadataTag>& metadataTag ) {
-			if ( metadataTag.has_value() )
-			{
-				std::ostringstream tagBuilder;
-				metadataTag->ToString( tagBuilder );
-				builder << tagBuilder.str() << "/";
-			}
-		};
-
-		appendMeta( m_quantity );
-		appendMeta( m_content );
-		appendMeta( m_calculation );
-		appendMeta( m_state );
-		appendMeta( m_command );
-		appendMeta( m_type );
-		appendMeta( m_position );
-		appendMeta( m_detail );
-
-		std::string str = builder.str();
-		if ( !str.empty() && str.back() == '/' )
-		{
-			builder.str( "" );
-			builder << str.substr( 0, str.length() - 1 );
-		}
-	}
-
-	std::string LocalIdBuilder::ToString() const
-	{
-		std::stringstream builder;
-		ToString( builder );
-		return builder.str();
-	}
-
-	LocalIdBuilder LocalIdBuilder::Parse( const std::string& localIdStr )
-	{
 		ParsingErrors errors;
-		std::optional<LocalIdBuilder> builder;
-		if ( !TryParse( localIdStr, errors, builder ) )
+		std::optional<LocalIdBuilder> result;
+		if ( !tryParse( localIdStr, errors, result ) || !result.has_value() )
 		{
-			SPDLOG_ERROR( "Failed to parse LocalId: {}", errors.ToString() );
-			throw std::invalid_argument( "Failed to parse LocalId: " + errors.ToString() );
+			SPDLOG_ERROR( "Failed to parse LocalId: {}", localIdStr );
+			std::string errorMsg = "Failed to parse LocalId: " + localIdStr;
+			if ( !errors.isEmpty() )
+			{
+				errorMsg += "\nErrors: ";
+				for ( const auto& err : errors )
+				{
+					errorMsg += "\n  - " + std::get<0>( err ) + ": " + std::get<1>( err );
+				}
+			}
+			throw std::invalid_argument( errorMsg );
 		}
-		return *builder;
+
+		return *result;
 	}
 
-	bool LocalIdBuilder::TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId )
+	bool LocalIdBuilder::tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId )
 	{
-		LocalIdParsingErrorBuilder errorBuilder;
+		SPDLOG_INFO( "Attempting to parse LocalId: {}", localIdStr );
 
-		bool result = TryParseInternal( localIdStr, errorBuilder, localId );
-		errors = errorBuilder.Build();
-		return result;
+		LocalIdParsingErrorBuilder errorBuilder = LocalIdParsingErrorBuilder::create();
+
+		bool result = tryParseInternal( localIdStr, errorBuilder, localId );
+
+		if ( errorBuilder.hasError() )
+		{
+			SPDLOG_ERROR( "Parsing encountered errors" );
+			errors = errorBuilder.build();
+		}
+
+		return result && localId.has_value();
 	}
 
-	void AddError( LocalIdParsingErrorBuilder& errorBuilder, LocalIdParsingState state, const std::string& message )
+	/* HELPERS   TODO  TODO TODO */
+	void advanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state )
 	{
-		errorBuilder.AddError( state, message );
-	}
-
-	void AdvanceParser( size_t& i, const std::string& segment )
-	{
-		i += segment.length() + 1;
-	}
-
-	void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state )
-	{
-		i += segment.length() + 1;
 		state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+		i += segment.length() + 1;
 	}
 
-	void AdvanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state, LocalIdParsingState nextState )
+	void advanceParser( size_t& i, const std::string& segment )
 	{
 		i += segment.length() + 1;
-		state = nextState;
 	}
 
-	void AdvanceState( LocalIdParsingState& state, LocalIdParsingState nextState )
+	void advanceParser( LocalIdParsingState& state, LocalIdParsingState to )
 	{
-		state = nextState;
+		state = to;
 	}
 
-	std::pair<size_t, size_t> GetNextStateIndexes( const std::string& span, LocalIdParsingState state )
+	void advanceParser( size_t& i, const std::string& segment,
+		LocalIdParsingState& state, LocalIdParsingState to )
 	{
-		size_t customIndex = span.find( "~" );
+		i += segment.length() + 1;
+		state = to;
+	}
+
+	void addError( LocalIdParsingErrorBuilder& errorBuilder,
+		LocalIdParsingState state, const std::string& message = "" )
+	{
+		errorBuilder.addError( state, message );
+	}
+
+	std::pair<size_t, size_t> getNextStateIndexes(
+		const std::string& str, LocalIdParsingState state )
+	{
+		size_t customIndex = str.find( "~" );
 		size_t endOfCustomIndex = ( customIndex + 1 + 1 );
 
-		size_t metaIndex = span.find( "/meta" );
+		size_t metaIndex = str.find( "/meta" );
 		size_t endOfMetaIndex = ( metaIndex + 5 + 1 );
 		bool isVerbose = customIndex < metaIndex;
 
@@ -716,7 +718,7 @@ namespace dnv::vista::sdk
 		{
 			case LocalIdParsingState::PrimaryItem:
 			{
-				size_t secIndex = span.find( "/sec" );
+				size_t secIndex = str.find( "/sec" );
 				size_t endOfSecIndex = ( secIndex + 4 + 1 );
 
 				if ( secIndex != std::string::npos )
@@ -737,187 +739,30 @@ namespace dnv::vista::sdk
 				return { metaIndex, endOfMetaIndex };
 		}
 	}
+	/* END HELPERS   TODO  TODO TODO */
 
-	static std::optional<LocalIdParsingState> MetaPrefixToState( const std::string& prefix )
+	bool LocalIdBuilder::tryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder )
 	{
-		if ( prefix == "qty" )
-			return LocalIdParsingState::MetaQuantity;
-		if ( prefix == "cnt" )
-			return LocalIdParsingState::MetaContent;
-		if ( prefix == "calc" )
-			return LocalIdParsingState::MetaCalculation;
-		if ( prefix == "state" )
-			return LocalIdParsingState::MetaState;
-		if ( prefix == "cmd" )
-			return LocalIdParsingState::MetaCommand;
-		if ( prefix == "type" )
-			return LocalIdParsingState::MetaType;
-		if ( prefix == "pos" )
-			return LocalIdParsingState::MetaPosition;
-		if ( prefix == "detail" )
-			return LocalIdParsingState::MetaDetail;
-
-		return std::nullopt;
-	}
-
-	static std::optional<LocalIdParsingState> NextParsingState( LocalIdParsingState prev )
-	{
-		switch ( prev )
-		{
-			case LocalIdParsingState::MetaQuantity:
-				return LocalIdParsingState::MetaContent;
-			case LocalIdParsingState::MetaContent:
-				return LocalIdParsingState::MetaCalculation;
-			case LocalIdParsingState::MetaCalculation:
-				return LocalIdParsingState::MetaState;
-			case LocalIdParsingState::MetaState:
-				return LocalIdParsingState::MetaCommand;
-			case LocalIdParsingState::MetaCommand:
-				return LocalIdParsingState::MetaType;
-			case LocalIdParsingState::MetaType:
-				return LocalIdParsingState::MetaPosition;
-			case LocalIdParsingState::MetaPosition:
-				return LocalIdParsingState::MetaDetail;
-			default:
-				return std::nullopt;
-		}
-	}
-
-	static std::string CodebookNameToString( CodebookName name )
-	{
-		switch ( name )
-		{
-			case CodebookName::Quantity:
-				return "Quantity";
-			case CodebookName::Content:
-				return "Content";
-			case CodebookName::Calculation:
-				return "Calculation";
-			case CodebookName::State:
-				return "State";
-			case CodebookName::Command:
-				return "Command";
-			case CodebookName::Type:
-				return "Type";
-			case CodebookName::FunctionalServices:
-				return "FunctionalServices";
-			case CodebookName::MaintenanceCategory:
-				return "MaintenanceCategory";
-			case CodebookName::ActivityType:
-				return "ActivityType";
-			case CodebookName::Position:
-				return "Position";
-			case CodebookName::Detail:
-				return "Detail";
-			default:
-				return "Unknown";
-		}
-	}
-
-	static bool ParseMetatag(
-		CodebookName codebookName,
-		LocalIdParsingState& state,
-		size_t& i,
-		const std::string& segment,
-		std::optional<MetadataTag>& tag,
-		const Codebooks* codebooks,
-		LocalIdParsingErrorBuilder& errorBuilder )
-	{
-		if ( !codebooks )
-			return false;
-
-		size_t dashIndex = segment.find( '-' );
-		size_t tildeIndex = segment.find( '~' );
-		size_t prefixIndex = dashIndex == std::string::npos ? tildeIndex : dashIndex;
-		if ( prefixIndex == std::string::npos )
-		{
-			AddError(
-				errorBuilder,
-				state,
-				"Invalid metadata tag: missing prefix '-' or '~' in " + segment );
-			AdvanceParser( i, segment, state );
-			return true;
-		}
-
-		std::string prefix = segment.substr( 0, prefixIndex );
-
-		std::optional<LocalIdParsingState> actualState = MetaPrefixToState( prefix );
-		if ( !actualState.has_value() || actualState < state )
-		{
-			AddError( errorBuilder, state, "Invalid metadata tag: unknown prefix " + prefix );
-			return false;
-		}
-
-		if ( actualState > state )
-		{
-			AdvanceState( state, actualState.value() );
-			return true;
-		}
-
-		std::optional<LocalIdParsingState> nextState = NextParsingState( actualState.value() );
-
-		std::string value = segment.substr( prefixIndex + 1 );
-		if ( value.empty() )
-		{
-			AddError( errorBuilder, state, "Invalid " + CodebookNameToString( codebookName ) + " metadata tag: missing value" );
-			return false;
-		}
-
-		tag = codebooks->TryCreateTag( codebookName, value );
-		if ( !tag.has_value() )
-		{
-			if ( prefixIndex == tildeIndex )
-				AddError(
-					errorBuilder,
-					state,
-					"Invalid custom " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
-			else
-				AddError(
-					errorBuilder,
-					state,
-					"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: failed to create " + value );
-
-			AdvanceParser( i, segment, state );
-			return true;
-		}
-
-		if ( prefixIndex == dashIndex && tag->IsCustom() )
-			AddError(
-				errorBuilder,
-				state,
-				"Invalid " + CodebookNameToString( codebookName ) + " metadata tag: '" + value + "'. Use prefix '~' for custom values" );
-
-		if ( !nextState.has_value() )
-			AdvanceParser( i, segment, state );
-		else
-			AdvanceParser( i, segment, state, nextState.value() );
-		return true;
-	}
-
-	bool LocalIdBuilder::TryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder )
-	{
+		SPDLOG_INFO( "Parsing LocalId internal: {}", localIdStr );
 		localIdBuilder = std::nullopt;
 
 		if ( localIdStr.empty() )
 		{
-			errorBuilder.AddError(
-				LocalIdParsingState::Formatting,
-				"LocalId string is empty" );
+			SPDLOG_INFO( "LocalId string is empty" );
+			errorBuilder.addError( LocalIdParsingState::EmptyState );
 			return false;
 		}
 
 		if ( localIdStr[0] != '/' )
 		{
-			AddError(
-				errorBuilder,
-				LocalIdParsingState::Formatting,
-				"Invalid string format" );
+			SPDLOG_ERROR( "Invalid format: missing '/' as first character" );
+			errorBuilder.addError( LocalIdParsingState::Formatting, "Invalid format: missing '/' as first character" );
 			return false;
 		}
 
-		VisVersion visVersion = static_cast<VisVersion>( std::numeric_limits<int>::max() );
-		const Gmod* gmod = nullptr;
-		const Codebooks* codebooks = nullptr;
+		std::optional<VisVersion> visVersion;
+		std::shared_ptr<Gmod> gmod = nullptr;
+		std::shared_ptr<Codebooks> codebooks = nullptr;
 		std::optional<GmodPath> primaryItem;
 		std::optional<GmodPath> secondaryItem;
 		std::optional<MetadataTag> qty;
@@ -929,101 +774,91 @@ namespace dnv::vista::sdk
 		std::optional<MetadataTag> pos;
 		std::optional<MetadataTag> detail;
 		bool verbose = false;
-		std::string predefinedMessage;
 		bool invalidSecondaryItem = false;
+		std::string predefinedMessage;
 
-		int primaryItemStart = -1;
-		int secondaryItemStart = -1;
+		size_t primaryItemStart = -1;
+		size_t secondaryItemStart = -1;
 
 		LocalIdParsingState state = LocalIdParsingState::NamingRule;
 		size_t i = 1;
 
 		while ( state <= LocalIdParsingState::MetaDetail )
 		{
-			size_t nextStart = std::min( localIdStr.length(), i );
+			size_t nextStart = std::min( localIdStr.size(), i );
 			size_t nextSlash = localIdStr.find( '/', nextStart );
 			std::string segment;
 
 			if ( nextSlash == std::string::npos )
-			{
 				segment = localIdStr.substr( nextStart );
-			}
 			else
-			{
 				segment = localIdStr.substr( nextStart, nextSlash - nextStart );
-			}
+
+			SPDLOG_INFO( "Processing segment: '{}', state: {}", segment, static_cast<int>( state ) );
 
 			switch ( state )
 			{
 				case LocalIdParsingState::NamingRule:
 					if ( segment.empty() )
 					{
-						AddError( errorBuilder, LocalIdParsingState::NamingRule,
-							"Invalid naming rule prefix" );
+						addError( errorBuilder, state, predefinedMessage );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
 
 					if ( segment != NamingRule )
 					{
-						AddError( errorBuilder, LocalIdParsingState::NamingRule,
-							"Invalid naming rule prefix: " + segment );
+						SPDLOG_ERROR( "Invalid naming rule: {}", segment );
+						addError( errorBuilder, state, predefinedMessage );
 						return false;
 					}
 
-					AdvanceParser( i, segment, state );
+					advanceParser( i, segment, state );
 					break;
 
 				case LocalIdParsingState::VisVersion:
 					if ( segment.empty() )
 					{
-						AddError( errorBuilder, LocalIdParsingState::VisVersion,
-							"Missing VIS version" );
+						addError( errorBuilder, state, predefinedMessage );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
 
 					if ( segment.substr( 0, 4 ) != "vis-" )
 					{
-						AddError( errorBuilder, LocalIdParsingState::VisVersion,
-							"Invalid VIS version format: " + segment );
-						return false;
-					}
-
-					if ( !VisVersionExtensions::TryParse( segment.substr( 4 ), visVersion ) )
-					{
-						AddError( errorBuilder, LocalIdParsingState::VisVersion,
-							"Invalid VIS version: " + segment.substr( 4 ) );
+						SPDLOG_ERROR( "Invalid VisVersion format: {}", segment );
+						addError( errorBuilder, state, predefinedMessage );
 						return false;
 					}
 
 					try
 					{
-						VIS& vis = VIS::Instance();
-
-						const Gmod& gmodRef = vis.GetGmod( visVersion );
-						const Codebooks& codebooksRef = vis.GetCodebooks( visVersion );
-
-						gmod = &gmodRef;
-						codebooks = &codebooksRef;
+						visVersion = VisVersionExtensions::Parse( segment.substr( 4 ) );
 					}
-					catch ( ... )
+					catch ( const std::exception& e )
 					{
-						SPDLOG_ERROR( "Failed to get Gmod or Codebooks for version: {}", static_cast<int>( visVersion ) );
+						SPDLOG_ERROR( "Failed to parse VisVersion: {}", e.what() );
+						addError( errorBuilder, state, predefinedMessage );
 						return false;
 					}
+
+					gmod = std::make_shared<Gmod>( VIS::instance().gmod( *visVersion ) );
+					codebooks = std::make_shared<Codebooks>( VIS::instance().codebooks( *visVersion ) );
 
 					if ( !gmod || !codebooks )
+					{
+						SPDLOG_ERROR( "Failed to get Gmod or Codebooks for version {}", static_cast<int>( *visVersion ) );
 						return false;
+					}
 
-					AdvanceParser( i, segment, state );
+					advanceParser( i, segment, state );
 					break;
 
 				case LocalIdParsingState::PrimaryItem:
 				{
 					if ( segment.empty() )
 					{
-						if ( primaryItemStart != -1 )
+						if ( primaryItemStart != static_cast<size_t>( -1 ) )
 						{
 							if ( !gmod )
 								return false;
@@ -1031,66 +866,54 @@ namespace dnv::vista::sdk
 							std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
 							if ( !gmod->TryParsePath( path, primaryItem ) )
 							{
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::PrimaryItem,
-									"Invalid GmodPath in Primary item: " + path );
+								SPDLOG_ERROR( "Invalid GmodPath in Primary item: {}", path );
+								addError( errorBuilder, state, "Invalid GmodPath in Primary item: " + path );
 							}
 						}
 						else
 						{
-							AddError( errorBuilder, LocalIdParsingState::PrimaryItem, predefinedMessage );
+							addError( errorBuilder, state, predefinedMessage );
 						}
 
-						AddError(
-							errorBuilder,
-							LocalIdParsingState::PrimaryItem,
-							"Invalid or missing '/meta' prefix after Primary item" );
-
+						addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Primary item" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
 
 					size_t dashIndex = segment.find( '-' );
-					std::string code;
-					if ( dashIndex == std::string::npos )
-					{
-						code = segment;
-					}
-					else
-					{
-						code = segment.substr( 0, dashIndex );
-					}
+					std::string code = ( dashIndex == std::string::npos ) ? segment : segment.substr( 0, dashIndex );
 
 					if ( !gmod )
-						return false;
-
-					if ( primaryItemStart == -1 )
 					{
-						GmodNode node;
-						if ( !gmod->TryGetNode( code, node ) )
+						SPDLOG_ERROR( "Gmod is not initialized" );
+						return false;
+					}
+
+					if ( primaryItemStart == static_cast<size_t>( -1 ) )
+					{
+						GmodNode tempNode;
+						if ( !gmod->tryGetNode( code, tempNode ) )
 						{
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::PrimaryItem,
-								"Invalid start GmodNode in Primary item: " + code );
+							SPDLOG_ERROR( "Invalid start GmodNode in Primary item: {}", code );
+							addError( errorBuilder, state, "Invalid start GmodNode in Primary item: " + code );
 						}
 
 						primaryItemStart = i;
-						AdvanceParser( i, segment );
+						advanceParser( i, segment );
 					}
 					else
 					{
-						bool isSecSegment = segment == "sec";
-						bool isMetaSegment = segment == "meta";
-						bool isTildeSegment = !segment.empty() && segment[0] == '~';
+						bool isSecPrefix = segment == "sec";
+						bool isMetaPrefix = segment == "meta";
+						bool isTildePrefix = !segment.empty() && segment[0] == '~';
 
 						LocalIdParsingState nextState = state;
-						if ( isSecSegment )
+
+						if ( isSecPrefix )
 							nextState = LocalIdParsingState::SecondaryItem;
-						else if ( isMetaSegment )
+						else if ( isMetaPrefix )
 							nextState = LocalIdParsingState::MetaQuantity;
-						else if ( isTildeSegment )
+						else if ( isTildePrefix )
 							nextState = LocalIdParsingState::ItemDescription;
 
 						if ( nextState != state )
@@ -1098,128 +921,124 @@ namespace dnv::vista::sdk
 							std::string path = localIdStr.substr( primaryItemStart, i - 1 - primaryItemStart );
 							if ( !gmod->TryParsePath( path, primaryItem ) )
 							{
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::PrimaryItem,
-									"Invalid GmodPath in Primary item: " + path );
+								SPDLOG_ERROR( "Invalid GmodPath in Primary item: {}", path );
+								addError( errorBuilder, state, "Invalid GmodPath in Primary item: " + path );
 
-								auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
+								auto [_, endOfNextStateIndex] = getNextStateIndexes( localIdStr, state );
 								i = endOfNextStateIndex;
-								AdvanceState( state, nextState );
+								advanceParser( state, nextState );
 								break;
 							}
 
-							if ( isTildeSegment )
-								AdvanceState( state, nextState );
+							if ( isTildePrefix )
+								advanceParser( state, nextState );
 							else
-								AdvanceParser( i, segment, state, nextState );
+								advanceParser( i, segment, state, nextState );
+
 							break;
 						}
 
-						GmodNode node;
-						if ( !gmod->TryGetNode( code, node ) )
+						GmodNode tempNode2;
+						if ( !gmod->tryGetNode( code, tempNode2 ) )
 						{
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::PrimaryItem,
-								"Invalid GmodNode in Primary item: " + code );
+							SPDLOG_ERROR( "Invalid GmodNode in Primary item: {}", code );
+							addError( errorBuilder, state, "Invalid GmodNode in Primary item: " + code );
 
-							auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
+							auto [nextStateIndex, endOfNextStateIndex] = getNextStateIndexes( localIdStr, state );
 
-							if ( nextStateIndex == -1 )
+							if ( nextStateIndex == static_cast<size_t>( -1 ) )
 							{
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::PrimaryItem,
-									"Invalid or missing '/meta' prefix after Primary item" );
+								addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Primary item" );
 								return false;
 							}
 
-							std::string nextSegment;
-							if ( nextStateIndex + 1 < localIdStr.length() )
-							{
-								size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
-								if ( nextSegSlash == std::string::npos )
-									nextSegment = localIdStr.substr( nextStateIndex + 1 );
-								else
-									nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
-							}
+							std::string nextSegment = localIdStr.substr( nextStateIndex + 1 );
 
-							bool isNextSecSegment = nextSegment == "sec";
-							bool isNextMetaSegment = nextSegment == "meta";
-							bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
+							bool nextIsSecPrefix = nextSegment.substr( 0, 3 ) == "sec";
+							bool nextIsMetaPrefix = nextSegment.substr( 0, 4 ) == "meta";
+							bool nextIsTildePrefix = !nextSegment.empty() && nextSegment[0] == '~';
 
-							if ( isNextSecSegment )
+							if ( nextIsSecPrefix )
 								nextState = LocalIdParsingState::SecondaryItem;
-							else if ( isNextMetaSegment )
+							else if ( nextIsMetaPrefix )
 								nextState = LocalIdParsingState::MetaQuantity;
-							else if ( isNextTildeSegment )
+							else if ( nextIsTildePrefix )
 								nextState = LocalIdParsingState::ItemDescription;
-							else
-								throw std::runtime_error( "Inconsistent parsing state" );
 
 							std::string invalidPrimaryItemPath = localIdStr.substr( i, nextStateIndex - i );
 
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::PrimaryItem,
-								"Invalid GmodPath: Last part in Primary item: " + invalidPrimaryItemPath );
+							addError( errorBuilder, state, "Invalid GmodPath: Last part in Primary item: " + invalidPrimaryItemPath );
 
 							i = endOfNextStateIndex;
-							AdvanceState( state, nextState );
+							advanceParser( state, nextState );
 							break;
 						}
 
-						AdvanceParser( i, segment );
+						advanceParser( i, segment );
 					}
-					break;
 				}
+				break;
 
 				case LocalIdParsingState::SecondaryItem:
 				{
 					if ( segment.empty() )
 					{
-						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						if ( secondaryItemStart != static_cast<size_t>( -1 ) )
+						{
+							if ( !gmod )
+								return false;
+
+							std::string path = localIdStr.substr( secondaryItemStart, i - 1 - secondaryItemStart );
+							if ( !gmod->TryParsePath( path, secondaryItem ) )
+							{
+								SPDLOG_ERROR( "Invalid GmodPath in Secondary item: {}", path );
+								addError( errorBuilder, state, "Invalid GmodPath in Secondary item: " + path );
+								invalidSecondaryItem = true;
+							}
+						}
+						else
+						{
+							addError( errorBuilder, state, predefinedMessage );
+							invalidSecondaryItem = true;
+						}
+
+						addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Secondary item" );
+						state = LocalIdParsingState::MetaQuantity;
 						break;
 					}
 
 					size_t dashIndex = segment.find( '-' );
-					std::string code;
-					if ( dashIndex == std::string::npos )
-					{
-						code = segment;
-					}
-					else
-					{
-						code = segment.substr( 0, dashIndex );
-					}
+					std::string code = ( dashIndex == std::string::npos ) ? segment : segment.substr( 0, dashIndex );
 
 					if ( !gmod )
-						return false;
-
-					if ( secondaryItemStart == -1 )
 					{
-						GmodNode node;
-						if ( !gmod->TryGetNode( code, node ) )
+						SPDLOG_ERROR( "Gmod is not initialized" );
+						return false;
+					}
+
+					if ( secondaryItemStart == static_cast<size_t>( -1 ) )
+					{
+						GmodNode tempNode;
+						if ( !gmod->tryGetNode( code, tempNode ) )
 						{
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::SecondaryItem,
-								"Invalid start GmodNode in Secondary item: " + code );
+							SPDLOG_ERROR( "Invalid start GmodNode in Secondary item: {}", code );
+							addError( errorBuilder, state, "Invalid start GmodNode in Secondary item: " + code );
+							invalidSecondaryItem = true;
 						}
 
 						secondaryItemStart = i;
-						AdvanceParser( i, segment );
+						advanceParser( i, segment );
 					}
 					else
 					{
-						bool isMetaSegment = segment == "meta";
-						bool isTildeSegment = !segment.empty() && segment[0] == '~';
+						bool isMetaPrefix = segment == "meta";
+						bool isTildePrefix = !segment.empty() && segment[0] == '~';
 
 						LocalIdParsingState nextState = state;
-						if ( isMetaSegment )
+
+						if ( isMetaPrefix )
 							nextState = LocalIdParsingState::MetaQuantity;
-						else if ( isTildeSegment )
+						else if ( isTildePrefix )
 							nextState = LocalIdParsingState::ItemDescription;
 
 						if ( nextState != state )
@@ -1227,182 +1046,878 @@ namespace dnv::vista::sdk
 							std::string path = localIdStr.substr( secondaryItemStart, i - 1 - secondaryItemStart );
 							if ( !gmod->TryParsePath( path, secondaryItem ) )
 							{
+								SPDLOG_ERROR( "Invalid GmodPath in Secondary item: {}", path );
+								addError( errorBuilder, state, "Invalid GmodPath in Secondary item: " + path );
 								invalidSecondaryItem = true;
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::SecondaryItem,
-									"Invalid GmodPath in Secondary item: " + path );
 
-								auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
+								auto [_, endOfNextStateIndex] = getNextStateIndexes( localIdStr, state );
 								i = endOfNextStateIndex;
-								AdvanceState( state, nextState );
+								advanceParser( state, nextState );
 								break;
 							}
 
-							if ( isTildeSegment )
-								AdvanceState( state, nextState );
+							if ( isTildePrefix )
+								advanceParser( state, nextState );
 							else
-								AdvanceParser( i, segment, state, nextState );
+								advanceParser( i, segment, state, nextState );
+
 							break;
 						}
 
-						GmodNode node;
-						if ( !gmod->TryGetNode( code, node ) )
+						GmodNode tempNode;
+						if ( !gmod->tryGetNode( code, tempNode ) )
 						{
+							SPDLOG_ERROR( "Invalid GmodNode in Secondary item: {}", code );
+							addError( errorBuilder, state, "Invalid GmodNode in Secondary item: " + code );
 							invalidSecondaryItem = true;
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::SecondaryItem,
-								"Invalid GmodNode in Secondary item: " + code );
 
-							auto [nextStateIndex, endOfNextStateIndex] = GetNextStateIndexes( localIdStr, state );
-							if ( nextStateIndex == -1 )
+							auto [nextStateIndex, endOfNextStateIndex] = getNextStateIndexes( localIdStr, state );
+
+							if ( nextStateIndex == static_cast<size_t>( -1 ) )
 							{
-								AddError(
-									errorBuilder,
-									LocalIdParsingState::SecondaryItem,
-									"Invalid or missing '/meta' prefix after Secondary item" );
+								addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Secondary item" );
 								return false;
 							}
 
-							std::string nextSegment;
-							if ( nextStateIndex + 1 < localIdStr.length() )
-							{
-								size_t nextSegSlash = localIdStr.find( '/', nextStateIndex + 1 );
-								if ( nextSegSlash == std::string::npos )
-									nextSegment = localIdStr.substr( nextStateIndex + 1 );
-								else
-									nextSegment = localIdStr.substr( nextStateIndex + 1, nextSegSlash - ( nextStateIndex + 1 ) );
-							}
-
-							bool isNextMetaSegment = nextSegment == "meta";
-							bool isNextTildeSegment = !nextSegment.empty() && nextSegment[0] == '~';
-
-							if ( isNextMetaSegment )
-								nextState = LocalIdParsingState::MetaQuantity;
-							else if ( isNextTildeSegment )
-								nextState = LocalIdParsingState::ItemDescription;
-							else
-								throw std::runtime_error( "Inconsistent parsing state" );
-
-							std::string invalidSecondaryItemPath = localIdStr.substr( i, nextStateIndex - i );
-
-							AddError(
-								errorBuilder,
-								LocalIdParsingState::SecondaryItem,
-								"Invalid GmodPath: Last part in Secondary item: " + invalidSecondaryItemPath );
-
 							i = endOfNextStateIndex;
-							AdvanceState( state, nextState );
+							advanceParser( state, LocalIdParsingState::MetaQuantity );
 							break;
 						}
 
-						AdvanceParser( i, segment );
+						advanceParser( i, segment );
 					}
-					break;
 				}
-				case LocalIdParsingState::ItemDescription:
-				{
-					if ( segment.empty() )
-					{
-						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-						break;
-					}
-
-					verbose = true;
-
-					size_t metaIndex = localIdStr.find( "/meta" );
-					if ( metaIndex == std::string::npos )
-					{
-						AddError( errorBuilder, LocalIdParsingState::ItemDescription, predefinedMessage );
-						return false;
-					}
-
-					segment = localIdStr.substr( i, ( metaIndex + 5 ) - i );
-
-					AdvanceParser( i, segment, state );
-					break;
-				}
-				case LocalIdParsingState::MetaQuantity:
-				{
-					if ( segment.empty() )
-					{
-						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
-						break;
-					}
-
-					bool result = ParseMetatag(
-						CodebookName::Quantity,
-						state,
-						i,
-						segment,
-						qty,
-						codebooks,
-						errorBuilder );
-					if ( !result )
-						return false;
-					break;
-				}
-				case LocalIdParsingState::MetaContent:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaCalculation:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaState:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaCommand:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaType:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaPosition:
-				{
-					break;
-				}
-				case LocalIdParsingState::MetaDetail:
-				{
-					break;
-				}
-				default:
-				{
-					AdvanceParser( i, segment, state );
-					break;
-				}
-			}
-
-			if ( nextSlash == std::string::npos )
 				break;
+
+				case LocalIdParsingState::ItemDescription:
+					verbose = true;
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = LocalIdParsingState::MetaQuantity;
+						break;
+					}
+
+					if ( segment[0] != '~' )
+					{
+						addError( errorBuilder, state, "Item description must start with ~" );
+						state = LocalIdParsingState::MetaQuantity;
+						break;
+					}
+
+					if ( segment == "~meta" )
+					{
+						advanceParser( i, segment, state, LocalIdParsingState::MetaQuantity );
+					}
+					else
+					{
+						advanceParser( i, segment );
+					}
+					break;
+
+				case LocalIdParsingState::MetaQuantity:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "meta" && segment != "q" )
+					{
+						if ( segment == "c" )
+						{
+							state = LocalIdParsingState::MetaContent;
+							break;
+						}
+						else if ( segment == "cal" )
+						{
+							state = LocalIdParsingState::MetaCalculation;
+							break;
+						}
+						else if ( segment == "s" )
+						{
+							state = LocalIdParsingState::MetaState;
+							break;
+						}
+						else if ( segment == "cmd" )
+						{
+							state = LocalIdParsingState::MetaCommand;
+							break;
+						}
+						else if ( segment == "t" )
+						{
+							state = LocalIdParsingState::MetaType;
+							break;
+						}
+						else if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					if ( segment == "meta" )
+					{
+						advanceParser( i, segment );
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Quantity, value );
+									if ( tagOpt.has_value() )
+									{
+										qty = *tagOpt;
+									}
+									else
+									{
+										qty = MetadataTag( CodebookName::Quantity, value );
+									}
+									SPDLOG_INFO( "Added quantity tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid quantity tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid quantity tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty quantity value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaContent:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "c" )
+					{
+						if ( segment == "cal" )
+						{
+							state = LocalIdParsingState::MetaCalculation;
+							break;
+						}
+						else if ( segment == "s" )
+						{
+							state = LocalIdParsingState::MetaState;
+							break;
+						}
+						else if ( segment == "cmd" )
+						{
+							state = LocalIdParsingState::MetaCommand;
+							break;
+						}
+						else if ( segment == "t" )
+						{
+							state = LocalIdParsingState::MetaType;
+							break;
+						}
+						else if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta content prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta content prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Content, value );
+									if ( tagOpt.has_value() )
+									{
+										cnt = *tagOpt;
+									}
+									else
+									{
+										cnt = MetadataTag( CodebookName::Content, value );
+									}
+									SPDLOG_INFO( "Added content tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid content tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid content tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty content value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaCalculation:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "cal" )
+					{
+						if ( segment == "s" )
+						{
+							state = LocalIdParsingState::MetaState;
+							break;
+						}
+						else if ( segment == "cmd" )
+						{
+							state = LocalIdParsingState::MetaCommand;
+							break;
+						}
+						else if ( segment == "t" )
+						{
+							state = LocalIdParsingState::MetaType;
+							break;
+						}
+						else if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta calculation prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta calculation prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Calculation, value );
+									if ( tagOpt.has_value() )
+									{
+										calc = *tagOpt;
+									}
+									else
+									{
+										calc = MetadataTag( CodebookName::Calculation, value );
+									}
+									SPDLOG_INFO( "Added calculation tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid calculation tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid calculation tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty calculation value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaState:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "s" )
+					{
+						if ( segment == "cmd" )
+						{
+							state = LocalIdParsingState::MetaCommand;
+							break;
+						}
+						else if ( segment == "t" )
+						{
+							state = LocalIdParsingState::MetaType;
+							break;
+						}
+						else if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta state prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta state prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::State, value );
+									if ( tagOpt.has_value() )
+									{
+										stateTag = *tagOpt;
+									}
+									else
+									{
+										stateTag = MetadataTag( CodebookName::State, value );
+									}
+									SPDLOG_INFO( "Added state tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid state tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid state tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty state value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaCommand:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "cmd" )
+					{
+						if ( segment == "t" )
+						{
+							state = LocalIdParsingState::MetaType;
+							break;
+						}
+						else if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta command prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta command prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Command, value );
+									if ( tagOpt.has_value() )
+									{
+										cmd = *tagOpt;
+									}
+									else
+									{
+										cmd = MetadataTag( CodebookName::Command, value );
+									}
+									SPDLOG_INFO( "Added command tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid command tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid command tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty command value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaType:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "t" )
+					{
+						if ( segment == "pos" )
+						{
+							state = LocalIdParsingState::MetaPosition;
+							break;
+						}
+						else if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta type prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta type prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Type, value );
+									if ( tagOpt.has_value() )
+									{
+										type = *tagOpt;
+									}
+									else
+									{
+										type = MetadataTag( CodebookName::Type, value );
+									}
+									SPDLOG_INFO( "Added type tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid type tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid type tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty type value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaPosition:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "pos" )
+					{
+						if ( segment == "d" )
+						{
+							state = LocalIdParsingState::MetaDetail;
+							break;
+						}
+						else
+						{
+							SPDLOG_ERROR( "Invalid meta position prefix: {}", segment );
+							addError( errorBuilder, state, "Invalid meta position prefix: " + segment );
+							state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						}
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Position, value );
+									if ( tagOpt.has_value() )
+									{
+										pos = *tagOpt;
+									}
+									else
+									{
+										pos = MetadataTag( CodebookName::Position, value );
+									}
+									SPDLOG_INFO( "Added position tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid position tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid position tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty position value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				case LocalIdParsingState::MetaDetail:
+					if ( segment.empty() )
+					{
+						addError( errorBuilder, state, predefinedMessage );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					if ( segment != "d" )
+					{
+						SPDLOG_ERROR( "Invalid meta detail prefix: {}", segment );
+						addError( errorBuilder, state, "Invalid meta detail prefix: " + segment );
+						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+						break;
+					}
+
+					advanceParser( i, segment );
+					if ( i < localIdStr.size() )
+					{
+						size_t valueStart = i;
+						size_t valueEnd = localIdStr.find( '/', valueStart );
+						if ( valueEnd == std::string::npos )
+							valueEnd = localIdStr.size();
+
+						std::string value = localIdStr.substr( valueStart, valueEnd - valueStart );
+						if ( !value.empty() )
+						{
+							if ( codebooks )
+							{
+								try
+								{
+									std::optional<MetadataTag> tagOpt = codebooks->tryCreateTag( CodebookName::Detail, value );
+									if ( tagOpt.has_value() )
+									{
+										detail = *tagOpt;
+									}
+									else
+									{
+										detail = MetadataTag( CodebookName::Detail, value );
+									}
+									SPDLOG_INFO( "Added detail tag: {}", value );
+								}
+								catch ( const std::exception& e )
+								{
+									SPDLOG_ERROR( "Invalid detail tag: {} - {}", value, e.what() );
+									addError( errorBuilder, state, "Invalid detail tag: " + value );
+								}
+							}
+							i = valueEnd + 1;
+						}
+						else
+						{
+							addError( errorBuilder, state, "Empty detail value" );
+							i = valueEnd + 1;
+						}
+					}
+					state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
+					break;
+
+				default:
+					SPDLOG_ERROR( "Unknown parsing state: {}", static_cast<int>( state ) );
+					addError( errorBuilder, LocalIdParsingState::Formatting );
+					return false;
+			}
 		}
 
-		localIdBuilder = Create( visVersion )
-							 .TryWithPrimaryItem( primaryItem )
-							 .TryWithSecondaryItem( secondaryItem )
-							 .WithVerboseMode( verbose )
-							 .TryWithMetadataTag( qty )
-							 .TryWithMetadataTag( cnt )
-							 .TryWithMetadataTag( calc )
-							 .TryWithMetadataTag( stateTag )
-							 .TryWithMetadataTag( cmd )
-							 .TryWithMetadataTag( type )
-							 .TryWithMetadataTag( pos )
-							 .TryWithMetadataTag( detail );
+		localIdBuilder = create( visVersion.value_or( VisVersion::Unknown ) )
+							 .tryWithPrimaryItem( primaryItem )
+							 .tryWithSecondaryItem( secondaryItem )
+							 .withVerboseMode( verbose )
+							 .tryWithMetadataTag( qty )
+							 .tryWithMetadataTag( cnt )
+							 .tryWithMetadataTag( calc )
+							 .tryWithMetadataTag( stateTag )
+							 .tryWithMetadataTag( cmd )
+							 .tryWithMetadataTag( type )
+							 .tryWithMetadataTag( pos )
+							 .tryWithMetadataTag( detail );
 
-		if ( localIdBuilder->IsEmptyMetadata() )
+		if ( localIdBuilder->isEmptyMetadata() )
 		{
-			AddError(
-				errorBuilder,
-				LocalIdParsingState::Completeness,
+			addError( errorBuilder, LocalIdParsingState::Completeness,
 				"No metadata tags specified. Local IDs require at least 1 metadata tag." );
 		}
 
-		return ( !errorBuilder.HasError() && !invalidSecondaryItem );
+		return ( !errorBuilder.hasError() && !invalidSecondaryItem );
+	}
+
+	bool LocalIdBuilder::operator==( const LocalIdBuilder& other ) const
+	{
+		SPDLOG_INFO( "Comparing LocalIdBuilders for equality" );
+
+		if ( !m_visVersion.has_value() && !other.m_visVersion.has_value() )
+			return true;
+
+		if ( m_visVersion.has_value() != other.m_visVersion.has_value() )
+			return false;
+
+		if ( *m_visVersion != *other.m_visVersion )
+			throw std::invalid_argument( "Can't compare local IDs from different VIS versions" );
+
+		return m_items == other.m_items &&
+			   //   m_verboseMode == other.m_verboseMode &&
+			   m_quantity == other.m_quantity &&
+			   m_content == other.m_content &&
+			   m_calculation == other.m_calculation &&
+			   m_state == other.m_state &&
+			   m_command == other.m_command &&
+			   m_type == other.m_type &&
+			   m_position == other.m_position &&
+			   m_detail == other.m_detail;
+	}
+
+	bool LocalIdBuilder::operator!=( const LocalIdBuilder& other ) const
+	{
+		SPDLOG_INFO( "Comparing LocalIdBuilders for inequality" );
+		return !( *this == other );
+	}
+
+	size_t LocalIdBuilder::getHashCode() const
+	{
+		SPDLOG_DEBUG( "Calculating hash code for LocalIdBuilder" );
+
+		size_t hash = 17;
+
+		if ( m_items.getPrimaryItem().has_value() )
+			hash = hash * 31 + m_items.getPrimaryItem()->getHashCode();
+
+		if ( m_items.getSecondaryItem().has_value() )
+			hash = hash * 31 + m_items.getSecondaryItem()->getHashCode();
+
+		if ( m_quantity.has_value() )
+			hash = hash * 31 + m_quantity->hashCode();
+
+		if ( m_calculation.has_value() )
+			hash = hash * 31 + m_calculation->hashCode();
+
+		if ( m_content.has_value() )
+			hash = hash * 31 + m_content->hashCode();
+
+		if ( m_position.has_value() )
+			hash = hash * 31 + m_position->hashCode();
+
+		if ( m_state.has_value() )
+			hash = hash * 31 + m_state->hashCode();
+
+		if ( m_command.has_value() )
+			hash = hash * 31 + m_command->hashCode();
+
+		if ( m_type.has_value() )
+			hash = hash * 31 + m_type->hashCode();
+
+		if ( m_detail.has_value() )
+			hash = hash * 31 + m_detail->hashCode();
+
+		return hash;
+	}
+
+	//-------------------------------------------------------------------------
+	// Builder Methods - Metadata Tag Removal
+	//-------------------------------------------------------------------------
+
+	LocalIdBuilder LocalIdBuilder::withoutQuantity()
+	{
+		SPDLOG_INFO( "Removing quantity tag" );
+		LocalIdBuilder result( *this );
+		result.m_quantity = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutContent()
+	{
+		SPDLOG_INFO( "Removing content tag" );
+		LocalIdBuilder result( *this );
+		result.m_content = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutCalculation()
+	{
+		SPDLOG_INFO( "Removing calculation tag" );
+		LocalIdBuilder result( *this );
+		result.m_calculation = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutState()
+	{
+		SPDLOG_INFO( "Removing state tag" );
+		LocalIdBuilder result( *this );
+		result.m_state = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutCommand()
+	{
+		SPDLOG_INFO( "Removing command tag" );
+		LocalIdBuilder result( *this );
+		result.m_command = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutType()
+	{
+		SPDLOG_INFO( "Removing type tag" );
+		LocalIdBuilder result( *this );
+		result.m_type = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutPosition()
+	{
+		SPDLOG_INFO( "Removing position tag" );
+		LocalIdBuilder result( *this );
+		result.m_position = std::nullopt;
+		return result;
+	}
+
+	LocalIdBuilder LocalIdBuilder::withoutDetail()
+	{
+		SPDLOG_INFO( "Removing detail tag" );
+		LocalIdBuilder result( *this );
+		result.m_detail = std::nullopt;
+		return result;
 	}
 }

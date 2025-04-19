@@ -13,7 +13,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Class responsible for converting GMOD objects between different VIS versions
 	 *
-	 * GmodVersioning facilitates the conversion of GMOD (Generic Model Object Dictionary)
+	 * GmodVersioning facilitates the conversion of GMOD (Generic Product Model)
 	 * entities between different VIS (Vessel Information Structure) versions, ensuring
 	 * compatibility and proper transformation of codes, paths, and local identifiers.
 	 */

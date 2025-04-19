@@ -1,12 +1,36 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/GmodDto.h"
-#include <spdlog/spdlog.h>
 
 namespace dnv::vista::sdk
 {
-	GmodNodeDto GmodNodeDto::FromJson( const rapidjson::Value& json )
+	GmodNodeDto::GmodNodeDto(
+		std::string category,
+		std::string type,
+		std::string code,
+		std::string name,
+		std::optional<std::string> commonName,
+		std::optional<std::string> definition,
+		std::optional<std::string> commonDefinition,
+		std::optional<bool> installSubstructure,
+		std::optional<std::unordered_map<std::string,
+			std::string>>
+			normalAssignmentNames )
+		: category( std::move( category ) ),
+		  type( std::move( type ) ),
+		  code( std::move( code ) ),
+		  name( std::move( name ) ),
+		  commonName( std::move( commonName ) ),
+		  definition( std::move( definition ) ),
+		  commonDefinition( std::move( commonDefinition ) ),
+		  installSubstructure( installSubstructure ),
+		  normalAssignmentNames( std::move( normalAssignmentNames ) )
 	{
+	}
+
+	GmodNodeDto GmodNodeDto::fromJson( const rapidjson::Value& json )
+	{
+		SPDLOG_DEBUG( "Parsing GmodNodeDto from JSON" );
 		GmodNodeDto node;
 
 		node.category = "UNKNOWN";
@@ -26,6 +50,9 @@ namespace dnv::vista::sdk
 		if ( json.HasMember( "name" ) && json["name"].IsString() )
 			node.name = json["name"].GetString();
 
+		SPDLOG_DEBUG( "Parsed required GMOD node fields: category={}, type={}, code={}, name={}",
+			node.category, node.type, node.code, node.name );
+
 		if ( json.HasMember( "commonName" ) && json["commonName"].IsString() )
 			node.commonName = json["commonName"].GetString();
 
@@ -41,23 +68,31 @@ namespace dnv::vista::sdk
 		if ( json.HasMember( "normalAssignmentNames" ) && json["normalAssignmentNames"].IsObject() )
 		{
 			std::unordered_map<std::string, std::string> assignmentNames;
-			for ( auto it = json["normalAssignmentNames"].MemberBegin(); it != json["normalAssignmentNames"].MemberEnd(); ++it )
+			auto& namesObj = json["normalAssignmentNames"];
+			assignmentNames.reserve( namesObj.MemberCount() );
+
+			for ( auto it = namesObj.MemberBegin(); it != namesObj.MemberEnd(); ++it )
 			{
 				if ( it->name.IsString() && it->value.IsString() )
 					assignmentNames[it->name.GetString()] = it->value.GetString();
 			}
+
 			if ( !assignmentNames.empty() )
+			{
 				node.normalAssignmentNames = std::move( assignmentNames );
+				SPDLOG_DEBUG( "Parsed {} normal assignment name mappings", assignmentNames.size() );
+			}
 		}
 
+		SPDLOG_DEBUG( "Successfully parsed GmodNodeDto: code={}", node.code );
 		return node;
 	}
 
-	bool GmodNodeDto::TryFromJson( const rapidjson::Value& json, GmodNodeDto& dto )
+	bool GmodNodeDto::tryFromJson( const rapidjson::Value& json, GmodNodeDto& dto )
 	{
 		try
 		{
-			dto = FromJson( json );
+			dto = fromJson( json );
 			return true;
 		}
 		catch ( const std::exception& e )
@@ -67,8 +102,9 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	rapidjson::Value GmodNodeDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	rapidjson::Value GmodNodeDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
 	{
+		SPDLOG_INFO( "Serializing GmodNodeDto: code={}", code );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		obj.AddMember( "category", rapidjson::Value( category.c_str(), allocator ).Move(), allocator );
@@ -104,59 +140,98 @@ namespace dnv::vista::sdk
 		return obj;
 	}
 
-	GmodDto GmodDto::FromJson( const rapidjson::Value& json )
+	GmodDto::GmodDto( std::string visVersion, std::vector<GmodNodeDto> items, std::vector<std::vector<std::string>> relations )
+		: visVersion( std::move( visVersion ) ),
+		  items( std::move( items ) ),
+		  relations( std::move( relations ) )
 	{
+	}
+
+	GmodDto GmodDto::fromJson( const rapidjson::Value& json )
+	{
+		SPDLOG_INFO( "Parsing GMOD from JSON" );
 		GmodDto dto;
 
 		dto.visVersion = "unknown";
 
 		if ( json.HasMember( "visRelease" ) && json["visRelease"].IsString() )
+		{
 			dto.visVersion = json["visRelease"].GetString();
+			SPDLOG_INFO( "GMOD VIS version: {}", dto.visVersion );
+		}
 
 		if ( json.HasMember( "items" ) && json["items"].IsArray() )
 		{
-			dto.items.reserve( json["items"].Size() );
-			for ( const auto& item : json["items"].GetArray() )
+			size_t itemCount = json["items"].Size();
+			SPDLOG_INFO( "Found {} GMOD node items to parse", itemCount );
+			dto.items.reserve( itemCount );
+
+			size_t successCount = 0;
+			for ( rapidjson::SizeType i = 0; i < json["items"].Size(); ++i )
 			{
 				try
 				{
-					dto.items.push_back( GmodNodeDto::FromJson( item ) );
+					dto.items.push_back( GmodNodeDto::fromJson( json["items"][i] ) );
+					successCount++;
 				}
 				catch ( const std::exception& e )
 				{
-					SPDLOG_ERROR( "Warning: Skipping malformed GMOD node: {}", e.what() );
+					SPDLOG_ERROR( "Skipping malformed GMOD node at index {}: {}", i, e.what() );
 				}
 			}
+
+			SPDLOG_INFO( "Successfully parsed {}/{} GMOD nodes", successCount, itemCount );
+		}
+		else
+		{
+			SPDLOG_WARN( "GMOD missing 'items' array or not in array format" );
 		}
 
 		if ( json.HasMember( "relations" ) && json["relations"].IsArray() )
 		{
-			dto.relations.reserve( json["relations"].Size() );
+			size_t relationCount = json["relations"].Size();
+			SPDLOG_INFO( "Found {} GMOD relation entries to parse", relationCount );
+			dto.relations.reserve( relationCount );
+
+			size_t validRelationCount = 0;
 			for ( const auto& relation : json["relations"].GetArray() )
 			{
 				if ( relation.IsArray() )
 				{
 					std::vector<std::string> relationPair;
 					relationPair.reserve( relation.Size() );
+
 					for ( const auto& rel : relation.GetArray() )
 					{
 						if ( rel.IsString() )
 							relationPair.push_back( rel.GetString() );
 					}
+
 					if ( !relationPair.empty() )
+					{
 						dto.relations.push_back( std::move( relationPair ) );
+						validRelationCount++;
+					}
 				}
 			}
+
+			SPDLOG_DEBUG( "Added {} valid relations to GMOD", validRelationCount );
+		}
+		else
+		{
+			SPDLOG_INFO( "GMOD has no relations or 'relations' is not an array" );
 		}
 
+		SPDLOG_INFO( "GMOD parsing complete: {} nodes, {} relations, VIS version {}",
+			dto.items.size(), dto.relations.size(), dto.visVersion );
 		return dto;
 	}
 
-	bool GmodDto::TryFromJson( const rapidjson::Value& json, GmodDto& dto )
+	bool GmodDto::tryFromJson( const rapidjson::Value& json, GmodDto& dto )
 	{
 		try
 		{
-			dto = FromJson( json );
+			dto = fromJson( json );
 			return true;
 		}
 		catch ( const std::exception& e )
@@ -166,8 +241,10 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	rapidjson::Value GmodDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	rapidjson::Value GmodDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
 	{
+		SPDLOG_INFO( "Serializing GmodDto with {} nodes and {} relations",
+			items.size(), relations.size() );
 		rapidjson::Value obj( rapidjson::kObjectType );
 
 		obj.AddMember( "visRelease", rapidjson::Value( visVersion.c_str(), allocator ).Move(), allocator );
@@ -175,7 +252,7 @@ namespace dnv::vista::sdk
 		rapidjson::Value itemsArray( rapidjson::kArrayType );
 		for ( const auto& item : items )
 		{
-			itemsArray.PushBack( item.ToJson( allocator ), allocator );
+			itemsArray.PushBack( item.toJson( allocator ), allocator );
 		}
 		obj.AddMember( "items", itemsArray, allocator );
 
@@ -191,6 +268,7 @@ namespace dnv::vista::sdk
 		}
 		obj.AddMember( "relations", relationsArray, allocator );
 
+		SPDLOG_INFO( "Successfully serialized GmodDto for VIS version {}", visVersion );
 		return obj;
 	}
 }

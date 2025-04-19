@@ -22,6 +22,8 @@ namespace dnv::vista::sdk
 
 		void AddError( LocationValidationResult result, const std::string& message )
 		{
+			SPDLOG_INFO( "Adding location parsing error: {} - {}",
+				static_cast<int>( result ), message );
 			m_errors.emplace_back( result, message );
 			HasError = true;
 		}
@@ -29,10 +31,14 @@ namespace dnv::vista::sdk
 		ParsingErrors Build() const
 		{
 			std::vector<ParsingErrors::ErrorEntry> convertedErrors;
+			convertedErrors.reserve( m_errors.size() );
+
 			for ( const auto& [result, message] : m_errors )
 			{
 				convertedErrors.emplace_back( std::to_string( static_cast<int>( result ) ), message );
 			}
+
+			SPDLOG_INFO( "Built parsing errors with {} entries", convertedErrors.size() );
 			return ParsingErrors( convertedErrors );
 		}
 	};
@@ -42,14 +48,15 @@ namespace dnv::vista::sdk
 	Location::Location( const std::string& value )
 		: m_value( value )
 	{
+		SPDLOG_INFO( "Created Location: '{}'", value );
 	}
 
-	const std::string& Location::GetValue() const
+	const std::string& Location::value() const
 	{
 		return m_value;
 	}
 
-	std::string Location::ToString() const
+	std::string Location::toString() const
 	{
 		return m_value;
 	}
@@ -66,7 +73,7 @@ namespace dnv::vista::sdk
 
 	bool Location::operator!=( const Location& other ) const
 	{
-		return !( *this == other );
+		return !( m_value == other.m_value );
 	}
 
 	RelativeLocation::RelativeLocation( char code, const std::string& name,
@@ -74,29 +81,30 @@ namespace dnv::vista::sdk
 		const std::optional<std::string>& definition )
 		: m_code( code ), m_name( name ), m_location( location ), m_definition( definition )
 	{
+		SPDLOG_INFO( "Created RelativeLocation: code={}, name={}", code, name );
 	}
 
-	char RelativeLocation::GetCode() const
+	char RelativeLocation::code() const
 	{
 		return m_code;
 	}
 
-	const std::string& RelativeLocation::GetName() const
+	const std::string& RelativeLocation::name() const
 	{
 		return m_name;
 	}
 
-	const std::optional<std::string>& RelativeLocation::GetDefinition() const
+	const std::optional<std::string>& RelativeLocation::definition() const
 	{
 		return m_definition;
 	}
 
-	const Location& RelativeLocation::GetLocation() const
+	const Location& RelativeLocation::location() const
 	{
 		return m_location;
 	}
 
-	size_t RelativeLocation::GetHashCode() const
+	size_t RelativeLocation::hashCode() const
 	{
 		return std::hash<char>{}( m_code );
 	}
@@ -108,18 +116,23 @@ namespace dnv::vista::sdk
 
 	bool RelativeLocation::operator!=( const RelativeLocation& other ) const
 	{
-		return !( *this == other );
+		return !( m_code == other.m_code );
 	}
 
-	LocationCharDict::LocationCharDict( size_t size )
-		: m_table( size )
+	LocationCharDict::LocationCharDict()
 	{
+		for ( auto& item : m_table )
+		{
+			item = std::nullopt;
+		}
+
+		SPDLOG_INFO( "Initialized LocationCharDict with {} groups", m_table.size() );
 	}
 
 	std::optional<char>& LocationCharDict::operator[]( LocationGroup key )
 	{
 		int index = static_cast<int>( key ) - 1;
-		if ( index >= m_table.size() )
+		if ( index >= static_cast<int>( m_table.size() ) || index < 0 )
 		{
 			SPDLOG_ERROR( "Index out of range for LocationCharDict: {}", index );
 			throw std::runtime_error( "Unsupported code: " + std::to_string( static_cast<int>( key ) ) );
@@ -127,28 +140,36 @@ namespace dnv::vista::sdk
 		return m_table[index];
 	}
 
-	bool LocationCharDict::TryAdd( LocationGroup key, char value, std::optional<char>& existingValue )
+	bool LocationCharDict::tryAdd( LocationGroup key, char value, std::optional<char>& existingValue )
 	{
 		auto& v = ( *this )[key];
 		if ( v.has_value() )
 		{
 			existingValue = v;
+			SPDLOG_INFO( "Failed to add '{}' for group {} - already has '{}'",
+				value, static_cast<int>( key ), v.value() );
 			return false;
 		}
 
 		existingValue = std::nullopt;
 		v = value;
+		SPDLOG_INFO( "Added '{}' for group {}", value, static_cast<int>( key ) );
 		return true;
 	}
 
 	Locations::Locations( VisVersion version, const LocationsDto& dto )
 		: m_visVersion( version )
 	{
+		SPDLOG_INFO( "Initializing Locations for VIS version {}", static_cast<int>( version ) );
+
+		m_locationCodes.reserve( dto.items.size() );
 		for ( const auto& item : dto.items )
 		{
 			m_locationCodes.push_back( item.code );
 		}
+		SPDLOG_INFO( "Collected {} location codes", m_locationCodes.size() );
 
+		m_relativeLocations.reserve( dto.items.size() );
 		for ( const auto& relLocDto : dto.items )
 		{
 			Location loc( std::string( 1, relLocDto.code ) );
@@ -162,19 +183,32 @@ namespace dnv::vista::sdk
 			m_relativeLocations.push_back( relLoc );
 
 			if ( relLocDto.code == 'H' || relLocDto.code == 'V' )
+			{
+				SPDLOG_INFO( "Skipping special code: {}", relLocDto.code );
 				continue;
+			}
 
 			LocationGroup key;
 			if ( relLocDto.code == 'N' )
+			{
 				key = LocationGroup::Number;
+			}
 			else if ( relLocDto.code == 'P' || relLocDto.code == 'C' || relLocDto.code == 'S' )
+			{
 				key = LocationGroup::Side;
+			}
 			else if ( relLocDto.code == 'U' || relLocDto.code == 'M' || relLocDto.code == 'L' )
+			{
 				key = LocationGroup::Vertical;
+			}
 			else if ( relLocDto.code == 'I' || relLocDto.code == 'O' )
+			{
 				key = LocationGroup::Transverse;
+			}
 			else if ( relLocDto.code == 'F' || relLocDto.code == 'A' )
+			{
 				key = LocationGroup::Longitudinal;
+			}
 			else
 			{
 				SPDLOG_ERROR( "Unsupported code: {}", relLocDto.code );
@@ -182,281 +216,279 @@ namespace dnv::vista::sdk
 			}
 
 			if ( m_groups.find( key ) == m_groups.end() )
+			{
 				m_groups[key] = std::vector<RelativeLocation>();
+			}
 
 			if ( key == LocationGroup::Number )
+			{
 				continue;
+			}
 
 			m_reversedGroups[relLocDto.code] = key;
 			m_groups[key].push_back( relLoc );
 		}
+
+		SPDLOG_INFO( "Loaded {} relative locations in {} groups",
+			m_relativeLocations.size(), m_groups.size() );
 	}
 
-	VisVersion Locations::GetVisVersion() const
+	VisVersion Locations::visVersion() const
 	{
 		return m_visVersion;
 	}
 
-	const std::vector<RelativeLocation>& Locations::GetRelativeLocations() const
+	const std::vector<RelativeLocation>& Locations::relativeLocations() const
 	{
 		return m_relativeLocations;
 	}
 
-	const std::unordered_map<LocationGroup, std::vector<RelativeLocation>>& Locations::GetGroups() const
+	const std::unordered_map<LocationGroup, std::vector<RelativeLocation>>& Locations::groups() const
 	{
 		return m_groups;
 	}
 
-	Location Locations::Parse( const std::string& locationStr )
+	Location Locations::parse( const std::string& locationStr )
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-
+		SPDLOG_INFO( "Parsing location string: '{}'", locationStr );
 		Location location;
-		if ( !TryParseInternal( locationStr, locationStr, location, errorBuilder ) )
+		if ( !tryParse( locationStr, location ) )
 		{
-			SPDLOG_ERROR( "Invalid value for location: {}", locationStr );
-			throw std::invalid_argument( "Invalid value for location: " + locationStr +
-										 ", errors: " + errorBuilder.Build().ToString() );
+			SPDLOG_ERROR( "Failed to parse location: '{}'", locationStr );
+			throw std::invalid_argument( "Invalid location: " + locationStr );
 		}
 
+		SPDLOG_INFO( "Successfully parsed location: '{}'", location.value() );
 		return location;
 	}
 
-	Location Locations::Parse( std::string_view locationStr )
+	Location Locations::parse( std::string_view locationStr )
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-
+		SPDLOG_INFO( "Parsing location string view: '{}'", locationStr );
 		Location location;
-		if ( !TryParseInternal( locationStr, std::nullopt, location, errorBuilder ) )
+		if ( !tryParse( locationStr, location ) )
 		{
-			SPDLOG_ERROR( "Invalid value for location: {}", locationStr );
-			throw std::invalid_argument( "Invalid value for location: " + std::string( locationStr ) +
-										 ", errors: " + errorBuilder.Build().ToString() );
+			SPDLOG_ERROR( "Failed to parse location: '{}'", locationStr );
+			throw std::invalid_argument( "Invalid location: " + std::string( locationStr ) );
 		}
 
+		SPDLOG_INFO( "Successfully parsed location: '{}'", location.value() );
 		return location;
 	}
 
-	bool Locations::TryParse( const std::optional<std::string>& value, Location& location ) const
+	bool Locations::tryParse( const std::optional<std::string>& value, Location& location ) const
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-		std::string_view view = value.has_value() ? std::string_view( *value ) : std::string_view();
-		return TryParseInternal( view, value, location, errorBuilder );
+		if ( !value.has_value() )
+		{
+			SPDLOG_INFO( "Can't parse null location" );
+			return false;
+		}
+
+		LocationParsingErrorBuilder errorBuilder;
+		return tryParseInternal( value.value(), value, location, errorBuilder );
 	}
 
-	bool Locations::TryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors )
+	bool Locations::tryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors )
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-		std::string_view view = value.has_value() ? std::string_view( *value ) : std::string_view();
-		bool result = TryParseInternal( view, value, location, errorBuilder );
-		errors = errorBuilder.Build();
+		if ( !value.has_value() )
+		{
+			SPDLOG_INFO( "Can't parse null location" );
+
+			std::vector<ParsingErrors::ErrorEntry> errorEntries;
+			errorEntries.emplace_back( std::string( "0" ), std::string( "Location is null" ) );
+			errors = ParsingErrors( errorEntries );
+
+			return false;
+		}
+
+		LocationParsingErrorBuilder errorBuilder;
+		bool result = tryParseInternal( value.value(), value, location, errorBuilder );
+		if ( !result )
+		{
+			errors = errorBuilder.Build();
+		}
 		return result;
 	}
 
-	bool Locations::TryParse( std::string_view value, Location& location )
+	bool Locations::tryParse( std::string_view value, Location& location )
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-		return TryParseInternal( value, std::nullopt, location, errorBuilder );
+		LocationParsingErrorBuilder errorBuilder;
+		return tryParseInternal( value, std::nullopt, location, errorBuilder );
 	}
 
-	bool Locations::TryParse( std::string_view value, Location& location, ParsingErrors& errors )
+	bool Locations::tryParse( std::string_view value, Location& location, ParsingErrors& errors )
 	{
-		auto errorBuilder = LocationParsingErrorBuilder::Empty;
-		bool result = TryParseInternal( value, std::nullopt, location, errorBuilder );
-		errors = errorBuilder.Build();
+		LocationParsingErrorBuilder errorBuilder;
+		bool result = tryParseInternal( value, std::nullopt, location, errorBuilder );
+		if ( !result )
+		{
+			errors = errorBuilder.Build();
+		}
 		return result;
 	}
 
-	void Locations::AddError( LocationParsingErrorBuilder& errorBuilder,
+	void Locations::addError( LocationParsingErrorBuilder& errorBuilder,
 		LocationValidationResult name,
 		const std::string& message )
 	{
-		if ( !errorBuilder.HasError )
-			errorBuilder = LocationParsingErrorBuilder::Create();
+		SPDLOG_INFO( "Adding location parsing error: {} - {}",
+			static_cast<int>( name ), message );
 		errorBuilder.AddError( name, message );
 	}
 
-	bool Locations::TryParseInternal( std::string_view span,
+	bool Locations::tryParseInternal( std::string_view span,
 		const std::optional<std::string>& originalStr,
 		Location& location,
 		LocationParsingErrorBuilder& errorBuilder ) const
 	{
+		SPDLOG_INFO( "Parsing location: '{}'", span );
+
 		if ( span.empty() )
 		{
-			AddError( errorBuilder, LocationValidationResult::NullOrWhiteSpace,
+			addError( errorBuilder, LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 			return false;
 		}
 
-		bool isWhitespace = std::all_of( span.begin(), span.end(),
-			[]( unsigned char c ) { return std::isspace( c ); } );
-
-		if ( isWhitespace )
+		bool isOnlyWhitespace = true;
+		for ( char c : span )
 		{
-			AddError( errorBuilder, LocationValidationResult::NullOrWhiteSpace,
+			if ( !std::isspace( c ) )
+			{
+				isOnlyWhitespace = false;
+				break;
+			}
+		}
+
+		if ( isOnlyWhitespace )
+		{
+			addError( errorBuilder, LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 			return false;
 		}
 
-		std::optional<size_t> prevDigitIndex;
-		std::optional<size_t> digitStartIndex;
-		std::optional<size_t> charsStartIndex;
-		std::optional<int> number;
+		std::string result;
+		LocationCharDict charDict{};
 
-		LocationCharDict charDict( 4 );
+		int digitStartIndex = -1;
+		int prevDigitIndex = -1;
+		int charsStartIndex = -1;
 
-		for ( size_t i = 0; i < span.size(); i++ )
+		for ( size_t i = 0; i < span.length(); i++ )
 		{
-			const char ch = span[i];
+			char ch = span[i];
 
 			if ( std::isdigit( ch ) )
 			{
-				if ( !digitStartIndex.has_value() && i != 0 )
+				if ( charsStartIndex != -1 )
 				{
-					std::string errorMsg = "Invalid location: numeric location should start before location code(s) in location: '";
-					errorMsg += originalStr.value_or( std::string( span ) );
-					errorMsg += "'";
-
-					AddError( errorBuilder, LocationValidationResult::Invalid, errorMsg );
+					SPDLOG_INFO( "Digit found after location codes at position {}", i );
+					addError( errorBuilder, LocationValidationResult::InvalidOrder,
+						"Invalid location: numeric part must come before location codes" );
 					return false;
 				}
 
-				if ( prevDigitIndex.has_value() && prevDigitIndex.value() != ( i - 1 ) )
+				if ( prevDigitIndex != -1 && prevDigitIndex != static_cast<int>( i ) - 1 )
 				{
-					std::string errorMsg = "Invalid location: cannot have multiple separated digits in location: '";
-					errorMsg += originalStr.value_or( std::string( span ) );
-					errorMsg += "'";
-
-					AddError( errorBuilder, LocationValidationResult::Invalid, errorMsg );
+					SPDLOG_INFO( "Discontinuous digit sequence at position {}", i );
+					addError( errorBuilder, LocationValidationResult::Invalid,
+						"Invalid location: cannot have multiple separated digits" );
 					return false;
 				}
 
-				if ( !digitStartIndex.has_value() )
+				if ( digitStartIndex == -1 )
 				{
-					number = ch - '0';
-					digitStartIndex = i;
+					digitStartIndex = static_cast<int>( i );
 				}
-				else
-				{
-					int num;
-					if ( !TryParseInt( span, static_cast<int>( digitStartIndex.value() ),
-							 static_cast<int>( i - digitStartIndex.value() ) + 1, num ) )
-					{
-						std::string errorMsg = "Invalid location: failed to parse numeric location: '";
-						errorMsg += originalStr.value_or( std::string( span ) );
-						errorMsg += "'";
+				prevDigitIndex = static_cast<int>( i );
 
-						AddError( errorBuilder, LocationValidationResult::Invalid, errorMsg );
-						return false;
-					}
-					number = num;
-				}
-
-				prevDigitIndex = i;
+				SPDLOG_INFO( "Found digit at position {}: '{}'", i, ch );
+				result.push_back( ch );
+				continue;
 			}
-			else
+
+			if ( charsStartIndex == -1 )
 			{
-				if ( m_reversedGroups.find( ch ) == m_reversedGroups.end() )
+				charsStartIndex = static_cast<int>( i );
+			}
+
+			bool valid = false;
+			for ( char code : m_locationCodes )
+			{
+				if ( code == ch )
 				{
-					std::string invalidChars;
-					std::string spanStr = std::string( span );
-					bool first = true;
+					valid = true;
+					break;
+				}
+			}
 
-					for ( char c : spanStr )
-					{
-						if ( !std::isdigit( c ) && ( c == 'N' || std::find( m_locationCodes.begin(), m_locationCodes.end(), c ) == m_locationCodes.end() ) )
-						{
-							if ( !first )
-								invalidChars += ",";
-							invalidChars += "'";
-							invalidChars += c;
-							invalidChars += "'";
-							first = false;
-						}
-					}
+			if ( !valid )
+			{
+				SPDLOG_INFO( "Invalid location code: '{}' at position {}", ch, i );
+				addError( errorBuilder, LocationValidationResult::InvalidCode,
+					"Invalid location code: " + std::string( 1, ch ) );
+				return false;
+			}
 
-					std::string errorMsg = "Invalid location code: '";
-					errorMsg += originalStr.value_or( std::string( span ) );
-					errorMsg += "' with invalid location code(s): ";
-					errorMsg += invalidChars;
-
-					AddError( errorBuilder, LocationValidationResult::InvalidCode, errorMsg );
+			if ( i > 0 && charsStartIndex != static_cast<int>( i ) )
+			{
+				char prevCh = span[i - 1];
+				if ( !std::isdigit( prevCh ) && ch < prevCh )
+				{
+					SPDLOG_INFO( "Location codes not in alphabetical order: '{}' after '{}'", ch, prevCh );
+					addError( errorBuilder, LocationValidationResult::InvalidOrder,
+						"Invalid location: codes must be alphabetically sorted" );
 					return false;
 				}
+			}
 
+			SPDLOG_INFO( "Found location code at position {}: '{}'", i, ch );
+			result.push_back( ch );
+
+			if ( m_reversedGroups.find( ch ) != m_reversedGroups.end() )
+			{
 				LocationGroup group = m_reversedGroups.at( ch );
-				std::optional<char> existingCh;
+				std::optional<char> existingValue;
 
-				if ( !charDict.TryAdd( group, ch, existingCh ) )
+				if ( !charDict.tryAdd( group, ch, existingValue ) )
 				{
-					std::string errorMsg = "Invalid location: Multiple '";
-
-					switch ( group )
-					{
-						case LocationGroup::Number:
-							errorMsg += "Number";
-							break;
-						case LocationGroup::Side:
-							errorMsg += "Side";
-							break;
-						case LocationGroup::Vertical:
-							errorMsg += "Vertical";
-							break;
-						case LocationGroup::Transverse:
-							errorMsg += "Transverse";
-							break;
-						case LocationGroup::Longitudinal:
-							errorMsg += "Longitudinal";
-							break;
-					}
-
-					errorMsg += "' values. Got both '";
-					errorMsg += existingCh.value();
-					errorMsg += "' and '";
-					errorMsg += ch;
-					errorMsg += "' in '";
-					errorMsg += originalStr.value_or( std::string( span ) );
-					errorMsg += "'";
-
-					AddError( errorBuilder, LocationValidationResult::Invalid, errorMsg );
+					SPDLOG_INFO( "Duplicate location code from group {}: '{}' and '{}'",
+						static_cast<int>( group ), existingValue.value(), ch );
+					addError( errorBuilder, LocationValidationResult::InvalidOrder,
+						"Duplicate location code from the same group: " +
+							std::string( 1, existingValue.value() ) + " and " + std::string( 1, ch ) );
 					return false;
-				}
-
-				if ( !charsStartIndex.has_value() )
-				{
-					charsStartIndex = i;
-				}
-				else if ( i > 0 )
-				{
-					char prevCh = span[i - 1];
-					if ( ch < prevCh )
-					{
-						std::string errorMsg = "Invalid location: '";
-						errorMsg += originalStr.value_or( std::string( span ) );
-						errorMsg += "' not alphabetically sorted";
-
-						AddError( errorBuilder, LocationValidationResult::InvalidOrder, errorMsg );
-						return false;
-					}
 				}
 			}
 		}
 
-		location = Location( originalStr.value_or( std::string( span ) ) );
+		location = Location( result );
+		SPDLOG_INFO( "Successfully parsed location: '{}'", result );
 		return true;
 	}
 
-	bool Locations::TryParseInt( std::string_view span, int start, int length, int& number )
+	bool Locations::tryParseInt( std::string_view span, int start, int length, int& number )
 	{
-		if ( start < 0 || length <= 0 || start + length > span.size() )
+		SPDLOG_INFO( "Parsing integer from position {} with length {}", start, length );
+
+		if ( start < 0 || length <= 0 || start + length > static_cast<int>( span.length() ) )
+		{
+			SPDLOG_ERROR( "Invalid range for integer parsing: start={}, length={}, span length={}",
+				start, length, span.length() );
 			return false;
+		}
 
-		std::string_view slice = span.substr( start, length );
-
-		const char* begin = slice.data();
-		const char* end = begin + slice.size();
-
-		auto result = std::from_chars( begin, end, number );
-		return result.ec == std::errc();
+		try
+		{
+			std::string numStr( span.substr( start, length ) );
+			number = std::stoi( numStr );
+			SPDLOG_INFO( "Successfully parsed integer: {}", number );
+			return true;
+		}
+		catch ( const std::exception& e )
+		{
+			SPDLOG_ERROR( "Failed to parse integer: {}", e.what() );
+			return false;
+		}
 	}
 }

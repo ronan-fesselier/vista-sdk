@@ -33,7 +33,7 @@ namespace dnv::vista::sdk
 		 * @param version The version to convert
 		 * @return String representation of the version
 		 */
-		static std::string ToVersionString( VisVersion version );
+		static std::string toVersionString( VisVersion version );
 
 		/**
 		 * @brief Try to parse a string to a VisVersion

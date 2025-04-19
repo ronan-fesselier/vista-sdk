@@ -16,15 +16,19 @@ namespace dnv::vista::sdk
 	class LocalId : public ILocalId<LocalId>
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Constants
+		//-------------------------------------------------------------------------
+
 		/**
 		 * @brief Naming rule constant
 		 */
 		static const std::string NamingRule;
 
-	private:
-		LocalIdBuilder m_builder;
+		//-------------------------------------------------------------------------
+		// Constructors
+		//-------------------------------------------------------------------------
 
-	public:
 		/**
 		 * @brief Constructor from builder
 		 * @param builder The LocalIdBuilder to construct from
@@ -32,65 +36,124 @@ namespace dnv::vista::sdk
 		 */
 		explicit LocalId( const LocalIdBuilder& builder );
 
-		/**
-		 * @brief Get the builder
-		 * @return The LocalIdBuilder
-		 */
-		const LocalIdBuilder& GetBuilder() const;
+		//-------------------------------------------------------------------------
+		// ILocalId Interface Implementation
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version
 		 */
-		VisVersion GetVisVersion() const override;
+		virtual VisVersion getVisVersion() const override;
 
 		/**
 		 * @brief Check if verbose mode is enabled
 		 * @return true if verbose mode is enabled
 		 */
-		bool GetVerboseMode() const override;
+		virtual bool getVerboseMode() const override;
 
 		/**
 		 * @brief Get the primary item
 		 * @return The primary item (GmodPath)
 		 */
-		const GmodPath& GetPrimaryItem() const override;
+		virtual const GmodPath& getPrimaryItem() const override;
 
 		/**
 		 * @brief Get the secondary item
 		 * @return The secondary item, if present
 		 */
-		std::optional<GmodPath> GetSecondaryItem() const override;
-
-		/**
-		 * @brief Get metadata tags
-		 * @return Vector of metadata tags
-		 */
-		std::vector<MetadataTag> GetMetadataTags() const override;
-
-		/**
-		 * @brief Get specific metadata tags
-		 */
-		std::optional<MetadataTag> GetQuantity() const;
-		std::optional<MetadataTag> GetContent() const;
-		std::optional<MetadataTag> GetCalculation() const;
-		std::optional<MetadataTag> GetState() const;
-		std::optional<MetadataTag> GetCommand() const;
-		std::optional<MetadataTag> GetType() const;
-		std::optional<MetadataTag> GetPosition() const;
-		std::optional<MetadataTag> GetDetail() const;
+		virtual std::optional<GmodPath> getSecondaryItem() const override;
 
 		/**
 		 * @brief Check if the LocalId has any custom tags
 		 * @return true if has custom tag
 		 */
-		bool HasCustomTag() const override;
+		virtual bool hasCustomTag() const override;
+
+		/**
+		 * @brief Get metadata tags
+		 * @return Vector of metadata tags
+		 */
+		virtual const std::vector<MetadataTag> getMetadataTags() const override;
 
 		/**
 		 * @brief Convert to string
 		 * @return String representation
 		 */
-		std::string ToString() const override;
+		virtual std::string toString() const override;
+
+		/**
+		 * @brief Check if this LocalId equals another
+		 * @param other The LocalId to compare with
+		 * @return true if equal
+		 */
+		virtual bool equals( const LocalId& other ) const override;
+
+		//-------------------------------------------------------------------------
+		// Metadata Tag Accessors
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Get quantity metadata tag
+		 * @return The quantity tag, if present
+		 */
+		std::optional<MetadataTag> getQuantity() const;
+
+		/**
+		 * @brief Get content metadata tag
+		 * @return The content tag, if present
+		 */
+		std::optional<MetadataTag> getContent() const;
+
+		/**
+		 * @brief Get calculation metadata tag
+		 * @return The calculation tag, if present
+		 */
+		std::optional<MetadataTag> getCalculation() const;
+
+		/**
+		 * @brief Get state metadata tag
+		 * @return The state tag, if present
+		 */
+		std::optional<MetadataTag> getState() const;
+
+		/**
+		 * @brief Get command metadata tag
+		 * @return The command tag, if present
+		 */
+		std::optional<MetadataTag> getCommand() const;
+
+		/**
+		 * @brief Get type metadata tag
+		 * @return The type tag, if present
+		 */
+		std::optional<MetadataTag> getType() const;
+
+		/**
+		 * @brief Get position metadata tag
+		 * @return The position tag, if present
+		 */
+		std::optional<MetadataTag> getPosition() const;
+
+		/**
+		 * @brief Get detail metadata tag
+		 * @return The detail tag, if present
+		 */
+		std::optional<MetadataTag> getDetail() const;
+
+		//-------------------------------------------------------------------------
+		// Builder Access
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Get the builder
+		 * @return The LocalIdBuilder
+		 */
+		const LocalIdBuilder& getBuilder() const;
+
+		//-------------------------------------------------------------------------
+		// Static Factory Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Parse a string to a LocalId
@@ -98,7 +161,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed LocalId
 		 * @throws std::invalid_argument if parsing fails
 		 */
-		static LocalId Parse( const std::string& localIdStr );
+		static LocalId parse( const std::string& localIdStr );
 
 		/**
 		 * @brief Try to parse a string to a LocalId
@@ -107,27 +170,45 @@ namespace dnv::vista::sdk
 		 * @param localId Output parameter for the parsed LocalId
 		 * @return true if parsing succeeded
 		 */
-		static bool TryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalId>& localId );
+		static bool tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalId>& localId );
+
+		//-------------------------------------------------------------------------
+		// Operators and Hash Code
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Equality operators
+		 * @brief Equality operator
+		 * @param other The LocalId to compare with
+		 * @return true if equal
 		 */
 		bool operator==( const LocalId& other ) const;
+
+		/**
+		 * @brief Inequality operator
+		 * @param other The LocalId to compare with
+		 * @return true if not equal
+		 */
 		bool operator!=( const LocalId& other ) const;
 
 		/**
 		 * @brief Get hash code
 		 * @return Hash code of the LocalId
 		 */
-		size_t GetHashCode() const;
+		size_t getHashCode() const;
+
+	private:
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
+		LocalIdBuilder m_builder;
 	};
 
 	/**
-	 * Represents the parsing state for LocalId.
+	 * @brief Represents the parsing state for LocalId.
 	 */
 	enum class LocalIdParsingState
 	{
-		NamingRule,
+		NamingRule = 0,
 		VisVersion,
 		PrimaryItem,
 		SecondaryItem,
@@ -150,20 +231,57 @@ namespace dnv::vista::sdk
 	};
 
 	/**
-	 * Builder for parsing errors related to LocalId.
+	 * @brief Builder for parsing errors related to LocalId.
 	 */
 	class LocalIdParsingErrorBuilder
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Constructors
+		//-------------------------------------------------------------------------
 		LocalIdParsingErrorBuilder() = default;
 
-		LocalIdParsingErrorBuilder& AddError( LocalIdParsingState state );
-		LocalIdParsingErrorBuilder& AddError( LocalIdParsingState state, const std::string& message );
-		bool HasError() const;
-		ParsingErrors Build() const;
-		static LocalIdParsingErrorBuilder Create();
+		//-------------------------------------------------------------------------
+		// Public Methods
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Add an error with predefined message
+		 * @param state The parsing state where the error occurred
+		 * @return This builder for chaining
+		 */
+		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state );
+
+		/**
+		 * @brief Add an error with custom message
+		 * @param state The parsing state where the error occurred
+		 * @param message The custom error message
+		 * @return This builder for chaining
+		 */
+		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state, const std::string& message );
+
+		/**
+		 * @brief Check if the builder has any errors
+		 * @return true if errors exist
+		 */
+		bool hasError() const;
+
+		/**
+		 * @brief Create a ParsingErrors object from the collected errors
+		 * @return A ParsingErrors object
+		 */
+		ParsingErrors build() const;
+
+		/**
+		 * @brief Create a new LocalIdParsingErrorBuilder
+		 * @return A new instance of LocalIdParsingErrorBuilder
+		 */
+		static LocalIdParsingErrorBuilder create();
 
 	private:
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
 		std::vector<std::pair<LocalIdParsingState, std::string>> m_errors;
 
 		const std::unordered_map<LocalIdParsingState, std::string> m_predefinedErrorMessages = {
