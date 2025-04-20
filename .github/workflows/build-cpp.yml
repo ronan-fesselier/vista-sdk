@@ -22,21 +22,25 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
+    # Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
+    # Set up Developer Command Prompt
     - name: Setup Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
 
+    # Set up CMake
     - name: Set up CMake
       uses: lukka/get-cmake@latest
 
+    # Install Ninja
     - name: Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
-      with:
-        version: 1.11.1
+      run: |
+        choco install ninja -y
+        ninja --version
 
     # Set up vcpkg cache
     - name: Cache vcpkg
@@ -51,18 +55,7 @@ jobs:
         restore-keys: |
           vcpkg-${{ runner.os }}-
 
-    # Set up build cache
-    - name: Cache build directory
-      uses: actions/cache@v3
-      id: build-cache
-      with:
-        path: |
-          ${{ github.workspace }}/build
-          !${{ github.workspace }}/build/Testing
-        key: build-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/cmake/**') }}
-        restore-keys: |
-          build-${{ runner.os }}-${{ matrix.build_type }}-
-
+    # Clone and bootstrap vcpkg if cache miss
     - name: Checkout vcpkg
       if: steps.vcpkg-cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
@@ -76,24 +69,45 @@ jobs:
         cd ${{ github.workspace }}/vcpkg
         .\bootstrap-vcpkg.bat
 
+    # Install dependencies with vcpkg
     - name: Install dependencies with vcpkg
       run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install spdlog:x64-windows gtest:x64-windows zlib:x64-windows rapidjson:x64-windows
+        ${{ github.workspace }}/vcpkg/vcpkg install spdlog:x64-windows gtest:x64-windows catch2:x64-windows zlib:x64-windows rapidjson:x64-windows
         ${{ github.workspace }}/vcpkg/vcpkg integrate install
 
+    # Set up build cache
+    - name: Cache build directory
+      uses: actions/cache@v3
+      id: build-cache
+      with:
+        path: |
+          ${{ github.workspace }}/build
+          !${{ github.workspace }}/build/Testing
+        key: build-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/cmake/**') }}
+        restore-keys: |
+          build-${{ runner.os }}-${{ matrix.build_type }}-
+
+    # Configure CMake
     - name: Configure CMake
       run: |
-        cmake -B ${{ github.workspace }}/build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=20 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake -B ${{ github.workspace }}/build \
+          -G "Ninja" \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_STANDARD=20 \
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
 
+    # Build
     - name: Build
       run: |
         cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
 
+    # Test
     - name: Test
       working-directory: ${{ github.workspace }}/build
       run: |
         ctest -C ${{ matrix.build_type }} --output-on-failure
 
+    # Upload build artifacts
     - name: Upload build artifacts
       if: ${{ always() }}
       uses: actions/upload-artifact@v4

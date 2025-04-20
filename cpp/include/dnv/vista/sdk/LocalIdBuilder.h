@@ -111,7 +111,7 @@ namespace dnv::vista::sdk
 		 * @brief Get items
 		 * @return LocalIdItems
 		 */
-		const LocalIdItems& getItems() const;
+		const LocalIdItems& items() const;
 
 		/**
 		 * @brief Get primary item

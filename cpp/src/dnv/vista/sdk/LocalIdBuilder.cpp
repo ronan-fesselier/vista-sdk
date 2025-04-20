@@ -131,7 +131,7 @@ namespace dnv::vista::sdk
 	// Item Getters
 	//-------------------------------------------------------------------------
 
-	const LocalIdItems& LocalIdBuilder::getItems() const
+	const LocalIdItems& LocalIdBuilder::items() const
 	{
 		return m_items;
 	}
@@ -906,8 +906,6 @@ namespace dnv::vista::sdk
 							addError( errorBuilder, state, predefinedMessage );
 						}
 
-						SPDLOG_ERROR( "Invalid or missing '/meta' prefix after Primary item" );
-						addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Primary item" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1050,8 +1048,6 @@ namespace dnv::vista::sdk
 							invalidSecondaryItem = true;
 						}
 
-						SPDLOG_ERROR( "Invalid or missing '/meta' prefix after Secondary item" );
-						addError( errorBuilder, state, "Invalid or missing '/meta' prefix after Secondary item" );
 						state = LocalIdParsingState::MetaQuantity;
 						break;
 					}
@@ -1145,7 +1141,6 @@ namespace dnv::vista::sdk
 					verbose = true;
 					if ( segment.empty() )
 					{
-						SPDLOG_ERROR( "Empty segment in ItemDescription" );
 						addError( errorBuilder, state, predefinedMessage );
 						state = LocalIdParsingState::MetaQuantity;
 						break;
@@ -1173,7 +1168,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaQuantity" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1189,7 +1183,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaQuantity: {}", segment );
 						return false;
 					}
 				}
@@ -1199,7 +1192,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaContent" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1215,7 +1207,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaContent: {}", segment );
 						return false;
 					}
 				}
@@ -1225,7 +1216,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaCalculation" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1241,7 +1231,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaCalculation: {}", segment );
 						return false;
 					}
 				}
@@ -1251,7 +1240,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaState" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1267,7 +1255,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaState: {}", segment );
 						return false;
 					}
 				}
@@ -1277,7 +1264,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaCommand" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1293,7 +1279,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaCommand: {}", segment );
 						return false;
 					}
 				}
@@ -1303,7 +1288,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaType" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1319,7 +1303,6 @@ namespace dnv::vista::sdk
 
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaType: {}", segment );
 						return false;
 					}
 				}
@@ -1329,7 +1312,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaPosition" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1344,7 +1326,6 @@ namespace dnv::vista::sdk
 						errorBuilder );
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaPosition: {}", segment );
 						return false;
 					}
 				}
@@ -1354,7 +1335,6 @@ namespace dnv::vista::sdk
 				{
 					if ( segment.empty() )
 					{
-						SPDLOG_WARN( "Empty segment in MetaDetail" );
 						state = static_cast<LocalIdParsingState>( static_cast<int>( state ) + 1 );
 						break;
 					}
@@ -1369,7 +1349,6 @@ namespace dnv::vista::sdk
 						errorBuilder );
 					if ( !result )
 					{
-						SPDLOG_ERROR( "Failed to parse MetaDetail: {}", segment );
 						return false;
 					}
 				}
