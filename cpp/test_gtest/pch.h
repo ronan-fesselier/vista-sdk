@@ -31,6 +31,7 @@
 
 /* Libs */
 #include <gtest/gtest.h>
+#include "gmock/gmock.h"
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <zlib.h>

@@ -90,7 +90,8 @@ jobs:
     # Configure CMake
     - name: Configure CMake
       run: |
-        cmake -B ${{ github.workspace }}/build \
+        cmake -S ${{ github.workspace }}/cpp/cmake \
+          -B ${{ github.workspace }}/build \
           -G "Ninja" \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DCMAKE_CXX_STANDARD=20 \

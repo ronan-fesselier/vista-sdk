@@ -11,6 +11,7 @@ set(TESTS
 	CodebooksTests_gtest
 	GmodTests_gtest
 	LocalIdTests_gtest
+	GmodVersioningTests_gtest
 )
 
 foreach(TEST ${TESTS})
