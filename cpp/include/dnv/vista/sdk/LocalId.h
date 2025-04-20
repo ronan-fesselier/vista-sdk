@@ -36,6 +36,30 @@ namespace dnv::vista::sdk
 		 */
 		explicit LocalId( const LocalIdBuilder& builder );
 
+		/**
+		 * @brief Copy constructor (deleted)
+		 * @details LocalId objects shouldn't be copied since base interface deletes this operation
+		 */
+		LocalId( const LocalId& ) = delete;
+
+		/**
+		 * @brief Copy assignment operator (deleted)
+		 * @details LocalId objects shouldn't be copied since base interface deletes this operation
+		 */
+		LocalId& operator=( const LocalId& ) = delete;
+
+		/**
+		 * @brief Move constructor
+		 * @details Allows LocalId objects to be moved efficiently
+		 */
+		LocalId( LocalId&& other ) noexcept;
+
+		/**
+		 * @brief Move assignment operator
+		 * @details Allows LocalId objects to be move-assigned efficiently
+		 */
+		LocalId& operator=( LocalId&& other ) noexcept;
+
 		//-------------------------------------------------------------------------
 		// ILocalId Interface Implementation
 		//-------------------------------------------------------------------------
@@ -44,25 +68,25 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version
 		 * @return The VIS version
 		 */
-		virtual VisVersion getVisVersion() const override;
+		virtual VisVersion visVersion() const override;
 
 		/**
 		 * @brief Check if verbose mode is enabled
 		 * @return true if verbose mode is enabled
 		 */
-		virtual bool getVerboseMode() const override;
+		virtual bool isVerboseMode() const override;
 
 		/**
 		 * @brief Get the primary item
 		 * @return The primary item (GmodPath)
 		 */
-		virtual const GmodPath& getPrimaryItem() const override;
+		virtual const GmodPath& primaryItem() const override;
 
 		/**
 		 * @brief Get the secondary item
 		 * @return The secondary item, if present
 		 */
-		virtual std::optional<GmodPath> getSecondaryItem() const override;
+		virtual std::optional<GmodPath> secondaryItem() const override;
 
 		/**
 		 * @brief Check if the LocalId has any custom tags
@@ -74,7 +98,7 @@ namespace dnv::vista::sdk
 		 * @brief Get metadata tags
 		 * @return Vector of metadata tags
 		 */
-		virtual const std::vector<MetadataTag> getMetadataTags() const override;
+		virtual const std::vector<MetadataTag> metadataTags() const override;
 
 		/**
 		 * @brief Convert to string
@@ -97,49 +121,49 @@ namespace dnv::vista::sdk
 		 * @brief Get quantity metadata tag
 		 * @return The quantity tag, if present
 		 */
-		std::optional<MetadataTag> getQuantity() const;
+		std::optional<MetadataTag> quantity() const;
 
 		/**
 		 * @brief Get content metadata tag
 		 * @return The content tag, if present
 		 */
-		std::optional<MetadataTag> getContent() const;
+		std::optional<MetadataTag> content() const;
 
 		/**
 		 * @brief Get calculation metadata tag
 		 * @return The calculation tag, if present
 		 */
-		std::optional<MetadataTag> getCalculation() const;
+		std::optional<MetadataTag> calculation() const;
 
 		/**
 		 * @brief Get state metadata tag
 		 * @return The state tag, if present
 		 */
-		std::optional<MetadataTag> getState() const;
+		std::optional<MetadataTag> state() const;
 
 		/**
 		 * @brief Get command metadata tag
 		 * @return The command tag, if present
 		 */
-		std::optional<MetadataTag> getCommand() const;
+		std::optional<MetadataTag> command() const;
 
 		/**
 		 * @brief Get type metadata tag
 		 * @return The type tag, if present
 		 */
-		std::optional<MetadataTag> getType() const;
+		std::optional<MetadataTag> type() const;
 
 		/**
 		 * @brief Get position metadata tag
 		 * @return The position tag, if present
 		 */
-		std::optional<MetadataTag> getPosition() const;
+		std::optional<MetadataTag> position() const;
 
 		/**
 		 * @brief Get detail metadata tag
 		 * @return The detail tag, if present
 		 */
-		std::optional<MetadataTag> getDetail() const;
+		std::optional<MetadataTag> detail() const;
 
 		//-------------------------------------------------------------------------
 		// Builder Access
@@ -149,7 +173,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the builder
 		 * @return The LocalIdBuilder
 		 */
-		const LocalIdBuilder& getBuilder() const;
+		const LocalIdBuilder& builder() const;
 
 		//-------------------------------------------------------------------------
 		// Static Factory Methods
@@ -194,7 +218,7 @@ namespace dnv::vista::sdk
 		 * @brief Get hash code
 		 * @return Hash code of the LocalId
 		 */
-		size_t getHashCode() const;
+		size_t hashCode() const;
 
 	private:
 		//-------------------------------------------------------------------------
@@ -284,7 +308,11 @@ namespace dnv::vista::sdk
 		//-------------------------------------------------------------------------
 		std::vector<std::pair<LocalIdParsingState, std::string>> m_errors;
 
-		const std::unordered_map<LocalIdParsingState, std::string> m_predefinedErrorMessages = {
+		/**
+		 * @brief Predefined error messages for common parsing states
+		 * Made static since these messages are shared across all instances
+		 */
+		static const inline std::unordered_map<LocalIdParsingState, std::string> m_predefinedErrorMessages = {
 			{ LocalIdParsingState::NamingRule, "Missing or invalid naming rule" },
 			{ LocalIdParsingState::VisVersion, "Missing or invalid vis version" },
 			{ LocalIdParsingState::PrimaryItem, "Invalid or missing Primary item. Local IDs require at least a primary item and 1 metadata tag." },

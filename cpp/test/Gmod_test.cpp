@@ -29,10 +29,13 @@ namespace dnv::vista::sdk::tests
 		int NodeCount;
 	};
 
-	std::size_t Occurrences( const std::vector<GmodNode>& parents, const GmodNode& node )
+	std::size_t occurrences( const std::vector<GmodNode>& parents, const GmodNode& node )
 	{
-		return std::count_if( parents.begin(), parents.end(),
-			[&node]( const GmodNode& p ) { return p.GetCode() == node.GetCode(); } );
+		return static_cast<size_t>(
+			std::count_if( parents.begin(), parents.end(),
+				[&node]( const GmodNode& p ) {
+					return p.code() == node.code();
+				} ) );
 	}
 
 	class GmodTests : public ::testing::TestWithParam<VisVersion>
@@ -60,41 +63,41 @@ namespace dnv::vista::sdk::tests
 		auto visVersion = GetParam();
 		auto [vis, gmod] = GetVisAndGmod( visVersion );
 
-		auto it = ExpectedMaxes.find( visVersion );
-		ASSERT_NE( it, ExpectedMaxes.end() );
-		std::string expectedMaxCode = it->second.MaxCode;
+		auto expectedIt = ExpectedMaxes.find( visVersion );
+		ASSERT_NE( expectedIt, ExpectedMaxes.end() );
+		std::string expectedMaxCode = expectedIt->second.MaxCode;
 
 		const GmodNode* minLength = nullptr;
 		const GmodNode* maxLength = nullptr;
 		const GmodNode* expectedMax = nullptr;
 
 		int nodeCount = 0;
-		for ( auto it = gmod.begin(); it != gmod.end(); ++it )
+		for ( auto nodeIt = gmod.begin(); nodeIt != gmod.end(); ++nodeIt )
 		{
-			const auto& node = *it;
+			const auto& node = *nodeIt;
 			nodeCount++;
 
-			if ( !node.GetCode().empty() )
+			if ( !node.code().empty() )
 			{
-				if ( minLength == nullptr || node.GetCode().length() < minLength->GetCode().length() )
+				if ( minLength == nullptr || node.code().length() < minLength->code().length() )
 					minLength = &node;
 
-				if ( maxLength == nullptr || node.GetCode().length() > maxLength->GetCode().length() )
+				if ( maxLength == nullptr || node.code().length() > maxLength->code().length() )
 					maxLength = &node;
 
-				if ( node.GetCode() == expectedMaxCode )
+				if ( node.code() == expectedMaxCode )
 					expectedMax = &node;
 			}
 		}
 
-		SPDLOG_INFO( "Found min length node: {}", minLength ? minLength->GetCode() : "null" );
-		SPDLOG_INFO( "Found max length node: {}", maxLength ? maxLength->GetCode() : "null" );
+		SPDLOG_INFO( "Found min length node: {}", minLength ? minLength->code() : "null" );
+		SPDLOG_INFO( "Found max length node: {}", maxLength ? maxLength->code() : "null" );
 
 		if ( expectedMax )
 		{
 			SPDLOG_INFO( "Using expected max node: {} (length {})",
-				expectedMax->GetCode(), expectedMax->GetCode().length() );
-			ASSERT_EQ( expectedMax->GetCode().length(), 10 );
+				expectedMax->code(), expectedMax->code().length() );
+			ASSERT_EQ( expectedMax->code().length(), 10 );
 			maxLength = expectedMax;
 		}
 		else
@@ -104,12 +107,12 @@ namespace dnv::vista::sdk::tests
 
 		ASSERT_NE( minLength, nullptr );
 		ASSERT_NE( maxLength, nullptr );
-		EXPECT_EQ( minLength->GetCode().length(), 2 );
-		EXPECT_EQ( minLength->GetCode(), "VE" );
-		EXPECT_EQ( maxLength->GetCode().length(), 10 );
-		EXPECT_EQ( maxLength->GetCode(), expectedMaxCode );
+		EXPECT_EQ( minLength->code().length(), 2 );
+		EXPECT_EQ( minLength->code(), "VE" );
+		EXPECT_EQ( maxLength->code().length(), 10 );
+		EXPECT_EQ( maxLength->code(), expectedMaxCode );
 
-		EXPECT_EQ( nodeCount, it->second.NodeCount );
+		EXPECT_EQ( nodeCount, expectedIt->second.NodeCount );
 	}
 
 	TEST_P( GmodTests, Test_Gmod_Lookup )
@@ -133,7 +136,7 @@ namespace dnv::vista::sdk::tests
 
 				GmodNode foundNode;
 				ASSERT_TRUE( gmod.tryGetNode( item.code, foundNode ) );
-				EXPECT_EQ( item.code, foundNode.GetCode() );
+				EXPECT_EQ( item.code, foundNode.code() );
 				counter++;
 			}
 		}
@@ -144,13 +147,13 @@ namespace dnv::vista::sdk::tests
 			for ( auto it = gmod.begin(); it != gmod.end(); ++it )
 			{
 				const auto& node = *it;
-				ASSERT_FALSE( node.GetCode().empty() );
-				auto insertResult = seen.insert( node.GetCode() );
-				EXPECT_TRUE( insertResult.second ) << "Code: " << node.GetCode();
+				ASSERT_FALSE( node.code().empty() );
+				auto insertResult = seen.insert( node.code() );
+				EXPECT_TRUE( insertResult.second ) << "Code: " << node.code();
 
 				GmodNode foundNode;
-				ASSERT_TRUE( gmod.tryGetNode( node.GetCode(), foundNode ) );
-				EXPECT_EQ( node.GetCode(), foundNode.GetCode() );
+				ASSERT_TRUE( gmod.tryGetNode( node.code(), foundNode ) );
+				EXPECT_EQ( node.code(), foundNode.code() );
 				counter++;
 			}
 		}
@@ -177,7 +180,7 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( node1, node2 );
 		EXPECT_EQ( &node1, &node2 );
 
-		auto node3 = node1.WithLocation( "1" );
+		auto node3 = node1.withLocation( "1" );
 		EXPECT_NE( node1, node3 );
 		EXPECT_NE( &node1, &node3 );
 	}
@@ -190,7 +193,7 @@ namespace dnv::vista::sdk::tests
 		for ( auto it = gmod.begin(); it != gmod.end(); ++it )
 		{
 			const auto& node = *it;
-			types.insert( node.GetMetadata().GetCategory() + " | " + node.GetMetadata().GetType() );
+			types.insert( node.metadata().category() + " | " + node.metadata().type() );
 		}
 
 		EXPECT_FALSE( types.empty() );
@@ -202,7 +205,7 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( visVersion );
 
 		const auto& node = gmod.rootNode();
-		EXPECT_FALSE( node.GetChildren().empty() );
+		EXPECT_FALSE( node.children().empty() );
 	}
 
 	TEST_F( GmodTests, Test_Normal_Assignments )
@@ -210,11 +213,11 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
 		auto node = gmod["411.3"];
-		EXPECT_TRUE( node.ProductType() != nullptr );
-		EXPECT_TRUE( node.ProductSelection() == nullptr );
+		EXPECT_TRUE( node.productType() != nullptr );
+		EXPECT_TRUE( node.productSelection() == nullptr );
 
 		node = gmod["H601"];
-		EXPECT_TRUE( node.ProductType() == nullptr );
+		EXPECT_TRUE( node.productType() == nullptr );
 	}
 
 	TEST_F( GmodTests, Test_Node_With_Product_Selection )
@@ -222,11 +225,11 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
 		auto node = gmod["411.2"];
-		EXPECT_TRUE( node.ProductSelection() != nullptr );
-		EXPECT_TRUE( node.ProductType() == nullptr );
+		EXPECT_TRUE( node.productSelection() != nullptr );
+		EXPECT_TRUE( node.productType() == nullptr );
 
 		node = gmod["H601"];
-		EXPECT_TRUE( node.ProductSelection() == nullptr );
+		EXPECT_TRUE( node.productSelection() == nullptr );
 	}
 
 	TEST_F( GmodTests, Test_Product_Selection )
@@ -234,7 +237,7 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
 		auto node = gmod["CS1"];
-		EXPECT_TRUE( node.IsProductSelection() );
+		EXPECT_TRUE( node.isProductSelection() );
 	}
 
 	struct MappabilityTestCase
@@ -263,7 +266,7 @@ namespace dnv::vista::sdk::tests
 				return;
 			}
 
-			EXPECT_EQ( node.IsMappable(), testCase.Mappable )
+			EXPECT_EQ( node.isMappable(), testCase.Mappable )
 				<< "Mappability mismatch for node '" << testCase.Code << "'.";
 		}
 		catch ( const std::exception& ex )
@@ -302,15 +305,15 @@ namespace dnv::vista::sdk::tests
 
 		int pathCount = 0;
 		const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
-		int maxOccurrence = 0;
+		size_t maxOccurrence = 0;
 
 		bool completed = gmod.traverse(
 			[&]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
+				EXPECT_TRUE( parents.empty() || parents[0].isRoot() );
 
 				if ( std::any_of( parents.begin(), parents.end(),
-						 []( const auto& p ) { return p.GetCode() == "HG3"; } ) ||
-					 node.GetCode() == "HG3" )
+						 []( const auto& p ) { return p.code() == "HG3"; } ) ||
+					 node.code() == "HG3" )
 				{
 					pathCount++;
 				}
@@ -321,7 +324,7 @@ namespace dnv::vista::sdk::tests
 				if ( skipOccurrenceCheck )
 					return Gmod::TraversalHandlerResult::Continue;
 
-				int occ = Occurrences( parents, node );
+				size_t occ = occurrences( parents, node );
 				if ( occ > maxOccurrence )
 					maxOccurrence = occ;
 
@@ -338,7 +341,7 @@ namespace dnv::vista::sdk::tests
 		auto [vis, gmod] = GetVisAndGmod( VisVersion::v3_4a );
 
 		const int maxExpected = 2;
-		int maxOccurrence = 0;
+		size_t maxOccurrence = 0;
 
 		Gmod::TraversalOptions options;
 		options.maxTraversalOccurrence = maxExpected;
@@ -351,7 +354,7 @@ namespace dnv::vista::sdk::tests
 				if ( skipOccurrenceCheck )
 					return Gmod::TraversalHandlerResult::Continue;
 
-				int occ = Occurrences( parents, node );
+				size_t occ = occurrences( parents, node );
 				if ( occ > maxOccurrence )
 					maxOccurrence = occ;
 
@@ -370,8 +373,8 @@ namespace dnv::vista::sdk::tests
 		TraversalState state( 5 );
 
 		bool completed = gmod.traverse(
-			[&state]( const std::vector<GmodNode>& parents, const GmodNode& node ) {
-				EXPECT_TRUE( parents.empty() || parents[0].IsRoot() );
+			[&state]( const std::vector<GmodNode>& parents, [[maybe_unused]] const GmodNode& node ) {
+				EXPECT_TRUE( parents.empty() || parents[0].isRoot() );
 				if ( ++state.NodeCount == state.StopAfter )
 					return Gmod::TraversalHandlerResult::Stop;
 				return Gmod::TraversalHandlerResult::Continue;

@@ -7,7 +7,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Represents a change in assignment between VIS versions.
 	 */
-	struct GmodVersioningAssignmentChangeDto
+	struct GmodVersioningAssignmentChangeDto final
 	{
 		/**
 		 * @brief Default constructor
@@ -26,7 +26,7 @@ namespace dnv::vista::sdk
 		 * @param json The RapidJSON object to deserialize
 		 * @return The deserialized GmodVersioningAssignmentChangeDto
 		 */
-		static GmodVersioningAssignmentChangeDto FromJson( const rapidjson::Value& json );
+		static GmodVersioningAssignmentChangeDto fromJson( const rapidjson::Value& json );
 
 		/**
 		 * @brief Try to deserialize a GmodVersioningAssignmentChangeDto from a RapidJSON object
@@ -34,14 +34,14 @@ namespace dnv::vista::sdk
 		 * @param dto Output parameter to receive the deserialized object
 		 * @return True if deserialization was successful, false otherwise
 		 */
-		static bool TryFromJson( const rapidjson::Value& json, GmodVersioningAssignmentChangeDto& dto );
+		static bool tryFromJson( const rapidjson::Value& json, GmodVersioningAssignmentChangeDto& dto );
 
 		/**
 		 * @brief Serialize this GmodVersioningAssignmentChangeDto to a RapidJSON Value
 		 * @param allocator The JSON value allocator to use
 		 * @return The serialized JSON value
 		 */
-		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
 
 		/** @brief Previous assignment value (JSON: "oldAssignment") */
 		std::string oldAssignment;
@@ -55,7 +55,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains instructions for converting a node between VIS versions.
 	 */
-	struct GmodNodeConversionDto
+	struct GmodNodeConversionDto final
 	{
 		/**
 		 * @brief Default constructor
@@ -84,7 +84,7 @@ namespace dnv::vista::sdk
 		 * @param json The RapidJSON object to deserialize
 		 * @return The deserialized GmodNodeConversionDto
 		 */
-		static GmodNodeConversionDto FromJson( const rapidjson::Value& json );
+		static GmodNodeConversionDto fromJson( const rapidjson::Value& json );
 
 		/**
 		 * @brief Try to deserialize a GmodNodeConversionDto from a RapidJSON object
@@ -92,14 +92,14 @@ namespace dnv::vista::sdk
 		 * @param dto Output parameter to receive the deserialized object
 		 * @return True if deserialization was successful, false otherwise
 		 */
-		static bool TryFromJson( const rapidjson::Value& json, GmodNodeConversionDto& dto );
+		static bool tryFromJson( const rapidjson::Value& json, GmodNodeConversionDto& dto );
 
 		/**
 		 * @brief Serialize this GmodNodeConversionDto to a RapidJSON Value
 		 * @param allocator The JSON value allocator to use
 		 * @return The serialized JSON value
 		 */
-		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
 
 		/** @brief Set of operations to apply (JSON: "operations") */
 		std::unordered_set<std::string> operations;
@@ -125,7 +125,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains all node conversion information for a specific VIS version.
 	 */
-	struct GmodVersioningDto
+	struct GmodVersioningDto final
 	{
 		/**
 		 * @brief Default constructor
@@ -144,7 +144,7 @@ namespace dnv::vista::sdk
 		 * @param json The RapidJSON object to deserialize
 		 * @return The deserialized GmodVersioningDto
 		 */
-		static GmodVersioningDto FromJson( const rapidjson::Value& json );
+		static GmodVersioningDto fromJson( const rapidjson::Value& json );
 
 		/**
 		 * @brief Try to deserialize a GmodVersioningDto from a RapidJSON object
@@ -152,14 +152,14 @@ namespace dnv::vista::sdk
 		 * @param dto Output parameter to receive the deserialized object
 		 * @return True if deserialization was successful, false otherwise
 		 */
-		static bool TryFromJson( const rapidjson::Value& json, GmodVersioningDto& dto );
+		static bool tryFromJson( const rapidjson::Value& json, GmodVersioningDto& dto );
 
 		/**
 		 * @brief Serialize this GmodVersioningDto to a RapidJSON Value
 		 * @param allocator The JSON value allocator to use
 		 * @return The serialized JSON value
 		 */
-		rapidjson::Value ToJson( rapidjson::Document::AllocatorType& allocator ) const;
+		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
 
 		/** @brief VIS version identifier (JSON: "visRelease") */
 		std::string visVersion;

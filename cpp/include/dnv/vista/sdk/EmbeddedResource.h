@@ -10,7 +10,7 @@ namespace dnv::vista::sdk
 {
 	struct GmodDto;
 	struct GmodVersioningDto;
-	struct CodebooksDto;
+	class CodebooksDto;
 	struct DataChannelTypeNamesDto;
 	struct LocationsDto;
 	struct FormatDataTypesDto;
@@ -18,7 +18,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Utility class for accessing embedded resources
 	 */
-	class EmbeddedResource
+	class EmbeddedResource final
 	{
 	public:
 		/**

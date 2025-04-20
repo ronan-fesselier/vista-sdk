@@ -8,6 +8,7 @@
 #include <bit>
 #include <cctype>
 #include <charconv>
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -21,6 +22,7 @@
 #include <queue>
 #include <regex>
 #include <set>
+#include <span>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
@@ -33,9 +35,9 @@
 #include <vector>
 
 /* Libs */
+#include <spdlog/spdlog.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/error/en.h>
 #include <zlib.h>
-#include <spdlog/spdlog.h>
 #include <libcpuid/libcpuid.h>

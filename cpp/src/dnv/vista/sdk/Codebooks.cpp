@@ -1,6 +1,12 @@
+/**
+ * @file Codebooks.cpp
+ * @brief Implementation of Vessel Information Structure (VIS) codebooks
+ */
+
 #include "pch.h"
 
 #include "dnv/vista/sdk/Codebooks.h"
+
 #include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/VisVersion.h"
 #include "dnv/vista/sdk/CodebooksDto.h"
@@ -8,48 +14,36 @@
 
 namespace dnv::vista::sdk
 {
+	//-------------------------------------------------------------------
+	// Construction / Destruction
+	//-------------------------------------------------------------------
+
 	Codebooks::Codebooks( VisVersion version, const CodebooksDto& dto )
-		: m_visVersion( version )
+		: m_visVersion( version ), m_codebooks{}
 	{
-		SPDLOG_INFO( "Initializing codebooks for VIS version: {}",
-			VisVersionExtensions::toVersionString( version ) );
+		SPDLOG_DEBUG( "Initializing codebooks for VIS version: {}", VisVersionExtensions::toVersionString( version ) );
 
-		constexpr int numCodebooks = static_cast<int>( CodebookName::Detail );
-		SPDLOG_INFO( "Sizing codebook array to {} slots based on Detail enum value {}",
-			numCodebooks, static_cast<int>( CodebookName::Detail ) );
-
-		m_codebooks.resize( numCodebooks );
-
-		SPDLOG_INFO( "Vector size after initialization: {}", m_codebooks.size() );
-		SPDLOG_INFO( "Processing {} codebook items from DTO", dto.items.size() );
-
-		for ( const auto& typeDto : dto.items )
+		for ( const auto& typeDto : dto.items() )
 		{
 			try
 			{
-				SPDLOG_INFO( "Processing codebook: {}", typeDto.name );
-
+				SPDLOG_DEBUG( "Processing codebook: {}", typeDto.name );
 				Codebook codebook( typeDto );
-				CodebookName bookName = codebook.name();
+				auto index = static_cast<size_t>( codebook.name() ) - 1;
 
-				int index = static_cast<int>( bookName ) - 1;
-				SPDLOG_INFO( "Mapped '{}' to index {} (enum value: {})",
-					typeDto.name, index, static_cast<int>( bookName ) );
-
-				if ( index >= 0 && index < numCodebooks )
+				if ( index < NUM_CODEBOOKS )
 				{
 					m_codebooks[index] = codebook;
-					SPDLOG_INFO( "Added codebook '{}' at index {}", typeDto.name, index );
+					SPDLOG_DEBUG( "Added codebook '{}' at index {}", typeDto.name, index );
 				}
 				else
 				{
-					SPDLOG_WARN( "Invalid codebook index: {} for name: {}",
-						index, typeDto.name );
+					SPDLOG_WARN( "Invalid codebook index: {} for name: {}", index, typeDto.name() );
 				}
 			}
 			catch ( const std::exception& ex )
 			{
-				SPDLOG_ERROR( "Error processing codebook '{}': {}", typeDto.name, ex.what() );
+				SPDLOG_ERROR( "Error processing codebook '{}': {}", typeDto.name(), ex.what() );
 			}
 		}
 
@@ -57,36 +51,17 @@ namespace dnv::vista::sdk
 		CodebookDto detailDto( "detail", emptyValues );
 		Codebook detailCodebook( detailDto );
 
-		int detailIndex = static_cast<int>( detailCodebook.name() ) - 1;
-		if ( detailIndex >= 0 && detailIndex < numCodebooks )
+		auto detailIndex = static_cast<size_t>( CodebookName::Detail ) - 1;
+		if ( detailIndex < NUM_CODEBOOKS )
 		{
 			m_codebooks[detailIndex] = detailCodebook;
-			SPDLOG_INFO( "Added empty Detail codebook at index {}", detailIndex );
+			SPDLOG_DEBUG( "Added empty Detail codebook at index {}", detailIndex );
 		}
-
-		std::size_t populatedCount = 0;
-		for ( const auto& codebook : m_codebooks )
-		{
-			try
-			{
-				std::string prefix = CodebookNames::toPrefix( codebook.name() );
-				if ( !prefix.empty() )
-				{
-					populatedCount++;
-					SPDLOG_INFO( "Valid codebook found at index {}: {}",
-						static_cast<int>( codebook.name() ) - 1, prefix );
-				}
-			}
-			catch ( const std::exception& )
-			{
-				SPDLOG_WARN( "Empty/invalid codebook slot at index {}",
-					&codebook - &m_codebooks[0] );
-			}
-		}
-
-		SPDLOG_INFO( "Finished initializing {} codebooks ({} array slots, {} populated)",
-			populatedCount, m_codebooks.size(), populatedCount );
 	}
+
+	//-------------------------------------------------------------------
+	// Codebook access methods
+	//-------------------------------------------------------------------
 
 	VisVersion Codebooks::visVersion() const
 	{
@@ -100,25 +75,29 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "Codebooks array is empty or uninitialized" );
 		}
 
-		int index = static_cast<int>( name ) - 1;
-
+		auto index = static_cast<size_t>( name ) - 1;
 		SPDLOG_DEBUG( "Accessing codebook[{}], vector size: {}", index, m_codebooks.size() );
 
-		if ( index >= static_cast<int>( m_codebooks.size() ) || index < 0 )
+		if ( index >= m_codebooks.size() )
 		{
-			std::stringstream ss;
-			ss << "Invalid codebook name: " << static_cast<int>( name );
-
-			SPDLOG_ERROR( ss.str() );
-			throw std::invalid_argument( ss.str() );
+			SPDLOG_ERROR( "Invalid codebook name: {}", static_cast<int>( name ) );
+			throw std::invalid_argument( "Invalid codebook name: " + std::to_string( static_cast<int>( name ) ) );
 		}
-
 		return m_codebooks[index];
 	}
 
+	const Codebook& Codebooks::codebook( CodebookName name ) const
+	{
+		return ( *this )[name];
+	}
+
+	//-------------------------------------------------------------------
+	// Tag creation methods
+	//-------------------------------------------------------------------
+
 	std::optional<MetadataTag> Codebooks::tryCreateTag( CodebookName name, const std::string_view value ) const
 	{
-		SPDLOG_INFO( "Attempting to create tag '{}' for codebook: {} (enum value: {})",
+		SPDLOG_DEBUG( "Attempting to create tag '{}' for codebook: {} (enum value: {})",
 			value, CodebookNames::toPrefix( name ), static_cast<int>( name ) );
 
 		if ( m_codebooks.empty() )
@@ -134,19 +113,19 @@ namespace dnv::vista::sdk
 			if ( result.has_value() )
 			{
 				SPDLOG_DEBUG( "Successfully created tag for '{}' in codebook '{}'",
-					value, CodebookNames::ToPrefix( name ) );
+					value, CodebookNames::toPrefix( name ) );
 			}
 			else
 			{
 				SPDLOG_DEBUG( "Failed to create tag for '{}' in codebook '{}' - invalid value",
-					value, CodebookNames::ToPrefix( name ) );
+					value, CodebookNames::toPrefix( name ) );
 			}
 
 			return result;
 		}
 		catch ( const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Exception in TryCreateTag for '{}' in codebook '{}': {}",
+			SPDLOG_ERROR( "Exception in tryCreateTag for '{}' in codebook '{}': {}",
 				value, CodebookNames::toPrefix( name ), ex.what() );
 			throw;
 		}
@@ -157,39 +136,32 @@ namespace dnv::vista::sdk
 		return ( *this )[name].createTag( value );
 	}
 
-	const Codebook& Codebooks::codebook( CodebookName name ) const
-	{
-		return ( *this )[name];
-	}
+	//-------------------------------------------------------------------
+	// Iterator implementation
+	//-------------------------------------------------------------------
 
-	Codebooks::Iterator::Iterator( const std::vector<Codebook>* codebooks, int index )
+	Codebooks::Iterator::Iterator( const std::array<Codebook, static_cast<size_t>( NUM_CODEBOOKS )>* codebooks, size_t index )
 		: m_codebooks( codebooks ), m_index( index )
 	{
 	}
 
 	Codebooks::Iterator::reference Codebooks::Iterator::operator*() const
 	{
-		if ( static_cast<size_t>( m_index ) >= m_codebooks->size() )
+		if ( m_index >= m_codebooks->size() )
 		{
 			SPDLOG_ERROR( "Iterator out of range: index={}", m_index );
 			throw std::invalid_argument( "Iterator out of range" );
 		}
 
 		const Codebook& codebook = ( *m_codebooks )[m_index];
-		if ( !m_current.has_value() )
-		{
-			m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
-		}
-		else
-		{
-			m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
-		}
+
+		m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
 		return *m_current;
 	}
 
 	Codebooks::Iterator::pointer Codebooks::Iterator::operator->() const
 	{
-		if ( static_cast<size_t>( m_index ) >= m_codebooks->size() )
+		if ( m_index >= m_codebooks->size() )
 		{
 			SPDLOG_ERROR( "Iterator out of range: index={}", m_index );
 			throw std::invalid_argument( "Iterator out of range" );
@@ -200,10 +172,7 @@ namespace dnv::vista::sdk
 		{
 			m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
 		}
-		else
-		{
-			m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
-		}
+
 		return &( *m_current );
 	}
 
@@ -230,10 +199,31 @@ namespace dnv::vista::sdk
 		return !( *this == other );
 	}
 
+	bool Codebooks::Iterator::next()
+	{
+		++m_index;
+		return static_cast<size_t>( m_index ) < m_codebooks->size();
+	}
+
+	bool Codebooks::Iterator::current()
+	{
+		if ( static_cast<size_t>( m_index ) < m_codebooks->size() )
+		{
+			const Codebook& codebook = ( *m_codebooks )[m_index];
+			m_current = std::make_tuple( codebook.name(), std::cref( codebook ) );
+			return true;
+		}
+		return false;
+	}
+
 	void Codebooks::Iterator::reset()
 	{
-		m_index = -1;
+		m_index = static_cast<size_t>( -1 );
 	}
+
+	//-------------------------------------------------------------------
+	// Iteration methods
+	//-------------------------------------------------------------------
 
 	Codebooks::Iterator Codebooks::begin() const
 	{
@@ -242,11 +232,11 @@ namespace dnv::vista::sdk
 
 	Codebooks::Iterator Codebooks::end() const
 	{
-		return Iterator( &m_codebooks, static_cast<int>( m_codebooks.size() ) );
+		return Iterator( &m_codebooks, m_codebooks.size() );
 	}
 
 	Codebooks::Enumerator Codebooks::enumerator() const
 	{
-		return Iterator( &m_codebooks, 0 );
+		return Iterator( &m_codebooks, static_cast<size_t>( -1 ) );
 	}
 }

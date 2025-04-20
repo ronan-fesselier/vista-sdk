@@ -21,7 +21,6 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -31,11 +30,9 @@
 #include <vector>
 
 /* Libs */
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_all.hpp>
-#include <catch2/generators/catch_generators.hpp>
-#include <catch2/generators/catch_generators_range.hpp>
+#include <spdlog/spdlog.h>
+#include <gtest/gtest.h>
+#include "gmock/gmock.h"
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <zlib.h>
-#include <spdlog/spdlog.h>

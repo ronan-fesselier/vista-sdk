@@ -20,53 +20,73 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
-        simd: [ON, OFF]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Setup Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Set up CMake
+    - name: Set up CMake and Ninja
       uses: lukka/get-cmake@latest
-
-    - name: Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
       with:
-        version: 1.11.1
+        cmakeVersion: "~3.27.0"
+        ninjaVersion: "~1.11.0"
 
-    # Set up vcpkg cache
+    - name: Install ccache
+      run: |
+        choco install ccache -y
+        ccache --version
+      shell: cmd
+
+    - name: Cache ccache directory
+      uses: actions/cache@v4
+      id: ccache-cache
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/**/*.hpp') }}-v1
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ matrix.build_type }}-v1
+          ccache-${{ runner.os }}-v1
+
+    - name: Configure ccache
+      run: |
+        mkdir -p ${{ github.workspace }}\.ccache
+        ccache --max-size=2G
+        ccache --set-config=hash_dir=false
+        ccache --set-config=cache_dir=${{ github.workspace }}\.ccache
+        ccache -z
+      shell: cmd
+
     - name: Cache vcpkg
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: vcpkg-cache
       with:
         path: |
           ${{ github.workspace }}/vcpkg
           !${{ github.workspace }}/vcpkg/buildtrees
           !${{ github.workspace }}/vcpkg/downloads
-        key: vcpkg-${{ runner.os }}-${{ hashFiles('cpp/cmake/CMakeLists.txt') }}
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('cpp/CMakeLists.txt') }}-v1
         restore-keys: |
-          vcpkg-${{ runner.os }}-
+          vcpkg-${{ runner.os }}-v1
 
-    # Set up build cache
     - name: Cache build directory
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: build-cache
       with:
         path: |
-          ${{ github.workspace }}/build-${{ matrix.simd }}
-          !${{ github.workspace }}/build-${{ matrix.simd }}/Testing
-        key: build-${{ runner.os }}-${{ matrix.build_type }}-simd${{ matrix.simd }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/cmake/**') }}
+          ${{ github.workspace }}/build
+          !${{ github.workspace }}/build/Testing
+        key: build-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/**/*.hpp', 'cpp/CMakeLists.txt') }}-v1
         restore-keys: |
-          build-${{ runner.os }}-${{ matrix.build_type }}-simd${{ matrix.simd }}-
+          build-${{ runner.os }}-${{ matrix.build_type }}-v1
 
     - name: Checkout vcpkg
       if: steps.vcpkg-cache.outputs.cache-hit != 'true'
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: microsoft/vcpkg
         path: vcpkg
@@ -75,82 +95,36 @@ jobs:
       if: steps.vcpkg-cache.outputs.cache-hit != 'true'
       run: |
         cd ${{ github.workspace }}/vcpkg
-        .\bootstrap-vcpkg.bat
+        .\bootstrap-vcpkg.bat -disableMetrics
+      shell: cmd
 
-    - name: Install dependencies with vcpkg
+    - name: Install core dependencies with vcpkg
       run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install spdlog:x64-windows gtest:x64-windows zlib:x64-windows rapidjson:x64-windows
+        ${{ github.workspace }}/vcpkg/vcpkg install spdlog:x64-windows gtest:x64-windows cpuid:x64-windows rapidjson:x64-windows zlib:x64-windows async-mqtt[tls]:x64-windows
         ${{ github.workspace }}/vcpkg/vcpkg integrate install
+      shell: cmd
 
-    - name: Configure CMake
+    - name: Verify Ninja installation
       run: |
-        cmake -B ${{ github.workspace }}/build-${{ matrix.simd }} -G "Ninja" `
-              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
-              -DCMAKE_CXX_STANDARD=20 `
-              -DENABLE_SSE42=${{ matrix.simd }} `
-              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        ninja --version
+      shell: cmd
+
+    - name: Configure CMake with ccache
+      run: |
+        cmake -B ${{ github.workspace }}/build -G "Ninja" ^
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
+        -DCMAKE_CXX_STANDARD=20 ^
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
+        -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+      shell: cmd
 
     - name: Build
       run: |
-        cmake --build ${{ github.workspace }}/build-${{ matrix.simd }} --config ${{ matrix.build_type }}
+        cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
+      shell: cmd
 
-    - name: Test
-      working-directory: ${{ github.workspace }}/build-${{ matrix.simd }}
+    - name: ccache statistics
       run: |
-        ctest -C ${{ matrix.build_type }} --output-on-failure
-
-    - name: Upload build artifacts
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: cpp-build-windows-${{ matrix.build_type }}-simd${{ matrix.simd }}
-        path: |
-          ${{ github.workspace }}/build-${{ matrix.simd }}/Testing
-          ${{ github.workspace }}/build-${{ matrix.simd }}/*.log
-        retention-days: 7
-
-  build-linux:
-    name: Build and Test C++ on Linux
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: [Debug, Release]
-        simd: [ON, OFF]
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build libspdlog-dev libgtest-dev zlib1g-dev rapidjson-dev
-
-    - name: Configure CMake
-      run: |
-        cmake -B ${{ github.workspace }}/build-${{ matrix.simd }} -G "Ninja" \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DCMAKE_CXX_STANDARD=20 \
-              -DENABLE_SSE42=${{ matrix.simd }}
-
-    - name: Build
-      run: |
-        cmake --build ${{ github.workspace }}/build-${{ matrix.simd }} --config ${{ matrix.build_type }}
-
-    - name: Test
-      working-directory: ${{ github.workspace }}/build-${{ matrix.simd }}
-      run: |
-        ctest -C ${{ matrix.build_type }} --output-on-failure
-
-    - name: Upload build artifacts
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: cpp-build-linux-${{ matrix.build_type }}-simd${{ matrix.simd }}
-        path: |
-          ${{ github.workspace }}/build-${{ matrix.simd }}/Testing
-          ${{ github.workspace }}/build-${{ matrix.simd }}/*.log
-        retention-days: 7
+        ccache -s
+      shell: cmd
