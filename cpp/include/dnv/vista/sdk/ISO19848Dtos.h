@@ -11,7 +11,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Represents a type name and its description as defined in ISO 19848.
 	 */
-	struct DataChannelTypeNameDto
+	struct DataChannelTypeNameDto final
 	{
 		//-------------------------------------------------------------------------
 		// Constructors
@@ -79,7 +79,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Represents a collection of data channel type names and their descriptions.
 	 */
-	struct DataChannelTypeNamesDto
+	struct DataChannelTypeNamesDto final
 	{
 		//-------------------------------------------------------------------------
 		// Constructors
@@ -141,7 +141,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Represents a format data type and its description as defined in ISO 19848.
 	 */
-	struct FormatDataTypeDto
+	struct FormatDataTypeDto final
 	{
 		//-------------------------------------------------------------------------
 		// Constructors
@@ -209,7 +209,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Represents a collection of format data types and their descriptions.
 	 */
-	struct FormatDataTypesDto
+	struct FormatDataTypesDto final
 	{
 		//-------------------------------------------------------------------------
 		// Constructors

@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Represents a location in the VIS system
 	 */
-	class Location
+	class Location final
 	{
 	public:
 		/**
@@ -102,7 +102,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Represents a relative location in the VIS system
 	 */
-	class RelativeLocation
+	class RelativeLocation final
 	{
 	public:
 		/**
@@ -179,7 +179,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Dictionary for managing location characters
 	 */
-	class LocationCharDict
+	class LocationCharDict final
 	{
 	public:
 		/**
@@ -215,7 +215,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Represents a collection of locations in the VIS system
 	 */
-	class Locations
+	class Locations final
 	{
 	public:
 		//-------------------------------------------------------------------------

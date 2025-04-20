@@ -8,7 +8,7 @@ namespace dnv::vista::sdk
 	 * An IMO number is a unique seven-digit identifier assigned to maritime vessels
 	 * with a check digit for validation according to the IMO standard.
 	 */
-	class ImoNumber
+	class ImoNumber final
 	{
 	public:
 		//-------------------------------------------------------------------------
@@ -102,7 +102,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Hash function for ImoNumber
 		 */
-		struct Hash
+		struct Hash final
 		{
 			/**
 			 * @brief Calculate hash value for an IMO number

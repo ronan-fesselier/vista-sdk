@@ -74,16 +74,6 @@ Each SDK makes use of the contents of the resources and schemas folders to gener
  ┃ ┃ ┣ 📜DataChannelList.xsd
  ┃ ┃ ┗ 📜TimeSeriesData.xsd
  ┣ 📂testdata
- ┃ ┣ 📜Codebook.json
- ┃ ┣ 📜GmodPaths.json
- ┃ ┣ 📜ImoNumbers.json
- ┃ ┣ 📜IndividualizableSets.json
- ┃ ┣ 📜InvalidLocalIds.json
- ┃ ┣ 📜LocalIds.txt
- ┃ ┣ 📜Locations.json
- ┃ ┣ 📜PmodData.json
- ┃ ┗ 📜VersioningTestCases.json
- ┣ 📂cpp
  ┣ 📂csharp
  ┣ 📂python
  ┣ 📂js
@@ -188,12 +178,14 @@ It follows the same patterns and design principles as the C# implementation whil
 
 #### Dependencies
 
-The C++ SDK uses [vcpkg](https://github.com/microsoft/vcpkg) for dependency management. The required libraries include:
+The C++ SDK uses [vcpkg](https://github.com/microsoft/vcpkg) for dependency management. The required libraries are listed below:
 
-- RapidJSON: For JSON parsing and serialization
-- spdlog: For structured logging
-- Catch2: For unit testing (development only)
-- cpuid: For CPU feature detection (intrinsic capablities)
+- [RapidJSON](https://rapidjson.org/): For JSON parsing and serialization
+- [spdlog](https://github.com/gabime/spdlog): For structured logging (development phase only)
+- [ZLIB](https://www.zlib.net/): For compression and decompression of resources
+- [cpuid](https://github.com/anrieff/libcpuid): For CPU feature detection (intrinsic capabilities)
+- [async_mqtt_iface](https://github.com/redboltz/async_mqtt): For MQTT communication interface
+- [GoogleTest](https://github.com/google/googletest): For unit testing framework
 
 #### Building with CMake
 

@@ -7,12 +7,17 @@ namespace dnv::vista::sdk
 	class IUniversalIdBuilder;
 	class LocalId;
 	class ParsingErrors;
+
 	/**
 	 * Represents a Universal Identifier.
 	 */
-	class UniversalId : public IUniversalId
+	class UniversalId final : public IUniversalId
 	{
 	public:
+		//-------------------------------------------------------------------------
+		// Construction / Destruction
+		//-------------------------------------------------------------------------
+
 		/**
 		 * Constructs a UniversalId from a builder.
 		 * @param builder The builder used to construct the UniversalId.
@@ -21,24 +26,42 @@ namespace dnv::vista::sdk
 		explicit UniversalId( const std::shared_ptr<IUniversalIdBuilder>& builder );
 
 		/**
+		 * Copy constructor (deleted)
+		 * @details UniversalId objects shouldn't be copied since they contain non-copyable members
+		 */
+		UniversalId( const UniversalId& ) = delete;
+
+		/**
+		 * Copy assignment operator (deleted)
+		 * @details UniversalId objects shouldn't be assigned since they contain non-copyable members
+		 */
+		UniversalId& operator=( const UniversalId& ) = delete;
+
+		/**
+		 * Default virtual destructor.
+		 */
+		virtual ~UniversalId() = default;
+
+		//-------------------------------------------------------------------------
+		// Interface Implementation
+		//-------------------------------------------------------------------------
+
+		/**
 		 * Gets the IMO number.
 		 * @return The IMO number.
 		 * @throws std::runtime_error If the IMO number is invalid.
 		 */
-		virtual const ImoNumber& GetImoNumber() const override;
+		virtual const ImoNumber& imoNumber() const override;
 
 		/**
 		 * Gets the local ID.
 		 * @return The local ID.
 		 */
-		virtual const LocalId& GetLocalId() const override;
+		virtual const LocalId& localId() const override;
 
-		/**
-		 * Checks equality with another UniversalId.
-		 * @param other The other UniversalId to compare.
-		 * @return True if equal, false otherwise.
-		 */
-		bool equals( const UniversalId& other ) const;
+		//-------------------------------------------------------------------------
+		// Static Methods - Parsing
+		//-------------------------------------------------------------------------
 
 		/**
 		 * Parses a UniversalId from a string.
@@ -57,6 +80,35 @@ namespace dnv::vista::sdk
 		 */
 		static bool tryParse( const std::string& universalIdStr, ParsingErrors& errors, std::unique_ptr<UniversalId>& universalId );
 
+		//-------------------------------------------------------------------------
+		// Instance Methods - Comparison
+		//-------------------------------------------------------------------------
+
+		/**
+		 * Checks equality with another UniversalId.
+		 * @param other The other UniversalId to compare.
+		 * @return True if equal, false otherwise.
+		 */
+		bool equals( const UniversalId& other ) const;
+
+		/**
+		 * Equality operator.
+		 * @param other The other UniversalId to compare.
+		 * @return True if equal, false otherwise.
+		 */
+		bool operator==( const UniversalId& other ) const;
+
+		/**
+		 * Inequality operator.
+		 * @param other The other UniversalId to compare.
+		 * @return True if not equal, false otherwise.
+		 */
+		bool operator!=( const UniversalId& other ) const;
+
+		//-------------------------------------------------------------------------
+		// Instance Methods - Conversion
+		//-------------------------------------------------------------------------
+
 		/**
 		 * Converts the UniversalId to a string representation.
 		 * @return The string representation.
@@ -70,6 +122,10 @@ namespace dnv::vista::sdk
 		size_t hashCode() const;
 
 	private:
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
+
 		std::shared_ptr<IUniversalIdBuilder> m_builder;
 		LocalId m_localId;
 		ImoNumber m_imoNumber;

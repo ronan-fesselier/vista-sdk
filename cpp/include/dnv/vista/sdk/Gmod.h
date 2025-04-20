@@ -24,9 +24,13 @@ namespace dnv::vista::sdk
 	 * Tracks the parent nodes in traversal and manages occurrence counting
 	 * to prevent infinite recursion in cyclic structures.
 	 */
-	class Parents
+	class Parents final
 	{
 	public:
+		//-------------------------------------------------------------------
+		// Public Methods
+		//-------------------------------------------------------------------
+
 		/**
 		 * @brief Add a parent node to the chain
 		 * @param parent Node to add
@@ -64,6 +68,10 @@ namespace dnv::vista::sdk
 		const std::vector<const GmodNode*>& nodePointers() const;
 
 	private:
+		//-------------------------------------------------------------------
+		// Private Members
+		//-------------------------------------------------------------------
+
 		std::vector<const GmodNode*> m_nodes;				///< Parent node pointers in traversal order
 		std::unordered_map<std::string, int> m_occurrences; ///< Node occurrence counter
 	};
@@ -76,9 +84,13 @@ namespace dnv::vista::sdk
 	 * provides functionality for traversing the hierarchy, locating nodes, and
 	 * working with vessel component paths.
 	 */
-	class Gmod
+	class Gmod final
 	{
 	public:
+		//-------------------------------------------------------------------
+		// Public Type Definitions
+		//-------------------------------------------------------------------
+
 		/**
 		 * @brief Result values returned by traversal handler functions
 		 */
@@ -92,7 +104,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Options to configure GMOD traversal behavior
 		 */
-		struct TraversalOptions
+		struct TraversalOptions final
 		{
 			/** @brief Default maximum number of times a node can be visited */
 			static constexpr int DEFAULT_MAX_TRAVERSAL_OCCURRENCE = 1;
@@ -107,19 +119,68 @@ namespace dnv::vista::sdk
 			size_t maxNodes = 100000;
 
 			/** @brief Default constructor */
-			TraversalOptions() : maxTraversalOccurrence( DEFAULT_MAX_TRAVERSAL_OCCURRENCE ) {}
+			TraversalOptions();
 
 			/**
 			 * @brief Constructor with custom occurrence limit
 			 * @param maxTraversalOccurrence Maximum times a node can be visited
 			 */
-			explicit TraversalOptions( int maxTraversalOccurrence ) : maxTraversalOccurrence( maxTraversalOccurrence ) {}
+			explicit TraversalOptions( int maxTraversalOccurrence );
 		};
 
 		/** @brief Handler function type for traversal without state */
 		using TraverseHandler = std::function<TraversalHandlerResult( const std::vector<GmodNode>&, const GmodNode& )>;
 
+		/**
+		 * @brief Iterator for traversing nodes in the GMOD
+		 */
+		class Iterator final
+		{
+		public:
+			/** @brief STL iterator traits */
+			using iterator_category = std::forward_iterator_tag;
+			using value_type = GmodNode;
+			using difference_type = std::ptrdiff_t;
+			using pointer = const GmodNode*;
+			using reference = const GmodNode&;
+
+			/** @brief Default constructor */
+			Iterator() = default;
+
+			/**
+			 * @brief Constructor from inner iterator
+			 * @param innerIt CHD dictionary iterator
+			 */
+			Iterator( ChdDictionary<GmodNode>::Iterator innerIt );
+
+			/** @brief Dereference operator */
+			reference operator*() const;
+
+			/** @brief Arrow operator */
+			pointer operator->() const;
+
+			/** @brief Pre-increment operator */
+			Iterator& operator++();
+
+			/** @brief Post-increment operator */
+			Iterator operator++( int );
+
+			/** @brief Equality operator */
+			bool operator==( const Iterator& other ) const;
+
+			/** @brief Inequality operator */
+			bool operator!=( const Iterator& other ) const;
+
+		private:
+			/** @brief Inner CHD dictionary iterator */
+			ChdDictionary<GmodNode>::Iterator m_innerIt;
+		};
+
 	public:
+		//-------------------------------------------------------------------
+		// Constructors / Destructor
+		//-------------------------------------------------------------------
+
 		/** @brief Default constructor is deleted - Gmod requires initialization data */
 		Gmod() = delete;
 
@@ -157,6 +218,17 @@ namespace dnv::vista::sdk
 		Gmod& operator=( Gmod&& other ) noexcept;
 
 		/**
+		 * @brief Copy assignment operator for Gmod
+		 * @param other The source Gmod object to copy from
+		 * @return Reference to this object
+		 */
+		Gmod& operator=( const Gmod& other );
+
+		//-------------------------------------------------------------------
+		// Basic Access Methods
+		//-------------------------------------------------------------------
+
+		/**
 		 * @brief Access node by code
 		 * @param key Node code to look up
 		 * @return Reference to the node if found, or to an empty node if not found
@@ -192,6 +264,23 @@ namespace dnv::vista::sdk
 		bool tryGetNode( std::string_view code, GmodNode& node ) const;
 
 		/**
+		 * @brief Check if the GMOD node dictionary is empty
+		 * @return true if the node map is empty, false otherwise
+		 */
+		bool isEmpty() const;
+
+		/**
+		 * @brief Checks if the given type is a potential parent type.
+		 * @param type The type to check.
+		 * @return True if the type is a potential parent, false otherwise.
+		 */
+		static bool isPotentialParent( const std::string& type );
+
+		//-------------------------------------------------------------------
+		// Path Parsing Methods
+		//-------------------------------------------------------------------
+
+		/**
 		 * @brief Parse a path string into a GmodPath
 		 * @param item Path string to parse (e.g. "VE/D101/C201")
 		 * @return Parsed GmodPath
@@ -205,7 +294,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path The parsed path, if successful
 		 * @return true if parsing succeeded, false otherwise
 		 */
-		bool TryParsePath( const std::string& item, std::optional<GmodPath>& path ) const;
+		bool tryParsePath( const std::string& item, std::optional<GmodPath>& path ) const;
 
 		/**
 		 * @brief Parse a full path string
@@ -222,6 +311,10 @@ namespace dnv::vista::sdk
 		 * @return true if parsing succeeded, false otherwise
 		 */
 		bool tryParseFromFullPath( const std::string& item, std::optional<GmodPath>& path ) const;
+
+		//-------------------------------------------------------------------
+		// Traversal Methods
+		//-------------------------------------------------------------------
 
 		/**
 		 * @brief Traverse the GMOD hierarchy from root node
@@ -270,7 +363,37 @@ namespace dnv::vista::sdk
 			const std::function<TraversalHandlerResult( TState&, const std::vector<GmodNode>&, const GmodNode& )>& handler,
 			const TraversalOptions& options = {} ) const;
 
-	public:
+		/**
+		 * @brief Check if a path exists between a sequence of parent nodes and a target node
+		 *
+		 * This method determines if there's a valid path from the last node in the
+		 * provided parent path to the target node. If found, it provides the intermediate
+		 * nodes required to complete the path.
+		 *
+		 * @param fromPath The starting path of parent nodes
+		 * @param to The target node to find a path to
+		 * @param[out] remainingParents The nodes required to complete the path, if successful
+		 * @return true if a path exists, false otherwise
+		 */
+		bool pathExistsBetween(
+			const std::vector<GmodNode>& fromPath,
+			const GmodNode& to,
+			std::vector<GmodNode>& remainingParents ) const;
+
+		//-------------------------------------------------------------------
+		// Iterator Methods
+		//-------------------------------------------------------------------
+
+		/** @brief Get iterator to beginning of nodes */
+		Iterator begin() const;
+
+		/** @brief Get iterator to end of nodes */
+		Iterator end() const;
+
+		//-------------------------------------------------------------------
+		// Static Node Classification Methods
+		//-------------------------------------------------------------------
+
 		/**
 		 * @brief Check if a node is a leaf node by type
 		 * @param fullType The node type string to check
@@ -327,6 +450,10 @@ namespace dnv::vista::sdk
 		 */
 		static bool isAssetFunctionNode( const GmodNodeMetadata& metadata );
 
+		//-------------------------------------------------------------------
+		// Static Relationship Classification Methods
+		//-------------------------------------------------------------------
+
 		/**
 		 * @brief Check if there's a product type assignment relationship
 		 * @param parent Parent node to check
@@ -344,10 +471,14 @@ namespace dnv::vista::sdk
 		static bool isProductSelectionAssignment( const GmodNode* parent, const GmodNode* child );
 
 	private:
+		//-------------------------------------------------------------------
+		// Private Traversal Context Definitions
+		//-------------------------------------------------------------------
+
 		/**
 		 * @brief Context data for traversal operations
 		 */
-		struct TraversalContext
+		struct TraversalContext final
 		{
 			Parents parents;				///< Parent node management
 			const TraverseHandler& handler; ///< Handler function for traversal
@@ -361,8 +492,10 @@ namespace dnv::vista::sdk
 			 * @param maxOcc Maximum occurrences
 			 * @param maxN Maximum nodes to visit
 			 */
-			TraversalContext( const TraverseHandler& h, int maxOcc, size_t maxN )
-				: handler( h ), maxTraversalOccurrence( maxOcc ), maxNodes( maxN ) {}
+			TraversalContext( const TraverseHandler& h, int maxOcc, size_t maxN );
+
+			/** @brief Assignment operator deleted*/
+			TraversalContext& operator=( const TraversalContext& ) = delete;
 		};
 
 		/**
@@ -394,7 +527,14 @@ namespace dnv::vista::sdk
 				int maxOcc,
 				size_t maxN )
 				: state( s ), handler( h ), maxTraversalOccurrence( maxOcc ), maxNodes( maxN ) {}
+
+			/** @brief Assignment operator deleted */
+			StatefulTraversalContext& operator=( const StatefulTraversalContext& ) = delete;
 		};
+
+		//-------------------------------------------------------------------
+		// Private Traversal Methods
+		//-------------------------------------------------------------------
 
 		/**
 		 * @brief Internal recursive traversal method
@@ -413,24 +553,10 @@ namespace dnv::vista::sdk
 		template <typename TState>
 		TraversalHandlerResult traverseNode( StatefulTraversalContext<TState>& context, const GmodNode& node ) const;
 
-	public:
-		/**
-		 * @brief Check if the GMOD node dictionary is empty
-		 * @return true if the node map is empty, false otherwise
-		 */
-		bool isEmpty() const
-		{
-			return m_nodeMap.isEmpty();
-		}
+		//-------------------------------------------------------------------
+		// Private Members
+		//-------------------------------------------------------------------
 
-		/**
-		 * @brief Initialize the node dictionary from a GmodDto
-		 * @param dto The GmodDto containing node data
-		 * @return true if initialization was successful, false otherwise
-		 */
-		bool initializeNodeDictionary( const GmodDto& dto );
-
-	private:
 		/** @brief VIS version for this GMOD */
 		VisVersion m_visVersion;
 
@@ -441,60 +567,15 @@ namespace dnv::vista::sdk
 		ChdDictionary<GmodNode> m_nodeMap;
 
 		/** @brief List of node types classified as leaf nodes */
-		static const inline std::vector<std::string> s_leafTypes = { "ASSET FUNCTION LEAF", "PRODUCT FUNCTION LEAF" };
+		static const inline std::unordered_set<std::string> s_leafTypesSet = { "ASSET FUNCTION LEAF", "PRODUCT FUNCTION LEAF" };
 
-	public:
-		/**
-		 * @brief Iterator for traversing nodes in the GMOD
-		 */
-		class Iterator
-		{
-		public:
-			/** @brief STL iterator traits */
-			using iterator_category = std::forward_iterator_tag;
-			using value_type = GmodNode;
-			using difference_type = std::ptrdiff_t;
-			using pointer = const GmodNode*;
-			using reference = const GmodNode&;
-
-			/** @brief Default constructor */
-			Iterator() = default;
-
-			/**
-			 * @brief Constructor from inner iterator
-			 * @param innerIt CHD dictionary iterator
-			 */
-			Iterator( ChdDictionary<GmodNode>::Iterator innerIt );
-
-			/** @brief Dereference operator */
-			reference operator*() const;
-
-			/** @brief Arrow operator */
-			pointer operator->() const;
-
-			/** @brief Pre-increment operator */
-			Iterator& operator++();
-
-			/** @brief Post-increment operator */
-			Iterator operator++( int );
-
-			/** @brief Equality operator */
-			bool operator==( const Iterator& other ) const;
-
-			/** @brief Inequality operator */
-			bool operator!=( const Iterator& other ) const;
-
-		private:
-			/** @brief Inner CHD dictionary iterator */
-			ChdDictionary<GmodNode>::Iterator m_innerIt;
-		};
-
-		/** @brief Get iterator to beginning of nodes */
-		Iterator begin() const;
-
-		/** @brief Get iterator to end of nodes */
-		Iterator end() const;
+		/** @brief List of node types classified as function nodes */
+		static const inline std::unordered_set<std::string> s_potentialParentScopeTypes = { "SELECTION", "GROUP", "LEAF" };
 	};
+
+	//-------------------------------------------------------------------
+	// Template Implementations
+	//-------------------------------------------------------------------
 
 	/**
 	 * @brief Implementation of stateful traversal from root node
@@ -537,55 +618,37 @@ namespace dnv::vista::sdk
 			return TraversalHandlerResult::Stop;
 		}
 
-		if ( node.GetMetadata().GetInstallSubstructure().has_value() &&
-			 !node.GetMetadata().GetInstallSubstructure().value() )
+		try
 		{
-			return TraversalHandlerResult::Continue;
-		}
+			const std::string code = node.code();
+			const int occurrences = context.parents.occurrences( node );
 
-		context.nodesVisited++;
-
-		bool skipOccurrenceCheck = IsProductSelectionAssignment( context.parents.LastOrDefault(), &node );
-		if ( !skipOccurrenceCheck )
-		{
-			int occ = context.parents.Occurrences( node );
-			if ( occ == context.maxTraversalOccurrence )
+			if ( occurrences < 0 )
 			{
-				return TraversalHandlerResult::SkipSubtree;
-			}
-			if ( occ > context.maxTraversalOccurrence )
-			{
-				SPDLOG_ERROR( "Invalid state - node occurred more than expected" );
+				SPDLOG_ERROR( "Negative occurrences for node {}", code );
 				return TraversalHandlerResult::Stop;
 			}
-		}
+			else if ( occurrences >= context.maxTraversalOccurrence )
+			{
+				SPDLOG_INFO( "Maximum occurrences reached for node {}: {}", code, occurrences );
+				return TraversalHandlerResult::SkipSubtree;
+			}
 
-		std::vector<GmodNode> currentPath = context.parents.GetNodes();
+			SPDLOG_INFO( "Node: {} - Occurrences: {}", code, occurrences );
 
-		TraversalHandlerResult result = context.handler( context.state, currentPath, node );
+			context.parents.push( &node );
+			context.nodesVisited++;
 
-		if ( result == TraversalHandlerResult::Stop || result == TraversalHandlerResult::SkipSubtree )
-		{
+			TraversalHandlerResult result = context.handler( context.state, context.parents.nodes(), node );
+
+			context.parents.pop();
+
 			return result;
 		}
-
-		context.parents.Push( &node );
-
-		for ( const GmodNode* child : node.GetChildren() )
+		catch ( const std::exception& ex )
 		{
-			if ( child == nullptr )
-				continue;
-
-			result = traverseNode( context, *child );
-
-			if ( result == TraversalHandlerResult::Stop )
-			{
-				return result;
-			}
+			SPDLOG_ERROR( "Exception during node traversal: {}", ex.what() );
+			return TraversalHandlerResult::Stop;
 		}
-
-		context.parents.Pop();
-
-		return TraversalHandlerResult::Continue;
 	}
 }

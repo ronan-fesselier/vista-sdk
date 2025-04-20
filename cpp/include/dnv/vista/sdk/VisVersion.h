@@ -18,7 +18,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Static helper class for VisVersion operations
 	 */
-	class VisVersionExtensions
+	class VisVersionExtensions final
 	{
 	public:
 		/**
@@ -26,7 +26,7 @@ namespace dnv::vista::sdk
 		 * @param version The version to check
 		 * @return true if valid, false otherwise
 		 */
-		static bool IsValid( VisVersion version );
+		static bool isValid( VisVersion version );
 
 		/**
 		 * @brief Convert a VisVersion to its string representation
@@ -41,7 +41,7 @@ namespace dnv::vista::sdk
 		 * @param version Output parameter for the parsed version
 		 * @return true if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& versionString, VisVersion& version );
+		static bool tryParse( const std::string& versionString, VisVersion& version );
 
 		/**
 		 * @brief Parse a string to a VisVersion
@@ -49,18 +49,18 @@ namespace dnv::vista::sdk
 		 * @return The parsed VisVersion
 		 * @throws std::invalid_argument if parsing fails
 		 */
-		static VisVersion Parse( const std::string& versionString );
+		static VisVersion parse( const std::string& versionString );
 
 		/**
 		 * @brief Get all valid VisVersion values
 		 * @return Vector containing all valid VisVersion values
 		 */
-		static std::vector<VisVersion> GetAllVersions();
+		static std::vector<VisVersion> allVersions();
 
 		/**
 		 * @brief Get the latest available VIS version
 		 * @return The latest VIS version
 		 */
-		static VisVersion GetLatestVersion();
+		static VisVersion latestVersion();
 	};
 }
