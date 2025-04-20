@@ -24,7 +24,7 @@ namespace dnv::vista::sdk
 	 * Tracks the parent nodes in traversal and manages occurrence counting
 	 * to prevent infinite recursion in cyclic structures.
 	 */
-	class Parents
+	class Parents final
 	{
 	public:
 		/**
@@ -76,7 +76,7 @@ namespace dnv::vista::sdk
 	 * provides functionality for traversing the hierarchy, locating nodes, and
 	 * working with vessel component paths.
 	 */
-	class Gmod
+	class Gmod final
 	{
 	public:
 		/**
@@ -92,7 +92,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Options to configure GMOD traversal behavior
 		 */
-		struct TraversalOptions
+		struct TraversalOptions final
 		{
 			/** @brief Default maximum number of times a node can be visited */
 			static constexpr int DEFAULT_MAX_TRAVERSAL_OCCURRENCE = 1;
@@ -205,7 +205,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path The parsed path, if successful
 		 * @return true if parsing succeeded, false otherwise
 		 */
-		bool TryParsePath( const std::string& item, std::optional<GmodPath>& path ) const;
+		bool tryParsePath( const std::string& item, std::optional<GmodPath>& path ) const;
 
 		/**
 		 * @brief Parse a full path string
@@ -347,7 +347,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Context data for traversal operations
 		 */
-		struct TraversalContext
+		struct TraversalContext final
 		{
 			Parents parents;				///< Parent node management
 			const TraverseHandler& handler; ///< Handler function for traversal
@@ -447,7 +447,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Iterator for traversing nodes in the GMOD
 		 */
-		class Iterator
+		class Iterator final
 		{
 		public:
 			/** @brief STL iterator traits */
@@ -537,8 +537,8 @@ namespace dnv::vista::sdk
 			return TraversalHandlerResult::Stop;
 		}
 
-		if ( node.GetMetadata().GetInstallSubstructure().has_value() &&
-			 !node.GetMetadata().GetInstallSubstructure().value() )
+		if ( node.metadata().installSubstructure().has_value() &&
+			 !node.metadata().installSubstructure().value() )
 		{
 			return TraversalHandlerResult::Continue;
 		}
@@ -571,7 +571,7 @@ namespace dnv::vista::sdk
 
 		context.parents.Push( &node );
 
-		for ( const GmodNode* child : node.GetChildren() )
+		for ( const GmodNode* child : node.children() )
 		{
 			if ( child == nullptr )
 				continue;

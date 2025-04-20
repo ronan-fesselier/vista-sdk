@@ -15,16 +15,16 @@ namespace dnv::vista::sdk
 	GmodPath::GmodPath( std::vector<GmodNode> parents, GmodNode node, bool skipVerify )
 		: m_parents( std::move( parents ) ),
 		  m_node( std::move( node ) ),
-		  m_visVersion( node.GetVisVersion() ) // TODO: C26800
+		  m_visVersion( node.visVersion() ) // TODO: C26800
 	{
 		SPDLOG_INFO( "Creating GmodPath with {} parent nodes, target node '{}' (skipVerify={})",
-			m_parents.size(), m_node.GetCode(), skipVerify );
+			m_parents.size(), m_node.code(), skipVerify );
 
 		if ( !skipVerify )
 		{
 			SPDLOG_INFO( "Validating GmodPath parent-child relationships" );
 			int missingLinkAt;
-			if ( !IsValid( m_parents, m_node, missingLinkAt ) )
+			if ( !isValid( m_parents, m_node, missingLinkAt ) )
 			{
 				SPDLOG_ERROR( "Invalid GmodPath: Missing link at depth {}", missingLinkAt );
 				throw std::invalid_argument(
@@ -45,7 +45,7 @@ namespace dnv::vista::sdk
 		  m_visVersion( other.m_visVersion )
 	{
 		SPDLOG_INFO( "Creating GmodPath via copy constructor (parents={}, node='{}')",
-			other.m_parents.size(), other.m_node.GetCode() );
+			other.m_parents.size(), other.m_node.code() );
 	}
 
 	GmodPath::GmodPath( GmodPath&& other ) noexcept
@@ -54,7 +54,7 @@ namespace dnv::vista::sdk
 		  m_visVersion( other.m_visVersion )
 	{
 		SPDLOG_INFO( "Moving GmodPath (parents={}, node='{}')",
-			m_parents.size(), m_node.GetCode() );
+			m_parents.size(), m_node.code() );
 	}
 
 	GmodPath::~GmodPath()
@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 	GmodPath& GmodPath::operator=( const GmodPath& other )
 	{
 		SPDLOG_INFO( "Assigning GmodPath (parents={}, node='{}')",
-			other.m_parents.size(), other.m_node.GetCode() );
+			other.m_parents.size(), other.m_node.code() );
 
 		if ( this != &other )
 		{
@@ -80,7 +80,7 @@ namespace dnv::vista::sdk
 		if ( this != &other )
 		{
 			SPDLOG_INFO( "Move-assigning GmodPath from (parents={}, node='{}')",
-				other.m_parents.size(), other.m_node.GetCode() );
+				other.m_parents.size(), other.m_node.code() );
 
 			m_parents = std::move( other.m_parents );
 			m_node = std::move( other.m_node );
@@ -92,7 +92,7 @@ namespace dnv::vista::sdk
 	bool GmodPath::operator==( const GmodPath& other ) const
 	{
 		SPDLOG_INFO( "Comparing GmodPaths for equality (this: {}, other: {})",
-			m_node.GetCode(), other.m_node.GetCode() );
+			m_node.code(), other.m_node.code() );
 
 		if ( m_visVersion != other.m_visVersion )
 			return false;
@@ -164,7 +164,7 @@ namespace dnv::vista::sdk
 		throw std::out_of_range( "Depth exceeds path length" );
 	}
 
-	size_t GmodPath::getHashCode() const
+	size_t GmodPath::hashCode() const
 	{
 		SPDLOG_DEBUG( "Calculating hash code for GmodPath" );
 
@@ -175,15 +175,15 @@ namespace dnv::vista::sdk
 
 		// Hash each parent node
 		for ( const auto& parent : m_parents )
-			hash = hash * 31 + std::hash<std::string>{}( parent.GetCode() );
+			hash = hash * 31 + std::hash<std::string>{}( parent.code() );
 
 		// Hash the target node
-		hash = hash * 31 + std::hash<std::string>{}( m_node.GetCode() );
+		hash = hash * 31 + std::hash<std::string>{}( m_node.code() );
 
 		return hash;
 	}
 
-	std::vector<std::pair<int, GmodNode>> GmodPath::GetFullPath() const
+	std::vector<std::pair<int, GmodNode>> GmodPath::fullPath() const
 	{
 		SPDLOG_INFO( "Getting full path with {} parents + 1 target node", m_parents.size() );
 		std::vector<std::pair<int, GmodNode>> result;
@@ -199,38 +199,38 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	const std::vector<GmodNode>& GmodPath::GetParents() const
+	const std::vector<GmodNode>& GmodPath::parents() const
 	{
 		SPDLOG_INFO( "Getting parents vector (size={})", m_parents.size() );
 		return m_parents;
 	}
 
-	const GmodNode& GmodPath::GetNode() const
+	const GmodNode& GmodPath::node() const
 	{
-		SPDLOG_INFO( "Getting target node: '{}'", m_node.GetCode() );
+		SPDLOG_INFO( "Getting target node: '{}'", m_node.code() );
 		return m_node;
 	}
 
-	VisVersion GmodPath::GetVisVersion() const
+	VisVersion GmodPath::visVersion() const
 	{
 		SPDLOG_INFO( "Getting VIS version: {}", static_cast<int>( m_visVersion ) );
 		return m_visVersion;
 	}
 
-	int GmodPath::GetLength() const
+	int GmodPath::length() const
 	{
 		int length = static_cast<int>( m_parents.size() ) + 1;
 		SPDLOG_INFO( "Getting path length: {}", length );
 		return length;
 	}
 
-	bool GmodPath::IsMappable() const
+	bool GmodPath::isMappable() const
 	{
-		SPDLOG_INFO( "Checking if path with target node '{}' is mappable", m_node.GetCode() );
-		return m_node.IsMappable();
+		SPDLOG_INFO( "Checking if path with target node '{}' is mappable", m_node.code() );
+		return m_node.isMappable();
 	}
 
-	GmodPath GmodPath::WithoutLocations() const
+	GmodPath GmodPath::withoutLocations() const
 	{
 		SPDLOG_INFO( "Creating copy of path without locations (original path has {} parents)", m_parents.size() );
 
@@ -239,31 +239,31 @@ namespace dnv::vista::sdk
 
 		for ( const auto& parent : m_parents )
 		{
-			parentsWithoutLocations.push_back( parent.WithoutLocation() );
+			parentsWithoutLocations.push_back( parent.withoutLocation() );
 		}
 
-		GmodNode nodeWithoutLocation = m_node.WithoutLocation();
+		GmodNode nodeWithoutLocation = m_node.withoutLocation();
 
 		return GmodPath( std::move( parentsWithoutLocations ), std::move( nodeWithoutLocation ), true );
 	}
 
-	std::string GmodPath::ToString() const
+	std::string GmodPath::toString() const
 	{
-		SPDLOG_INFO( "Converting path to string (node='{}')", m_node.GetCode() );
+		SPDLOG_INFO( "Converting path to string (node='{}')", m_node.code() );
 		std::stringstream builder;
-		ToString( builder );
+		toString( builder );
 		return builder.str();
 	}
 
-	void GmodPath::ToString( std::stringstream& builder, char separator ) const
+	void GmodPath::toString( std::stringstream& builder, char separator ) const
 	{
 		SPDLOG_INFO( "Building path string with separator '{}'", separator );
 
-		std::string nodeString = m_node.GetCode();
+		std::string nodeString = m_node.code();
 
-		if ( m_node.GetLocation().has_value() )
+		if ( m_node.location().has_value() )
 		{
-			nodeString += "-" + m_node.GetLocation().value().toString();
+			nodeString += "-" + m_node.location().value().toString();
 		}
 
 		if ( m_parents.empty() )
@@ -276,7 +276,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& parent : m_parents )
 		{
-			if ( parent.GetCode() == "ROOT" || parent.GetCode().empty() )
+			if ( parent.code() == "ROOT" || parent.code().empty() )
 				continue;
 
 			if ( !isFirst )
@@ -284,11 +284,11 @@ namespace dnv::vista::sdk
 			else
 				isFirst = false;
 
-			builder << parent.GetCode();
+			builder << parent.code();
 
-			if ( parent.GetLocation().has_value() )
+			if ( parent.location().has_value() )
 			{
-				builder << "-" << parent.GetLocation().value().toString();
+				builder << "-" << parent.location().value().toString();
 			}
 		}
 
@@ -298,15 +298,15 @@ namespace dnv::vista::sdk
 		builder << nodeString;
 	}
 
-	std::string GmodPath::ToFullPathString() const
+	std::string GmodPath::toFullPathString() const
 	{
-		SPDLOG_INFO( "Converting path to full path string (target='{}')", m_node.GetCode() );
+		SPDLOG_INFO( "Converting path to full path string (target='{}')", m_node.code() );
 		std::stringstream builder;
-		ToFullPathString( builder );
+		toFullPathString( builder );
 		return builder.str();
 	}
 
-	void GmodPath::ToFullPathString( std::stringstream& builder ) const
+	void GmodPath::toFullPathString( std::stringstream& builder ) const
 	{
 		SPDLOG_INFO( "Building full path string including all parent nodes" );
 
@@ -319,34 +319,34 @@ namespace dnv::vista::sdk
 			else
 				isFirst = false;
 
-			builder << parent.GetCode();
+			builder << parent.code();
 
-			if ( parent.GetLocation().has_value() )
+			if ( parent.location().has_value() )
 			{
-				builder << "-" << parent.GetLocation().value().toString();
+				builder << "-" << parent.location().value().toString();
 			}
 		}
 
 		if ( !isFirst )
 			builder << '/';
 
-		builder << m_node.GetCode();
+		builder << m_node.code();
 
-		if ( m_node.GetLocation().has_value() )
+		if ( m_node.location().has_value() )
 		{
-			builder << "-" << m_node.GetLocation().value().toString();
+			builder << "-" << m_node.location().value().toString();
 		}
 	}
 
-	std::string GmodPath::ToStringDump() const
+	std::string GmodPath::toStringDump() const
 	{
 		SPDLOG_INFO( "Creating detailed string dump of path" );
 		std::stringstream builder;
-		ToStringDump( builder );
+		toStringDump( builder );
 		return builder.str();
 	}
 
-	void GmodPath::ToStringDump( std::stringstream& builder ) const
+	void GmodPath::toStringDump( std::stringstream& builder ) const
 	{
 		SPDLOG_INFO( "Building detailed path dump" );
 
@@ -355,27 +355,27 @@ namespace dnv::vista::sdk
 
 		for ( size_t i = 0; i < m_parents.size(); ++i )
 		{
-			builder << "  [" << i << "] " << m_parents[i].GetCode();
+			builder << "  [" << i << "] " << m_parents[i].code();
 
-			if ( m_parents[i].GetLocation().has_value() )
+			if ( m_parents[i].location().has_value() )
 			{
-				builder << "-" << m_parents[i].GetLocation().value().toString();
+				builder << "-" << m_parents[i].location().value().toString();
 			}
 
 			builder << "\n";
 		}
 
-		builder << "Target: " << m_node.GetCode();
+		builder << "Target: " << m_node.code();
 
-		if ( m_node.GetLocation().has_value() )
+		if ( m_node.location().has_value() )
 		{
-			builder << "-" << m_node.GetLocation().value().toString();
+			builder << "-" << m_node.location().value().toString();
 		}
 
-		builder << " (Mappable: " << ( m_node.IsMappable() ? "Yes" : "No" ) << ")";
+		builder << " (Mappable: " << ( m_node.isMappable() ? "Yes" : "No" ) << ")";
 	}
 
-	std::optional<std::string> GmodPath::GetNormalAssignmentName( int nodeDepth ) const
+	std::optional<std::string> GmodPath::normalAssignmentName( int nodeDepth ) const
 	{
 		SPDLOG_INFO( "Getting normal assignment name for node at depth {}", nodeDepth );
 
@@ -388,7 +388,7 @@ namespace dnv::vista::sdk
 
 		const GmodNode& node = ( *this )[nodeDepth];
 
-		auto commonName = node.GetMetadata().GetCommonName();
+		auto commonName = node.metadata().commonName();
 		if ( commonName.has_value() )
 		{
 			SPDLOG_INFO( "Found common name '{}' for node at depth {}",
@@ -400,7 +400,7 @@ namespace dnv::vista::sdk
 		return std::nullopt;
 	}
 
-	std::vector<std::pair<int, std::string>> GmodPath::GetCommonNames() const
+	std::vector<std::pair<int, std::string>> GmodPath::commonNames() const
 	{
 		SPDLOG_INFO( "Getting all common names in path" );
 		std::vector<std::pair<int, std::string>> results;
@@ -408,7 +408,7 @@ namespace dnv::vista::sdk
 		for ( size_t i = 0; i < m_parents.size(); ++i )
 		{
 			const GmodNode& node = m_parents[i];
-			auto commonName = node.GetMetadata().GetCommonName();
+			auto commonName = node.metadata().commonName();
 			if ( commonName.has_value() )
 			{
 				SPDLOG_INFO( "Found common name '{}' for parent node at depth {}",
@@ -417,7 +417,7 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		auto targetCommonName = m_node.GetMetadata().GetCommonName();
+		auto targetCommonName = m_node.metadata().commonName();
 		if ( targetCommonName.has_value() )
 		{
 			int depth = static_cast<int>( m_parents.size() );
@@ -429,18 +429,18 @@ namespace dnv::vista::sdk
 		return results;
 	}
 
-	bool GmodPath::IsIndividualizable() const
+	bool GmodPath::isIndividualizable() const
 	{
 		SPDLOG_INFO( "Checking if path is individualizable" );
 
-		auto sets = GetIndividualizableSets();
+		auto sets = individualizableSets();
 		bool result = !sets.empty();
 
 		SPDLOG_INFO( "Path is individualizable: {}", result ? "Yes" : "No" );
 		return result;
 	}
 
-	std::vector<GmodIndividualizableSet> GmodPath::GetIndividualizableSets() const
+	std::vector<GmodIndividualizableSet> GmodPath::individualizableSets() const
 	{
 		SPDLOG_INFO( "Getting individualizable sets for path" );
 		std::vector<GmodIndividualizableSet> result;
@@ -460,7 +460,7 @@ namespace dnv::vista::sdk
 		{
 			const auto& node = allNodes[i];
 
-			bool canHaveLocation = node.IsMappable();
+			bool canHaveLocation = node.isMappable();
 
 			if ( canHaveLocation && startIndex == -1 )
 			{
@@ -500,16 +500,16 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	bool GmodPath::IsValid( const std::vector<GmodNode>& parents, const GmodNode& node )
+	bool GmodPath::isValid( const std::vector<GmodNode>& parents, const GmodNode& node )
 	{
 		int missingLinkAt;
-		return IsValid( parents, node, missingLinkAt );
+		return isValid( parents, node, missingLinkAt );
 	}
 
-	bool GmodPath::IsValid( const std::vector<GmodNode>& parents, const GmodNode& node, int& missingLinkAt )
+	bool GmodPath::isValid( const std::vector<GmodNode>& parents, const GmodNode& node, int& missingLinkAt )
 	{
 		SPDLOG_INFO( "Validating path with {} parents and target node '{}'",
-			parents.size(), node.GetCode() );
+			parents.size(), node.code() );
 
 		missingLinkAt = -1;
 
@@ -520,10 +520,10 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		if ( !parents[0].IsRoot() )
+		if ( !parents[0].isRoot() )
 		{
 			SPDLOG_ERROR( "Invalid path: First parent '{}' is not the root node",
-				parents[0].GetCode() );
+				parents[0].code() );
 			missingLinkAt = 0;
 			return false;
 		}
@@ -534,10 +534,10 @@ namespace dnv::vista::sdk
 			size_t nextIndex = i + 1;
 			const auto& child = nextIndex < parents.size() ? parents[nextIndex] : node;
 
-			if ( !parent.IsChild( child ) )
+			if ( !parent.isChild( child ) )
 			{
 				SPDLOG_ERROR( "Invalid path: '{}' is not a parent of '{}'",
-					parent.GetCode(), child.GetCode() );
+					parent.code(), child.code() );
 				missingLinkAt = static_cast<int>( i );
 				return false;
 			}
@@ -547,7 +547,7 @@ namespace dnv::vista::sdk
 		return true;
 	}
 
-	GmodPath GmodPath::Parse( const std::string& item, VisVersion visVersion )
+	GmodPath GmodPath::parse( const std::string& item, VisVersion visVersion )
 	{
 		SPDLOG_INFO( "Parsing path '{}' with VIS version {}", item, static_cast<int>( visVersion ) );
 
@@ -555,10 +555,10 @@ namespace dnv::vista::sdk
 		const auto& gmod = vis.gmod( visVersion );
 		auto locations = vis.locations( visVersion );
 
-		return Parse( item, gmod, locations );
+		return parse( item, gmod, locations );
 	}
 
-	bool GmodPath::TryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path )
+	bool GmodPath::tryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path )
 	{
 		SPDLOG_INFO( "Attempting to parse path '{}' with VIS version {}",
 			item, static_cast<int>( visVersion ) );
@@ -569,7 +569,7 @@ namespace dnv::vista::sdk
 			const auto& gmod = vis.gmod( visVersion );
 			auto locations = vis.locations( visVersion );
 			SPDLOG_WARN( "TRY" );
-			GmodPath parsedPath = Parse( item, gmod, locations );
+			GmodPath parsedPath = parse( item, gmod, locations );
 			path = std::move( parsedPath );
 
 			SPDLOG_INFO( "Successfully parsed path" );
@@ -583,11 +583,11 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	GmodPath GmodPath::Parse( const std::string& item, const Gmod& gmod, const Locations& locations )
+	GmodPath GmodPath::parse( const std::string& item, const Gmod& gmod, const Locations& locations )
 	{
 		SPDLOG_INFO( "Parsing path '{}' using provided GMOD and Locations", item );
 
-		auto result = ParseInternal( item, gmod, locations );
+		auto result = parseInternal( item, gmod, locations );
 
 		auto* okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result );
 		if ( okResult != nullptr )
@@ -607,13 +607,13 @@ namespace dnv::vista::sdk
 		throw std::invalid_argument( "Failed to parse path: " + errResult->error );
 	}
 
-	bool GmodPath::TryParse( const std::string& item, const Gmod& gmod, const Locations& locations, GmodPath& path )
+	bool GmodPath::tryParse( const std::string& item, const Gmod& gmod, const Locations& locations, GmodPath& path )
 	{
 		SPDLOG_INFO( "Attempting to parse path '{}' using provided GMOD and Locations", item );
 
 		try
 		{
-			path = Parse( item, gmod, locations );
+			path = parse( item, gmod, locations );
 			SPDLOG_INFO( "Successfully parsed path" );
 			return true;
 		}
@@ -624,7 +624,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	GmodPath GmodPath::ParseFullPath( const std::string& pathStr, VisVersion visVersion )
+	GmodPath GmodPath::parseFullPath( const std::string& pathStr, VisVersion visVersion )
 	{
 		SPDLOG_INFO( "Parsing full path '{}' with VIS version {}", pathStr, static_cast<int>( visVersion ) );
 
@@ -632,7 +632,7 @@ namespace dnv::vista::sdk
 		const auto& gmod = vis.gmod( visVersion );
 		auto locations = vis.locations( visVersion );
 
-		auto result = ParseFullPathInternal( pathStr, gmod, locations );
+		auto result = parseFullPathInternal( pathStr, gmod, locations );
 
 		auto* okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result );
 		if ( okResult != nullptr )
@@ -646,14 +646,14 @@ namespace dnv::vista::sdk
 		throw std::invalid_argument( "Failed to parse full path: " + errResult->error );
 	}
 
-	bool GmodPath::TryParseFullPath( const std::string& pathStr, VisVersion visVersion, GmodPath& path )
+	bool GmodPath::tryParseFullPath( const std::string& pathStr, VisVersion visVersion, GmodPath& path )
 	{
 		SPDLOG_INFO( "Attempting to parse full path '{}' with VIS version {}",
 			pathStr, static_cast<int>( visVersion ) );
 
 		try
 		{
-			path = ParseFullPath( pathStr, visVersion );
+			path = parseFullPath( pathStr, visVersion );
 			SPDLOG_INFO( "Successfully parsed full path" );
 			return true;
 		}
@@ -664,7 +664,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool GmodPath::TryParseFullPath( std::string_view pathStr, VisVersion visVersion, GmodPath& path )
+	bool GmodPath::tryParseFullPath( std::string_view pathStr, VisVersion visVersion, GmodPath& path )
 	{
 		SPDLOG_INFO( "Attempting to parse full path '{}' with VIS version {}",
 			pathStr, static_cast<int>( visVersion ) );
@@ -675,7 +675,7 @@ namespace dnv::vista::sdk
 			const auto& gmod = vis.gmod( visVersion );
 			auto locations = vis.locations( visVersion );
 
-			auto result = ParseFullPathInternal( pathStr, gmod, locations );
+			auto result = parseFullPathInternal( pathStr, gmod, locations );
 
 			auto* okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result );
 			if ( okResult != nullptr )
@@ -696,13 +696,13 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool GmodPath::TryParseFullPath( std::string_view pathStr, const Gmod& gmod, const Locations& locations, GmodPath& path )
+	bool GmodPath::tryParseFullPath( std::string_view pathStr, const Gmod& gmod, const Locations& locations, GmodPath& path )
 	{
 		SPDLOG_INFO( "Attempting to parse full path '{}' using provided GMOD and Locations", pathStr );
 
 		try
 		{
-			auto result = ParseFullPathInternal( pathStr, gmod, locations );
+			auto result = parseFullPathInternal( pathStr, gmod, locations );
 
 			auto* okResult = dynamic_cast<GmodParsePathResult::Ok*>( &result );
 			if ( okResult != nullptr )
@@ -734,7 +734,7 @@ namespace dnv::vista::sdk
 			const GmodNode& target )
 		{
 			bool isTargetNode = ( i == static_cast<int>( parents.size() ) );
-			bool isParent = !Gmod::isLeafNode( node.GetMetadata() );
+			bool isParent = !Gmod::isLeafNode( node.metadata() );
 			std::optional<std::tuple<int, int, std::optional<Location>>> nodes = std::nullopt;
 
 			if ( currentParentStart == -1 )
@@ -744,9 +744,9 @@ namespace dnv::vista::sdk
 					currentParentStart = i;
 				}
 
-				if ( node.IsIndividualizable( isTargetNode ) )
+				if ( node.isIndividualizable( isTargetNode ) )
 				{
-					nodes = std::make_tuple( i, i, node.GetLocation() );
+					nodes = std::make_tuple( i, i, node.location() );
 				}
 			}
 			else
@@ -755,9 +755,9 @@ namespace dnv::vista::sdk
 				{
 					if ( currentParentStart + 1 == i )
 					{
-						if ( node.IsIndividualizable( isTargetNode ) )
+						if ( node.isIndividualizable( isTargetNode ) )
 						{
-							nodes = std::make_tuple( currentParentStart, i, node.GetLocation() );
+							nodes = std::make_tuple( currentParentStart, i, node.location() );
 						}
 						else
 						{
@@ -779,15 +779,15 @@ namespace dnv::vista::sdk
 					}
 				}
 
-				if ( isTargetNode && node.IsIndividualizable( isTargetNode ) )
+				if ( isTargetNode && node.isIndividualizable( isTargetNode ) )
 				{
 					if ( currentParentStart != -1 && !nodes.has_value() )
 					{
-						nodes = std::make_tuple( currentParentStart, i, node.GetLocation() );
+						nodes = std::make_tuple( currentParentStart, i, node.location() );
 					}
 					else if ( currentParentStart == -1 )
 					{
-						nodes = std::make_tuple( i, i, node.GetLocation() );
+						nodes = std::make_tuple( i, i, node.location() );
 					}
 				}
 			}
@@ -796,7 +796,7 @@ namespace dnv::vista::sdk
 		}
 	};
 
-	GmodParsePathResult GmodPath::ParseInternal( const std::string& item, const Gmod& gmod, const Locations& locations )
+	GmodParsePathResult GmodPath::parseInternal( const std::string& item, const Gmod& gmod, const Locations& locations )
 	{
 		try
 		{
@@ -886,7 +886,7 @@ namespace dnv::vista::sdk
 				std::string nodeCode;
 				try
 				{
-					nodeCode = current.GetCode();
+					nodeCode = current.code();
 					SPDLOG_INFO( "Traversing node: '{}'", nodeCode );
 				}
 				catch ( const std::exception& e )
@@ -904,7 +904,7 @@ namespace dnv::vista::sdk
 
 				try
 				{
-					if ( current.GetCode() != state.currentToFind.code )
+					if ( current.code() != state.currentToFind.code )
 					{
 						return Gmod::TraversalHandlerResult::Continue;
 					}
@@ -925,28 +925,28 @@ namespace dnv::vista::sdk
 
 							for ( const auto& parent : parents )
 							{
-								state.nodeCodes->push_back( parent.GetCode() );
+								state.nodeCodes->push_back( parent.code() );
 
-								if ( parent.GetLocation() )
+								if ( parent.location() )
 								{
-									( *state.nodeLocations )[parent.GetCode()] = *parent.GetLocation();
+									( *state.nodeLocations )[parent.code()] = *parent.location();
 								}
 							}
 
-							state.nodeCodes->push_back( current.GetCode() );
+							state.nodeCodes->push_back( current.code() );
 						}
 						else
 						{
-							state.nodeCodes->push_back( current.GetCode() );
+							state.nodeCodes->push_back( current.code() );
 						}
 
 						if ( state.currentToFind.location )
 						{
-							( *state.nodeLocations )[current.GetCode()] = *state.currentToFind.location;
+							( *state.nodeLocations )[current.code()] = *state.currentToFind.location;
 						}
-						else if ( current.GetLocation() )
+						else if ( current.location() )
 						{
-							( *state.nodeLocations )[current.GetCode()] = *current.GetLocation();
+							( *state.nodeLocations )[current.code()] = *current.location();
 						}
 					}
 
@@ -990,7 +990,7 @@ namespace dnv::vista::sdk
 				auto locIt = nodeLocations.find( code );
 				if ( locIt != nodeLocations.end() )
 				{
-					node = node.WithLocation( locIt->second );
+					node = node.withLocation( locIt->second );
 				}
 
 				pathNodes.push_back( node );
@@ -1007,15 +1007,17 @@ namespace dnv::vista::sdk
 			auto targetLocIt = nodeLocations.find( targetCode );
 			if ( targetLocIt != nodeLocations.end() )
 			{
-				targetNode = targetNode.WithLocation( targetLocIt->second );
+				targetNode = targetNode.withLocation( targetLocIt->second );
 			}
 
 			try
 			{
 				bool skipValidation = true;
 				GmodPath path( pathNodes, targetNode, skipValidation );
-				SPDLOG_INFO( "Successfully created GmodPath with {} parent nodes and target '{}'",
-					path.GetParents().size(), path.GetNode().GetCode() );
+
+				SPDLOG_INFO( "Successfully created GmodPath with {} parents and target node '{}'",
+					pathNodes.size(), targetNode.code() );
+
 				return GmodParsePathResult::Ok( std::move( path ) );
 			}
 			catch ( const std::exception& ex )
@@ -1036,16 +1038,16 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	GmodParsePathResult GmodPath::ParseFullPathInternal( std::string_view pathStr, const Gmod& gmod, const Locations& locations )
+	GmodParsePathResult GmodPath::parseFullPathInternal( std::string_view pathStr, const Gmod& gmod, const Locations& locations )
 	{
 		if ( pathStr.empty() || std::all_of( pathStr.begin(), pathStr.end(), []( char c ) { return std::isspace( c ); } ) )
 		{
 			return GmodParsePathResult::Err( "Item is empty" );
 		}
 
-		if ( !pathStr.starts_with( gmod.rootNode().GetCode() ) )
+		if ( !pathStr.starts_with( gmod.rootNode().code() ) )
 		{
-			return GmodParsePathResult::Err( "Path must start with " + gmod.rootNode().GetCode() );
+			return GmodParsePathResult::Err( "Path must start with " + gmod.rootNode().code() );
 		}
 
 		std::vector<GmodNode> nodes;
@@ -1081,7 +1083,7 @@ namespace dnv::vista::sdk
 					return GmodParsePathResult::Err( "Failed to parse location - " + locationStr );
 				}
 
-				node = node.WithLocation( location );
+				node = node.withLocation( location );
 			}
 
 			nodes.push_back( node );
@@ -1096,7 +1098,7 @@ namespace dnv::vista::sdk
 		nodes.pop_back();
 
 		int missingLinkAt;
-		if ( !IsValid( nodes, endNode, missingLinkAt ) )
+		if ( !isValid( nodes, endNode, missingLinkAt ) )
 		{
 			return GmodParsePathResult::Err( "Sequence of nodes are invalid" );
 		}
@@ -1117,22 +1119,22 @@ namespace dnv::vista::sdk
 					{
 						if ( location )
 						{
-							nodes[j] = nodes[j].WithLocation( *location );
+							nodes[j] = nodes[j].withLocation( *location );
 						}
 						else
 						{
-							nodes[j] = nodes[j].WithoutLocation();
+							nodes[j] = nodes[j].withoutLocation();
 						}
 					}
 					else
 					{
 						if ( location )
 						{
-							endNode = endNode.WithLocation( *location );
+							endNode = endNode.withLocation( *location );
 						}
 						else
 						{
-							endNode = endNode.WithoutLocation();
+							endNode = endNode.withoutLocation();
 						}
 					}
 				}
@@ -1159,7 +1161,7 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	std::vector<GmodNode> GmodIndividualizableSet::GetNodes() const
+	std::vector<GmodNode> GmodIndividualizableSet::nodes() const
 	{
 		SPDLOG_INFO( "Getting nodes for individualizable set with {} indices", m_nodes.size() );
 
@@ -1171,7 +1173,7 @@ namespace dnv::vista::sdk
 			try
 			{
 				result.push_back( ( *m_path )[index] );
-				SPDLOG_INFO( "Added node '{}' at index {}", ( *m_path )[index].GetCode(), index );
+				SPDLOG_INFO( "Added node '{}' at index {}", ( *m_path )[index].code(), index );
 			}
 			catch ( const std::exception& e )
 			{
@@ -1183,12 +1185,12 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	const std::vector<int>& GmodIndividualizableSet::GetNodeIndices() const
+	const std::vector<int>& GmodIndividualizableSet::nodeIndices() const
 	{
 		return m_nodes;
 	}
 
-	std::optional<Location> GmodIndividualizableSet::GetLocation() const
+	std::optional<Location> GmodIndividualizableSet::location() const
 	{
 		SPDLOG_INFO( "Getting location for individualizable set with {} indices", m_nodes.size() );
 
@@ -1201,7 +1203,7 @@ namespace dnv::vista::sdk
 		std::optional<Location> firstLocation;
 		try
 		{
-			firstLocation = ( *m_path )[m_nodes[0]].GetLocation();
+			firstLocation = ( *m_path )[m_nodes[0]].location();
 			SPDLOG_INFO( "First node (index {}) location: {}",
 				m_nodes[0],
 				firstLocation.has_value() ? firstLocation.value().toString() : "none" );
@@ -1217,7 +1219,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				const auto& nodeLocation = ( *m_path )[m_nodes[i]].GetLocation();
+				const auto& nodeLocation = ( *m_path )[m_nodes[i]].location();
 
 				if ( nodeLocation != firstLocation )
 				{
@@ -1237,7 +1239,7 @@ namespace dnv::vista::sdk
 		return firstLocation;
 	}
 
-	void GmodIndividualizableSet::SetLocation( const std::optional<Location>& location )
+	void GmodIndividualizableSet::setLocation( const std::optional<Location>& location )
 	{
 		SPDLOG_INFO( "Setting location {} for individualizable set with {} indices",
 			location.has_value() ? location.value().toString() : "null",
@@ -1255,12 +1257,12 @@ namespace dnv::vista::sdk
 			{
 				GmodNode& node = ( *m_path )[index];
 
-				GmodNode updatedNode = node.TryWithLocation( location );
+				GmodNode updatedNode = node.tryWithLocation( location );
 
 				( *m_path )[index] = updatedNode;
 
 				SPDLOG_INFO( "Set location for node '{}' at index {}",
-					node.GetCode(),
+					node.code(),
 					index );
 			}
 			catch ( const std::exception& e )
@@ -1273,7 +1275,7 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "Finished setting location for individualizable set" );
 	}
 
-	GmodPath GmodIndividualizableSet::Build()
+	GmodPath GmodIndividualizableSet::build()
 	{
 		SPDLOG_INFO( "Building path from individualizable set" );
 
@@ -1286,7 +1288,7 @@ namespace dnv::vista::sdk
 		return *m_path;
 	}
 
-	std::string GmodIndividualizableSet::ToString() const
+	std::string GmodIndividualizableSet::toString() const
 	{
 		SPDLOG_INFO( "Converting individualizable set to string representation" );
 
@@ -1317,10 +1319,10 @@ namespace dnv::vista::sdk
 						first = false;
 
 						const GmodNode& node = ( *m_path )[index];
-						ss << node.GetCode();
+						ss << node.code();
 
-						if ( node.GetLocation().has_value() )
-							ss << "-" << node.GetLocation().value().toString();
+						if ( node.location().has_value() )
+							ss << "-" << node.location().value().toString();
 					}
 					catch ( const std::exception& )
 					{
@@ -1332,8 +1334,8 @@ namespace dnv::vista::sdk
 				}
 				ss << "]";
 
-				auto location = GetLocation();
-				ss << ", CommonLocation: " << ( location.has_value() ? location.value().toString() : "none" );
+				auto loc = location();
+				ss << ", CommonLocation: " << ( loc.has_value() ? loc.value().toString() : "none" );
 			}
 			else
 			{
@@ -1367,13 +1369,13 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	bool GmodPath::Enumerator::MoveNext()
+	bool GmodPath::Enumerator::moveNext()
 	{
 		m_current++;
 
-		if ( m_current >= static_cast<int>( m_path.GetLength() ) )
+		if ( m_current >= static_cast<int>( m_path.length() ) )
 		{
-			SPDLOG_INFO( "Enumerator reached end of path (length={})", m_path.GetLength() );
+			SPDLOG_INFO( "Enumerator reached end of path (length={})", m_path.length() );
 			return false;
 		}
 
@@ -1386,16 +1388,16 @@ namespace dnv::vista::sdk
 		{
 			SPDLOG_INFO( "Skipping node at depth {} (below fromDepth={})",
 				m_current, m_fromDepth.value() );
-			return MoveNext();
+			return moveNext();
 		}
 
 		SPDLOG_INFO( "Enumerator advanced to position {} at depth {}", m_current, m_depth );
 		return true;
 	}
 
-	std::pair<int, std::reference_wrapper<const GmodNode>> GmodPath::Enumerator::GetCurrent() const
+	std::pair<int, std::reference_wrapper<const GmodNode>> GmodPath::Enumerator::current() const
 	{
-		if ( m_current < 0 || m_current > static_cast<int>( m_path.GetLength() - 1 ) )
+		if ( m_current < 0 || m_current > static_cast<int>( m_path.length() - 1 ) )
 		{
 			SPDLOG_ERROR( "Enumerator::GetCurrent called with invalid position (m_current={})", m_current );
 			throw std::out_of_range( "Enumerator position is invalid" );
@@ -1423,7 +1425,7 @@ namespace dnv::vista::sdk
 			m_enumerator.m_current = -1;
 			m_enumerator.m_depth = m_enumerator.m_fromDepth.value_or( 0 );
 
-			if ( !m_enumerator.MoveNext() )
+			if ( !m_enumerator.moveNext() )
 			{
 				m_end = true;
 			}

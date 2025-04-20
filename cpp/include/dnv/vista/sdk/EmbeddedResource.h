@@ -18,7 +18,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Utility class for accessing embedded resources
 	 */
-	class EmbeddedResource
+	class EmbeddedResource final
 	{
 	public:
 		/**

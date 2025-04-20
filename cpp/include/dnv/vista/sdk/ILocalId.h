@@ -30,25 +30,25 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version
 		 * @return The VIS version
 		 */
-		virtual VisVersion getVisVersion() const = 0;
+		virtual VisVersion visVersion() const = 0;
 
 		/**
 		 * @brief Check if verbose mode is enabled
 		 * @return True if verbose mode is enabled
 		 */
-		virtual bool getVerboseMode() const = 0;
+		virtual bool isVerboseMode() const = 0;
 
 		/**
 		 * @brief Get the primary item
 		 * @return The primary item (GmodPath)
 		 */
-		virtual const GmodPath& getPrimaryItem() const = 0;
+		virtual const GmodPath& primaryItem() const = 0;
 
 		/**
 		 * @brief Get the secondary item
 		 * @return The secondary item, if present
 		 */
-		virtual std::optional<GmodPath> getSecondaryItem() const = 0;
+		virtual std::optional<GmodPath> secondaryItem() const = 0;
 
 		//-------------------------------------------------------------------------
 		// Metadata Access
@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 		 * @brief Get all metadata tags
 		 * @return A constant reference to the vector of metadata tags
 		 */
-		virtual const std::vector<MetadataTag> getMetadataTags() const = 0;
+		virtual const std::vector<MetadataTag> metadataTags() const = 0;
 
 		//-------------------------------------------------------------------------
 		// Conversion and Comparison

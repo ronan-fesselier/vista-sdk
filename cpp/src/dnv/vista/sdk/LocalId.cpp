@@ -26,74 +26,74 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	const LocalIdBuilder& LocalId::getBuilder() const
+	const LocalIdBuilder& LocalId::builder() const
 	{
 		return m_builder;
 	}
 
-	VisVersion LocalId::getVisVersion() const
+	VisVersion LocalId::visVersion() const
 	{
-		return *m_builder.getVisVersion();
+		return *m_builder.visVersion();
 	}
 
-	bool LocalId::getVerboseMode() const
+	bool LocalId::isVerboseMode() const
 	{
-		return m_builder.getVerboseMode();
+		return m_builder.isVerboseMode();
 	}
 
-	const GmodPath& LocalId::getPrimaryItem() const
+	const GmodPath& LocalId::primaryItem() const
 	{
-		return *m_builder.getPrimaryItem();
+		return *m_builder.primaryItem();
 	}
 
-	std::optional<GmodPath> LocalId::getSecondaryItem() const
+	std::optional<GmodPath> LocalId::secondaryItem() const
 	{
-		return m_builder.getSecondaryItem();
+		return m_builder.secondaryItem();
 	}
 
-	const std::vector<MetadataTag> LocalId::getMetadataTags() const
+	const std::vector<MetadataTag> LocalId::metadataTags() const
 	{
-		return m_builder.getMetadataTags();
+		return m_builder.metadataTags();
 	}
 
-	std::optional<MetadataTag> LocalId::getQuantity() const
+	std::optional<MetadataTag> LocalId::quantity() const
 	{
-		return m_builder.getQuantity();
+		return m_builder.quantity();
 	}
 
-	std::optional<MetadataTag> LocalId::getContent() const
+	std::optional<MetadataTag> LocalId::content() const
 	{
-		return m_builder.getContent();
+		return m_builder.content();
 	}
 
-	std::optional<MetadataTag> LocalId::getCalculation() const
+	std::optional<MetadataTag> LocalId::calculation() const
 	{
-		return m_builder.getCalculation();
+		return m_builder.calculation();
 	}
 
-	std::optional<MetadataTag> LocalId::getState() const
+	std::optional<MetadataTag> LocalId::state() const
 	{
-		return m_builder.getState();
+		return m_builder.state();
 	}
 
-	std::optional<MetadataTag> LocalId::getCommand() const
+	std::optional<MetadataTag> LocalId::command() const
 	{
-		return m_builder.getCommand();
+		return m_builder.command();
 	}
 
-	std::optional<MetadataTag> LocalId::getType() const
+	std::optional<MetadataTag> LocalId::type() const
 	{
-		return m_builder.getType();
+		return m_builder.type();
 	}
 
-	std::optional<MetadataTag> LocalId::getPosition() const
+	std::optional<MetadataTag> LocalId::position() const
 	{
-		return m_builder.getPosition();
+		return m_builder.position();
 	}
 
-	std::optional<MetadataTag> LocalId::getDetail() const
+	std::optional<MetadataTag> LocalId::detail() const
 	{
-		return m_builder.getDetail();
+		return m_builder.detail();
 	}
 
 	bool LocalId::hasCustomTag() const
@@ -155,9 +155,9 @@ namespace dnv::vista::sdk
 		return !( *this == other );
 	}
 
-	size_t LocalId::getHashCode() const
+	size_t LocalId::hashCode() const
 	{
-		return m_builder.getHashCode();
+		return m_builder.hashCode();
 	}
 
 	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError( LocalIdParsingState state )

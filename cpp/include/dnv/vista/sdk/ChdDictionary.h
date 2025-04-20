@@ -16,7 +16,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Helper class for throwing standardized exceptions
 		 */
-		class ThrowHelper
+		class ThrowHelper final
 		{
 		public:
 			/**
@@ -36,7 +36,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Hash function utilities for the CHD algorithm
 		 */
-		class Hashing
+		class Hashing final
 		{
 		public:
 			/**
@@ -73,7 +73,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Iterator for ChdDictionary key-value pairs
 		 */
-		class Iterator
+		class Iterator final
 		{
 		public:
 			using iterator_category = std::forward_iterator_tag;

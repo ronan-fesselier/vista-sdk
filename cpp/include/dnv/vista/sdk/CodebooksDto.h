@@ -8,7 +8,7 @@ namespace dnv::vista::sdk
 	 * Represents serialized information about a codebook from the ISO 19848 standard.
 	 * Each codebook contains a name identifier and a collection of values organized by groups.
 	 */
-	struct CodebookDto
+	struct CodebookDto final
 	{
 		/**
 		 * @brief Default constructor
@@ -57,7 +57,7 @@ namespace dnv::vista::sdk
 	 * Represents a complete set of codebooks for a specific VIS version,
 	 * used for serialization to and from JSON format.
 	 */
-	struct CodebooksDto
+	struct CodebooksDto final
 	{
 		/**
 		 * @brief Default constructor

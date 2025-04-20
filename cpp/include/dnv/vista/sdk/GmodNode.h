@@ -14,7 +14,7 @@ namespace dnv::vista::sdk
 	 * Contains descriptive information about a node including its category, type,
 	 * name, and other optional properties as defined in ISO 19848.
 	 */
-	class GmodNodeMetadata
+	class GmodNodeMetadata final
 	{
 	public:
 		/**
@@ -43,55 +43,55 @@ namespace dnv::vista::sdk
 		 * @brief Get the category of the node
 		 * @return Reference to the category string
 		 */
-		const std::string& GetCategory() const;
+		const std::string& category() const;
 
 		/**
 		 * @brief Get the type of the node
 		 * @return Reference to the type string
 		 */
-		const std::string& GetType() const;
+		const std::string& type() const;
 
 		/**
 		 * @brief Get the name of the node
 		 * @return Reference to the name string
 		 */
-		const std::string& GetName() const;
+		const std::string& name() const;
 
 		/**
 		 * @brief Get the common name of the node
 		 * @return Optional reference to the common name
 		 */
-		const std::optional<std::string>& GetCommonName() const;
+		const std::optional<std::string>& commonName() const;
 
 		/**
 		 * @brief Get the definition of the node
 		 * @return Optional reference to the definition
 		 */
-		const std::optional<std::string>& GetDefinition() const;
+		const std::optional<std::string>& definition() const;
 
 		/**
 		 * @brief Get the common definition of the node
 		 * @return Optional reference to the common definition
 		 */
-		const std::optional<std::string>& GetCommonDefinition() const;
+		const std::optional<std::string>& commonDefinition() const;
 
 		/**
 		 * @brief Get the install substructure flag
 		 * @return Optional reference to the install substructure flag
 		 */
-		const std::optional<bool>& GetInstallSubstructure() const;
+		const std::optional<bool>& installSubstructure() const;
 
 		/**
 		 * @brief Get the normal assignment names mapping
 		 * @return Reference to the map of normal assignment names
 		 */
-		const std::unordered_map<std::string, std::string>& GetNormalAssignmentNames() const;
+		const std::unordered_map<std::string, std::string>& normalAssignmentNames() const;
 
 		/**
 		 * @brief Get the full type string (category + type)
 		 * @return Reference to the full type string
 		 */
-		const std::string& GetFullType() const;
+		const std::string& fullType() const;
 
 		/**
 		 * @brief Equality comparison operator
@@ -126,7 +126,7 @@ namespace dnv::vista::sdk
 	 * as defined by ISO 19848. Contains metadata, relationships to parent/child
 	 * nodes, and optional location information.
 	 */
-	class GmodNode
+	class GmodNode final
 	{
 	public:
 		/**
@@ -173,43 +173,43 @@ namespace dnv::vista::sdk
 		 * @brief Get the unique code identifier
 		 * @return Reference to the code string
 		 */
-		const std::string& GetCode() const;
+		const std::string& code() const;
 
 		/**
 		 * @brief Get the location information
 		 * @return Optional reference to the location
 		 */
-		const std::optional<Location>& GetLocation() const;
+		const std::optional<Location>& location() const;
 
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version enum value
 		 */
-		VisVersion GetVisVersion() const;
+		VisVersion visVersion() const;
 
 		/**
 		 * @brief Get the node metadata
 		 * @return Reference to the metadata
 		 */
-		const GmodNodeMetadata& GetMetadata() const;
+		const GmodNodeMetadata& metadata() const;
 
 		/**
 		 * @brief Get the child nodes
 		 * @return Reference to the vector of child node pointers
 		 */
-		const std::vector<GmodNode*>& GetChildren() const;
+		const std::vector<GmodNode*>& children() const;
 
 		/**
 		 * @brief Get the parent nodes
 		 * @return Reference to the vector of parent node pointers
 		 */
-		const std::vector<GmodNode*>& GetParents() const;
+		const std::vector<GmodNode*>& parents() const;
 
 		/**
 		 * @brief Create a copy of this node without location information
 		 * @return A new GmodNode with location removed
 		 */
-		GmodNode WithoutLocation() const;
+		GmodNode withoutLocation() const;
 
 		/**
 		 * @brief Create a copy of this node with the specified location
@@ -218,7 +218,7 @@ namespace dnv::vista::sdk
 		 * @return A new GmodNode with the specified location
 		 * @throws std::invalid_argument If the location string is invalid
 		 */
-		GmodNode WithLocation( const std::string& location ) const;
+		GmodNode withLocation( const std::string& location ) const;
 
 		/**
 		 * @brief Try to create a copy of this node with the specified location
@@ -226,7 +226,7 @@ namespace dnv::vista::sdk
 		 * @param locationStr The location string to add
 		 * @return A new GmodNode with the location if valid, otherwise a copy of this node
 		 */
-		GmodNode TryWithLocation( const std::string& locationStr ) const;
+		GmodNode tryWithLocation( const std::string& locationStr ) const;
 
 		/**
 		 * @brief Try to create a copy of this node with the specified location, capturing errors
@@ -235,7 +235,7 @@ namespace dnv::vista::sdk
 		 * @param errors Object to receive parsing errors
 		 * @return A new GmodNode with the location if valid, otherwise a copy of this node
 		 */
-		GmodNode TryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const;
+		GmodNode tryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const;
 
 		/**
 		 * @brief Create a copy of this node with the specified location object
@@ -243,7 +243,7 @@ namespace dnv::vista::sdk
 		 * @param location The location object to add
 		 * @return A new GmodNode with the specified location
 		 */
-		GmodNode WithLocation( const Location& location ) const;
+		GmodNode withLocation( const Location& location ) const;
 
 		/**
 		 * @brief Try to create a copy of this node with the optional location
@@ -251,7 +251,7 @@ namespace dnv::vista::sdk
 		 * @param location The optional location to add
 		 * @return A new GmodNode with the location if provided, otherwise a copy of this node
 		 */
-		GmodNode TryWithLocation( const std::optional<Location>& location ) const;
+		GmodNode tryWithLocation( const std::optional<Location>& location ) const;
 
 		/**
 		 * @brief Check if the node is individualizable
@@ -262,73 +262,61 @@ namespace dnv::vista::sdk
 		 * @param isInSet Flag indicating if this node is in a set
 		 * @return True if the node is individualizable
 		 */
-		bool IsIndividualizable( bool isTargetNode = false, bool isInSet = false ) const;
+		bool isIndividualizable( bool isTargetNode = false, bool isInSet = false ) const;
 
 		/**
 		 * @brief Check if the node is a function composition
 		 * @return True if the node is an asset or product function composition
 		 */
-		bool IsFunctionComposition() const;
+		bool isFunctionComposition() const;
 
 		/**
 		 * @brief Check if the node is mappable
 		 * @return True if the node can be mapped to other nodes
 		 */
-		bool IsMappable() const;
+		bool isMappable() const;
 
 		/**
 		 * @brief Check if the node is a product selection
 		 * @return True if the node is a product selection
 		 */
-		bool IsProductSelection() const;
+		bool isProductSelection() const;
 
 		/**
 		 * @brief Check if the node is a product type
 		 * @return True if the node is a product type
 		 */
-		bool IsProductType() const;
+		bool isProductType() const;
 
 		/**
 		 * @brief Check if the node is an asset
 		 * @return True if the node is an asset
 		 */
-		bool IsAsset() const;
+		bool isAsset() const;
 
 		/**
 		 * @brief Check if the node is a leaf node
 		 * @return True if the node is a leaf node in the hierarchy
 		 */
-		bool IsLeafNode() const;
+		bool isLeafNode() const;
 
 		/**
 		 * @brief Check if the node is a function node
 		 * @return True if the node is a function node
 		 */
-		bool IsFunctionNode() const;
+		bool isFunctionNode() const;
 
 		/**
 		 * @brief Check if the node is an asset function node
 		 * @return True if the node is an asset function node
 		 */
-		bool IsAssetFunctionNode() const;
+		bool isAssetFunctionNode() const;
 
 		/**
 		 * @brief Check if the node is the root node
 		 * @return True if the node is the root of the hierarchy (code is "VE")
 		 */
-		bool IsRoot() const;
-
-		/**
-		 * @brief Get the product type node associated with this node
-		 * @return Pointer to the product type node, or nullptr if not applicable
-		 */
-		const GmodNode* ProductType() const;
-
-		/**
-		 * @brief Get the product selection node associated with this node
-		 * @return Pointer to the product selection node, or nullptr if not applicable
-		 */
-		const GmodNode* ProductSelection() const;
+		bool isRoot() const;
 
 		/**
 		 * @brief Check if this node has a specific child node
@@ -336,7 +324,7 @@ namespace dnv::vista::sdk
 		 * @param node The potential child node
 		 * @return True if the node is a child of this node
 		 */
-		bool IsChild( const GmodNode& node ) const;
+		bool isChild( const GmodNode& node ) const;
 
 		/**
 		 * @brief Check if this node has a child with a specific code
@@ -344,7 +332,19 @@ namespace dnv::vista::sdk
 		 * @param code The code to check for
 		 * @return True if a child with the specified code exists
 		 */
-		bool IsChild( const std::string& code ) const;
+		bool isChild( const std::string& code ) const;
+
+		/**
+		 * @brief Get the product type node associated with this node
+		 * @return Pointer to the product type node, or nullptr if not applicable
+		 */
+		const GmodNode* productType() const;
+
+		/**
+		 * @brief Get the product selection node associated with this node
+		 * @return Pointer to the product selection node, or nullptr if not applicable
+		 */
+		const GmodNode* productSelection() const;
 
 		/**
 		 * @brief Equality comparison operator
@@ -368,32 +368,32 @@ namespace dnv::vista::sdk
 		 * @brief Convert the node to a string representation
 		 * @return String representation in the format "code[-location]"
 		 */
-		std::string ToString() const;
+		std::string toString() const;
 
 		/**
 		 * @brief Write the node's string representation to a string stream
 		 * @param builder The string stream to write to
 		 */
-		void ToString( std::stringstream& builder ) const;
+		void toString( std::stringstream& builder ) const;
 
 		/**
 		 * @brief Add a child node
 		 * @param child Pointer to the child node to add
 		 */
-		void AddChild( GmodNode* child );
+		void addChild( GmodNode* child );
 
 		/**
 		 * @brief Add a parent node
 		 * @param parent Pointer to the parent node to add
 		 */
-		void AddParent( GmodNode* parent );
+		void addParent( GmodNode* parent );
 
 		/**
 		 * @brief Trim excess capacity and build child code index
 		 *
 		 * Optimizes memory usage and builds an index of child codes for fast lookups.
 		 */
-		void Trim();
+		void trim();
 
 	private:
 		std::string m_code;							   ///< Unique identifier code

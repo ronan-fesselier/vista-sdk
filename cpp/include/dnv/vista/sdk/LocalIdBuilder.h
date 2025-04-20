@@ -8,6 +8,8 @@ namespace dnv::vista::sdk
 {
 	enum class VisVersion;
 	enum class CodebookName;
+	enum class LocalIdParsingState;
+	class Codebooks;
 	class GmodPath;
 	class ParsingErrors;
 	class LocalId;
@@ -16,18 +18,18 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Builder class for LocalId objects, implementing the ILocalIdBuilder interface.
 	 */
-	class LocalIdBuilder : public ILocalIdBuilder<LocalIdBuilder, LocalId>
+	class LocalIdBuilder final : public ILocalIdBuilder<LocalIdBuilder, LocalId>
 	{
 	public:
 		//-------------------------------------------------------------------------
 		// Constants
 		//-------------------------------------------------------------------------
 
-		/** @brief Naming rule constant */
-		static const std::string NamingRule;
+		/** @brief Naming rule constant for local IDs.*/
+		static const std::string namingRule;
 
 		/** @brief Used codebooks array */
-		static const std::vector<CodebookName> UsedCodebooks;
+		static const std::vector<CodebookName> usedCodebooks;
 
 		//-------------------------------------------------------------------------
 		// Constructors and Static Factories
@@ -50,10 +52,6 @@ namespace dnv::vista::sdk
 		 */
 		static LocalIdBuilder create( VisVersion version );
 
-		//-------------------------------------------------------------------------
-		// Core Interface Implementation (ILocalIdBuilder)
-		//-------------------------------------------------------------------------
-
 		/**
 		 * @brief Build a LocalId from this builder
 		 * @return The built LocalId
@@ -61,41 +59,9 @@ namespace dnv::vista::sdk
 		 */
 		virtual LocalId build() const override;
 
-		/**
-		 * @brief Get the VIS version
-		 * @return Optional VIS version
-		 */
-		virtual std::optional<VisVersion> getVisVersion() const override;
-
-		/**
-		 * @brief Get verbose mode flag
-		 * @return true if verbose mode is enabled
-		 */
-		virtual bool getVerboseMode() const override;
-
-		/**
-		 * @brief Get primary item
-		 * @return Optional primary item GmodPath
-		 */
-		virtual const std::optional<GmodPath>& getPrimaryItem() const override;
-
-		/**
-		 * @brief Get secondary item
-		 * @return Optional secondary item GmodPath
-		 */
-		virtual const std::optional<GmodPath>& getSecondaryItem() const override;
-
-		/**
-		 * @brief Check if has custom tag
-		 * @return true if has custom tag
-		 */
-		virtual bool hasCustomTag() const override;
-
-		/**
-		 * @brief Get metadata tags
-		 * @return List of metadata tags
-		 */
-		virtual const std::vector<MetadataTag> getMetadataTags() const override;
+		//-------------------------------------------------------------------------
+		// State Inspection Methods
+		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Check if valid
@@ -110,13 +76,35 @@ namespace dnv::vista::sdk
 		virtual bool isEmpty() const override;
 
 		/**
-		 * @brief Convert to string
-		 * @return String representation
+		 * @brief Check if metadata is empty
+		 * @return true if metadata is empty
 		 */
-		virtual std::string toString() const override;
+		bool isEmptyMetadata() const;
+
+		/**
+		 * @brief Check if has custom tag
+		 * @return true if has custom tag
+		 */
+		virtual bool hasCustomTag() const override;
 
 		//-------------------------------------------------------------------------
-		// Accessors
+		// Core Property Getters
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Get the VIS version
+		 * @return Optional VIS version
+		 */
+		virtual std::optional<VisVersion> visVersion() const override;
+
+		/**
+		 * @brief Get verbose mode flag
+		 * @return true if verbose mode is enabled
+		 */
+		virtual bool isVerboseMode() const override;
+
+		//-------------------------------------------------------------------------
+		// Item Getters
 		//-------------------------------------------------------------------------
 
 		/**
@@ -126,58 +114,90 @@ namespace dnv::vista::sdk
 		const LocalIdItems& getItems() const;
 
 		/**
+		 * @brief Get primary item
+		 * @return Optional primary item GmodPath
+		 */
+		virtual const std::optional<GmodPath>& primaryItem() const override;
+
+		/**
+		 * @brief Get secondary item
+		 * @return Optional secondary item GmodPath
+		 */
+		virtual const std::optional<GmodPath>& secondaryItem() const override;
+
+		//-------------------------------------------------------------------------
+		// Metadata Tag Getters
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Get metadata tags
+		 * @return List of metadata tags
+		 */
+		virtual const std::vector<MetadataTag> metadataTags() const override;
+
+		/**
 		 * @brief Get quantity tag
 		 * @return Optional quantity metadata tag
 		 */
-		const std::optional<MetadataTag>& getQuantity() const;
+		const std::optional<MetadataTag>& quantity() const;
 
 		/**
 		 * @brief Get content tag
 		 * @return Optional content metadata tag
 		 */
-		const std::optional<MetadataTag>& getContent() const;
+		const std::optional<MetadataTag>& content() const;
 
 		/**
 		 * @brief Get calculation tag
 		 * @return Optional calculation metadata tag
 		 */
-		const std::optional<MetadataTag>& getCalculation() const;
+		const std::optional<MetadataTag>& calculation() const;
 
 		/**
 		 * @brief Get state tag
 		 * @return Optional state metadata tag
 		 */
-		const std::optional<MetadataTag>& getState() const;
+		const std::optional<MetadataTag>& state() const;
 
 		/**
 		 * @brief Get command tag
 		 * @return Optional command metadata tag
 		 */
-		const std::optional<MetadataTag>& getCommand() const;
+		const std::optional<MetadataTag>& command() const;
 
 		/**
 		 * @brief Get type tag
 		 * @return Optional type metadata tag
 		 */
-		const std::optional<MetadataTag>& getType() const;
+		const std::optional<MetadataTag>& type() const;
 
 		/**
 		 * @brief Get position tag
 		 * @return Optional position metadata tag
 		 */
-		const std::optional<MetadataTag>& getPosition() const;
+		const std::optional<MetadataTag>& position() const;
 
 		/**
 		 * @brief Get detail tag
 		 * @return Optional detail metadata tag
 		 */
-		const std::optional<MetadataTag>& getDetail() const;
+		const std::optional<MetadataTag>& detail() const;
+
+		//-------------------------------------------------------------------------
+		// Conversion Methods
+		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Check if metadata is empty
-		 * @return true if metadata is empty
+		 * @brief Convert to string
+		 * @return String representation
 		 */
-		bool isEmptyMetadata() const;
+		virtual std::string toString() const override;
+
+		/**
+		 * @brief Convert to string
+		 * @param builder Stream to write to
+		 */
+		void toString( std::stringstream& builder ) const;
 
 		//-------------------------------------------------------------------------
 		// Builder Methods - Core Properties
@@ -318,109 +338,23 @@ namespace dnv::vista::sdk
 		 */
 		virtual LocalIdBuilder withoutMetadataTag( CodebookName name ) override;
 
-		/**
-		 * @brief Remove quantity tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutQuantity();
-
-		/**
-		 * @brief Remove content tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutContent();
-
-		/**
-		 * @brief Remove calculation tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutCalculation();
-
-		/**
-		 * @brief Remove state tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutState();
-
-		/**
-		 * @brief Remove command tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutCommand();
-
-		/**
-		 * @brief Remove type tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutType();
-
-		/**
-		 * @brief Remove position tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutPosition();
-
-		/**
-		 * @brief Remove detail tag
-		 * @return Builder for method chaining
-		 */
-		LocalIdBuilder withoutDetail();
-
-		/**
-		 * @brief Set quantity tag
-		 * @param quantity MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withQuantity( const MetadataTag& quantity );
-
-		/**
-		 * @brief Set content tag
-		 * @param content MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withContent( const MetadataTag& content );
-
-		/**
-		 * @brief Set calculation tag
-		 * @param calculation MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withCalculation( const MetadataTag& calculation );
-
-		/**
-		 * @brief Set state tag
-		 * @param state MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withState( const MetadataTag& state );
-
-		/**
-		 * @brief Set command tag
-		 * @param command MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withCommand( const MetadataTag& command );
-
-		/**
-		 * @brief Set type tag
-		 * @param type MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withType( const MetadataTag& type );
-
-		/**
-		 * @brief Set position tag
-		 * @param position MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withPosition( const MetadataTag& position );
-
-		/**
-		 * @brief Set detail tag
-		 * @param detail MetadataTag to set
-		 * @return Builder for method chaining
-		 */
 		LocalIdBuilder withDetail( const MetadataTag& detail );
+
+		LocalIdBuilder withoutQuantity();
+		LocalIdBuilder withoutContent();
+		LocalIdBuilder withoutCalculation();
+		LocalIdBuilder withoutState();
+		LocalIdBuilder withoutCommand();
+		LocalIdBuilder withoutType();
+		LocalIdBuilder withoutPosition();
+		LocalIdBuilder withoutDetail();
 
 		//-------------------------------------------------------------------------
 		// Static Parsing Methods
@@ -474,18 +408,117 @@ namespace dnv::vista::sdk
 		 * @brief Get hash code
 		 * @return Hash code for this builder
 		 */
-		size_t getHashCode() const;
-
-		/**
-		 * @brief Convert to string
-		 * @param builder Stream to write to
-		 */
-		void toString( std::stringstream& builder ) const;
+		size_t hashCode() const;
 
 	private:
 		//-------------------------------------------------------------------------
+		// Private Helper Methods
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Adds a parsing error to the error builder
+		 * @param errorBuilder Error builder to add the error to
+		 * @param state State where the error occurred
+		 * @param message Optional error message (empty for default message)
+		 */
+		static void addError( LocalIdParsingErrorBuilder& errorBuilder, LocalIdParsingState state, const std::string& message = "" );
+
+		/**
+		 * @brief Advances parser position and state
+		 * @param i Current position index
+		 * @param segment Current segment being parsed
+		 * @param state Current parsing state to update
+		 */
+		static void advanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state );
+
+		/**
+		 * @brief Advances parser position only
+		 * @param i Current position index
+		 * @param segment Current segment being parsed
+		 */
+		static void advanceParser( size_t& i, const std::string& segment );
+
+		/**
+		 * @brief Advances parser state only
+		 * @param state Current parsing state
+		 * @param to Target state to transition to
+		 */
+		static void advanceParser( LocalIdParsingState& state, LocalIdParsingState to );
+
+		/**
+		 * @brief Advances both parser position and state
+		 * @param i Current position index
+		 * @param segment Current segment being parsed
+		 * @param state Current parsing state
+		 * @param to Target state to transition to
+		 */
+		static void advanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state, LocalIdParsingState to );
+
+		/**
+		 * @brief Advances parser position and state using string_view
+		 * @param i Current position index
+		 * @param segment Current segment being parsed as string_view
+		 * @param state Current parsing state to update
+		 */
+		static void advanceParser( size_t& i, const std::string_view& segment, LocalIdParsingState& state );
+
+		/**
+		 * @brief Advances parser position only using string_view
+		 * @param i Current position index
+		 * @param segment Current segment being parsed as string_view
+		 */
+		static void advanceParser( size_t& i, const std::string_view& segment );
+
+		/**
+		 * @brief Advances both parser position and state using string_view
+		 * @param i Current position index
+		 * @param segment Current segment being parsed as string_view
+		 * @param state Current parsing state
+		 * @param to Target state to transition to
+		 */
+		static void advanceParser( size_t& i, const std::string_view& segment, LocalIdParsingState& state, LocalIdParsingState to );
+
+		/**
+		 * @brief Gets the indexes for transitioning to the next state
+		 * @param str String being parsed
+		 * @param state Current parsing state
+		 * @return Pair of (start index, end index) for the next segment
+		 */
+		static std::pair<size_t, size_t> nextStateIndexes( const std::string& str, LocalIdParsingState state );
+
+		/**
+		 * @brief Converts a metadata prefix string to its corresponding parsing state
+		 * @param prefix String prefix to convert (e.g., "qty", "q", "cnt", etc.)
+		 * @return The corresponding LocalIdParsingState if the prefix is valid, nullopt otherwise
+		 */
+		static std::optional<LocalIdParsingState> metaPrefixToState( const std::string_view& prefix );
+
+		/**
+		 * @brief Determines the next parsing state in the metadata state machine sequence
+		 * @param prev Current parsing state
+		 * @return The next state in the sequence if one exists, nullopt if at the end of the sequence
+		 */
+		static std::optional<LocalIdParsingState> nextParsingState( LocalIdParsingState prev );
+
+		/**
+		 * @brief Parses a metadata tag from the string
+		 * @param codebookName Codebook name for the tag
+		 * @param state Current parsing state
+		 * @param i Current position index
+		 * @param segment Current segment being parsed
+		 * @param tag Optional MetadataTag to fill
+		 * @param codebooks Codebooks object for validation
+		 * @param errorBuilder Error builder to report errors
+		 * @return true if parsing succeeded, false otherwise
+		 */
+		static bool parseMetaTag( CodebookName codebookName, LocalIdParsingState& state,
+			size_t& i, const std::string_view& segment, std::optional<MetadataTag>& tag,
+			const std::shared_ptr<Codebooks>& codebooks, LocalIdParsingErrorBuilder& errorBuilder );
+
+		//-------------------------------------------------------------------------
 		// Member Variables
 		//-------------------------------------------------------------------------
+
 		std::optional<VisVersion> m_visVersion;
 		bool m_verboseMode = false;
 		LocalIdItems m_items;

@@ -11,13 +11,13 @@ namespace dnv::vista::sdk
 	void Parents::push( const GmodNode* parent )
 	{
 		m_nodes.push_back( parent );
-		if ( m_occurrences.find( parent->GetCode() ) != m_occurrences.end() )
+		if ( m_occurrences.find( parent->code() ) != m_occurrences.end() )
 		{
-			m_occurrences[parent->GetCode()]++;
+			m_occurrences[parent->code()]++;
 		}
 		else
 		{
-			m_occurrences[parent->GetCode()] = 1;
+			m_occurrences[parent->code()] = 1;
 		}
 	}
 
@@ -29,20 +29,20 @@ namespace dnv::vista::sdk
 		const GmodNode* parent = m_nodes.back();
 		m_nodes.pop_back();
 
-		if ( m_occurrences[parent->GetCode()] == 1 )
+		if ( m_occurrences[parent->code()] == 1 )
 		{
-			m_occurrences.erase( parent->GetCode() );
+			m_occurrences.erase( parent->code() );
 		}
 		else
 		{
-			m_occurrences[parent->GetCode()]--;
+			m_occurrences[parent->code()]--;
 		}
 	}
 
 	int Parents::occurrences( const GmodNode& node ) const
 	{
-		SPDLOG_INFO( "node: {}", node.ToString() );
-		auto it = m_occurrences.find( node.GetCode() );
+		SPDLOG_INFO( "node: {}", node.toString() );
+		auto it = m_occurrences.find( node.code() );
 		return it != m_occurrences.end() ? it->second : 0;
 	}
 
@@ -89,15 +89,15 @@ namespace dnv::vista::sdk
 
 				if ( parentIt != nodeMap.end() && childIt != nodeMap.end() )
 				{
-					parentIt->second.AddChild( &childIt->second );
-					childIt->second.AddParent( &parentIt->second );
+					parentIt->second.addChild( &childIt->second );
+					childIt->second.addParent( &parentIt->second );
 				}
 			}
 		}
 
 		for ( auto& [code, node] : nodeMap )
 		{
-			node.Trim();
+			node.trim();
 		}
 
 		auto rootIt = nodeMap.find( "VE" );
@@ -129,7 +129,7 @@ namespace dnv::vista::sdk
 	{
 		for ( const auto& [code, node] : nodeMap )
 		{
-			const_cast<GmodNode&>( node ).Trim();
+			const_cast<GmodNode&>( node ).trim();
 		}
 
 		m_rootNode = nodeMap.at( "VE" );
@@ -234,7 +234,7 @@ namespace dnv::vista::sdk
 
 	const GmodNode& Gmod::rootNode() const
 	{
-		SPDLOG_WARN( "Getting root node: '{}'", m_rootNode.GetCode() );
+		SPDLOG_WARN( "Getting root node: '{}'", m_rootNode.code() );
 		return m_rootNode;
 	}
 
@@ -247,7 +247,7 @@ namespace dnv::vista::sdk
 				SPDLOG_WARN( "TryGetNode: Node dictionary is empty, GMOD may not be properly initialized" );
 				SPDLOG_INFO( "GMOD state - VisVersion: {}, Has root node: {}",
 					VisVersionExtensions::toVersionString( m_visVersion ),
-					m_rootNode.GetCode().empty() ? "no" : "yes" );
+					m_rootNode.code().empty() ? "no" : "yes" );
 				return false;
 			}
 
@@ -288,25 +288,25 @@ namespace dnv::vista::sdk
 
 	GmodPath Gmod::parsePath( const std::string& item ) const
 	{
-		return GmodPath::Parse( item, m_visVersion );
+		return GmodPath::parse( item, m_visVersion );
 	}
 
-	bool Gmod::TryParsePath( const std::string& item, std::optional<GmodPath>& path ) const
+	bool Gmod::tryParsePath( const std::string& item, std::optional<GmodPath>& path ) const
 	{
 		SPDLOG_INFO( "TryParsePath: Attempting to parse path: {}", item );
-		return GmodPath::TryParse( item, m_visVersion, path );
+		return GmodPath::tryParse( item, m_visVersion, path );
 	}
 
 	GmodPath Gmod::parseFromFullPath( const std::string& item ) const
 	{
-		return GmodPath::ParseFullPath( item, m_visVersion );
+		return GmodPath::parseFullPath( item, m_visVersion );
 	}
 
 	bool Gmod::tryParseFromFullPath( const std::string& item, std::optional<GmodPath>& path ) const
 	{
 		GmodPath tempPath;
 
-		if ( GmodPath::TryParseFullPath( item, m_visVersion, tempPath ) )
+		if ( GmodPath::tryParseFullPath( item, m_visVersion, tempPath ) )
 		{
 			path = std::move( tempPath );
 			return true;
@@ -335,8 +335,8 @@ namespace dnv::vista::sdk
 			return TraversalHandlerResult::Stop;
 		}
 
-		if ( node.GetMetadata().GetInstallSubstructure().has_value() &&
-			 !node.GetMetadata().GetInstallSubstructure().value() )
+		if ( node.metadata().installSubstructure().has_value() &&
+			 !node.metadata().installSubstructure().value() )
 		{
 			return TraversalHandlerResult::Continue;
 		}
@@ -369,7 +369,7 @@ namespace dnv::vista::sdk
 
 		context.parents.push( &node );
 
-		for ( const GmodNode* child : node.GetChildren() )
+		for ( const GmodNode* child : node.children() )
 		{
 			if ( child == nullptr )
 				continue;
@@ -414,15 +414,15 @@ namespace dnv::vista::sdk
 
 					if ( parentIt != nodeMap.end() && childIt != nodeMap.end() )
 					{
-						parentIt->second.AddChild( &childIt->second );
-						childIt->second.AddParent( &parentIt->second );
+						parentIt->second.addChild( &childIt->second );
+						childIt->second.addParent( &parentIt->second );
 					}
 				}
 			}
 
 			for ( auto& [code, node] : nodeMap )
 			{
-				node.Trim();
+				node.trim();
 			}
 
 			auto rootIt = nodeMap.find( "VE" );
@@ -466,7 +466,7 @@ namespace dnv::vista::sdk
 
 	bool Gmod::isLeafNode( const GmodNodeMetadata& metadata )
 	{
-		return isLeafNode( metadata.GetFullType() );
+		return isLeafNode( metadata.fullType() );
 	}
 
 	bool Gmod::isFunctionNode( const std::string& category )
@@ -476,27 +476,27 @@ namespace dnv::vista::sdk
 
 	bool Gmod::isFunctionNode( const GmodNodeMetadata& metadata )
 	{
-		return isFunctionNode( metadata.GetCategory() );
+		return isFunctionNode( metadata.category() );
 	}
 
 	bool Gmod::isProductSelection( const GmodNodeMetadata& metadata )
 	{
-		return metadata.GetCategory() == "PRODUCT" && metadata.GetType() == "SELECTION";
+		return metadata.category() == "PRODUCT" && metadata.type() == "SELECTION";
 	}
 
 	bool Gmod::isProductType( const GmodNodeMetadata& metadata )
 	{
-		return metadata.GetCategory() == "PRODUCT" && metadata.GetType() == "TYPE";
+		return metadata.category() == "PRODUCT" && metadata.type() == "TYPE";
 	}
 
 	bool Gmod::isAsset( const GmodNodeMetadata& metadata )
 	{
-		return metadata.GetCategory() == "ASSET";
+		return metadata.category() == "ASSET";
 	}
 
 	bool Gmod::isAssetFunctionNode( const GmodNodeMetadata& metadata )
 	{
-		return metadata.GetCategory() == "ASSET FUNCTION";
+		return metadata.category() == "ASSET FUNCTION";
 	}
 
 	bool Gmod::isProductTypeAssignment( const GmodNode* parent, const GmodNode* child )
@@ -504,10 +504,10 @@ namespace dnv::vista::sdk
 		if ( parent == nullptr || child == nullptr )
 			return false;
 
-		if ( parent->GetMetadata().GetCategory().find( "FUNCTION" ) == std::string::npos )
+		if ( parent->metadata().category().find( "FUNCTION" ) == std::string::npos )
 			return false;
 
-		if ( child->GetMetadata().GetCategory() != "PRODUCT" || child->GetMetadata().GetType() != "TYPE" )
+		if ( child->metadata().category() != "PRODUCT" || child->metadata().type() != "TYPE" )
 			return false;
 
 		return true;
@@ -518,11 +518,11 @@ namespace dnv::vista::sdk
 		if ( parent == nullptr || child == nullptr )
 			return false;
 
-		if ( parent->GetMetadata().GetCategory().find( "FUNCTION" ) == std::string::npos )
+		if ( parent->metadata().category().find( "FUNCTION" ) == std::string::npos )
 			return false;
 
-		if ( child->GetMetadata().GetCategory().find( "PRODUCT" ) == std::string::npos ||
-			 child->GetMetadata().GetType() != "SELECTION" )
+		if ( child->metadata().category().find( "PRODUCT" ) == std::string::npos ||
+			 child->metadata().type() != "SELECTION" )
 			return false;
 
 		return true;

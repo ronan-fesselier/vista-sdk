@@ -24,47 +24,47 @@ namespace dnv::vista::sdk
 		m_fullType = category + " " + type;
 	}
 
-	const std::string& GmodNodeMetadata::GetCategory() const
+	const std::string& GmodNodeMetadata::category() const
 	{
 		return m_category;
 	}
 
-	const std::string& GmodNodeMetadata::GetType() const
+	const std::string& GmodNodeMetadata::type() const
 	{
 		return m_type;
 	}
 
-	const std::string& GmodNodeMetadata::GetName() const
+	const std::string& GmodNodeMetadata::name() const
 	{
 		return m_name;
 	}
 
-	const std::optional<std::string>& GmodNodeMetadata::GetCommonName() const
+	const std::optional<std::string>& GmodNodeMetadata::commonName() const
 	{
 		return m_commonName;
 	}
 
-	const std::optional<std::string>& GmodNodeMetadata::GetDefinition() const
+	const std::optional<std::string>& GmodNodeMetadata::definition() const
 	{
 		return m_definition;
 	}
 
-	const std::optional<std::string>& GmodNodeMetadata::GetCommonDefinition() const
+	const std::optional<std::string>& GmodNodeMetadata::commonDefinition() const
 	{
 		return m_commonDefinition;
 	}
 
-	const std::optional<bool>& GmodNodeMetadata::GetInstallSubstructure() const
+	const std::optional<bool>& GmodNodeMetadata::installSubstructure() const
 	{
 		return m_installSubstructure;
 	}
 
-	const std::unordered_map<std::string, std::string>& GmodNodeMetadata::GetNormalAssignmentNames() const
+	const std::unordered_map<std::string, std::string>& GmodNodeMetadata::normalAssignmentNames() const
 	{
 		return m_normalAssignmentNames;
 	}
 
-	const std::string& GmodNodeMetadata::GetFullType() const
+	const std::string& GmodNodeMetadata::fullType() const
 	{
 		return m_fullType;
 	}
@@ -134,37 +134,37 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	const std::string& GmodNode::GetCode() const
+	const std::string& GmodNode::code() const
 	{
 		return m_code;
 	}
 
-	const std::optional<Location>& GmodNode::GetLocation() const
+	const std::optional<Location>& GmodNode::location() const
 	{
 		return m_location;
 	}
 
-	VisVersion GmodNode::GetVisVersion() const
+	VisVersion GmodNode::visVersion() const
 	{
 		return m_visVersion;
 	}
 
-	const GmodNodeMetadata& GmodNode::GetMetadata() const
+	const GmodNodeMetadata& GmodNode::metadata() const
 	{
 		return m_metadata;
 	}
 
-	const std::vector<GmodNode*>& GmodNode::GetChildren() const
+	const std::vector<GmodNode*>& GmodNode::children() const
 	{
 		return m_children;
 	}
 
-	const std::vector<GmodNode*>& GmodNode::GetParents() const
+	const std::vector<GmodNode*>& GmodNode::parents() const
 	{
 		return m_parents;
 	}
 
-	GmodNode GmodNode::WithoutLocation() const
+	GmodNode GmodNode::withoutLocation() const
 	{
 		if ( !m_location.has_value() )
 			return *this;
@@ -174,7 +174,7 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	GmodNode GmodNode::WithLocation( const std::string& locationStr ) const
+	GmodNode GmodNode::withLocation( const std::string& locationStr ) const
 	{
 		Locations locations = VIS::instance().locations( m_visVersion );
 		Location location = locations.parse( locationStr );
@@ -184,7 +184,7 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	GmodNode GmodNode::TryWithLocation( const std::string& locationStr ) const
+	GmodNode GmodNode::tryWithLocation( const std::string& locationStr ) const
 	{
 		Locations locations = VIS::instance().locations( m_visVersion );
 		Location location;
@@ -192,10 +192,10 @@ namespace dnv::vista::sdk
 		if ( !locations.tryParse( std::string_view( locationStr ), location ) )
 			return *this;
 
-		return WithLocation( locationStr );
+		return withLocation( locationStr );
 	}
 
-	GmodNode GmodNode::TryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const
+	GmodNode GmodNode::tryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const
 	{
 		Locations locations = VIS::instance().locations( m_visVersion );
 		Location location;
@@ -203,144 +203,144 @@ namespace dnv::vista::sdk
 		if ( !locations.tryParse( std::string_view( locationStr ), location, errors ) )
 			return *this;
 
-		return WithLocation( locationStr );
+		return withLocation( locationStr );
 	}
 
-	GmodNode GmodNode::WithLocation( const Location& location ) const
+	GmodNode GmodNode::withLocation( const Location& location ) const
 	{
 		GmodNode result = *this;
 		result.m_location = location;
 		return result;
 	}
 
-	GmodNode GmodNode::TryWithLocation( const std::optional<Location>& location ) const
+	GmodNode GmodNode::tryWithLocation( const std::optional<Location>& location ) const
 	{
 		if ( !location.has_value() )
 			return *this;
 
-		return WithLocation( *location );
+		return withLocation( *location );
 	}
 
-	bool GmodNode::IsIndividualizable( bool isTargetNode, bool isInSet ) const
+	bool GmodNode::isIndividualizable( bool isTargetNode, bool isInSet ) const
 	{
-		if ( m_metadata.GetType() == "GROUP" )
+		if ( m_metadata.type() == "GROUP" )
 			return false;
-		if ( m_metadata.GetType() == "SELECTION" )
+		if ( m_metadata.type() == "SELECTION" )
 			return false;
-		if ( IsProductType() )
+		if ( isProductType() )
 			return false;
-		if ( m_metadata.GetCategory() == "ASSET" && m_metadata.GetType() == "TYPE" )
+		if ( m_metadata.category() == "ASSET" && m_metadata.type() == "TYPE" )
 			return false;
-		if ( IsFunctionComposition() )
+		if ( isFunctionComposition() )
 			return m_code.back() == 'i' || isInSet || isTargetNode;
 		return true;
 	}
 
-	bool GmodNode::IsFunctionComposition() const
+	bool GmodNode::isFunctionComposition() const
 	{
-		return ( m_metadata.GetCategory() == "ASSET FUNCTION" || m_metadata.GetCategory() == "PRODUCT FUNCTION" ) && m_metadata.GetType() == "COMPOSITION";
+		return ( m_metadata.category() == "ASSET FUNCTION" || m_metadata.category() == "PRODUCT FUNCTION" ) && m_metadata.type() == "COMPOSITION";
 	}
 
-	bool GmodNode::IsMappable() const
+	bool GmodNode::isMappable() const
 	{
-		if ( ProductType() != nullptr )
+		if ( productType() != nullptr )
 			return false;
-		if ( ProductSelection() != nullptr )
+		if ( productSelection() != nullptr )
 			return false;
-		if ( IsProductSelection() )
+		if ( isProductSelection() )
 			return false;
-		if ( IsAsset() )
+		if ( isAsset() )
 			return false;
 
 		char lastChar = m_code.back();
 		return lastChar != 'a' && lastChar != 's';
 	}
 
-	bool GmodNode::IsProductSelection() const
+	bool GmodNode::isProductSelection() const
 	{
 		return Gmod::isProductSelection( m_metadata );
 	}
 
-	bool GmodNode::IsProductType() const
+	bool GmodNode::isProductType() const
 	{
 		return Gmod::isProductType( m_metadata );
 	}
 
-	bool GmodNode::IsAsset() const
+	bool GmodNode::isAsset() const
 	{
 		return Gmod::isAsset( m_metadata );
 	}
 
-	const GmodNode* GmodNode::ProductType() const
-	{
-		if ( m_children.size() != 1 )
-			return nullptr;
-
-		if ( m_metadata.GetCategory().find( "FUNCTION" ) == std::string::npos )
-			return nullptr;
-
-		const GmodNode* child = m_children[0];
-		if ( child == nullptr )
-			return nullptr;
-
-		if ( child->m_metadata.GetCategory() != "PRODUCT" )
-			return nullptr;
-
-		if ( child->m_metadata.GetType() != "TYPE" )
-			return nullptr;
-
-		return child;
-	}
-
-	const GmodNode* GmodNode::ProductSelection() const
-	{
-		if ( m_children.size() != 1 )
-			return nullptr;
-
-		if ( m_metadata.GetCategory().find( "FUNCTION" ) == std::string::npos )
-			return nullptr;
-
-		const GmodNode* child = m_children[0];
-		if ( child == nullptr )
-			return nullptr;
-
-		if ( child->m_metadata.GetCategory().find( "PRODUCT" ) == std::string::npos )
-			return nullptr;
-
-		if ( child->m_metadata.GetType() != "SELECTION" )
-			return nullptr;
-
-		return child;
-	}
-
-	bool GmodNode::IsChild( const GmodNode& node ) const
-	{
-		return IsChild( node.m_code );
-	}
-
-	bool GmodNode::IsChild( const std::string& code ) const
-	{
-		return m_childrenSet.find( code ) != m_childrenSet.end();
-	}
-
-	bool GmodNode::IsLeafNode() const
+	bool GmodNode::isLeafNode() const
 	{
 		return Gmod::isLeafNode( m_metadata );
 	}
 
-	bool GmodNode::IsFunctionNode() const
+	bool GmodNode::isFunctionNode() const
 	{
 		return Gmod::isFunctionNode( m_metadata );
 	}
 
-	bool GmodNode::IsAssetFunctionNode() const
+	bool GmodNode::isAssetFunctionNode() const
 	{
 		return Gmod::isAssetFunctionNode( m_metadata );
 	}
 
-	bool GmodNode::IsRoot() const
+	bool GmodNode::isRoot() const
 	{
 		return m_code == "VE";
+	}
+
+	bool GmodNode::isChild( const GmodNode& node ) const
+	{
+		return isChild( node.m_code );
+	}
+
+	bool GmodNode::isChild( const std::string& code ) const
+	{
+		return m_childrenSet.find( code ) != m_childrenSet.end();
+	}
+
+	const GmodNode* GmodNode::productType() const
+	{
+		if ( m_children.size() != 1 )
+			return nullptr;
+
+		if ( m_metadata.category().find( "FUNCTION" ) == std::string::npos )
+			return nullptr;
+
+		const GmodNode* child = m_children[0];
+		if ( child == nullptr )
+			return nullptr;
+
+		if ( child->m_metadata.category() != "PRODUCT" )
+			return nullptr;
+
+		if ( child->m_metadata.type() != "TYPE" )
+			return nullptr;
+
+		return child;
+	}
+
+	const GmodNode* GmodNode::productSelection() const
+	{
+		if ( m_children.size() != 1 )
+			return nullptr;
+
+		if ( m_metadata.category().find( "FUNCTION" ) == std::string::npos )
+			return nullptr;
+
+		const GmodNode* child = m_children[0];
+		if ( child == nullptr )
+			return nullptr;
+
+		if ( child->m_metadata.category().find( "PRODUCT" ) == std::string::npos )
+			return nullptr;
+
+		if ( child->m_metadata.type() != "SELECTION" )
+			return nullptr;
+
+		return child;
 	}
 
 	bool GmodNode::operator==( const GmodNode& other ) const
@@ -353,7 +353,7 @@ namespace dnv::vista::sdk
 		return !( *this == other );
 	}
 
-	std::string GmodNode::ToString() const
+	std::string GmodNode::toString() const
 	{
 		if ( m_location.has_value() )
 		{
@@ -362,7 +362,7 @@ namespace dnv::vista::sdk
 		return m_code;
 	}
 
-	void GmodNode::ToString( std::stringstream& builder ) const
+	void GmodNode::toString( std::stringstream& builder ) const
 	{
 		builder << m_code;
 
@@ -374,17 +374,17 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "GmodNode::ToString: {}", builder.str() );
 	}
 
-	void GmodNode::AddChild( GmodNode* child )
+	void GmodNode::addChild( GmodNode* child )
 	{
 		m_children.push_back( child );
 	}
 
-	void GmodNode::AddParent( GmodNode* parent )
+	void GmodNode::addParent( GmodNode* parent )
 	{
 		m_parents.push_back( parent );
 	}
 
-	void GmodNode::Trim()
+	void GmodNode::trim()
 	{
 		m_children.shrink_to_fit();
 		m_parents.shrink_to_fit();
@@ -392,7 +392,7 @@ namespace dnv::vista::sdk
 		m_childrenSet.clear();
 		for ( const auto& child : m_children )
 		{
-			m_childrenSet.insert( child->GetCode() );
+			m_childrenSet.insert( child->code() );
 		}
 	}
 }

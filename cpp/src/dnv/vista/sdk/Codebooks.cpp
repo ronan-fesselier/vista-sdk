@@ -134,12 +134,12 @@ namespace dnv::vista::sdk
 			if ( result.has_value() )
 			{
 				SPDLOG_DEBUG( "Successfully created tag for '{}' in codebook '{}'",
-					value, CodebookNames::ToPrefix( name ) );
+					value, CodebookNames::toPrefix( name ) );
 			}
 			else
 			{
-				SPDLOG_DEBUG( "Failed to create tag for '{}' in codebook '{}' - invalid value",
-					value, CodebookNames::ToPrefix( name ) );
+				SPDLOG_ERROR( "Failed to create tag for '{}' in codebook '{}' - invalid value",
+					value, CodebookNames::toPrefix( name ) );
 			}
 
 			return result;

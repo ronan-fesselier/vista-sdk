@@ -17,7 +17,7 @@ namespace dnv::vista::sdk
 	 * entities between different VIS (Vessel Information Structure) versions, ensuring
 	 * compatibility and proper transformation of codes, paths, and local identifiers.
 	 */
-	class GmodVersioning
+	class GmodVersioning final
 	{
 	private:
 		/**
@@ -41,7 +41,7 @@ namespace dnv::vista::sdk
 		 * Contains all the necessary data to convert a node from one VIS version
 		 * to another, including source and target codes, assignment information, etc.
 		 */
-		struct GmodNodeConversion
+		struct GmodNodeConversion final
 		{
 			std::unordered_set<ConversionType> operations; ///< Operations to perform during conversion
 			std::string source;							   ///< Source node code
@@ -57,7 +57,7 @@ namespace dnv::vista::sdk
 		 * Contains conversion information for nodes in a specific VIS version,
 		 * enabling lookup of how nodes should transform when moving to another version.
 		 */
-		class GmodVersioningNode
+		class GmodVersioningNode final
 		{
 		public:
 			/**
@@ -72,7 +72,7 @@ namespace dnv::vista::sdk
 			 * @brief Get the VIS version of this versioning node
 			 * @return The VIS version
 			 */
-			VisVersion GetVisVersion() const;
+			VisVersion visVersion() const;
 
 			/**
 			 * @brief Try to get code changes for a specific node code
@@ -81,7 +81,7 @@ namespace dnv::vista::sdk
 			 * @param[out] nodeChanges Output parameter for the node changes if found
 			 * @return True if changes were found, false otherwise
 			 */
-			bool TryGetCodeChanges( const std::string& code, GmodNodeConversion& nodeChanges ) const;
+			bool tryGetCodeChanges( const std::string& code, GmodNodeConversion& nodeChanges ) const;
 
 		private:
 			VisVersion m_visVersion;													 ///< The VIS version of this versioning node
@@ -97,7 +97,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed ConversionType enum value
 		 * @throws std::invalid_argument If the type string is unknown
 		 */
-		static ConversionType ParseConversionType( const std::string& type );
+		static ConversionType parseConversionType( const std::string& type );
 
 		/**
 		 * @brief Validate source and target versions
@@ -106,7 +106,7 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @throws std::invalid_argument If either version is invalid
 		 */
-		void ValidateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const;
+		void validateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Validate source and target version pair
@@ -117,7 +117,7 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @throws std::invalid_argument If versions are invalid or the same
 		 */
-		void ValidateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const;
+		void validateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Try to get a versioning node for a specific VIS version
@@ -126,7 +126,7 @@ namespace dnv::vista::sdk
 		 * @param[out] versioningNode Output parameter for the versioning node if found
 		 * @return True if the versioning node was found, false otherwise
 		 */
-		bool TryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const;
+		bool tryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const;
 
 		/**
 		 * @brief Internal implementation for converting a node between adjacent versions
@@ -136,7 +136,7 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @return The converted node, or an empty node if conversion failed
 		 */
-		GmodNode ConvertNodeInternal( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
+		GmodNode convertNodeInternal( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 	public:
 		/**
@@ -154,7 +154,7 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @return Converted node, or nullopt if conversion fails
 		 */
-		std::optional<GmodNode> ConvertNode( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
+		std::optional<GmodNode> convertNode( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a LocalIdBuilder from one version to another
@@ -164,7 +164,7 @@ namespace dnv::vista::sdk
 		 * @return Converted LocalIdBuilder, or nullopt if conversion fails
 		 * @throws std::invalid_argument If the source LocalIdBuilder has no VIS version
 		 */
-		std::optional<LocalIdBuilder> ConvertLocalId( const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const;
+		std::optional<LocalIdBuilder> convertLocalId( const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a LocalId from one version to another
@@ -173,7 +173,7 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @return Converted LocalId, or nullopt if conversion fails
 		 */
-		std::optional<LocalId> ConvertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion ) const;
+		std::optional<LocalId> convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a GmodPath from one version to another
@@ -183,6 +183,6 @@ namespace dnv::vista::sdk
 		 * @param targetVersion Target VIS version
 		 * @return Converted path, or nullopt if conversion fails
 		 */
-		std::optional<GmodPath> ConvertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const;
+		std::optional<GmodPath> convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const;
 	};
 }

@@ -10,7 +10,7 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	GmodVersioningAssignmentChangeDto GmodVersioningAssignmentChangeDto::FromJson( const rapidjson::Value& json )
+	GmodVersioningAssignmentChangeDto GmodVersioningAssignmentChangeDto::fromJson( const rapidjson::Value& json )
 	{
 		SPDLOG_INFO( "Parsing assignment change from JSON" );
 		GmodVersioningAssignmentChangeDto dto;
@@ -25,12 +25,12 @@ namespace dnv::vista::sdk
 		return dto;
 	}
 
-	bool GmodVersioningAssignmentChangeDto::TryFromJson( const rapidjson::Value& json,
+	bool GmodVersioningAssignmentChangeDto::tryFromJson( const rapidjson::Value& json,
 		GmodVersioningAssignmentChangeDto& dto )
 	{
 		try
 		{
-			dto = FromJson( json );
+			dto = fromJson( json );
 			return true;
 		}
 		catch ( const std::exception& e )
@@ -40,7 +40,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	rapidjson::Value GmodVersioningAssignmentChangeDto::ToJson(
+	rapidjson::Value GmodVersioningAssignmentChangeDto::toJson(
 		rapidjson::Document::AllocatorType& allocator ) const
 	{
 		SPDLOG_INFO( "Serializing assignment change to JSON" );
@@ -62,7 +62,7 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	GmodNodeConversionDto GmodNodeConversionDto::FromJson( const rapidjson::Value& json )
+	GmodNodeConversionDto GmodNodeConversionDto::fromJson( const rapidjson::Value& json )
 	{
 		SPDLOG_INFO( "Parsing node conversion from JSON" );
 		GmodNodeConversionDto dto;
@@ -100,11 +100,11 @@ namespace dnv::vista::sdk
 		return dto;
 	}
 
-	bool GmodNodeConversionDto::TryFromJson( const rapidjson::Value& json, GmodNodeConversionDto& dto )
+	bool GmodNodeConversionDto::tryFromJson( const rapidjson::Value& json, GmodNodeConversionDto& dto )
 	{
 		try
 		{
-			dto = FromJson( json );
+			dto = fromJson( json );
 			return true;
 		}
 		catch ( const std::exception& e )
@@ -114,7 +114,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	rapidjson::Value GmodNodeConversionDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	rapidjson::Value GmodNodeConversionDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
 	{
 		SPDLOG_INFO( "Serializing node conversion to JSON" );
 		rapidjson::Value obj( rapidjson::kObjectType );
@@ -142,7 +142,7 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	GmodVersioningDto GmodVersioningDto::FromJson( const rapidjson::Value& json )
+	GmodVersioningDto GmodVersioningDto::fromJson( const rapidjson::Value& json )
 	{
 		SPDLOG_INFO( "Parsing GMOD versioning data from JSON" );
 		GmodVersioningDto dto;
@@ -166,7 +166,7 @@ namespace dnv::vista::sdk
 				{
 					try
 					{
-						dto.items[it->name.GetString()] = GmodNodeConversionDto::FromJson( it->value );
+						dto.items[it->name.GetString()] = GmodNodeConversionDto::fromJson( it->value );
 						successCount++;
 					}
 					catch ( const std::exception& e )
@@ -188,11 +188,11 @@ namespace dnv::vista::sdk
 		return dto;
 	}
 
-	bool GmodVersioningDto::TryFromJson( const rapidjson::Value& json, GmodVersioningDto& dto )
+	bool GmodVersioningDto::tryFromJson( const rapidjson::Value& json, GmodVersioningDto& dto )
 	{
 		try
 		{
-			dto = FromJson( json );
+			dto = fromJson( json );
 			return true;
 		}
 		catch ( const std::exception& e )
@@ -202,7 +202,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	rapidjson::Value GmodVersioningDto::ToJson( rapidjson::Document::AllocatorType& allocator ) const
+	rapidjson::Value GmodVersioningDto::toJson( rapidjson::Document::AllocatorType& allocator ) const
 	{
 		SPDLOG_INFO( "Serializing GMOD versioning data to JSON, {} items", items.size() );
 		rapidjson::Value obj( rapidjson::kObjectType );
@@ -214,7 +214,7 @@ namespace dnv::vista::sdk
 		{
 			itemsObj.AddMember(
 				rapidjson::Value( key.c_str(), allocator ).Move(),
-				value.ToJson( allocator ),
+				value.toJson( allocator ),
 				allocator );
 		}
 		obj.AddMember( "items", itemsObj, allocator );

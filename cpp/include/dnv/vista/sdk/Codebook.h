@@ -23,7 +23,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Utility class for working with position validation results
 	 */
-	class PositionValidationResults
+	class PositionValidationResults final
 	{
 	public:
 		/**
@@ -38,7 +38,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Container for standard values of a codebook
 	 */
-	class CodebookStandardValues
+	class CodebookStandardValues final
 	{
 	public:
 		/**
@@ -91,7 +91,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Container for groups of a codebook
 	 */
-	class CodebookGroups
+	class CodebookGroups final
 	{
 	public:
 		/**
@@ -142,7 +142,7 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief A codebook containing standard values and their groups
 	 */
-	class Codebook
+	class Codebook final
 	{
 	public:
 		/**

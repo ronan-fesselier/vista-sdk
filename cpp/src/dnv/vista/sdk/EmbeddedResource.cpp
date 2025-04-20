@@ -318,7 +318,7 @@ namespace dnv::vista::sdk
 			std::unordered_map<std::string, GmodVersioningDto> versioningMap;
 			for ( auto it = versioningJson.MemberBegin(); it != versioningJson.MemberEnd(); ++it )
 			{
-				GmodVersioningDto dto = GmodVersioningDto::FromJson( it->value );
+				GmodVersioningDto dto = GmodVersioningDto::fromJson( it->value );
 				versioningMap[it->name.GetString()] = std::move( dto );
 			}
 

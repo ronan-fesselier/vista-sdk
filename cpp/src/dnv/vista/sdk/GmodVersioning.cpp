@@ -11,7 +11,7 @@
 
 namespace dnv::vista::sdk
 {
-	GmodVersioning::ConversionType GmodVersioning::ParseConversionType( const std::string& type )
+	GmodVersioning::ConversionType GmodVersioning::parseConversionType( const std::string& type )
 	{
 		if ( type == "ChangeCode" )
 			return ConversionType::ChangeCode;
@@ -46,7 +46,7 @@ namespace dnv::vista::sdk
 			{
 				for ( const auto& type : dtoNode.operations )
 				{
-					conversion.operations.insert( ParseConversionType( type ) );
+					conversion.operations.insert( parseConversionType( type ) );
 				}
 			}
 
@@ -54,12 +54,12 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	VisVersion GmodVersioning::GmodVersioningNode::GetVisVersion() const
+	VisVersion GmodVersioning::GmodVersioningNode::visVersion() const
 	{
 		return m_visVersion;
 	}
 
-	bool GmodVersioning::GmodVersioningNode::TryGetCodeChanges(
+	bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
 		const std::string& code, GmodNodeConversion& nodeChanges ) const
 	{
 		auto it = m_versioningNodeChanges.find( code );
@@ -75,7 +75,7 @@ namespace dnv::vista::sdk
 	{
 		for ( const auto& [versionStr, versioningDto] : dto )
 		{
-			VisVersion version = VisVersionExtensions::Parse( versionStr );
+			VisVersion version = VisVersionExtensions::parse( versionStr );
 
 			if ( !versioningDto.items.empty() )
 			{
@@ -84,15 +84,15 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	void GmodVersioning::ValidateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const
+	void GmodVersioning::validateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const
 	{
-		if ( !VisVersionExtensions::IsValid( sourceVersion ) )
+		if ( !VisVersionExtensions::isValid( sourceVersion ) )
 		{
 			SPDLOG_ERROR( "Invalid source version: {}", static_cast<int>( sourceVersion ) );
 			throw std::invalid_argument( "Invalid source version" );
 		}
 
-		if ( !VisVersionExtensions::IsValid( targetVersion ) )
+		if ( !VisVersionExtensions::isValid( targetVersion ) )
 		{
 			SPDLOG_ERROR( "Invalid target version: {}", static_cast<int>( targetVersion ) );
 			throw std::invalid_argument( "Invalid target version" );
@@ -106,9 +106,9 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	void GmodVersioning::ValidateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const
+	void GmodVersioning::validateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const
 	{
-		ValidateSourceAndTargetVersions( sourceVersion, targetVersion );
+		validateSourceAndTargetVersions( sourceVersion, targetVersion );
 
 		if ( sourceVersion == targetVersion )
 		{
@@ -125,7 +125,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool GmodVersioning::TryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const
+	bool GmodVersioning::tryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const
 	{
 		auto it = m_versioningsMap.find( visVersion );
 		if ( it != m_versioningsMap.end() )
@@ -136,19 +136,19 @@ namespace dnv::vista::sdk
 		return false;
 	}
 
-	GmodNode GmodVersioning::ConvertNodeInternal(
+	GmodNode GmodVersioning::convertNodeInternal(
 		VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const
 	{
 		auto& vis = VIS::instance();
 		const auto& targetGmod = vis.gmod( targetVersion );
 
-		std::string nextCode = sourceNode.GetCode();
+		std::string nextCode = sourceNode.code();
 
 		auto it = m_versioningsMap.find( targetVersion );
 		if ( it != m_versioningsMap.end() )
 		{
 			GmodNodeConversion change;
-			if ( it->second.TryGetCodeChanges( sourceNode.GetCode(), change ) && change.target.has_value() )
+			if ( it->second.tryGetCodeChanges( sourceNode.code(), change ) && change.target.has_value() )
 			{
 				nextCode = *change.target;
 			}
@@ -161,28 +161,28 @@ namespace dnv::vista::sdk
 		}
 
 		GmodNode result = targetNode;
-		if ( sourceNode.GetLocation().has_value() &&
-			 ( !result.GetLocation().has_value() || result.GetLocation() != sourceNode.GetLocation() ) )
+		if ( sourceNode.location().has_value() &&
+			 ( !result.location().has_value() || result.location() != sourceNode.location() ) )
 		{
-			if ( result.IsIndividualizable( false, true ) )
+			if ( result.isIndividualizable( false, true ) )
 			{
-				result = result.WithLocation( *sourceNode.GetLocation() );
+				result = result.withLocation( *sourceNode.location() );
 			}
 		}
 
 		return result;
 	}
 
-	std::optional<GmodNode> GmodVersioning::ConvertNode(
+	std::optional<GmodNode> GmodVersioning::convertNode(
 		VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const
 	{
 		if ( sourceVersion == targetVersion )
 			return sourceNode;
 
-		if ( sourceNode.GetCode().empty() )
+		if ( sourceNode.code().empty() )
 			return std::nullopt;
 
-		ValidateSourceAndTargetVersions( sourceVersion, targetVersion );
+		validateSourceAndTargetVersions( sourceVersion, targetVersion );
 
 		if ( sourceVersion < targetVersion )
 		{
@@ -192,9 +192,9 @@ namespace dnv::vista::sdk
 			while ( source < targetVersion )
 			{
 				VisVersion next = static_cast<VisVersion>( static_cast<int>( source ) + 1 );
-				node = ConvertNodeInternal( source, node, next );
+				node = convertNodeInternal( source, node, next );
 
-				if ( node.GetCode().empty() )
+				if ( node.code().empty() )
 					return std::nullopt;
 
 				source = next;
@@ -210,9 +210,9 @@ namespace dnv::vista::sdk
 			while ( source > targetVersion )
 			{
 				VisVersion prev = static_cast<VisVersion>( static_cast<int>( source ) - 1 );
-				node = ConvertNodeInternal( source, node, prev );
+				node = convertNodeInternal( source, node, prev );
 
-				if ( node.GetCode().empty() )
+				if ( node.code().empty() )
 					return std::nullopt;
 
 				source = prev;
@@ -222,21 +222,21 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	std::optional<LocalIdBuilder> GmodVersioning::ConvertLocalId(
+	std::optional<LocalIdBuilder> GmodVersioning::convertLocalId(
 		const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const
 	{
-		if ( !sourceLocalId.getVisVersion().has_value() )
+		if ( !sourceLocalId.visVersion().has_value() )
 		{
 			SPDLOG_ERROR( "Cannot convert local ID without a specific VIS version" );
 			throw std::invalid_argument( "Cannot convert local ID without a specific VIS version" );
 		}
 
 		std::optional<GmodPath> primaryItem;
-		if ( sourceLocalId.getPrimaryItem().has_value() )
+		if ( sourceLocalId.primaryItem().has_value() )
 		{
-			auto convertedPath = ConvertPath(
-				*sourceLocalId.getVisVersion(),
-				sourceLocalId.getPrimaryItem().value(),
+			auto convertedPath = convertPath(
+				*sourceLocalId.visVersion(),
+				sourceLocalId.primaryItem().value(),
 				targetVersion );
 
 			if ( convertedPath )
@@ -250,11 +250,11 @@ namespace dnv::vista::sdk
 		}
 
 		std::optional<GmodPath> secondaryItem;
-		if ( sourceLocalId.getSecondaryItem().has_value() )
+		if ( sourceLocalId.secondaryItem().has_value() )
 		{
-			auto convertedPath = ConvertPath(
-				*sourceLocalId.getVisVersion(),
-				sourceLocalId.getSecondaryItem().value(),
+			auto convertedPath = convertPath(
+				*sourceLocalId.visVersion(),
+				sourceLocalId.secondaryItem().value(),
 				targetVersion );
 
 			if ( convertedPath )
@@ -270,46 +270,46 @@ namespace dnv::vista::sdk
 		return LocalIdBuilder::create( targetVersion )
 			.tryWithPrimaryItem( primaryItem )
 			.tryWithSecondaryItem( secondaryItem )
-			.withVerboseMode( sourceLocalId.getVerboseMode() )
-			.tryWithMetadataTag( sourceLocalId.getQuantity() )
-			.tryWithMetadataTag( sourceLocalId.getContent() )
-			.tryWithMetadataTag( sourceLocalId.getCalculation() )
-			.tryWithMetadataTag( sourceLocalId.getState() )
-			.tryWithMetadataTag( sourceLocalId.getCommand() )
-			.tryWithMetadataTag( sourceLocalId.getType() )
-			.tryWithMetadataTag( sourceLocalId.getPosition() )
-			.tryWithMetadataTag( sourceLocalId.getDetail() );
+			.withVerboseMode( sourceLocalId.isVerboseMode() )
+			.tryWithMetadataTag( sourceLocalId.quantity() )
+			.tryWithMetadataTag( sourceLocalId.content() )
+			.tryWithMetadataTag( sourceLocalId.calculation() )
+			.tryWithMetadataTag( sourceLocalId.state() )
+			.tryWithMetadataTag( sourceLocalId.command() )
+			.tryWithMetadataTag( sourceLocalId.type() )
+			.tryWithMetadataTag( sourceLocalId.position() )
+			.tryWithMetadataTag( sourceLocalId.detail() );
 	}
 
-	std::optional<LocalId> GmodVersioning::ConvertLocalId(
+	std::optional<LocalId> GmodVersioning::convertLocalId(
 		const LocalId& sourceLocalId, VisVersion targetVersion ) const
 	{
-		auto builder = ConvertLocalId( sourceLocalId.getBuilder(), targetVersion );
+		auto builder = convertLocalId( sourceLocalId.builder(), targetVersion );
 		if ( !builder.has_value() )
 			return std::nullopt;
 
 		return builder->build();
 	}
 
-	std::optional<GmodPath> GmodVersioning::ConvertPath(
+	std::optional<GmodPath> GmodVersioning::convertPath(
 		VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
 	{
-		ValidateSourceAndTargetVersions( sourceVersion, targetVersion );
+		validateSourceAndTargetVersions( sourceVersion, targetVersion );
 
-		auto targetEndNode = ConvertNode( sourceVersion, sourcePath.GetNode(), targetVersion );
+		auto targetEndNode = convertNode( sourceVersion, sourcePath.node(), targetVersion );
 		if ( !targetEndNode.has_value() )
 			return std::nullopt;
 
-		if ( targetEndNode->IsRoot() )
+		if ( targetEndNode->isRoot() )
 			return GmodPath( {}, *targetEndNode, true );
 
 		const auto& sourceGmod = VIS::instance().gmod( sourceVersion );
 		const auto& targetGmod = VIS::instance().gmod( targetVersion );
 
 		std::vector<std::pair<GmodNode, GmodNode>> qualifyingNodes;
-		for ( const auto& pathNode : sourcePath.GetFullPath() )
+		for ( const auto& pathNode : sourcePath.fullPath() )
 		{
-			auto convertedNode = ConvertNode( sourceVersion, pathNode.second, targetVersion );
+			auto convertedNode = convertNode( sourceVersion, pathNode.second, targetVersion );
 			if ( !convertedNode.has_value() )
 				return std::nullopt;
 
@@ -317,7 +317,7 @@ namespace dnv::vista::sdk
 		}
 
 		if ( std::any_of( qualifyingNodes.begin(), qualifyingNodes.end(),
-				 []( const auto& pair ) { return pair.second.GetCode().empty(); } ) )
+				 []( const auto& pair ) { return pair.second.code().empty(); } ) )
 		{
 			SPDLOG_ERROR( "Failed to convert node forward" );
 			throw std::runtime_error( "Failed to convert node forward" );
@@ -329,18 +329,18 @@ namespace dnv::vista::sdk
 			potentialParents.push_back( qualifyingNodes[i].second );
 		}
 
-		if ( GmodPath::IsValid( potentialParents, *targetEndNode ) )
+		if ( GmodPath::isValid( potentialParents, *targetEndNode ) )
 			return GmodPath( potentialParents, *targetEndNode, true );
 
 		auto addToPath = []( std::vector<GmodNode>& path, const GmodNode& node ) {
 			if ( !path.empty() )
 			{
 				const GmodNode& prev = path.back();
-				if ( !prev.IsChild( node ) )
+				if ( !prev.isChild( node ) )
 				{
-					for ( const auto* parent : node.GetParents() )
+					for ( const auto* parent : node.parents() )
 					{
-						if ( parent->GetCode() == prev.GetCode() )
+						if ( parent->code() == prev.code() )
 						{
 							return true;
 						}
@@ -359,13 +359,13 @@ namespace dnv::vista::sdk
 			const auto& sourceNode = qualifyingNode.first;
 			const auto& targetNode = qualifyingNode.second;
 
-			if ( i > 0 && targetNode.GetCode() == qualifyingNodes[i - 1].second.GetCode() )
+			if ( i > 0 && targetNode.code() == qualifyingNodes[i - 1].second.code() )
 				continue;
 
-			bool codeChanged = sourceNode.GetCode() != targetNode.GetCode();
+			bool codeChanged = sourceNode.code() != targetNode.code();
 
-			const GmodNode* sourceNormalAssignment = sourceNode.ProductType();
-			const GmodNode* targetNormalAssignment = targetNode.ProductType();
+			const GmodNode* sourceNormalAssignment = sourceNode.productType();
+			const GmodNode* targetNormalAssignment = targetNode.productType();
 
 			bool normalAssignmentChanged = false;
 			bool wasDeleted = false;
@@ -378,21 +378,21 @@ namespace dnv::vista::sdk
 			else if ( sourceNormalAssignment != nullptr && targetNormalAssignment != nullptr )
 			{
 				auto convertedSourceNormalAssignment =
-					ConvertNode( sourceVersion, *sourceNormalAssignment, targetVersion );
+					convertNode( sourceVersion, *sourceNormalAssignment, targetVersion );
 
 				normalAssignmentChanged =
 					!convertedSourceNormalAssignment.has_value() ||
-					convertedSourceNormalAssignment->GetCode() != targetNormalAssignment->GetCode();
+					convertedSourceNormalAssignment->code() != targetNormalAssignment->code();
 			}
 
 			bool selectionChanged = false;
-			if ( sourceNode.IsProductSelection() != targetNode.IsProductSelection() )
+			if ( sourceNode.isProductSelection() != targetNode.isProductSelection() )
 			{
 				selectionChanged = true;
 			}
-			else if ( sourceNode.IsProductSelection() && targetNode.IsProductSelection() )
+			else if ( sourceNode.isProductSelection() && targetNode.isProductSelection() )
 			{
-				selectionChanged = sourceNode.GetCode() != targetNode.GetCode();
+				selectionChanged = sourceNode.code() != targetNode.code();
 			}
 
 			if ( codeChanged )
@@ -407,20 +407,20 @@ namespace dnv::vista::sdk
 			{
 				// AC || AN || AD
 
-				if ( !codeChanged && !path.empty() && path.back().GetCode() == targetNode.GetCode() )
+				if ( !codeChanged && !path.empty() && path.back().code() == targetNode.code() )
 				{
 					continue;
 				}
 
 				if ( wasDeleted )
 				{
-					if ( targetNode.GetCode() == targetEndNode->GetCode() )
+					if ( targetNode.code() == targetEndNode->code() )
 					{
 						bool skipNode = false;
 						if ( i + 1 < qualifyingNodes.size() )
 						{
 							const auto& next = qualifyingNodes[i + 1];
-							if ( next.second.GetCode() != qualifyingNode.second.GetCode() )
+							if ( next.second.code() != qualifyingNode.second.code() )
 							{
 								skipNode = true;
 							}
@@ -435,7 +435,7 @@ namespace dnv::vista::sdk
 						}
 					}
 				}
-				else if ( targetNode.GetCode() != targetEndNode->GetCode() )
+				else if ( targetNode.code() != targetEndNode->code() )
 				{
 					if ( !addToPath( path, targetNode ) )
 					{
@@ -457,7 +457,7 @@ namespace dnv::vista::sdk
 				}
 			}
 
-			if ( !path.empty() && path.back().GetCode() == targetEndNode->GetCode() )
+			if ( !path.empty() && path.back().code() == targetEndNode->code() )
 			{
 				break;
 			}
@@ -473,7 +473,7 @@ namespace dnv::vista::sdk
 		targetEndNode = path.back();
 
 		int missingLinkAt = -1;
-		if ( !GmodPath::IsValid( potentialParents, *targetEndNode, missingLinkAt ) )
+		if ( !GmodPath::isValid( potentialParents, *targetEndNode, missingLinkAt ) )
 		{
 			SPDLOG_ERROR( "Failed to create a valid path. Missing link at: {}", missingLinkAt );
 			throw std::runtime_error( "Failed to create a valid path. Missing link at: " +

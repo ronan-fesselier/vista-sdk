@@ -8,7 +8,7 @@ namespace dnv::vista::sdk
 	 * @brief Structure representing primary and secondary items for a LocalId
 	 * @note Internal implementation detail for LocalId functionality
 	 */
-	class LocalIdItems
+	class LocalIdItems final
 	{
 	public:
 		//-------------------------------------------------------------------------
@@ -50,13 +50,13 @@ namespace dnv::vista::sdk
 		 * @brief Get primary item
 		 * @return Optional primary item
 		 */
-		const std::optional<GmodPath>& getPrimaryItem() const;
+		const std::optional<GmodPath>& primaryItem() const;
 
 		/**
 		 * @brief Get secondary item
 		 * @return Optional secondary item
 		 */
-		const std::optional<GmodPath>& getSecondaryItem() const;
+		const std::optional<GmodPath>& secondaryItem() const;
 
 		//-------------------------------------------------------------------------
 		// String Generation

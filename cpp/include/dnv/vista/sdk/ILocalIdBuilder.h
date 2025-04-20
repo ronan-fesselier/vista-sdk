@@ -8,7 +8,6 @@
 
 namespace dnv::vista::sdk
 {
-	// Forward declaration for LocalIdBuilder to avoid circular includes
 	class LocalIdBuilder;
 
 	/**
@@ -52,25 +51,25 @@ namespace dnv::vista::sdk
 		 * @brief Gets the VIS version
 		 * @return The VIS version, if specified
 		 */
-		virtual std::optional<VisVersion> getVisVersion() const = 0;
+		virtual std::optional<VisVersion> visVersion() const = 0;
 
 		/**
 		 * @brief Checks if verbose mode is enabled
 		 * @return True if verbose mode is enabled
 		 */
-		virtual bool getVerboseMode() const = 0;
+		virtual bool isVerboseMode() const = 0;
 
 		/**
 		 * @brief Gets the primary item path
 		 * @return The primary item path, if specified
 		 */
-		virtual const std::optional<GmodPath>& getPrimaryItem() const = 0;
+		virtual const std::optional<GmodPath>& primaryItem() const = 0;
 
 		/**
 		 * @brief Gets the secondary item path
 		 * @return The secondary item path, if specified
 		 */
-		virtual const std::optional<GmodPath>& getSecondaryItem() const = 0;
+		virtual const std::optional<GmodPath>& secondaryItem() const = 0;
 
 		/**
 		 * @brief Checks if the builder has a custom tag
@@ -82,7 +81,7 @@ namespace dnv::vista::sdk
 		 * @brief Gets all metadata tags
 		 * @return A const reference to the vector of metadata tags
 		 */
-		virtual const std::vector<MetadataTag> getMetadataTags() const = 0;
+		virtual const std::vector<MetadataTag> metadataTags() const = 0;
 
 		/**
 		 * @brief Checks if the builder contains valid data for building a Local ID

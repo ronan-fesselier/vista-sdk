@@ -12,13 +12,13 @@ namespace dnv::vista::sdk
 	/**
 	 * @brief Container for all codebooks in a specific VIS version
 	 */
-	class Codebooks
+	class Codebooks final
 	{
 	public:
 		/**
 		 * @brief Iterator for codebooks
 		 */
-		class Iterator
+		class Iterator final
 		{
 		public:
 			using iterator_category = std::forward_iterator_tag;

@@ -4,7 +4,7 @@
 
 namespace dnv::vista::sdk
 {
-	bool VisVersionExtensions::IsValid( VisVersion version )
+	bool VisVersionExtensions::isValid( VisVersion version )
 	{
 		switch ( version )
 		{
@@ -42,7 +42,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool VisVersionExtensions::TryParse( const std::string& versionString, VisVersion& version )
+	bool VisVersionExtensions::tryParse( const std::string& versionString, VisVersion& version )
 	{
 		if ( versionString == "3.4a" )
 			version = VisVersion::v3_4a;
@@ -71,7 +71,7 @@ namespace dnv::vista::sdk
 
 			if ( normalizedVersion != versionString )
 			{
-				return TryParse( normalizedVersion, version );
+				return tryParse( normalizedVersion, version );
 			}
 			return false;
 		}
@@ -79,10 +79,10 @@ namespace dnv::vista::sdk
 		return true;
 	}
 
-	VisVersion VisVersionExtensions::Parse( const std::string& versionString )
+	VisVersion VisVersionExtensions::parse( const std::string& versionString )
 	{
 		VisVersion result;
-		if ( !TryParse( versionString, result ) )
+		if ( !tryParse( versionString, result ) )
 		{
 			SPDLOG_ERROR( "Invalid VIS version string: {}", versionString );
 			throw std::invalid_argument( "Invalid VIS version string: " + versionString );
@@ -90,7 +90,7 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	std::vector<VisVersion> VisVersionExtensions::GetAllVersions()
+	std::vector<VisVersion> VisVersionExtensions::allVersions()
 	{
 		static const std::array<VisVersion, 5> allVersions = {
 			VisVersion::v3_4a,
@@ -102,9 +102,9 @@ namespace dnv::vista::sdk
 		return std::vector<VisVersion>( allVersions.begin(), allVersions.end() );
 	}
 
-	VisVersion VisVersionExtensions::GetLatestVersion()
+	VisVersion VisVersionExtensions::latestVersion()
 	{
-		auto versions = GetAllVersions();
+		auto versions = allVersions();
 		return versions.empty() ? VisVersion::Unknown : versions.back();
 	}
 }

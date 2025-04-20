@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 	 * Provides conversion methods between CodebookName enum values
 	 * and their string prefix representations as defined in the ISO 19848 standard.
 	 */
-	class CodebookNames
+	class CodebookNames final
 	{
 	public:
 		/**

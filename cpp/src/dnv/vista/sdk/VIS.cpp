@@ -14,7 +14,7 @@
 
 namespace dnv::vista::sdk
 {
-	const VisVersion VIS::LatestVisVersion = VisVersionExtensions::GetLatestVersion();
+	const VisVersion VIS::LatestVisVersion = VisVersionExtensions::latestVersion();
 	const std::string VIS::m_versioning = "versioning";
 
 	VIS& VIS::instance()
@@ -54,7 +54,7 @@ namespace dnv::vista::sdk
 
 	Gmod VIS::gmod( VisVersion visVersion ) const
 	{
-		if ( !VisVersionExtensions::IsValid( visVersion ) )
+		if ( !VisVersionExtensions::isValid( visVersion ) )
 		{
 			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
 			throw std::invalid_argument( "Invalid VIS version: " +
@@ -133,7 +133,7 @@ namespace dnv::vista::sdk
 
 	Codebooks VIS::codebooks( VisVersion visVersion )
 	{
-		if ( !VisVersionExtensions::IsValid( visVersion ) )
+		if ( !VisVersionExtensions::isValid( visVersion ) )
 		{
 			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
 			throw std::invalid_argument( "Invalid VIS version" );
@@ -169,7 +169,7 @@ namespace dnv::vista::sdk
 
 	Locations VIS::locations( VisVersion visVersion )
 	{
-		if ( !VisVersionExtensions::IsValid( visVersion ) )
+		if ( !VisVersionExtensions::isValid( visVersion ) )
 		{
 			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
 			throw std::invalid_argument( "Invalid VIS version" );
@@ -252,41 +252,41 @@ namespace dnv::vista::sdk
 	std::vector<VisVersion> VIS::visVersions()
 	{
 		SPDLOG_INFO( "Getting all VIS versions" );
-		return VisVersionExtensions::GetAllVersions();
+		return VisVersionExtensions::allVersions();
 	}
 
 	std::optional<GmodNode> VIS::convertNode( const GmodNode& sourceNode, VisVersion targetVersion,
 		const GmodNode* sourceParent )
 	{
-		return convertNode( sourceNode.GetVisVersion(), sourceNode, targetVersion );
+		return convertNode( sourceNode.visVersion(), sourceNode, targetVersion );
 	}
 
 	std::optional<GmodNode> VIS::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
 		VisVersion targetVersion )
 	{
-		return gmodVersioning().ConvertNode( sourceVersion, sourceNode, targetVersion );
+		return gmodVersioning().convertNode( sourceVersion, sourceNode, targetVersion );
 	}
 
 	std::optional<GmodPath> VIS::convertPath( const GmodPath& sourcePath, VisVersion targetVersion )
 	{
-		return convertPath( sourcePath.GetVisVersion(), sourcePath, targetVersion );
+		return convertPath( sourcePath.visVersion(), sourcePath, targetVersion );
 	}
 
 	std::optional<GmodPath> VIS::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath,
 		VisVersion targetVersion )
 	{
-		return gmodVersioning().ConvertPath( sourceVersion, sourcePath, targetVersion );
+		return gmodVersioning().convertPath( sourceVersion, sourcePath, targetVersion );
 	}
 
 	std::optional<LocalIdBuilder> VIS::convertLocalId( const LocalIdBuilder& sourceLocalId,
 		VisVersion targetVersion )
 	{
-		return gmodVersioning().ConvertLocalId( sourceLocalId, targetVersion );
+		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
 	}
 
 	std::optional<LocalId> VIS::convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion )
 	{
-		return gmodVersioning().ConvertLocalId( sourceLocalId, targetVersion );
+		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
 	}
 
 	bool VIS::matchISOLocalIdString( const std::string& value )

@@ -11,7 +11,7 @@ namespace dnv::vista::sdk
 	 * whether it is a custom tag. It is used to store and manage metadata
 	 * associated with various entities in the system.
 	 */
-	class MetadataTag
+	class MetadataTag final
 	{
 	public:
 		//-------------------------------------------------------------------------

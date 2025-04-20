@@ -7,7 +7,7 @@ namespace dnv::vista::sdk
 	 *
 	 * This class is used to store and manage errors encountered during parsing operations.
 	 */
-	class ParsingErrors
+	class ParsingErrors final
 	{
 	public:
 		//-------------------------------------------------------------------------
@@ -99,7 +99,7 @@ namespace dnv::vista::sdk
 		 *
 		 * Provides a forward iterator for iterating over the error entries in the ParsingErrors object.
 		 */
-		class Iterator
+		class Iterator final
 		{
 		public:
 			using iterator_category = std::forward_iterator_tag; ///< Iterator category.

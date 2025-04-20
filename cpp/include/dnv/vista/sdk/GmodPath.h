@@ -18,7 +18,7 @@ namespace dnv::vista::sdk
 	 * forming a hierarchical path through the GMOD structure as defined in ISO 19848.
 	 * Each node in the path may have an optional location.
 	 */
-	class GmodPath
+	class GmodPath final
 	{
 	public:
 		GmodPath() = default; // TODO Delete later
@@ -98,49 +98,49 @@ namespace dnv::vista::sdk
 		 */
 		GmodNode& operator[]( int depth );
 
-		size_t getHashCode() const;
+		size_t hashCode() const;
 
 		/**
 		 * @brief Get the full path as depth-node pairs
 		 * @return Vector of pairs containing (depth, node) for each node in the path
 		 */
-		std::vector<std::pair<int, GmodNode>> GetFullPath() const;
+		std::vector<std::pair<int, GmodNode>> fullPath() const;
 
 		/**
 		 * @brief Get the parent nodes in the path
 		 * @return Const reference to the vector of parent nodes
 		 */
-		const std::vector<GmodNode>& GetParents() const;
+		const std::vector<GmodNode>& parents() const;
 
 		/**
 		 * @brief Get the target node at the end of the path
 		 * @return Const reference to the target node
 		 */
-		const GmodNode& GetNode() const;
+		const GmodNode& node() const;
 
 		/**
 		 * @brief Get the VIS version of this path
 		 * @return The VIS version enum value
 		 */
-		VisVersion GetVisVersion() const;
+		VisVersion visVersion() const;
 
 		/**
 		 * @brief Get the total length of the path (parents + target node)
 		 * @return The number of nodes in the path
 		 */
-		int GetLength() const;
+		int length() const;
 
 		/**
 		 * @brief Check if the path's target node is mappable
 		 * @return True if the target node can be mapped to other nodes
 		 */
-		bool IsMappable() const;
+		bool isMappable() const;
 
 		/**
 		 * @brief Create a copy of this path with all locations removed
 		 * @return A new GmodPath with the same nodes but no locations
 		 */
-		GmodPath WithoutLocations() const;
+		GmodPath withoutLocations() const;
 
 		/**
 		 * @brief Convert the path to a string representation
@@ -149,7 +149,7 @@ namespace dnv::vista::sdk
 		 *
 		 * @return String representation of the path
 		 */
-		std::string ToString() const;
+		std::string toString() const;
 
 		/**
 		 * @brief Write string representation to a string stream
@@ -157,31 +157,31 @@ namespace dnv::vista::sdk
 		 * @param builder The string stream to write to
 		 * @param separator The separator character to use between nodes (default: '/')
 		 */
-		void ToString( std::stringstream& builder, char separator = '/' ) const;
+		void toString( std::stringstream& builder, char separator = '/' ) const;
 
 		/**
 		 * @brief Convert to a full path string representation including all nodes
 		 * @return String representation of the full path
 		 */
-		std::string ToFullPathString() const;
+		std::string toFullPathString() const;
 
 		/**
 		 * @brief Write full path string representation to a string stream
 		 * @param builder The string stream to write to
 		 */
-		void ToFullPathString( std::stringstream& builder ) const;
+		void toFullPathString( std::stringstream& builder ) const;
 
 		/**
 		 * @brief Get a detailed string representation for debugging
 		 * @return Detailed string representation with node information
 		 */
-		std::string ToStringDump() const;
+		std::string toStringDump() const;
 
 		/**
 		 * @brief Write detailed debug representation to a string stream
 		 * @param builder The string stream to write to
 		 */
-		void ToStringDump( std::stringstream& builder ) const;
+		void toStringDump( std::stringstream& builder ) const;
 
 		/**
 		 * @brief Get normal assignment name for a node at specific depth
@@ -189,19 +189,19 @@ namespace dnv::vista::sdk
 		 * @param nodeDepth The depth of the node to get the name for
 		 * @return The normal assignment name if present, or std::nullopt
 		 */
-		std::optional<std::string> GetNormalAssignmentName( int nodeDepth ) const;
+		std::optional<std::string> normalAssignmentName( int nodeDepth ) const;
 
 		/**
 		 * @brief Get all common names in the path
 		 * @return Vector of pairs with (depth, common_name)
 		 */
-		std::vector<std::pair<int, std::string>> GetCommonNames() const;
+		std::vector<std::pair<int, std::string>> commonNames() const;
 
 		/**
 		 * @brief Check if the path contains any individualizable nodes
 		 * @return True if at least one node in the path is individualizable
 		 */
-		bool IsIndividualizable() const;
+		bool isIndividualizable() const;
 
 		/**
 		 * @brief Get all individualizable sets in this path
@@ -211,7 +211,7 @@ namespace dnv::vista::sdk
 		 *
 		 * @return Vector of individualizable sets
 		 */
-		std::vector<GmodIndividualizableSet> GetIndividualizableSets() const;
+		std::vector<GmodIndividualizableSet> individualizableSets() const;
 
 		/**
 		 * @brief Validate a path structure
@@ -220,7 +220,7 @@ namespace dnv::vista::sdk
 		 * @param node Target node
 		 * @return True if the path is valid
 		 */
-		static bool IsValid( const std::vector<GmodNode>& parents, const GmodNode& node );
+		static bool isValid( const std::vector<GmodNode>& parents, const GmodNode& node );
 
 		/**
 		 * @brief Validate a path structure and get the location of any invalid link
@@ -230,7 +230,7 @@ namespace dnv::vista::sdk
 		 * @param[out] missingLinkAt Index of the invalid parent-child link if any
 		 * @return True if the path is valid
 		 */
-		static bool IsValid( const std::vector<GmodNode>& parents, const GmodNode& node, int& missingLinkAt );
+		static bool isValid( const std::vector<GmodNode>& parents, const GmodNode& node, int& missingLinkAt );
 
 		/**
 		 * @brief Parse a path string with a specific VIS version
@@ -240,7 +240,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed GmodPath
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		static GmodPath Parse( const std::string& item, VisVersion visVersion );
+		static GmodPath parse( const std::string& item, VisVersion visVersion );
 
 		/**
 		 * @brief Try to parse a path string with a specific VIS version
@@ -250,7 +250,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path );
+		static bool tryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path );
 
 		/**
 		 * @brief Parse a path string using specific GMOD and Locations objects
@@ -261,7 +261,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed GmodPath
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		static GmodPath Parse( const std::string& item, const Gmod& gmod, const Locations& locations );
+		static GmodPath parse( const std::string& item, const Gmod& gmod, const Locations& locations );
 
 		/**
 		 * @brief Try to parse a path string using specific GMOD and Locations objects
@@ -272,7 +272,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParse( const std::string& item, const Gmod& gmod, const Locations& locations, GmodPath& path );
+		static bool tryParse( const std::string& item, const Gmod& gmod, const Locations& locations, GmodPath& path );
 
 		/**
 		 * @brief Parse a full path string with a specific VIS version
@@ -282,7 +282,7 @@ namespace dnv::vista::sdk
 		 * @return The parsed GmodPath
 		 * @throws std::invalid_argument If parsing fails
 		 */
-		static GmodPath ParseFullPath( const std::string& pathStr, VisVersion visVersion );
+		static GmodPath parseFullPath( const std::string& pathStr, VisVersion visVersion );
 
 		/**
 		 * @brief Try to parse a full path string with a specific VIS version
@@ -292,7 +292,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParseFullPath( const std::string& pathStr, VisVersion visVersion, GmodPath& path );
+		static bool tryParseFullPath( const std::string& pathStr, VisVersion visVersion, GmodPath& path );
 
 		/**
 		 * @brief Try to parse a full path string with a specific VIS version
@@ -302,7 +302,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParseFullPath( std::string_view pathStr, VisVersion visVersion, GmodPath& path );
+		static bool tryParseFullPath( std::string_view pathStr, VisVersion visVersion, GmodPath& path );
 
 		/**
 		 * @brief Try to parse a full path string using specific GMOD and Locations objects
@@ -313,7 +313,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter to store the parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		static bool TryParseFullPath( std::string_view pathStr, const Gmod& gmod, const Locations& locations, GmodPath& path );
+		static bool tryParseFullPath( std::string_view pathStr, const Gmod& gmod, const Locations& locations, GmodPath& path );
 
 	private:
 		/**
@@ -324,7 +324,7 @@ namespace dnv::vista::sdk
 		 * @param locations The Locations object to use for resolving locations
 		 * @return A GmodParsePathResult containing either a path or an error
 		 */
-		static GmodParsePathResult ParseInternal( const std::string& item, const Gmod& gmod, const Locations& locations );
+		static GmodParsePathResult parseInternal( const std::string& item, const Gmod& gmod, const Locations& locations );
 
 		/**
 		 * @brief Internal method to parse a full path string
@@ -334,7 +334,7 @@ namespace dnv::vista::sdk
 		 * @param locations The Locations object to use for resolving locations
 		 * @return A GmodParsePathResult containing either a path or an error
 		 */
-		static GmodParsePathResult ParseFullPathInternal( std::string_view span, const Gmod& gmod, const Locations& locations );
+		static GmodParsePathResult parseFullPathInternal( std::string_view span, const Gmod& gmod, const Locations& locations );
 
 	private:
 		/** @brief Vector of parent nodes in the path (from root to target) */
@@ -352,7 +352,7 @@ namespace dnv::vista::sdk
 		 *
 		 * Provides sequential access to the nodes in the path with their depths.
 		 */
-		class Enumerator
+		class Enumerator final
 		{
 		public:
 			/**
@@ -367,20 +367,20 @@ namespace dnv::vista::sdk
 			 * @brief Move to the next node in the path
 			 * @return True if moved to a valid node, false if reached the end
 			 */
-			bool MoveNext();
+			bool moveNext();
 
 			/**
 			 * @brief Get the current node and its depth
 			 * @return Pair of (depth, node_reference)
 			 */
-			std::pair<int, std::reference_wrapper<const GmodNode>> GetCurrent() const;
+			std::pair<int, std::reference_wrapper<const GmodNode>> current() const;
 
 			/**
 			 * @brief Iterator adapter for the Enumerator
 			 *
 			 * Enables use with range-based for loops and standard algorithms.
 			 */
-			class Iterator
+			class Iterator final
 			{
 			private:
 				/** @brief Reference to the underlying enumerator */
@@ -472,7 +472,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains the successfully parsed GmodPath.
 	 */
-	class GmodParsePathResult::Ok : public GmodParsePathResult
+	class GmodParsePathResult::Ok final : public GmodParsePathResult
 	{
 	public:
 		/** @brief The successfully parsed path */
@@ -491,7 +491,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains an error message describing why parsing failed.
 	 */
-	class GmodParsePathResult::Err : public GmodParsePathResult
+	class GmodParsePathResult::Err final : public GmodParsePathResult
 	{
 	public:
 		/** @brief Error message describing the parsing failure */
@@ -510,7 +510,7 @@ namespace dnv::vista::sdk
 	 * An individualizable set is a group of nodes that can be assigned
 	 * a unique instance identifier and share the same location.
 	 */
-	class GmodIndividualizableSet
+	class GmodIndividualizableSet final
 	{
 	public:
 		/**
@@ -526,38 +526,38 @@ namespace dnv::vista::sdk
 		 * @brief Get the actual nodes in this set
 		 * @return Vector of nodes
 		 */
-		std::vector<GmodNode> GetNodes() const;
+		std::vector<GmodNode> nodes() const;
 
 		/**
 		 * @brief Get the indices of nodes in this set
 		 * @return Const reference to the vector of indices
 		 */
-		const std::vector<int>& GetNodeIndices() const;
+		const std::vector<int>& nodeIndices() const;
 
 		/**
 		 * @brief Get the location associated with this set
 		 * @return The location if present, or std::nullopt
 		 */
-		std::optional<Location> GetLocation() const;
+		std::optional<Location> location() const;
 
 		/**
 		 * @brief Set the location for all nodes in this set
 		 * @param location The location to set, or std::nullopt to remove location
 		 */
-		void SetLocation( const std::optional<Location>& location );
+		void setLocation( const std::optional<Location>& location );
 
 		/**
 		 * @brief Build and return the modified path
 		 * @return The path with any modifications applied
 		 * @throws std::runtime_error If the set was already built
 		 */
-		GmodPath Build();
+		GmodPath build();
 
 		/**
 		 * @brief Convert to string representation
 		 * @return String representation of the individualizable set
 		 */
-		std::string ToString() const;
+		std::string toString() const;
 
 	private:
 		/** @brief Indices of nodes in the individualizable set */
@@ -572,7 +572,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains the node's code and optional location.
 	 */
-	struct PathNode
+	struct PathNode final
 	{
 		/** @brief Code identifying the node */
 		std::string code;
@@ -594,7 +594,7 @@ namespace dnv::vista::sdk
 	 *
 	 * Contains the state needed during path parsing operations.
 	 */
-	struct ParseContext
+	struct ParseContext final
 	{
 		/** @brief Queue of remaining path nodes to process */
 		std::queue<PathNode> parts;

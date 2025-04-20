@@ -16,7 +16,7 @@ namespace dnv::vista::sdk
 	{
 		if ( primaryItem.has_value() )
 		{
-			SPDLOG_INFO( "LocalIdItems: primaryItem: {}", primaryItem->ToString() );
+			SPDLOG_INFO( "LocalIdItems: primaryItem: {}", primaryItem->toString() );
 			m_primaryItem = primaryItem;
 		}
 		else
@@ -26,7 +26,7 @@ namespace dnv::vista::sdk
 
 		if ( secondaryItem.has_value() )
 		{
-			SPDLOG_INFO( "LocalIdItems: secondaryItem: {}", secondaryItem->ToString() );
+			SPDLOG_INFO( "LocalIdItems: secondaryItem: {}", secondaryItem->toString() );
 			m_secondaryItem = secondaryItem;
 		}
 		else
@@ -57,12 +57,12 @@ namespace dnv::vista::sdk
 	// Core Properties
 	//-------------------------------------------------------------------------
 
-	const std::optional<GmodPath>& LocalIdItems::getPrimaryItem() const
+	const std::optional<GmodPath>& LocalIdItems::primaryItem() const
 	{
 		return m_primaryItem;
 	}
 
-	const std::optional<GmodPath>& LocalIdItems::getSecondaryItem() const
+	const std::optional<GmodPath>& LocalIdItems::secondaryItem() const
 	{
 		return m_secondaryItem;
 	}
@@ -80,14 +80,14 @@ namespace dnv::vista::sdk
 
 		if ( m_primaryItem.has_value() )
 		{
-			m_primaryItem->ToString( builder );
+			m_primaryItem->toString( builder );
 			builder << '/';
 		}
 
 		if ( m_secondaryItem.has_value() )
 		{
 			builder << "sec/";
-			m_secondaryItem->ToString( builder );
+			m_secondaryItem->toString( builder );
 			builder << '/';
 		}
 
@@ -97,13 +97,13 @@ namespace dnv::vista::sdk
 
 			if ( m_primaryItem.has_value() )
 			{
-				for ( const auto& [depth, name] : m_primaryItem->GetCommonNames() )
+				for ( const auto& [depth, name] : m_primaryItem->commonNames() )
 				{
 					builder << '~';
 					std::optional<std::string> location;
 
-					if ( ( *m_primaryItem )[depth].GetLocation().has_value() )
-						location = ( *m_primaryItem )[depth].GetLocation()->toString();
+					if ( ( *m_primaryItem )[depth].location().has_value() )
+						location = ( *m_primaryItem )[depth].location()->toString();
 
 					appendCommonName( builder, name, location );
 					builder << '/';
@@ -113,7 +113,7 @@ namespace dnv::vista::sdk
 			if ( m_secondaryItem.has_value() )
 			{
 				std::string prefix = "~for.";
-				for ( const auto& [depth, name] : m_secondaryItem->GetCommonNames() )
+				for ( const auto& [depth, name] : m_secondaryItem->commonNames() )
 				{
 					builder << prefix;
 					if ( prefix != "~" )
@@ -121,8 +121,8 @@ namespace dnv::vista::sdk
 
 					std::optional<std::string> location;
 
-					if ( ( *m_secondaryItem )[depth].GetLocation().has_value() )
-						location = ( *m_secondaryItem )[depth].GetLocation()->toString();
+					if ( ( *m_secondaryItem )[depth].location().has_value() )
+						location = ( *m_secondaryItem )[depth].location()->toString();
 
 					appendCommonName( builder, name, location );
 					builder << '/';
