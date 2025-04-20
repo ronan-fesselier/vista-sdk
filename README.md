@@ -45,6 +45,13 @@ Each SDK makes use of the contents of the resources and schemas folders to gener
  ┃ ┣ 📂json
  ┃ ┃ ┣ 📜DataChannelList.schema.json
  ┃ ┃ ┗ 📜TimeSeriesData.schema.json
+<<<<<<< HEAD
+=======
+ ┃ ┣ 📂xml
+ ┃ ┃ ┣ 📜DataChannelList.xsd
+ ┃ ┃ ┗ 📜TimeSeriesData.xsd
+ ┣ 📂testdata
+>>>>>>> 127754e (Refactor: Major C++ SDK improvements and testing consolidation)
  ┣ 📂csharp
  ┣ 📂python
  ┣ 📂js
@@ -141,3 +148,40 @@ builder = builder.TryWithValue(item, out var success)
 * `With` should be used when the operation is expected to receive non-nullable values and succeed without further checking. It will throw error if provided with wrong arguments.
 * `TryWith` should be used in two cases: When you don't want to be bothered by failures behind the scene, and when you want to know if it went ok, but without exceptions. If you want to check if the opration went as expected, you can use the try do out param - "succeeded" e.g. TryWithSomething(intput, out bool succeeded).
 * `Without` provides functionality for removing certain elements from the chain. Typically without arguments/limited arguments
+<<<<<<< HEAD
+=======
+
+### C++ SDK
+
+The C++ implementation of the Vista SDK provides a native library for working with the VIS standard, ISO 19847/19848, and related functionality.
+It follows the same patterns and design principles as the C# implementation while leveraging C++ idioms and performance characteristics.
+
+#### Dependencies
+
+The C++ SDK uses [vcpkg](https://github.com/microsoft/vcpkg) for dependency management. The required libraries are listed below:
+
+- [RapidJSON](https://rapidjson.org/): For JSON parsing and serialization
+- [spdlog](https://github.com/gabime/spdlog): For structured logging (development phase only)
+- [ZLIB](https://www.zlib.net/): For compression and decompression of resources
+- [cpuid](https://github.com/anrieff/libcpuid): For CPU feature detection (intrinsic capabilities)
+- [async_mqtt_iface](https://github.com/redboltz/async_mqtt): For MQTT communication interface
+- [GoogleTest](https://github.com/google/googletest): For unit testing framework
+
+#### Building with CMake
+
+```bash
+# Clone the repository
+git clone https://github.com/dnv-opensource/vista-sdk.git
+cd vista-sdk
+
+# Configure CMake with vcpkg toolchain
+cmake -B build -S cpp -DCMAKE_TOOLCHAIN_FILE=[path_to_vcpkg]/scripts/buildsystems/vcpkg.cmake
+
+# Build
+cmake --build build --config Release
+
+# Run tests
+cd build
+ctest -C Release
+```
+>>>>>>> 127754e (Refactor: Major C++ SDK improvements and testing consolidation)

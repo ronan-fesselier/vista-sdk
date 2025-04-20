@@ -95,3 +95,4 @@ Thumbs.db
 
 # Python test files
 *.pytest_cache/
+build/
