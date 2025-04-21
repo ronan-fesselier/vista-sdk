@@ -36,6 +36,31 @@ jobs:
         cmakeVersion: "~3.27.0"
         ninjaVersion: "~1.11.0"
 
+    - name: Install ccache
+      run: |
+        choco install ccache -y
+        ccache --version
+      shell: cmd
+
+    - name: Cache ccache directory
+      uses: actions/cache@v4
+      id: ccache-cache
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('cpp/**/*.cpp', 'cpp/**/*.h', 'cpp/**/*.hpp') }}-v1
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ matrix.build_type }}-v1
+          ccache-${{ runner.os }}-v1
+
+    - name: Configure ccache
+      run: |
+        mkdir -p ${{ github.workspace }}\.ccache
+        ccache --max-size=2G
+        ccache --set-config=hash_dir=false
+        ccache --set-config=cache_dir=${{ github.workspace }}\.ccache
+        ccache -z
+      shell: cmd
+
     - name: Cache vcpkg
       uses: actions/cache@v4
       id: vcpkg-cache
@@ -84,9 +109,14 @@ jobs:
         ninja --version
       shell: cmd
 
-    - name: Configure CMake
+    - name: Configure CMake with ccache
       run: |
-        cmake -B ${{ github.workspace }}/build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=20 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake -B ${{ github.workspace }}/build -G "Ninja" ^
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
+        -DCMAKE_CXX_STANDARD=20 ^
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
+        -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
       shell: cmd
 
     - name: Build
@@ -94,3 +124,7 @@ jobs:
         cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
       shell: cmd
 
+    - name: ccache statistics
+      run: |
+        ccache -s
+      shell: cmd

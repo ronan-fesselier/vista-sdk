@@ -22,11 +22,11 @@ namespace dnv::vista::sdk
 
 #if defined( _MSC_VER )
 				std::array<int, 4> cpuInfo{};
-				__cpuid( cpuInfo.data(), 1 );
+				::__cpuid( cpuInfo.data(), 1 );
 				hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
 #elif defined( __GNUC__ )
 				unsigned int eax{}, ebx{}, ecx{}, edx{};
-				if ( __get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
+				if ( ::__get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
 				{
 					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
 				}
