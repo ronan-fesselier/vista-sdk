@@ -5,13 +5,14 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 set(TESTS
-	ImoNumberTests_gtest
-	ISOStringTests_gtest
-	CodebookTests_gtest
-	CodebooksTests_gtest
-	GmodTests_gtest
-	LocalIdTests_gtest
-	GmodVersioningTests_gtest
+	ImoNumber_gtest
+	ISOString_gtest
+	Codebook_gtest
+	Codebooks_gtest
+	Gmod_gtest
+	LocalId_gtest
+	GmodVersioning_gtest
+	GmodPath_gtest
 )
 
 foreach(TEST ${TESTS})

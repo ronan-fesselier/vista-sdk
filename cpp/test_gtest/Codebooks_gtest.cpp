@@ -26,7 +26,7 @@ namespace dnv::vista::sdk::tests
 		SPDLOG_INFO( "Position codebook standard values count: {}", positionCodebook.standardValues().count() );
 		for ( auto& val : positionCodebook.standardValues() )
 		{
-			SPDLOG_INFO( "Standard value: {}", val );
+			// SPDLOG_INFO( "Standard value: {}", val );
 		}
 
 		ASSERT_GT( positionCodebook.standardValues().count(), 0 );

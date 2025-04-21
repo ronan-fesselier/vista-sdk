@@ -187,7 +187,7 @@ namespace dnv::vista::sdk::tests
 				INFO( "Testing: " << localIdStr );
 
 				std::optional<LocalIdBuilder> localId;
-				ParsingErrors errors; // Add this line to create an errors object
+				ParsingErrors errors;
 				bool parsed = LocalIdBuilder::TryParse( localIdStr, errors, localId );
 
 				CHECK( parsed );

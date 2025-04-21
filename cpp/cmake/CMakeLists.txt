@@ -69,13 +69,10 @@ set(VISTA_SDK_SOURCES
 	../src/dnv/vista/sdk/VisVersion.cpp
 )
 
-# Add the library
 add_library(${PROJECT_NAME} SHARED ${VISTA_SDK_INCLUDES} ${VISTA_SDK_SOURCES})
 
-# Precompiled headers
 target_precompile_headers(${PROJECT_NAME} PRIVATE ../src/dnv/vista/sdk/pch.h)
 
-# Include directories
 target_include_directories(${PROJECT_NAME}
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
@@ -84,7 +81,6 @@ target_include_directories(${PROJECT_NAME}
 		${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 
-# Dependencies
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
