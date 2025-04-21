@@ -94,3 +94,33 @@ jobs:
         cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
       shell: cmd
 
+    - name: Test
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        ctest -C ${{ matrix.build_type }} --output-on-failure --timeout 300
+      shell: cmd
+      continue-on-error: true
+
+    - name: Upload build artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-build-windows-${{ matrix.build_type }}
+        path: |
+          ${{ github.workspace }}/build/Testing
+          ${{ github.workspace }}/build/*.log
+          ${{ github.workspace }}/build/CMakeFiles/CMakeOutput.log
+          ${{ github.workspace }}/build/CMakeFiles/CMakeError.log
+        retention-days: 7
+
+    - name: Check for test failures
+      if: always()
+      run: |
+        if (Test-Path ${{ github.workspace }}/build/Testing/Temporary/LastTest.log) {
+          $content = Get-Content ${{ github.workspace }}/build/Testing/Temporary/LastTest.log -Raw
+          if ($content -match "Failed") {
+            Write-Host "::error::Test failures detected, check the logs for details"
+            exit 1
+          }
+        }
+      shell: pwsh
