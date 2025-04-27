@@ -7,12 +7,13 @@ include(GoogleTest)
 set(TESTS
 	CodebookTests
 	CodebooksTests
-	GmodPath_test
-	GmodVersioning_test
-	Gmod_test
-	ISOString_test
-	ImoNumber_test
-	LocalId_test
+	GmodPathTests
+	GmodTests
+	GmodVersioningTests
+	ImoNumberTests
+	ISOStringTests
+	LocalIdTests
+	LocationsTests
 )
 
 foreach(test_target ${TESTS})
@@ -25,7 +26,7 @@ foreach(test_target ${TESTS})
 			vista-sdk-cpp
 			GTest::gtest_main
 			GTest::gtest
-			spdlog::spdlog_header_only
+			spdlog::spdlog
 		)
 
 		target_include_directories(${test_target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
@@ -43,6 +44,7 @@ if(MSVC)
 		target_compile_options(${test_target} PRIVATE
 			/wd4625 # copy constructor was implicitly defined as deleted
 			/wd4626 # assignement operator was implicitly defined as deleted
+			/wd4868 # compiler may not enforce left-to-right evaluation order in braced initializer list
 			/wd5026 # move constructor was implicitly defined as deleted
 			/wd5027 # move assignement operator was implicitly defined as deleted
 		)
@@ -50,14 +52,14 @@ if(MSVC)
 endif()
 
 # Copy testdata
-#if(EXISTS ${VISTA_SDK_TEST_DATA_DIR} AND NOT TARGET CopyTestData)
-#	add_custom_target(CopyTestData ALL
-#		COMMAND ${CMAKE_COMMAND} -E make_directory ${VISTA_SDK_OUTPUT_DIR}/testdata
-#		COMMAND ${CMAKE_COMMAND} -E copy_directory
-#			${VISTA_SDK_TEST_DATA_DIR} ${VISTA_SDK_OUTPUT_DIR}/testdata
-#		COMMENT "Copying VISTA SDK testdata to build directory"
-#	)
-#	message(STATUS "testdata will be copied from ${VISTA_SDK_TEST_DATA_DIR} to ${VISTA_SDK_OUTPUT_DIR}/testdata")
-#else()
-#	message(WARNING "testdata directory not found: ${VISTA_SDK_TEST_DATA_DIR}. Skipping testdata copy.")
-#endif()
+if(EXISTS ${VISTA_SDK_TEST_DATA_DIR} AND NOT TARGET CopyTestData)
+	add_custom_target(CopyTestData ALL
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${VISTA_SDK_OUTPUT_DIR}/testdata
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${VISTA_SDK_TEST_DATA_DIR} ${VISTA_SDK_OUTPUT_DIR}/testdata
+		COMMENT "Copying VISTA SDK testdata to build directory"
+	)
+	message(STATUS "testdata will be copied from ${VISTA_SDK_TEST_DATA_DIR} to ${VISTA_SDK_OUTPUT_DIR}/testdata")
+else()
+	message(WARNING "testdata directory not found: ${VISTA_SDK_TEST_DATA_DIR}. Skipping testdata copy.")
+endif()
