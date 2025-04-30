@@ -7,6 +7,10 @@
 
 namespace dnv::vista::sdk
 {
+	//=====================================================================
+	// Relative Location Data Transfer Objects
+	//=====================================================================
+
 	/**
 	 * @brief Data Transfer Object (DTO) for a relative location.
 	 *
@@ -16,14 +20,9 @@ namespace dnv::vista::sdk
 	class RelativeLocationsDto final
 	{
 	public:
-		//-------------------------------------------------------------------------
-		// Constructors / Destructor
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Default constructor deleted to enforce immutability
-		 */
-		RelativeLocationsDto() = delete;
+		//----------------------------------------------
+		// Construction / Destruction
+		//----------------------------------------------
 
 		/**
 		 * @brief Constructor with parameters
@@ -32,98 +31,107 @@ namespace dnv::vista::sdk
 		 * @param name The name of the location
 		 * @param definition An optional definition of the location
 		 */
-		RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition = std::nullopt );
+		explicit RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition = std::nullopt );
 
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Default constructor. */
+		RelativeLocationsDto() = default;
+
+		/** @brief Copy constructor */
 		RelativeLocationsDto( const RelativeLocationsDto& ) = default;
 
-		/**
-		 * @brief Move constructor
-		 */
+		/** @brief Move constructor */
 		RelativeLocationsDto( RelativeLocationsDto&& ) noexcept = default;
 
-		/**
-		 * @brief Destructor
-		 */
+		/** @brief Destructor */
 		~RelativeLocationsDto() = default;
 
-		/**
-		 * @brief Copy assignment operator deleted to enforce immutability
-		 */
+		//----------------------------------------------
+		// Assignment Operators
+		//----------------------------------------------
+
+		/** @brief Copy assignment operator */
 		RelativeLocationsDto& operator=( const RelativeLocationsDto& ) = delete;
 
-		/**
-		 * @brief Move assignment operator deleted to enforce immutability
-		 */
+		/** @brief Move assignment operator */
 		RelativeLocationsDto& operator=( RelativeLocationsDto&& ) noexcept = delete;
 
-		//-------------------------------------------------------------------------
-		// Public Interface - Accessor Methods
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Get the location code
 		 * @return The character code representing the location
 		 */
-		char code() const;
+		[[nodiscard]] char code() const;
 
 		/**
 		 * @brief Get the location name
 		 * @return The name of the location
 		 */
-		const std::string& name() const;
+		[[nodiscard]] const std::string& name() const;
 
 		/**
 		 * @brief Get the location definition
 		 * @return The optional definition of the location
 		 */
-		const std::optional<std::string>& definition() const;
+		[[nodiscard]] const std::optional<std::string>& definition() const;
 
-		//-------------------------------------------------------------------------
-		// Public Interface - Serialization Methods
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Serialization
+		//----------------------------------------------
 
 		/**
-		 * @brief Try to deserialize a RelativeLocationsDto from a RapidJSON object.
+		 * @brief Try to deserialize a RelativeLocationsDto from an nlohmann::json object.
 		 *
-		 * @param json The RapidJSON object to deserialize.
+		 * @param json The nlohmann::json object to deserialize.
 		 * @return An optional containing the deserialized DTO if successful, or std::nullopt if parsing failed
 		 */
-		static std::optional<RelativeLocationsDto> tryFromJson( const rapidjson::Value& json );
+		static std::optional<RelativeLocationsDto> tryFromJson( const nlohmann::json& json );
 
 		/**
-		 * @brief Deserialize a RelativeLocationsDto from a RapidJSON object.
+		 * @brief Deserialize a RelativeLocationsDto from an nlohmann::json object.
 		 *
-		 * @param json The RapidJSON object to deserialize.
+		 * @param json The nlohmann::json object to deserialize.
 		 * @return The deserialized RelativeLocationsDto.
-		 * @throws std::invalid_argument If JSON format is invalid or required fields are missing
+		 * @throws std::invalid_argument If deserialization fails (e.g., missing fields, type errors)
+		 * @throws nlohmann::json::exception If JSON parsing/access errors occur
 		 */
-		static RelativeLocationsDto fromJson( const rapidjson::Value& json );
+		static RelativeLocationsDto fromJson( const nlohmann::json& json );
 
 		/**
-		 * @brief Serialize this RelativeLocationsDto to a RapidJSON Value
+		 * @brief Serialize this RelativeLocationsDto to an nlohmann::json object
 		 *
-		 * @param allocator The JSON value allocator to use
-		 * @return The serialized JSON value
+		 * @return The serialized nlohmann::json object
 		 */
-		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
+		nlohmann::json toJson() const;
 
 	private:
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Private Serialization Methods
+		//---------------------------------------------
+
+		friend void from_json( const nlohmann::json& j, RelativeLocationsDto& dto );
+		friend void to_json( nlohmann::json& j, const RelativeLocationsDto& dto );
+
+	private:
+		//----------------------------------------------
 		// Private Member Variables
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
 
 		/** @brief The character code representing the location (JSON: "code"). */
-		const char m_code;
+		char m_code;
 
 		/** @brief The name of the location (JSON: "name"). */
-		const std::string m_name;
+		std::string m_name;
 
 		/** @brief An optional definition of the location (JSON: "definition"). */
-		const std::optional<std::string> m_definition;
+		std::optional<std::string> m_definition;
 	};
+
+	//=====================================================================
+	// Location Data Transfer Objects
+	//=====================================================================
 
 	/**
 	 * @brief Data Transfer Object (DTO) for a collection of locations.
@@ -134,14 +142,9 @@ namespace dnv::vista::sdk
 	class LocationsDto final
 	{
 	public:
-		//-------------------------------------------------------------------------
-		// Constructors / Destructor
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Default constructor deleted to enforce immutability
-		 */
-		LocationsDto() = delete;
+		//----------------------------------------------
+		// Construction / Destruction
+		//----------------------------------------------
 
 		/**
 		 * @brief Constructor with parameters
@@ -149,87 +152,91 @@ namespace dnv::vista::sdk
 		 * @param visVersion The VIS version string
 		 * @param items A collection of relative locations
 		 */
-		LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items );
+		explicit LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items );
 
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Default constructor. */
+		LocationsDto() = default;
+
+		/** @brief Copy constructor */
 		LocationsDto( const LocationsDto& ) = default;
 
-		/**
-		 * @brief Move constructor
-		 */
+		/** @brief Move constructor */
 		LocationsDto( LocationsDto&& ) noexcept = default;
 
-		/**
-		 * @brief Destructor
-		 */
+		/** @brief Destructor */
 		~LocationsDto() = default;
 
-		/**
-		 * @brief Copy assignment operator deleted to enforce immutability
-		 */
+		//----------------------------------------------
+		// Assignment Operators
+		//----------------------------------------------
+
+		/** @brief Copy assignment operator */
 		LocationsDto& operator=( const LocationsDto& ) = delete;
 
-		/**
-		 * @brief Move assignment operator deleted to enforce immutability
-		 */
+		/** @brief Move assignment operator */
 		LocationsDto& operator=( LocationsDto&& ) noexcept = delete;
 
-		//-------------------------------------------------------------------------
-		// Public Interface - Accessor Methods
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Get the VIS version string
 		 * @return The VIS version string
 		 */
-		const std::string& visVersion() const;
+		[[nodiscard]] const std::string& visVersion() const;
 
 		/**
 		 * @brief Get the collection of relative locations
 		 * @return A vector of relative locations
 		 */
-		const std::vector<RelativeLocationsDto>& items() const;
+		[[nodiscard]] const std::vector<RelativeLocationsDto>& items() const;
 
-		//-------------------------------------------------------------------------
-		// Public Interface - Serialization Methods
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Serialization
+		//----------------------------------------------
 
 		/**
-		 * @brief Try to deserialize a LocationsDto from a RapidJSON object.
+		 * @brief Try to deserialize a LocationsDto from an nlohmann::json object.
 		 *
-		 * @param json The RapidJSON object to deserialize.
+		 * @param json The nlohmann::json object to deserialize.
 		 * @return An optional containing the deserialized DTO if successful, or std::nullopt if parsing failed
 		 */
-		static std::optional<LocationsDto> tryFromJson( const rapidjson::Value& json );
+		static std::optional<LocationsDto> tryFromJson( const nlohmann::json& json );
 
 		/**
-		 * @brief Deserialize a LocationsDto from a RapidJSON object.
+		 * @brief Deserialize a LocationsDto from an nlohmann::json object.
 		 *
-		 * @param json The RapidJSON object to deserialize.
+		 * @param json The nlohmann::json object to deserialize.
 		 * @return The deserialized LocationsDto.
-		 * @throws std::invalid_argument If JSON format is invalid or required fields are missing
+		 * @throws std::invalid_argument If deserialization fails (e.g., missing fields, type errors)
+		 * @throws nlohmann::json::exception If JSON parsing/access errors occur
 		 */
-		static LocationsDto fromJson( const rapidjson::Value& json );
+		static LocationsDto fromJson( const nlohmann::json& json );
 
 		/**
-		 * @brief Serialize this LocationsDto to a RapidJSON Value
-		 *
-		 * @param allocator The JSON value allocator to use
-		 * @return The serialized JSON value
+		 * @brief Serialize this LocationsDto to an nlohmann::json object
+		 * @return The serialized nlohmann::json object
 		 */
-		rapidjson::Value toJson( rapidjson::Document::AllocatorType& allocator ) const;
+		nlohmann::json toJson() const;
 
 	private:
-		//-------------------------------------------------------------------------
+		//----------------------------------------------
+		// Private Serialization Methods
+		//----------------------------------------------
+
+		friend void from_json( const nlohmann::json& j, LocationsDto& dto );
+		friend void to_json( nlohmann::json& j, const LocationsDto& dto );
+
+	private:
+		//----------------------------------------------
 		// Private Member Variables
-		//-------------------------------------------------------------------------
+		//--------------------------------------------
 
 		/** @brief The VIS version string (JSON: "visRelease"). */
-		const std::string m_visVersion;
+		std::string m_visVersion;
 
 		/** @brief A vector of relative locations (JSON: "items"). */
-		const std::vector<RelativeLocationsDto> m_items;
+		std::vector<RelativeLocationsDto> m_items;
 	};
 }

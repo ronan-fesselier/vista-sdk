@@ -1,12 +1,13 @@
 #pragma once
 
 #include "GmodVersioningDto.h"
+#include "dnv/vista/sdk/GmodPath.h"
+
 #include "LocalId.h"
 
 namespace dnv::vista::sdk
 {
 	class GmodNode;
-	class GmodPath;
 	class LocalIdBuilder;
 	enum class VisVersion;
 
@@ -31,27 +32,30 @@ namespace dnv::vista::sdk
 		 * @brief Convert a GmodNode from one version to a higher version
 		 * @throws std::invalid_argument If targetVersion is not higher than sourceVersion
 		 */
-		std::optional<GmodNode> convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
-			VisVersion targetVersion ) const;
+		[[nodiscard]] std::optional<GmodNode> convertNode(
+			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
-		 * @brief Convert a GmodPath from one version to a higher version
-		 * @throws std::invalid_argument If targetVersion is not higher than sourceVersion
+		 * @brief Converts a GmodPath from a source VIS version to a target VIS version.
+		 * @param sourceVersion The VIS version of the sourcePath.
+		 * @param sourcePath The GmodPath to convert (passed by const reference).
+		 * @param targetVersion The target VIS version.
+		 * @return An optional containing the converted GmodPath if successful, otherwise std::nullopt.
+		 * @throws std::invalid_argument if source or target versions are invalid or source >= target.
 		 */
-		std::optional<GmodPath> convertPath( VisVersion sourceVersion, const GmodPath& sourcePath,
-			VisVersion targetVersion ) const;
+		// CHANGE return type from GmodPath to std::optional<GmodPath>
+		[[nodiscard]] std::optional<GmodPath> convertPath(
+			VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a LocalIdBuilder from one version to a higher version
 		 */
-		std::optional<LocalIdBuilder> convertLocalId( const LocalIdBuilder& sourceLocalId,
-			VisVersion targetVersion ) const;
+		std::optional<LocalIdBuilder> convertLocalId( const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a LocalId from one version to a higher version
 		 */
-		std::optional<LocalId> convertLocalId( const LocalId& sourceLocalId,
-			VisVersion targetVersion ) const;
+		std::optional<LocalId> convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion ) const;
 
 	private:
 		//-------------------------------------------------------------------------
@@ -63,11 +67,11 @@ namespace dnv::vista::sdk
 		 */
 		enum class ConversionType
 		{
-			ChangeCode = 0,		   ///< Changes the code of a node
-			Merge,				   ///< Merges two or more nodes into one
-			Move,				   ///< Moves a node to a different parent
-			AssignmentChange = 20, ///< Changes a node's assignment
-			AssignmentDelete = 21  ///< Deletes a node's assignment
+			ChangeCode = 0,
+			Merge,
+			Move,
+			AssignmentChange = 20,
+			AssignmentDelete = 21
 		};
 
 		/**
@@ -75,12 +79,12 @@ namespace dnv::vista::sdk
 		 */
 		struct GmodNodeConversion final
 		{
-			std::unordered_set<ConversionType> operations; ///< Operations to perform during conversion
-			std::string source;							   ///< Source node code
-			std::optional<std::string> target;			   ///< Target node code (if applicable)
-			std::optional<std::string> oldAssignment;	   ///< Old assignment code (if applicable)
-			std::optional<std::string> newAssignment;	   ///< New assignment code (if applicable)
-			std::optional<bool> deleteAssignment;		   ///< Whether to delete assignment (if applicable)
+			std::unordered_set<ConversionType> operations;
+			std::string source;
+			std::optional<std::string> target;
+			std::optional<std::string> oldAssignment;
+			std::optional<std::string> newAssignment;
+			std::optional<bool> deleteAssignment;
 		};
 
 		/**
@@ -123,13 +127,13 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Internal implementation for converting a node between adjacent versions
 		 */
-		GmodNode convertNodeInternal( VisVersion sourceVersion, const GmodNode& sourceNode,
-			VisVersion targetVersion ) const;
+		[[nodiscard]] std::optional<GmodNode> convertNodeInternal(
+			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Try to get a versioning node for a specific VIS version
 		 */
-		bool tryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const;
+		[[nodiscard]] const GmodVersioningNode* tryGetVersioningNode( VisVersion visVersion ) const;
 
 		//-------------------------------------------------------------------------
 		// Private Validation Methods

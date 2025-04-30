@@ -13,34 +13,11 @@ namespace dnv::vista::sdk
 	// Forward declarations
 	//--------------------------------------------------------------------------
 
-	/**
-	 * @brief Global model data transfer object
-	 */
 	class GmodDto;
-
-	/**
-	 * @brief Global model versioning information
-	 */
 	class GmodVersioningDto;
-
-	/**
-	 * @brief Data collection for vessel code books
-	 */
 	class CodebooksDto;
-
-	/**
-	 * @brief ISO 19848 data channel type names
-	 */
 	class DataChannelTypeNamesDto;
-
-	/**
-	 * @brief Vessel location definitions
-	 */
 	class LocationsDto;
-
-	/**
-	 * @brief ISO 19848 format data types
-	 */
 	class FormatDataTypesDto;
 
 	//--------------------------------------------------------------------------
@@ -88,7 +65,7 @@ namespace dnv::vista::sdk
 		 *
 		 * @return Dictionary of versioning DTOs by version string if found, std::nullopt otherwise
 		 */
-		static std::optional<std::unordered_map<std::string, GmodVersioningDto>> gmodVersioning();
+		static const std::optional<std::unordered_map<std::string, GmodVersioningDto>>& gmodVersioning();
 
 		/**
 		 * @brief Get codebooks for specific VIS version

@@ -6,17 +6,16 @@
  * for vessel information structure, along with utility functions to convert between
  * enum values and their string prefix representations.
  *
- * @see ISO 19848:2018 - Ships and marine technology — Standard data for shipboard
- *      machinery and equipment
+ * @see ISO 19848 - Ships and marine technology — Standard data for shipboard machinery and equipment
  */
 
 #pragma once
 
 namespace dnv::vista::sdk
 {
-	//-------------------------------------------------------------------
+	//=====================================================================
 	// Codebook Type Definitions
-	//-------------------------------------------------------------------
+	//=====================================================================
 
 	/**
 	 * @brief Enumeration of codebook types used in the VIS system
@@ -60,10 +59,6 @@ namespace dnv::vista::sdk
 		Detail = 11
 	};
 
-	//-------------------------------------------------------------------
-	// Utility Functions
-	//-------------------------------------------------------------------
-
 	/**
 	 * @brief Utility class for working with CodebookName values
 	 *
@@ -73,20 +68,50 @@ namespace dnv::vista::sdk
 	class CodebookNames final
 	{
 	public:
+		//----------------------------------------------
+		// Construction / Destruction
+		//----------------------------------------------
+
+		/** @brief Default constructor. */
+		CodebookNames() = delete;
+
+		/** @brief Copy constructor */
+		CodebookNames( const CodebookNames& ) = delete;
+
+		/** @brief Move constructor */
+		CodebookNames( CodebookNames&& ) noexcept = delete;
+
+		/** @brief Destructor */
+		~CodebookNames() = default;
+
+		//----------------------------------------------
+		// Assignment Operators
+		//----------------------------------------------
+
+		/** @brief Copy assignment operator */
+		CodebookNames& operator=( const CodebookNames& ) = delete;
+
+		/** @brief Move assignment operator */
+		CodebookNames& operator=( CodebookNames&& ) noexcept = delete;
+
+		//----------------------------------------------
+		// Public Static Methods
+		//----------------------------------------------
+
 		/**
 		 * @brief Convert a string prefix to a CodebookName
-		 * @param prefix The string prefix to convert (e.g., "pos", "qty", "calc")
-		 * @return The corresponding CodebookName value
-		 * @throws std::invalid_argument If the prefix is empty or unknown
+		 * @param prefix The string prefix to convert (e.g., "pos", "qty", "calc"). Must not be empty.
+		 * @return The corresponding CodebookName.
+		 * @throws std::invalid_argument If the prefix is empty or unknown.
 		 */
 		static CodebookName fromPrefix( const std::string_view prefix );
 
 		/**
-		 * @brief Convert a CodebookName to its string prefix
+		 * @brief Convert a CodebookName to its string prefix view
 		 * @param name The CodebookName to convert
-		 * @return The corresponding string prefix (e.g., "pos" for Position)
+		 * @return The corresponding string prefix view (e.g., "pos" for Position)
 		 * @throws std::invalid_argument If the name is unknown
 		 */
-		static std::string toPrefix( CodebookName name );
+		[[nodiscard]] static std::string_view toPrefix( CodebookName name );
 	};
 }

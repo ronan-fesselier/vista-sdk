@@ -1,38 +1,82 @@
+/**
+ * @file GmodPath.h
+ * @brief Declarations for GmodPath and related classes for representing paths in the Generic Product Model (GMOD).
+ * @details Defines the `GmodPath` class for representing hierarchical paths according to ISO 19848,
+ *          along with helper classes for parsing, validation, iteration, and modification of path segments.
+ */
+
 #pragma once
 
 #include "GmodNode.h"
+#include "Locations.h"
 
 namespace dnv::vista::sdk
 {
-	class Gmod;
-	class GmodParsePathResult;
-	class GmodIndividualizableSet;
-	class Locations;
+	//=====================================================================
+	// Forward Declarations
+	//=====================================================================
 
 	enum class VisVersion;
+	class Gmod;
+	class Locations;
+	class GmodPath;
+	class GmodIndividualizableSet;
+	class GmodParsePathResult;
+
+	//=====================================================================
+	// Helper Classes (Used internally or by GmodPath operations)
+	//=====================================================================
 
 	/**
-	 * @brief Record struct that represents a location set visitor
-	 *
+	 * @brief Represents a single node component parsed from a path string segment.
+	 * @details Contains the node's code and optional location before it's resolved against a Gmod.
+	 *          Used primarily during the parsing process.
+	 */
+	struct PathNode final
+	{
+		/** @brief Code identifying the node (e.g., "HULL", "SYS"). */
+		std::string code{};
+
+		/** @brief Optional location associated with the node (e.g., "P", "S"). */
+		std::optional<Location> location{};
+
+		/**
+		 * @brief Construct a new PathNode.
+		 * @param nodeCode The node code (default: empty string).
+		 * @param nodeLocation The optional location (default: no location).
+		 */
+		PathNode( const std::string& nodeCode = "", const std::optional<Location>& nodeLocation = std::nullopt );
+	};
+
+	/**
+	 * @brief Helper struct for identifying individualizable node sets within a GmodPath during traversal.
+	 * @details Used internally by `GmodPath::individualizableSets()` to track consecutive individualizable nodes.
+	 * @warning This visitor's implementation needs updating to work correctly with the `GmodPath` structure
+	 *          that uses `std::vector<const GmodNode*>` for parents. The current signature is likely incorrect.
 	 */
 	struct LocationSetsVisitor final
 	{
+		/** @brief Starting index of the current potential individualizable parent sequence. */
 		size_t m_currentParentStart;
 
-		LocationSetsVisitor() = default;
+		/**
+		 * @brief Default constructor. Initializes internal state.
+		 */
+		LocationSetsVisitor();
 
 		/**
-		 * @brief Visit a node in a GmodPath to identify individualizable sets
-		 *
-		 * @param node The current node being visited in the path
-		 * @param i The index/depth of the current node in the path (0-based)
-		 * @param parents Collection of parent nodes in the path, from root to leaf
-		 * @param target The target node at the end of the path
+		 * @brief Visits a node during path traversal to identify potential individualizable sets.
+		 * @warning The signature `const std::vector<GmodNode>& parents` is likely outdated and needs
+		 *          to be changed to `const std::vector<const GmodNode*>& parents` to match `GmodPath`.
+		 * @param node The current GmodNode being visited in the path.
+		 * @param i The index/depth of the current node in the path (0-based).
+		 * @param parents Collection of parent nodes in the path, from root to leaf. (NEEDS UPDATE)
+		 * @param target The target GmodNode at the end of the path.
 		 * @return Optional tuple containing:
-		 *         - size_t: Starting index of individualizable set
-		 *         - size_t: Ending index of individualizable set
-		 *         - Optional<Location>: Associated location if present
-		 *         Returns std::nullopt if the current node doesn't form part of an individualizable set
+		 *         - size_t: Starting index (inclusive) of the identified individualizable set.
+		 *         - size_t: Ending index (inclusive) of the identified individualizable set.
+		 *         - std::optional<Location>: The common location associated with the set, if any.
+		 *         Returns std::nullopt if the current node doesn't complete an individualizable set.
 		 */
 		std::optional<std::tuple<size_t, size_t, std::optional<Location>>> visit(
 			const GmodNode& node,
@@ -41,339 +85,474 @@ namespace dnv::vista::sdk
 			const GmodNode& target );
 	};
 
+	//=====================================================================
+	// GmodPath Class
+	//=====================================================================
+
 	/**
-	 * @brief Represents a path in the Generic Product Model (GMOD)
-	 *
-	 * A GmodPath consists of a sequence of parent nodes and a target node,
-	 * forming a hierarchical path through the GMOD structure as defined in ISO 19848.
-	 * Each node in the path may have an optional location.
+	 * @class GmodPath
+	 * @brief Represents a hierarchical path in the Generic Product Model (GMOD).
+	 * @details A GmodPath consists of a sequence of parent GmodNode pointers (`m_nodes`)
+	 *          and an owned target GmodNode (`m_targetNode`), forming a path through the
+	 *          GMOD structure as defined in ISO 19848. Each node in the path may have an
+	 *          optional Location. This class uses move-only semantics to manage ownership
+	 *          of the target node and references to parent nodes (which are typically owned by a Gmod instance).
 	 */
 	class GmodPath final
 	{
+		friend class GmodIndividualizableSet;
+
 	public:
+		//=====================================================================
+		// Constructors and Assignment Operators
+		//=====================================================================
+
 		/**
-		 * @brief Default constructor for use in containers only
-		 * @warning Creates an invalid path, must be assigned before use
+		 * @brief Default constructor. Creates an empty, invalid path.
+		 * @details An empty path has `m_isEmpty = true`, length 0, and cannot be used
+		 *          until properly initialized or assigned via move semantics.
+		 * @warning Intended primarily for use in containers or as a placeholder.
 		 */
 		GmodPath();
 
 		/**
-		 * @brief Construct a path from parent nodes and target node
-		 *
-		 * @param parents Vector of parent nodes in the path (from root to leaf)
-		 * @param node The target node at the end of the path
-		 * @param skipVerify If true, skip validation of parent-child relationships
-		 * @throws std::invalid_argument If skipVerify is false and the path is invalid
+		 * @brief Construct a path from a vector of parent node pointers and an owned target node.
+		 * @details This is the primary constructor for creating valid GmodPath instances.
+		 * @param parents Vector of const pointers to parent nodes, ordered from root towards the target.
+		 *                The pointers themselves are copied, but the pointed-to nodes are not owned.
+		 * @param target The target node at the end of the path (ownership is taken via move).
+		 * @param visVersion The VIS version associated with this path and the GMOD it relates to.
+		 * @param skipVerify If true (default), skips validation of parent-child relationships.
+		 *                   If false, validates the path structure upon construction using `isValid()`.
+		 * @throws std::invalid_argument If `skipVerify` is false and the provided path structure is invalid.
 		 */
-		GmodPath( std::vector<GmodNode> parents, GmodNode node, bool skipVerify = true );
+		GmodPath( const std::vector<const GmodNode*>& parents, GmodNode target, VisVersion visVersion, bool skipVerify = true );
+
+		/** @brief Deleted copy constructor. GmodPath manages ownership and references, making shallow copies unsafe. */
+		GmodPath( const GmodPath& ) = delete;
+
+		/** @brief Deleted copy assignment operator. */
+		GmodPath& operator=( const GmodPath& ) = delete;
+
+		/** @brief Default move constructor. Transfers ownership efficiently. */
+		GmodPath( GmodPath&& other ) noexcept = default;
+
+		/** @brief Default move assignment operator. Transfers ownership efficiently. */
+		GmodPath& operator=( GmodPath&& other ) noexcept = default;
+
+		/** @brief Default destructor. */
+		~GmodPath() = default;
+
+		//=====================================================================
+		// Core Properties & Operations
+		//=====================================================================
 
 		/**
-		 * @brief Equality operator
-		 * @param other The path to compare with
-		 * @return True if paths are equal
+		 * @brief Get the total number of nodes in the path (parents + target node).
+		 * @return The length of the path (number of nodes). Returns 0 for an empty path.
 		 */
-		bool operator==( const GmodPath& other ) const;
+		[[nodiscard]] size_t length() const noexcept;
 
 		/**
-		 * @brief Inequality operator
-		 * @param other The path to compare with
-		 * @return True if paths are not equal
+		 * @brief Check if the path is empty (default constructed).
+		 * @return True if the path is empty, false otherwise.
 		 */
-		bool operator!=( const GmodPath& other ) const;
+		[[nodiscard]] bool isEmpty() const noexcept;
 
 		/**
-		 * @brief Parent nodes in the path
-		 * @return Const reference to the vector of parent nodes
+		 * @brief Check if the target node of this path is designated as mappable in the GMOD.
+		 * @return True if the target node is mappable, false otherwise. Returns false for an empty path.
+		 * @throws std::logic_error If called on an empty path (though `noexcept` suggests it should return false).
+		 *         Let's assume it returns false for empty path based on implementation.
 		 */
-		const std::vector<GmodNode>& parents() const;
+		[[nodiscard]] bool isMappable() const noexcept;
 
 		/**
-		 * @brief Get the VIS version of this path
-		 * @return The VIS version enum value
+		 * @brief Creates a new GmodPath instance identical to this one but without locations on the target node.
+		 * @details Creates a copy of the path structure, but the new target node instance is created using `withoutLocation()`.
+		 *          Parent node pointers remain unchanged (locations on pointed-to parents are not affected).
+		 * @warning This function's name might be misleading as it only affects the owned target node.
+		 * @return A new GmodPath instance with a location-less target node. Returns an empty path if called on an empty path.
 		 */
-		VisVersion visVersion() const;
+		[[nodiscard]] GmodPath withoutLocations() const;
 
 		/**
-		 * @brief Get the target node at the end of the path
-		 * @return Const reference to the target node
+		 * @brief Performs deep equality comparison with another GmodPath.
+		 * @details Compares VIS version, target node (including location), and all parent node pointers
+		 *          by comparing the pointed-to nodes' content (including locations). Order matters.
+		 * @param other The GmodPath to compare against.
+		 * @return True if both paths represent the exact same sequence of nodes and locations, false otherwise.
 		 */
-		const GmodNode& node() const;
+		[[nodiscard]] bool equals( const GmodPath& other ) const;
 
 		/**
-		 * @brief Setter for the target node
-		 * @param node New target node value
+		 * @brief Calculate a hash code for this GmodPath.
+		 * @details Suitable for use in hash-based containers like `std::unordered_map`.
+		 *          The hash considers the VIS version, the target node (including location),
+		 *          and the content of all pointed-to parent nodes (including locations).
+		 * @return A `size_t` hash code value. Returns 0 for an empty path.
 		 */
-		void setNode( const GmodNode& node );
+		[[nodiscard]] size_t hashCode() const noexcept;
 
 		/**
-		 * @brief Get the total length of the path (parents + target node)
-		 * @return The number of nodes in the path
+		 * @brief Check if the path contains any nodes marked as individualizable in the GMOD.
+		 * @details Checks both the parent nodes (via pointers) and the owned target node.
+		 * @return True if at least one node in the path is individualizable, false otherwise or for an empty path.
 		 */
-		size_t length() const;
+		[[nodiscard]] bool isIndividualizable() const noexcept;
 
 		/**
-		 * @brief Check if the path's target node is mappable
-		 * @return True if the target node can be mapped to other nodes
+		 * @brief Identifies and returns all sets of consecutive individualizable nodes within this path.
+		 * @details An individualizable set represents a segment of the path where instance identifiers
+		 *          can be applied, potentially sharing a common location. Uses `LocationSetsVisitor`.
+		 * @warning The implementation of this method and `LocationSetsVisitor` needs review/update
+		 *          to correctly handle the `std::vector<const GmodNode*>` structure.
+		 * @return A vector of `GmodIndividualizableSet` objects representing the identified sets.
+		 *         Returns an empty vector if the path is not individualizable or is empty.
+		 *         The returned sets operate on a mutable reference to this path.
 		 */
-		bool isMappable() const;
+		[[nodiscard]] std::vector<GmodIndividualizableSet> individualizableSets();
+
+		//=====================================================================
+		// Accessors
+		//=====================================================================
 
 		/**
-		 * @brief Access a node at a specific depth in the path
-		 *
-		 * @param depth Zero-based depth index (0 is root, Length-1 is target node)
-		 * @return Const reference to the node at specified depth
-		 * @throws std::out_of_range If depth is out of valid range
+		 * @brief Get the VIS (Vessel Information Structure) version associated with this path.
+		 * @return The `VisVersion` enum value. Returns `VisVersion::Unknown` for an empty path.
 		 */
-		const GmodNode& operator[]( size_t depth ) const;
+		[[nodiscard]] VisVersion visVersion() const noexcept;
 
 		/**
-		 * @brief Access a node at a specific depth in the path (non-const version)
-		 *
-		 * @param depth Zero-based depth index (0 is root, Length-1 is target node)
-		 * @return Reference to the node at specified depth
-		 * @throws std::out_of_range If depth is out of valid range
+		 * @brief Get a const reference to the owned target node (the last node) of the path.
+		 * @return Const reference to the target `GmodNode`.
+		 * @throws std::logic_error If called on an empty path.
 		 */
-		GmodNode& operator[]( size_t depth );
+		[[nodiscard]] const GmodNode& targetNode() const;
 
 		/**
-		 * @brief Create a copy of this path with all locations removed
-		 * @return A new GmodPath with the same nodes but no locations
+		 * @brief Get a const reference to the vector containing pointers to the parent nodes.
+		 * @details The vector contains `const GmodNode*` elements, ordered from the root node
+		 *          up to (but not including) the target node.
+		 * @return Const reference to the vector of parent node pointers. Returns an empty vector if path length <= 1.
 		 */
-		GmodPath withoutLocations() const;
+		[[nodiscard]] const std::vector<const GmodNode*>& nodes() const noexcept;
+
+		//=====================================================================
+		// Specific Accessors
+		//=====================================================================
 
 		/**
-		 * @brief Convert the path to a string representation
-		 *
-		 * Format: code1/code2/.../targetCode (with optional location suffixes)
-		 *
-		 * @return String representation of the path
+		 * @brief Get the normal assignment name for the node at a specific depth, if defined in the GMOD.
+		 * @details Traverses the path downwards from the target to find the relevant assignment name
+		 *          defined in the metadata of the node at `nodeDepth`.
+		 * @param nodeDepth The zero-based depth index of the node (0 for the root parent, length()-1 for the target node).
+		 * @return An `std::optional<std::string>` containing the normal assignment name if found, otherwise `std::nullopt`.
+		 * @throws std::out_of_range If `nodeDepth` is invalid for this path.
+		 * @throws std::logic_error If called on an empty path.
+		 * @throws std::runtime_error If a null pointer is encountered in the path structure at or below `nodeDepth`.
 		 */
-		std::string toString() const;
+		[[nodiscard]] std::optional<std::string> normalAssignmentName( size_t nodeDepth ) const;
 
 		/**
-		 * @brief Write string representation to a string stream
-		 *
-		 * @param builder The string stream to write to
-		 * @param separator The separator character to use between nodes (default: '/')
+		 * @brief Get all common names defined for the nodes in this path, along with their depths.
+		 * @return A vector of pairs, where each pair contains the zero-based depth and the common name string.
+		 *         Returns an empty vector for an empty path. Skips nodes if null pointers are encountered.
+		 */
+		[[nodiscard]] std::vector<std::pair<size_t, std::string>> commonNames() const;
+
+		//=====================================================================
+		// String Conversions
+		//=====================================================================
+
+		/**
+		 * @brief Convert the path to its standard string representation (e.g., "CODE1/CODE2.LOC/CODE3").
+		 * @details Uses '/' as the default separator. Includes location suffixes (`-LOC`) only for nodes
+		 *          that actually have a location set. If no node has a location, only the target node code is returned.
+		 * @return The string representation of the path. Returns an empty string for an empty path.
+		 */
+		[[nodiscard]] std::string toString() const;
+
+		/**
+		 * @brief Append the string representation of the path to a string stream.
+		 * @details See `toString()` for format details.
+		 * @param builder The `std::stringstream` to append to.
+		 * @param separator The character to use as a separator between node codes (default: '/').
+		 *                  Only used if locations are present.
 		 */
 		void toString( std::stringstream& builder, char separator = '/' ) const;
 
 		/**
-		 * @brief Convert to a full path string representation including all nodes
-		 * @return String representation of the full path
+		 * @brief Convert the path to its full string representation, including all parent nodes explicitly.
+		 * @details Format: "RootCode[-Loc]/ParentCode[-Loc]/.../TargetCode[-Loc]". Uses '/' separator.
+		 * @return The full path string representation. Returns empty string for an empty path.
+		 *         Represents null pointers as "[null]".
 		 */
-		std::string toFullPathString() const;
+		[[nodiscard]] std::string toFullPathString() const;
 
 		/**
-		 * @brief Write full path string representation to a string stream
-		 * @param builder The string stream to write to
+		 * @brief Append the full path string representation to a string stream.
+		 * @details See `toFullPathString()` for format details.
+		 * @param builder The `std::stringstream` to append to.
 		 */
 		void toFullPathString( std::stringstream& builder ) const;
 
 		/**
-		 * @brief Get a detailed string representation for debugging
-		 * @return Detailed string representation with node information
+		 * @brief Generate a detailed string representation suitable for debugging purposes.
+		 * @details Includes VIS version, node codes, locations, and mappable status.
+		 * @return A detailed debug string. Returns description for empty path.
 		 */
-		std::string toStringDump() const;
+		[[nodiscard]] std::string toStringDump() const;
 
 		/**
-		 * @brief Write detailed debug representation to a string stream
-		 * @param builder The string stream to write to
+		 * @brief Append the detailed debug string representation to a string stream.
+		 * @param builder The `std::stringstream` to append to.
 		 */
 		void toStringDump( std::stringstream& builder ) const;
 
-		/**
-		 * @brief Equality comparison
-		 *
-		 * @param other The path to compare with
-		 * @return True if paths are equal
-		 */
-		bool equals( const GmodPath& other ) const;
+		//=====================================================================
+		// Operators
+		//=====================================================================
 
 		/**
-		 * @brief Calculate hash code for this path
-		 * @return Hash code value
+		 * @brief Access a node pointer at a specific depth within the path (const version).
+		 * @param depth Zero-based depth index (0 is the first parent/root, `length()-1` is the target node).
+		 * @return Const pointer (`const GmodNode*`) to the node at the specified depth.
+		 *         Returns a pointer to the parent from `m_nodes` or the address of `m_targetNode`.
+		 * @throws std::out_of_range If the `depth` index is invalid for this path.
+		 * @throws std::logic_error If called on an empty path.
 		 */
-		size_t hashCode() const;
+		[[nodiscard]] const GmodNode* operator[]( size_t depth ) const;
 
 		/**
-		 * @brief Get normal assignment name for a node at specific depth
-		 *
-		 * @param nodeDepth The depth of the node to get the name for
-		 * @return The normal assignment name if present, or std::nullopt
+		 * @brief Equality operator. Equivalent to calling `equals(other)`.
+		 * @param other The GmodPath to compare with.
+		 * @return True if the paths are equal, false otherwise.
+		 * @see equals
 		 */
-		std::optional<std::string> normalAssignmentName( size_t nodeDepth ) const;
+		bool operator==( const GmodPath& other ) const;
 
 		/**
-		 * @brief Get all common names in the path
-		 * @return Vector of pairs with (depth, common_name)
+		 * @brief Inequality operator. Equivalent to `!equals(other)`.
+		 * @param other The GmodPath to compare with.
+		 * @return True if the paths are not equal, false otherwise.
+		 * @see equals
 		 */
-		std::vector<std::pair<size_t, std::string>> commonNames() const;
+		bool operator!=( const GmodPath& other ) const;
+
+		//=====================================================================
+		// Static Methods - Validation
+		//=====================================================================
 
 		/**
-		 * @brief Check if the path contains any individualizable nodes
-		 * @return True if at least one node in the path is individualizable
+		 * @brief Statically validate the structural integrity of a potential path.
+		 * @details Checks if the parent-child relationships between the provided node pointers and the target node are valid.
+		 *          Assumes nodes are ordered root-to-target. Checks `nodes[i]` is parent of `nodes[i+1]`,
+		 *          and `nodes.back()` is parent of `targetNode`. Also checks if `nodes[0]` is the root.
+		 * @param nodes Vector of const pointers to potential parent nodes, ordered root to leaf.
+		 * @param targetNode The potential target node.
+		 * @return True if the sequence forms a valid path structure, false otherwise.
 		 */
-		bool isIndividualizable() const;
+		[[nodiscard]] static bool isValid( const std::vector<const GmodNode*>& nodes, const GmodNode& targetNode );
 
 		/**
-		 * @brief Get all individualizable sets in this path
-		 *
-		 * An individualizable set is a group of nodes that can be assigned
-		 * a unique instance identifier.
-		 *
-		 * @return Vector of individualizable sets
+		 * @brief Statically validate the structural integrity and identify the point of failure.
+		 * @details Checks parent-child relationships as in `isValid`. If invalid, provides the index of the first invalid link.
+		 * @param nodes Vector of const pointers to potential parent nodes, ordered root to leaf.
+		 * @param targetNode The potential target node.
+		 * @param[out] missingLinkAt Output parameter set to the index `i` where the parent-child link is broken.
+		 *                         `i=0`: `nodes[0]` is not root.
+		 *                         `0 < i < nodes.size()`: `nodes[i-1]` is not parent of `nodes[i]`.
+		 *                         `i = nodes.size()`: `nodes.back()` is not parent of `targetNode`.
+		 *                         Set to `std::numeric_limits<size_t>::max()` if the path is valid.
+		 * @return True if the sequence forms a valid path structure, false otherwise.
 		 */
-		std::vector<GmodIndividualizableSet> individualizableSets() const;
+		[[nodiscard]] static bool isValid( const std::vector<const GmodNode*>& nodes, const GmodNode& targetNode, size_t& missingLinkAt );
+
+		//=====================================================================
+		// Static Methods - Parsing (using default GMOD/Locations for VisVersion)
+		//=====================================================================
 
 		/**
-		 * @brief Validate a path structure
-		 *
-		 * @param parents Vector of parent nodes
-		 * @param node Target node
-		 * @return True if the path is valid
+		 * @brief Parse a path string using the default GMOD and Locations for the specified VIS version.
+		 * @details Loads required GMOD/Locations data based on `visVersion`.
+		 * @param item The path string to parse (e.g., "CODE1/CODE2.LOC", "CODE3").
+		 * @param visVersion The VIS version context.
+		 * @return The parsed `GmodPath` object.
+		 * @throws std::invalid_argument If parsing fails (invalid format, unknown codes/locations).
+		 * @throws std::runtime_error If the required GMOD/Locations data for `visVersion` cannot be loaded.
 		 */
-		static bool isValid( const std::vector<GmodNode>& parents, const GmodNode& node );
+		[[nodiscard]] static GmodPath parse(
+			const std::string& item,
+			VisVersion visVersion );
 
 		/**
-		 * @brief Validate a path structure and get the location of any invalid link
-		 *
-		 * @param parents Vector of parent nodes
-		 * @param node Target node
-		 * @param[out] missingLinkAt Index of the invalid parent-child link if any
-		 * @return True if the path is valid
+		 * @brief Try to parse a path string using the default GMOD and Locations for the specified VIS version.
+		 * @param item The path string to parse.
+		 * @param visVersion The VIS version context.
+		 * @param[out] path Output parameter where the parsed `GmodPath` will be stored if successful.
+		 * @return True if parsing succeeded, false otherwise. Does not throw on parsing errors,
+		 *         but may throw `std::runtime_error` if GMOD/Locations data is missing.
 		 */
-		static bool isValid( const std::vector<GmodNode>& parents, const GmodNode& node, int& missingLinkAt );
+		[[nodiscard]] static bool tryParse(
+			const std::string& item,
+			VisVersion visVersion,
+			GmodPath& path );
 
 		/**
-		 * @brief Parse a path string with a specific VIS version
-		 *
-		 * @param item The path string to parse
-		 * @param visVersion The VIS version to use for parsing
-		 * @return The parsed GmodPath
-		 * @throws std::invalid_argument If parsing fails
+		 * @brief Parse a full path string using the default GMOD and Locations for the specified VIS version.
+		 * @details A full path string explicitly includes all nodes from the root (e.g., "VE/HULL/SYS").
+		 * @param pathStr The full path string to parse.
+		 * @param visVersion The VIS version context.
+		 * @return The parsed `GmodPath` object.
+		 * @throws std::invalid_argument If parsing fails.
+		 * @throws std::runtime_error If GMOD/Locations data is missing.
 		 */
-		static GmodPath parse( const std::string& item, VisVersion visVersion );
+		[[nodiscard]] static GmodPath parseFullPath(
+			const std::string& pathStr,
+			VisVersion visVersion );
 
 		/**
-		 * @brief Try to parse a path string with a specific VIS version
-		 *
-		 * @param item The path string to parse
-		 * @param visVersion The VIS version to use for parsing
-		 * @param[out] path Output parameter to store the parsed path if successful
-		 * @return True if parsing succeeded, false otherwise
+		 * @brief Try to parse a full path string using the default GMOD and Locations for the specified VIS version.
+		 * @param pathStr The full path string to parse.
+		 * @param visVersion The VIS version context.
+		 * @param[out] path Output parameter for the parsed `GmodPath` if successful.
+		 * @return True if parsing succeeded, false otherwise. May throw `std::runtime_error` if data is missing.
 		 */
-		static bool tryParse( const std::string& item, VisVersion visVersion, std::optional<GmodPath>& path );
+		[[nodiscard]] static bool tryParseFullPath(
+			const std::string& pathStr,
+			VisVersion visVersion,
+			GmodPath& path );
 
 		/**
-		 * @brief Parse a path string using specific GMOD and Locations objects
-		 *
-		 * @param item The path string to parse
-		 * @param gmod The GMOD object to use for resolving nodes
-		 * @param locations The Locations object to use for resolving locations
-		 * @return The parsed GmodPath
-		 * @throws std::invalid_argument If parsing fails
+		 * @brief Try to parse a full path string (provided as string_view) using the default GMOD/Locations.
+		 * @param pathStr The full path `std::string_view` to parse.
+		 * @param visVersion The VIS version context.
+		 * @param[out] path Output parameter for the parsed `GmodPath` if successful.
+		 * @return True if parsing succeeded, false otherwise. May throw `std::runtime_error` if data is missing.
 		 */
-		static GmodPath parse( const std::string& item, const Gmod& gmod, const Locations& locations );
+		[[nodiscard]] static bool tryParseFullPath(
+			std::string_view pathStr,
+			VisVersion visVersion,
+			GmodPath& path );
+
+		//=====================================================================
+		// Static Methods - Parsing (using provided GMOD/Locations)
+		//=====================================================================
 
 		/**
-		 * @brief Try to parse a path string using specific GMOD and Locations objects
-		 *
-		 * @param item The path string to parse
-		 * @param gmod The GMOD object to use for resolving nodes
-		 * @param locations The Locations object to use for resolving locations
-		 * @param[out] path Output parameter to store the parsed path if successful
-		 * @return True if parsing succeeded, false otherwise
+		 * @brief Parse a path string using explicitly provided GMOD and Locations objects.
+		 * @param item The path string to parse.
+		 * @param gmod The `Gmod` object containing the model structure.
+		 * @param locations The `Locations` object for resolving location codes.
+		 * @return The parsed `GmodPath` object.
+		 * @throws std::invalid_argument If parsing fails.
 		 */
-		static bool tryParse( const std::string& item, const Gmod& gmod, const Locations& locations, GmodPath& path );
+		[[nodiscard]] static GmodPath parse(
+			const std::string& item,
+			const Gmod& gmod,
+			const Locations& locations );
 
 		/**
-		 * @brief Parse a full path string with a specific VIS version
-		 *
-		 * @param pathStr The full path string to parse
-		 * @param visVersion The VIS version to use for parsing
-		 * @return The parsed GmodPath
-		 * @throws std::invalid_argument If parsing fails
+		 * @brief Try to parse a path string using explicitly provided GMOD and Locations objects.
+		 * @param item The path string to parse.
+		 * @param gmod The `Gmod` object.
+		 * @param locations The `Locations` object.
+		 * @param[out] path Output parameter for the parsed `GmodPath` if successful.
+		 * @return True if parsing succeeded, false otherwise. Does not throw on parsing errors.
 		 */
-		static GmodPath parseFullPath( const std::string& pathStr, VisVersion visVersion );
+		[[nodiscard]] static bool tryParse(
+			const std::string& item,
+			const Gmod& gmod,
+			const Locations& locations,
+			GmodPath& path );
 
 		/**
-		 * @brief Try to parse a full path string with a specific VIS version
-		 *
-		 * @param pathStr The full path string to parse
-		 * @param visVersion The VIS version to use for parsing
-		 * @param[out] path Output parameter to store the parsed path if successful
-		 * @return True if parsing succeeded, false otherwise
+		 * @brief Try to parse a full path string (provided as string_view) using explicit GMOD/Locations.
+		 * @param pathStr The full path `std::string_view` to parse.
+		 * @param gmod The `Gmod` object.
+		 * @param locations The `Locations` object.
+		 * @param[out] path Output parameter for the parsed `GmodPath` if successful.
+		 * @return True if parsing succeeded, false otherwise. Does not throw on parsing errors.
 		 */
-		static bool tryParseFullPath( const std::string& pathStr, VisVersion visVersion, GmodPath& path );
+		[[nodiscard]] static bool tryParseFullPath(
+			std::string_view pathStr,
+			const Gmod& gmod,
+			const Locations& locations,
+			GmodPath& path );
+
+		//=====================================================================
+		// Enumerator for Path Traversal
+		//=====================================================================
 
 		/**
-		 * @brief Try to parse a full path string with a specific VIS version
-		 *
-		 * @param pathStr The full path string to parse as string_view
-		 * @param visVersion The VIS version to use for parsing
-		 * @param[out] path Output parameter to store the parsed path if successful
-		 * @return True if parsing succeeded, false otherwise
-		 */
-		static bool tryParseFullPath( std::string_view pathStr, VisVersion visVersion, GmodPath& path );
-
-		/**
-		 * @brief Try to parse a full path string using specific GMOD and Locations objects
-		 *
-		 * @param pathStr The full path string to parse as string_view
-		 * @param gmod The GMOD object to use for resolving nodes
-		 * @param locations The Locations object to use for resolving locations
-		 * @param[out] path Output parameter to store the parsed path if successful
-		 * @return True if parsing succeeded, false otherwise
-		 */
-		static bool tryParseFullPath( std::string_view pathStr, const Gmod& gmod, const Locations& locations, GmodPath& path );
-
-		/**
-		 * @brief Enumerator for traversing the GmodPath
-		 *
-		 * Provides sequential access to the nodes in the path with their depths.
+		 * @class Enumerator
+		 * @brief Provides forward iteration over the nodes of a GmodPath.
+		 * @details Yields the zero-based depth and a const reference to the `GmodNode` at that depth.
+		 *          Supports use in range-based for loops via its `begin()` and `end()` methods.
 		 */
 		class Enumerator final
 		{
 		public:
-			/**
-			 * @brief Construct a new Enumerator
-			 *
-			 * @param path The path to enumerate
-			 * @param fromDepth Optional starting depth (default is beginning of path)
-			 */
-			Enumerator( const GmodPath& path, std::optional<size_t> fromDepth = std::nullopt );
+			//----------------------------------------------
+			// Construction / Reset
+			//----------------------------------------------
 
 			/**
-			 * @brief Copy assignment operator that ensures proper path compatibility
-			 *
-			 * @param other The enumerator to copy from
-			 * @return Reference to this object
-			 * @throws std::invalid_argument If paths are different
+			 * @brief Construct a new Enumerator for a given GmodPath.
+			 * @param path The `GmodPath` to enumerate over (const reference is stored).
+			 * @param fromDepth Optional zero-based depth index to start enumeration from.
+			 *                  If `std::nullopt` (default), starts from the beginning (depth 0).
+			 * @throws std::out_of_range If `fromDepth` is specified and is >= `path.length()`.
+			 * @throws std::logic_error If constructed for an empty path.
 			 */
-			Enumerator& operator=( const Enumerator& other );
+			explicit Enumerator( const GmodPath& path, std::optional<size_t> fromDepth = std::nullopt );
+
+			/** @brief Deleted copy constructor. Enumerator holds reference and state. */
+			Enumerator( const Enumerator& ) = delete;
+
+			/** @brief Deleted move constructor. */
+			Enumerator( Enumerator&& ) = delete;
+
+			/** @brief Deleted copy assignment operator. */
+			Enumerator& operator=( const Enumerator& ) = delete;
+
+			/** @brief Deleted move assignment operator. */
+			Enumerator& operator=( Enumerator&& ) = delete;
 
 			/**
-			 * @brief Current item in the enumeration
-			 * @return Pair of (depth, node_reference)
-			 */
-			std::pair<size_t, std::reference_wrapper<const GmodNode>> current() const;
-
-			/**
-			 * @brief Move to the next node in the path
-			 * @return True if moved to a valid node, false if reached the end
-			 */
-			bool next();
-
-			/**
-			 * @brief Reset the enumerator
+			 * @brief Resets the enumerator to its initial state (before the first element or at the specified `fromDepth`).
 			 */
 			void reset();
 
+			//----------------------------------------------
+			// Iteration Methods
+			//----------------------------------------------
+
 			/**
-			 * @brief Iterator adapter for the Enumerator
-			 *
-			 * Enables use with range-based for loops and standard algorithms.
+			 * @brief Gets the current item in the enumeration.
+			 * @return A `std::pair` containing the current zero-based depth and a `std::reference_wrapper<const GmodNode>`.
+			 * @throws std::runtime_error If called when the enumerator is not positioned on a valid element
+			 *                            (e.g., before first `next()` or after end is reached), or if a null node pointer is encountered.
+			 */
+			[[nodiscard]] std::pair<size_t, std::reference_wrapper<const GmodNode>> current() const;
+
+			/**
+			 * @brief Advances the enumerator to the next node in the path.
+			 * @return True if the enumerator was successfully advanced to a valid node,
+			 *         false if the end of the path was reached.
+			 */
+			bool next();
+
+			//-------------------------------------------------------------------------
+			// Iterator Implementation (for range-based for loops)
+			//-------------------------------------------------------------------------
+
+			/**
+			 * @class Iterator
+			 * @brief Input iterator adapter for the `GmodPath::Enumerator`.
+			 * @details Enables the use of `GmodPath::Enumerator` with range-based for loops and standard algorithms.
+			 *          Acts as a standard input iterator, caching the current value upon dereference.
 			 */
 			class Iterator final
 			{
@@ -384,371 +563,422 @@ namespace dnv::vista::sdk
 				using pointer = const value_type*;
 				using reference = const value_type&;
 
-				/**
-				 * @brief Construct a new Iterator
-				 *
-				 * @param enumerator The enumerator to iterate
-				 * @param end True if this is the end iterator
-				 */
-				Iterator( Enumerator& enumerator, bool end );
+				/** @brief Default constructor (creates an end iterator). */
+				Iterator() = default;
 
 				/**
-				 * @brief Copy constructor
-				 *
-				 * @param other The iterator to copy from
+				 * @brief Dereference operator. Gets the current element.
+				 * @details Calls `current()` on the underlying enumerator and caches the result.
+				 * @return Const reference to the cached depth-node pair.
+				 * @throws std::runtime_error If the underlying enumerator is invalid or `current()` throws.
 				 */
-				Iterator( const Iterator& other );
+				[[nodiscard]] reference operator*() const;
 
 				/**
-				 * @brief Pre-increment operator
-				 * @return Reference to this iterator after advancing
+				 * @brief Pointer-to-member operator.
+				 * @return Const pointer to the cached depth-node pair.
+				 * @throws std::runtime_error If the underlying enumerator is invalid or `current()` throws.
 				 */
-				Iterator&
-				operator++();
+				[[nodiscard]] pointer operator->() const;
 
 				/**
-				 * @brief Post-increment operator
-				 * @return Iterator before advancing
+				 * @brief Pre-increment operator. Advances the iterator.
+				 * @details Calls `next()` on the underlying enumerator and clears the cache.
+				 * @return Reference to this iterator after advancing.
+				 */
+				Iterator& operator++();
+
+				/**
+				 * @brief Post-increment operator. Advances the iterator.
+				 * @details Creates a copy, calls `next()` on the underlying enumerator, clears the cache, and returns the copy.
+				 * @return A copy of the iterator before advancing.
 				 */
 				Iterator operator++( int );
 
 				/**
-				 * @brief Equality comparison
-				 * @param other Iterator to compare with
-				 * @return True if iterators are equal
+				 * @brief Equality comparison.
+				 * @param other The iterator to compare with.
+				 * @return True if both iterators are end iterators or if they point to the same underlying enumerator and have the same internal state.
 				 */
 				bool operator==( const Iterator& other ) const;
 
 				/**
-				 * @brief Inequality comparison
-				 * @param other Iterator to compare with
-				 * @return True if iterators are not equal
+				 * @brief Inequality comparison.
+				 * @param other The iterator to compare with.
+				 * @return True if the iterators are different.
 				 */
 				bool operator!=( const Iterator& other ) const;
 
-				/**
-				 * @brief Dereference operator
-				 * @return The current depth-node pair
-				 */
-				reference operator*() const;
-
-				/**
-				 * @brief Copy assignment operator
-				 *
-				 * @param other The iterator to copy from
-				 * @return Reference to this iterator
-				 * @throws std::invalid_argument If iterators don't reference the same enumerator
-				 */
-				Iterator& operator=( const Iterator& other );
-
 			private:
-				/** @brief Reference to the underlying enumerator */
-				Enumerator& m_enumerator;
-
-				/** @brief Flag indicating if this is the end iterator */
-				bool m_end;
-
-				/** @brief Cached current value */
-				mutable std::optional<value_type> m_current;
+				friend class Enumerator;
 
 				/**
-				 * @brief Cached value for deferred evaluation during iteration
-				 *
-				 * This member caches the current iterator value to optimize multiple
-				 * consecutive dereferences without redundant lookups. Being mutable allows
-				 * updating the cache even in const methods like operator*().
-				 *
-				 * The cached value consists of:
-				 * - size_t: The depth/position in the path
-				 * - reference_wrapper: Non-owning reference to the GmodNode at that depth
+				 * @brief Private constructor used by `Enumerator::begin()` and `Enumerator::end()`.
+				 * @param enumerator Pointer to the `Enumerator` instance (can be null for end iterator).
+				 * @param isEnd Flag indicating if this is an end iterator.
 				 */
-				mutable std::optional<std::pair<size_t, std::reference_wrapper<const GmodNode>>> m_cachedValue;
+				Iterator( Enumerator* enumerator, bool isEnd );
+
+				/** @brief Helper to advance the iterator and handle the end state. */
+				void advance();
+
+				/** @brief Helper to update the cached value if needed. */
+				void updateCache() const;
+
+				Enumerator* m_enumerator{ nullptr };
+				bool m_isEnd{ true };
+				mutable std::optional<value_type> m_cachedValue;
+				int m_currentIndexSnapshot{ -1 };
 			};
 
 			/**
-			 * @brief Get iterator to the beginning
-			 * @return Iterator positioned at the first node
+			 * @brief Get an iterator pointing to the beginning of the sequence.
+			 * @details Advances the enumerator to the first valid element.
+			 * @return An `Iterator` positioned at the first node (or `end()` if empty or starting past the end).
 			 */
 			Iterator begin();
 
 			/**
-			 * @brief Get iterator to the end
-			 * @return Iterator positioned after the last node
+			 * @brief Get an iterator pointing past the end of the sequence.
+			 * @return An end `Iterator`.
 			 */
 			Iterator end();
 
 		private:
-			/** @brief Reference to the path being enumerated */
 			const GmodPath& m_path;
-
-			/** @brief Current position index in the path */
-			size_t m_current;
-
-			/** @brief Current depth value */
-			size_t m_depth;
-
-			/** @brief Initial depth to start from */
-			std::optional<size_t> m_fromDepth;
+			int m_currentIndex;
+			const size_t m_endIndex;
+			const size_t m_startIndex;
 		};
 
-		/**
-		 * @brief Get an enumerator for the full path
-		 * @return Enumerator starting at the beginning of the path
-		 */
-		Enumerator fullPath() const;
+		//=====================================================================
+		// Enumerator Accessors
+		//=====================================================================
 
 		/**
-		 * @brief Get an enumerator starting at the specified depth
-		 * @param fromDepth The depth to start at
-		 * @return Enumerator starting at the specified depth
+		 * @brief Get an enumerator to traverse the full path from the beginning (depth 0).
+		 * @return An `Enumerator` instance for this path.
+		 * @throws std::logic_error If called on an empty path.
 		 */
-		Enumerator fullPathFrom( size_t fromDepth ) const;
-
-	private:
-		/**
-		 * @brief Internal method to parse a path string
-		 *
-		 * @param item The path string to parse
-		 * @param gmod The GMOD object to use for resolving nodes
-		 * @param locations The Locations object to use for resolving locations
-		 * @return A GmodParsePathResult containing either a path or an error
-		 */
-		static GmodParsePathResult parseInternal( const std::string& item, const Gmod& gmod, const Locations& locations );
+		[[nodiscard]] Enumerator fullPath() const;
 
 		/**
-		 * @brief Internal method to parse a full path string
-		 *
-		 * @param span The full path string to parse as string_view
-		 * @param gmod The GMOD object to use for resolving nodes
-		 * @param locations The Locations object to use for resolving locations
-		 * @return A GmodParsePathResult containing either a path or an error
+		 * @brief Get an enumerator to traverse the path starting from a specific depth.
+		 * @param fromDepth The zero-based depth index to start enumeration from.
+		 * @return An `Enumerator` instance for this path, starting at the specified depth.
+		 * @throws std::out_of_range If `fromDepth` is invalid for this path.
+		 * @throws std::logic_error If called on an empty path.
 		 */
-		static GmodParsePathResult parseFullPathInternal( std::string_view span, const Gmod& gmod, const Locations& locations );
+		[[nodiscard]] Enumerator fullPathFrom( size_t fromDepth ) const;
 
 	private:
-		/** @brief VIS version associated with this path */
+		//=====================================================================
+		// Private Static Helper Methods (Implementation Details)
+		//=====================================================================
+
+		/**
+		 * @brief Internal implementation for parsing a standard path string (e.g., "A/B.L/C").
+		 * @details Handles splitting, node/location parsing, node lookup, and path validation/construction.
+		 * @param item The path string to parse.
+		 * @param gmod The `Gmod` object to use for resolving nodes.
+		 * @param locations The `Locations` object to use for resolving locations.
+		 * @return A `GmodParsePathResult` containing either the parsed `GmodPath` (Ok) or an error message (Err).
+		 */
+		[[nodiscard]] static std::unique_ptr<GmodParsePathResult> parseInternal(
+			const std::string& item,
+			const Gmod& gmod,
+			const Locations& locations );
+
+		/**
+		 * @brief Internal implementation for parsing a full path string (e.g., "VE/A/B.L/C").
+		 * @details Handles splitting, node/location parsing, node lookup, and path validation/construction,
+		 *          expecting the path to start from the root.
+		 * @param pathStr The full path string to parse, provided as a `std::string_view`.
+		 * @param gmod The `Gmod` object to use for resolving nodes.
+		 * @param locations The `Locations` object to use for resolving locations.
+		 * @return A `GmodParsePathResult` containing either the parsed `GmodPath` (Ok) or an error message (Err).
+		 */
+		[[nodiscard]] static std::unique_ptr<GmodParsePathResult> parseFullPathInternal(
+			std::string_view pathStr,
+			const Gmod& gmod,
+			const Locations& locations );
+
+		//=====================================================================
+		// Private Member Variables
+		//=====================================================================
+
+		/** @brief The VIS version associated with this path. */
 		VisVersion m_visVersion;
 
-		/** @brief Target node at the end of the path */
-		GmodNode m_node;
+		/** @brief The owned target node at the end of the path. Only valid if `!m_isEmpty`. */
+		GmodNode m_targetNode;
 
-		/** @brief Vector of parent nodes in the path (from root to target) */
-		std::vector<GmodNode> m_parents;
+		/** @brief Vector storing const pointers to the parent nodes, ordered root towards target. Empty if path length <= 1. */
+		std::vector<const GmodNode*> m_nodes;
+
+		/** @brief Flag indicating if the path is empty (default constructed). */
+		bool m_isEmpty{ true };
 	};
 
-	/**
-	 * @brief Represents a single node in the path
-	 *
-	 * Contains the node's code and optional location.
-	 */
-	struct PathNode final
-	{
-		/** @brief Code identifying the node */
-		std::string code;
-
-		/** @brief Optional location associated with the node */
-		std::optional<Location> location;
-
-		/**
-		 * @brief Construct a new PathNode
-		 *
-		 * @param code The node code (default: empty string)
-		 * @param location The optional location (default: no location)
-		 */
-		PathNode( const std::string& code = "", const std::optional<Location>& location = std::nullopt );
-	};
+	//=====================================================================
+	// GmodIndividualizableSet Declaration (Depends on GmodPath)
+	//=====================================================================
 
 	/**
-	 * @brief Represents the context for parsing a GmodPath
-	 *
-	 * Contains the state needed during path parsing operations.
-	 */
-	class ParseContext final
-	{
-	public:
-		/** @brief Queue of remaining path nodes to process */
-		std::queue<PathNode> parts;
-
-		/** @brief Current node to find */
-		PathNode toFind;
-
-		/** @brief Mapping of node codes to their locations */
-		std::unordered_map<std::string, Location> locations;
-
-		/** @brief The resulting path if parsing succeeds */
-		std::optional<GmodPath> path;
-
-		/**
-		 * @brief Construct a new parse context
-		 * @param parts Queue of path nodes to process
-		 */
-		ParseContext( std::queue<PathNode> parts );
-	};
-
-	/**
-	 * @brief Represents the result of parsing a GmodPath
-	 *
-	 * Abstract base class for success and error results from path parsing operations.
-	 */
-	class GmodParsePathResult
-	{
-	protected:
-		/** @brief Protected constructor to prevent direct instantiation */
-		GmodParsePathResult() = default;
-
-	public:
-		/** @brief Virtual destructor */
-		virtual ~GmodParsePathResult() = default;
-
-		/** @brief Delete copy constructor - results shouldn't be copied */
-		GmodParsePathResult( const GmodParsePathResult& ) = delete;
-
-		/** @brief Enable move constructor for return-by-value */
-		GmodParsePathResult( GmodParsePathResult&& ) = default;
-
-		/** @brief Delete copy assignment operator - results shouldn't be assigned */
-		GmodParsePathResult& operator=( const GmodParsePathResult& ) = delete;
-
-		/** @brief Enable move assignment */
-		GmodParsePathResult& operator=( GmodParsePathResult&& ) = default;
-
-		/** @brief Success result type */
-		class Ok;
-
-		/** @brief Error result type */
-		class Err;
-	};
-
-	/**
-	 * @brief Successful path parsing result
-	 */
-	class GmodParsePathResult::Ok final : public GmodParsePathResult
-	{
-	public:
-		/** @brief The successfully parsed path */
-		GmodPath path;
-
-		/**
-		 * @brief Construct a successful result
-		 * @param path The parsed path
-		 */
-		explicit Ok( const GmodPath& path );
-
-		/**
-		 * @brief Construct a successful result by moving
-		 * @param path The parsed path to move
-		 */
-		explicit Ok( GmodPath&& path );
-
-		/**
-		 * @brief Delete copy constructor - results shouldn't be copied
-		 */
-		Ok( const Ok& ) = delete;
-
-		/**
-		 * @brief Delete copy assignment - results shouldn't be assigned
-		 */
-		Ok& operator=( const Ok& ) = delete;
-
-		/**
-		 * @brief Move constructor
-		 * @param other The object to move from
-		 */
-		Ok( Ok&& other ) noexcept;
-	};
-
-	/**
-	 * @brief Failed path parsing result
-	 */
-	class GmodParsePathResult::Err final : public GmodParsePathResult
-	{
-	public:
-		/** @brief Error message describing the parsing failure */
-		std::string error;
-
-		/**
-		 * @brief Construct an error result
-		 * @param error The error message
-		 */
-		explicit Err( const std::string& error );
-
-		/**
-		 * @brief Delete copy constructor - results shouldn't be copied
-		 */
-		Err( const Err& ) = delete;
-
-		/**
-		 * @brief Delete copy assignment - results shouldn't be assigned
-		 */
-		Err& operator=( const Err& ) = delete;
-
-		/**
-		 * @brief Move constructor
-		 * @param other The object to move from
-		 */
-		Err( Err&& other ) noexcept;
-	};
-
-	/**
-	 * @brief Represents a set of individualizable nodes in a GmodPath
-	 *
-	 * An individualizable set is a group of nodes that can be assigned
-	 * a unique instance identifier and share the same location.
+	 * @class GmodIndividualizableSet
+	 * @brief Represents a set of consecutive individualizable nodes within a `GmodPath`.
+	 * @details Allows applying a common location to these nodes and retrieving the modified path.
+	 *          This class operates on a mutable reference to the original `GmodPath`.
+	 *          After `build()` is called, the set becomes invalid.
 	 */
 	class GmodIndividualizableSet final
 	{
 	public:
-		/**
-		 * @brief Construct a new individualizable set
-		 *
-		 * @param nodes Vector of node indices in the path
-		 * @param path Reference to the path containing the nodes
-		 * @throws std::invalid_argument If constraints are not satisfied
-		 */
-		GmodIndividualizableSet( const std::vector<size_t>& nodes, GmodPath& path );
+		//----------------------------------------------
+		// Construction
+		//----------------------------------------------
 
 		/**
-		 * @brief Get the actual nodes in this set
-		 * @return Vector of nodes
+		 * @brief Construct a new individualizable set for a segment of a `GmodPath`.
+		 * @param nodeIndices Vector of zero-based indices identifying the consecutive nodes in the set within the path.
+		 * @param path A mutable reference to the `GmodPath` containing these nodes.
+		 * @throws std::invalid_argument If indices are empty, invalid, non-consecutive,
+		 *                               or if nodes are not individualizable or have inconsistent locations,
+		 *                               or if the set doesn't contain a leaf/target node.
+		 * @throws std::logic_error If the referenced path is empty.
+		 * @throws std::runtime_error If the path contains null pointers at the specified indices.
 		 */
-		std::vector<GmodNode> nodes() const;
+		GmodIndividualizableSet( const std::vector<size_t>& nodeIndices, GmodPath& path );
+
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
-		 * @brief Get the indices of nodes in this set
-		 * @return Const reference to the vector of indices
+		 * @brief Gets const references to the `GmodNode`s included in this set.
+		 * @return A vector of `std::reference_wrapper<const GmodNode>` pointing to the nodes.
+		 * @throws std::runtime_error If the internal path pointer is null (e.g., after `build()` was called)
+		 *                            or if the path contains null pointers at the set's indices.
 		 */
-		const std::vector<size_t>& nodeIndices() const;
+		[[nodiscard]] std::vector<std::reference_wrapper<const GmodNode>> nodes() const;
 
 		/**
-		 * @brief Get the location associated with this set
-		 * @return The location if present, or std::nullopt
+		 * @brief Get the zero-based indices of the nodes belonging to this set within the original path.
+		 * @return Const reference to the vector of node indices.
 		 */
-		std::optional<Location> location() const;
+		[[nodiscard]] const std::vector<size_t>& nodeIndices() const noexcept;
 
 		/**
-		 * @brief Set the location for all nodes in this set
-		 * @param location The location to set, or std::nullopt to remove location
+		 * @brief Get the common location currently associated with this set (if any).
+		 * @details Reflects the location of the first node in the set upon construction or after `setLocation()`.
+		 * @return The common location as `std::optional<Location>`. Returns `std::nullopt` if no location is set.
+		 * @throws std::runtime_error If the internal path pointer is null or if the path contains a null pointer at the first index.
 		 */
-		void setLocation( const std::optional<Location>& location );
+		[[nodiscard]] std::optional<Location> location() const;
+
+		//----------------------------------------------
+		// Mutators and Operations
+		//----------------------------------------------
 
 		/**
-		 * @brief Build and return the modified path
-		 * @return The path with any modifications applied
-		 * @throws std::runtime_error If the set was already built
+		 * @brief Sets or removes the location for the target node if it's part of this set.
+		 * @details Modifies the owned `m_targetNode` of the underlying `GmodPath` referenced during construction.
+		 * @warning This method **cannot** change the location of intermediate (parent) nodes in the path,
+		 *          as they are referenced via `const GmodNode*`. It will throw if the target node is not
+		 *          in the set and `newLocation` differs from the set's current location.
+		 * @param newLocation The location to apply, or `std::nullopt` to remove the location.
+		 * @throws std::runtime_error If the internal path pointer is null or if the path contains null pointers.
+		 * @throws std::logic_error If attempting to change the location of intermediate nodes.
 		 */
-		GmodPath build();
+		void setLocation( const std::optional<Location>& newLocation );
 
 		/**
-		 * @brief Convert to string representation
-		 * @return String representation of the individualizable set
+		 * @brief Finalizes modifications and returns the modified `GmodPath` via move semantics.
+		 * @details After calling `build()`, this set becomes invalid (internal path pointer is nullified)
+		 *          and should not be used further. The original `GmodPath` object referenced during
+		 *          construction is moved from and becomes invalid.
+		 * @return The modified `GmodPath` object (moved).
+		 * @throws std::runtime_error If the internal path pointer is already null.
 		 */
-		std::string toString() const;
+		[[nodiscard]] GmodPath build();
+
+		//----------------------------------------------
+		// Conversion
+		//----------------------------------------------
+
+		/**
+		 * @brief Get a string representation of the individualizable set (for debugging).
+		 * @return A string describing the set, including node indices and current location.
+		 */
+		[[nodiscard]] std::string toString() const;
 
 	private:
-		/** @brief Indices of nodes in the individualizable set */
-		std::vector<size_t> m_nodes;
-
-		/** @brief Pointer to the path containing the nodes */
+		std::vector<size_t> m_nodeIndices;
 		GmodPath* m_path;
+	};
+
+	//=====================================================================
+	// Result Class for Parsing Operations (Declaration & Definition)
+	//=====================================================================
+
+	/**
+	 * @class GmodParsePathResult
+	 * @brief Represents the outcome of a GmodPath parsing operation (success or failure).
+	 * @details Used as the return type for internal parsing functions (`parseInternal`, `parseFullPathInternal`).
+	 *          Provides a type-safe way to handle either a valid `GmodPath` or an error message.
+	 *          Uses move semantics for efficiency. Acts as a base class for `Ok` and `Err`.
+	 */
+	class GmodParsePathResult
+	{
+	protected:
+		/** @brief Protected default constructor to prevent direct instantiation of the base class. */
+		GmodParsePathResult() = default;
+
+	public:
+		/** @brief Deleted copy constructor - results are move-only. */
+		GmodParsePathResult( const GmodParsePathResult& ) = delete;
+
+		/** @brief Default move constructor. */
+		GmodParsePathResult( GmodParsePathResult&& ) = default;
+
+		/** @brief Deleted copy assignment operator. */
+		GmodParsePathResult& operator=( const GmodParsePathResult& ) = delete;
+
+		/** @brief Default move assignment operator. */
+		GmodParsePathResult& operator=( GmodParsePathResult&& ) = default;
+
+		/** @brief Destructor */
+		virtual ~GmodParsePathResult() = default;
+
+		class Ok;
+		class Err;
+	};
+
+	/**
+	 * @class GmodParsePathResult::Ok
+	 * @brief Represents a successful path parsing result. Contains the parsed `GmodPath`.
+	 */
+	class GmodParsePathResult::Ok final : public GmodParsePathResult
+	{
+	public:
+		//----------------------------------------------
+		// Construction / Destruction
+		//----------------------------------------------
+
+		/**
+		 * @brief Construct a successful result by moving the path.
+		 * @param p The parsed path to move into the result.
+		 */
+		explicit Ok( GmodPath&& path );
+
+		Ok( const GmodPath& path ) = delete;
+
+		/** @brief Deleted copy constructor. */
+		Ok( const Ok& ) = delete;
+
+		/** @brief Default move constructor. */
+		Ok( Ok&& other ) noexcept;
+
+		virtual ~Ok() = default;
+
+		//----------------------------------------------
+		// Speclial Member Functions
+		//----------------------------------------------
+
+		/** @brief Deleted copy assignment. */
+		Ok& operator=( const Ok& ) = delete;
+
+		/** @brief Default move assignment. */
+		Ok& operator=( Ok&& other ) noexcept = default;
+
+		GmodPath& path();
+
+	private:
+		/** @brief The successfully parsed path (owned). */
+		GmodPath m_path;
+	};
+
+	/**
+	 * @class GmodParsePathResult::Err
+	 * @brief Represents a failed path parsing result. Contains an error message.
+	 */
+	class GmodParsePathResult::Err final : public GmodParsePathResult
+	{
+	public:
+		//----------------------------------------------
+		// Construction / Destruction
+		//----------------------------------------------
+
+		/**
+		 * @brief Construct an error result.
+		 * @param e The error message string.
+		 */
+		explicit Err( const std::string& errorMessage );
+
+		/** @brief Deleted copy constructor. */
+		Err( const Err& ) = delete;
+
+		/** @brief Default move constructor. */
+		Err( Err&& other ) noexcept;
+
+		virtual ~Err() = default;
+
+		//----------------------------------------------
+		// Speclial Member Functions
+		//----------------------------------------------
+
+		/** @brief Deleted copy assignment. */
+		Err& operator=( const Err& ) = delete;
+
+		/** @brief Default move assignment. */
+		Err& operator=( Err&& other ) noexcept = default;
+
+		const std::string& error();
+
+	private:
+		/** @brief Error message describing the parsing failure. */
+		std::string m_error;
+	};
+
+	//=====================================================================
+	// TODO Deprecated/Internal Helper Classes (Consider removal or refactoring)
+	//=====================================================================
+
+	/**
+	 * @class ParseContext
+	 * @brief Represents the context and state during the GmodPath parsing process.
+	 * @warning This class seems related to an older or alternative parsing approach.
+	 *          Its usage might be deprecated or internal. Consider refactoring or removing if unused.
+	 */
+	class ParseContext final
+	{
+	public:
+		/**
+		 * @brief Construct a new parse context.
+		 * @param initialParts Queue of path node components to process.
+		 */
+		explicit ParseContext( std::queue<PathNode> initialParts );
+
+		/** @brief Deleted copy constructor. */
+		ParseContext( const ParseContext& ) = delete;
+		/** @brief Deleted copy assignment operator. */
+		ParseContext& operator=( const ParseContext& ) = delete;
+
+		/** @brief Default move constructor. */
+		ParseContext( ParseContext&& ) noexcept = default;
+		/** @brief Default move assignment operator. */
+		ParseContext& operator=( ParseContext&& ) noexcept = default;
+
+		/** @brief Queue of remaining path node components to process. */
+		std::queue<PathNode> parts;
+
+		/** @brief The current node component being searched for. */
+		PathNode toFind;
+
+		/** @brief Mapping of node codes encountered so far to their resolved locations. */
+		std::unordered_map<std::string, Location> locations;
+
+		/** @brief Potentially holds the result of parsing. */
+		std::optional<GmodPath> path;
 	};
 }

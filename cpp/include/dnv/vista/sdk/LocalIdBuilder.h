@@ -1,541 +1,868 @@
+/**
+ * @file LocalIdBuilder.h
+ * @brief Concrete implementation of the Local ID builder interface.
+ * @details This file contains the definition of the `LocalIdBuilder` class,
+ *          which provides a concrete implementation of the `ILocalIdBuilder`
+ *          interface for creating `LocalId` objects using an immutable
+ *          fluent builder pattern.
+ */
+
 #pragma once
 
 #include "ILocalIdBuilder.h"
+#include "LocalId.h"
 #include "LocalIdItems.h"
+#include "Codebooks.h"
 #include "MetadataTag.h"
+#include "GmodPath.h"
+#include "ParsingErrors.h"
+#include "VisVersion.h"
 
 namespace dnv::vista::sdk
 {
-	enum class VisVersion;
-	enum class CodebookName;
-	enum class LocalIdParsingState;
-	class Codebooks;
-	class GmodPath;
-	class ParsingErrors;
-	class LocalId;
+	//=====================================================================
+	// Forward declarations
+	//=====================================================================
+
 	class LocalIdParsingErrorBuilder;
 
 	/**
-	 * @brief Builder class for LocalId objects, implementing the ILocalIdBuilder interface.
+	 * @brief Represents the specific stage or aspect of LocalId parsing.
+	 *
+	 * Used internally by the parser to track progress and externally
+	 * within ParsingErrors to categorize issues found during LocalId parsing.
+	 */
+	enum class LocalIdParsingState
+	{
+		NamingRule = 0,
+		VisVersion,
+		PrimaryItem,
+		SecondaryItem,
+		ItemDescription,
+		MetaQuantity,
+		MetaContent,
+		MetaCalculation,
+		MetaState,
+		MetaCommand,
+		MetaType,
+		MetaPosition,
+		MetaDetail,
+
+		EmptyState = 100,
+		Formatting = 101,
+		Completeness = 102,
+
+		NamingEntity = 200,
+		IMONumber = 201
+	};
+}
+
+namespace dnv::vista::sdk
+{
+	/**
+	 * @class LocalIdBuilder
+	 * @brief Concrete builder class for `LocalId` objects.
+	 *
+	 * @details This class implements the `ILocalIdBuilder` interface for `LocalId` objects.
+	 * It follows the fluent builder pattern (immutable style) and provides methods
+	 * for setting all properties required to build a valid `LocalId`. It also includes
+	 * parsing capabilities to create a builder instance from a string representation.
 	 */
 	class LocalIdBuilder final : public ILocalIdBuilder<LocalIdBuilder, LocalId>
 	{
 	public:
-		//-------------------------------------------------------------------------
+		//=====================================================================
 		// Constants
-		//-------------------------------------------------------------------------
+		//=====================================================================
 
-		/** @brief Naming rule constant for local IDs.*/
+		/** @brief Standard naming rule prefix expected for Local IDs (e.g., "/dnv-v2"). */
 		static const std::string namingRule;
 
-		/** @brief Used codebooks array */
+		/** @brief List of standard `CodebookName` values used directly within the LocalId structure. */
 		static const std::vector<CodebookName> usedCodebooks;
 
-		//-------------------------------------------------------------------------
-		// Constructors and Static Factories
-		//-------------------------------------------------------------------------
+		//=====================================================================
+		// Construction / Destruction
+		//=====================================================================
+
+	protected:
+		/** @brief Default constructor. */
+		LocalIdBuilder() = default;
+
+	public:
+		/** @brief Copy constructor */
+		LocalIdBuilder( const LocalIdBuilder& ) = delete;
+
+		/** @brief Move constructor */
+		LocalIdBuilder( LocalIdBuilder&& ) noexcept = default;
+
+		/** @brief Destructor */
+		virtual ~LocalIdBuilder() = default;
+
+		//=====================================================================
+		// Assignment Operators
+		//=====================================================================
+
+		/** @brief Copy assignment operator */
+		LocalIdBuilder& operator=( const LocalIdBuilder& ) = delete;
+
+		/** @brief Move assignment operator */
+		LocalIdBuilder& operator=( LocalIdBuilder&& ) noexcept = default;
+
+		//=====================================================================
+		// Operators
+		//=====================================================================
 
 		/**
-		 * @brief Default constructor
-		 */
-		LocalIdBuilder();
-
-		/**
-		 * @brief Copy constructor
-		 */
-		LocalIdBuilder( const LocalIdBuilder& other );
-
-		/**
-		 * @brief Copy assignment operator
-		 * @param other The object to copy from
-		 * @return Reference to this object
-		 */
-		LocalIdBuilder& operator=( const LocalIdBuilder& other );
-
-		/**
-		 * @brief Create a new LocalIdBuilder with the specified VIS version
-		 * @param version The VIS version to use
-		 * @return A new LocalIdBuilder instance
-		 */
-		static LocalIdBuilder create( VisVersion version );
-
-		/**
-		 * @brief Build a LocalId from this builder
-		 * @return The built LocalId
-		 * @throws std::invalid_argument If the builder is in an invalid state
-		 */
-		virtual LocalId build() const override;
-
-		//-------------------------------------------------------------------------
-		// State Inspection Methods
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Check if valid
-		 * @return true if valid
-		 */
-		virtual bool isValid() const override;
-
-		/**
-		 * @brief Check if empty
-		 * @return true if empty
-		 */
-		virtual bool isEmpty() const override;
-
-		/**
-		 * @brief Check if metadata is empty
-		 * @return true if metadata is empty
-		 */
-		bool isEmptyMetadata() const;
-
-		/**
-		 * @brief Check if has custom tag
-		 * @return true if has custom tag
-		 */
-		virtual bool hasCustomTag() const override;
-
-		//-------------------------------------------------------------------------
-		// Core Property Getters
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Get the VIS version
-		 * @return Optional VIS version
-		 */
-		virtual std::optional<VisVersion> visVersion() const override;
-
-		/**
-		 * @brief Get verbose mode flag
-		 * @return true if verbose mode is enabled
-		 */
-		virtual bool isVerboseMode() const override;
-
-		//-------------------------------------------------------------------------
-		// Item Getters
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Get items
-		 * @return LocalIdItems
-		 */
-		const LocalIdItems& items() const;
-
-		/**
-		 * @brief Get primary item
-		 * @return Optional primary item GmodPath
-		 */
-		virtual const GmodPath& primaryItem() const override;
-
-		/**
-		 * @brief Get secondary item
-		 * @return Optional secondary item GmodPath
-		 */
-		virtual std::optional<GmodPath> secondaryItem() const override;
-
-		//-------------------------------------------------------------------------
-		// Metadata Tag Getters
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Get metadata tags
-		 * @return List of metadata tags
-		 */
-		virtual const std::vector<MetadataTag> metadataTags() const override;
-
-		/**
-		 * @brief Get quantity tag
-		 * @return Optional quantity metadata tag
-		 */
-		std::optional<MetadataTag> quantity() const;
-
-		/**
-		 * @brief Get content tag
-		 * @return Optional content metadata tag
-		 */
-		std::optional<MetadataTag> content() const;
-
-		/**
-		 * @brief Get calculation tag
-		 * @return Optional calculation metadata tag
-		 */
-		std::optional<MetadataTag> calculation() const;
-
-		/**
-		 * @brief Get state tag
-		 * @return Optional state metadata tag
-		 */
-		std::optional<MetadataTag> state() const;
-
-		/**
-		 * @brief Get command tag
-		 * @return Optional command metadata tag
-		 */
-		std::optional<MetadataTag> command() const;
-
-		/**
-		 * @brief Get type tag
-		 * @return Optional type metadata tag
-		 */
-		std::optional<MetadataTag> type() const;
-
-		/**
-		 * @brief Get position tag
-		 * @return Optional position metadata tag
-		 */
-		std::optional<MetadataTag> position() const;
-
-		/**
-		 * @brief Get detail tag
-		 * @return Optional detail metadata tag
-		 */
-		std::optional<MetadataTag> detail() const;
-
-		//-------------------------------------------------------------------------
-		// Conversion Methods
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Convert to string
-		 * @return String representation
-		 */
-		virtual std::string toString() const override;
-
-		/**
-		 * @brief Convert to string
-		 * @param builder Stream to write to
-		 */
-		void toString( std::stringstream& builder ) const;
-
-		//-------------------------------------------------------------------------
-		// Builder Methods - Core Properties
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Set VIS version from string
-		 * @param visVersion VIS version string
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withVisVersion( const std::string& visVersion ) override;
-
-		/**
-		 * @brief Set VIS version from enum
-		 * @param version VIS version enum
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withVisVersion( VisVersion version ) override;
-
-		/**
-		 * @brief Try to set VIS version from optional
-		 * @param version Optional VIS version
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithVisVersion( const std::optional<VisVersion>& version ) override;
-
-		/**
-		 * @brief Try to set VIS version from string
-		 * @param visVersionStr Optional VIS version string
-		 * @param[out] succeeded true if operation succeeded
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded ) override;
-
-		/**
-		 * @brief Remove VIS version
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withoutVisVersion() override;
-
-		/**
-		 * @brief Set verbose mode
-		 * @param verboseMode Verbose mode flag
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withVerboseMode( bool verboseMode ) override;
-
-		//-------------------------------------------------------------------------
-		// Builder Methods - Items
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Set primary item
-		 * @param item GmodPath item
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withPrimaryItem( const GmodPath& item ) override;
-
-		/**
-		 * @brief Try to set primary item from optional
-		 * @param item Optional GmodPath
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithPrimaryItem( const std::optional<GmodPath>& item ) override;
-
-		/**
-		 * @brief Try to set primary item from optional
-		 * @param item Optional GmodPath
-		 * @param[out] succeeded true if operation succeeded
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithPrimaryItem( const std::optional<GmodPath>& item, bool& succeeded ) override;
-
-		/**
-		 * @brief Remove primary item
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withoutPrimaryItem() override;
-
-		/**
-		 * @brief Set secondary item
-		 * @param item GmodPath item
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withSecondaryItem( const GmodPath& item ) override;
-
-		/**
-		 * @brief Try to set secondary item from optional
-		 * @param item Optional GmodPath
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithSecondaryItem( const std::optional<GmodPath>& item ) override;
-
-		/**
-		 * @brief Try to set secondary item from optional
-		 * @param item Optional GmodPath
-		 * @param[out] succeeded true if operation succeeded
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithSecondaryItem( const std::optional<GmodPath>& item, bool& succeeded ) override;
-
-		/**
-		 * @brief Remove secondary item
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withoutSecondaryItem() override;
-
-		//-------------------------------------------------------------------------
-		// Builder Methods - Metadata Tags
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Add metadata tag
-		 * @param metadataTag MetadataTag to add
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withMetadataTag( const MetadataTag& metadataTag ) override;
-
-		/**
-		 * @brief Try to add metadata tag from optional
-		 * @param metadataTag Optional MetadataTag
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag ) override;
-
-		/**
-		 * @brief Try to add metadata tag from optional
-		 * @param metadataTag Optional MetadataTag
-		 * @param[out] succeeded true if operation succeeded
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded ) override;
-
-		/**
-		 * @brief Remove metadata tag by name
-		 * @param name CodebookName of tag to remove
-		 * @return Builder for method chaining
-		 */
-		virtual LocalIdBuilder withoutMetadataTag( CodebookName name ) override;
-
-		LocalIdBuilder withQuantity( const MetadataTag& quantity );
-		LocalIdBuilder withContent( const MetadataTag& content );
-		LocalIdBuilder withCalculation( const MetadataTag& calculation );
-		LocalIdBuilder withState( const MetadataTag& state );
-		LocalIdBuilder withCommand( const MetadataTag& command );
-		LocalIdBuilder withType( const MetadataTag& type );
-		LocalIdBuilder withPosition( const MetadataTag& position );
-		LocalIdBuilder withDetail( const MetadataTag& detail );
-
-		LocalIdBuilder withoutQuantity();
-		LocalIdBuilder withoutContent();
-		LocalIdBuilder withoutCalculation();
-		LocalIdBuilder withoutState();
-		LocalIdBuilder withoutCommand();
-		LocalIdBuilder withoutType();
-		LocalIdBuilder withoutPosition();
-		LocalIdBuilder withoutDetail();
-
-		//-------------------------------------------------------------------------
-		// Static Parsing Methods
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Static method to parse a LocalId string
-		 * @param localIdStr String to parse
-		 * @return LocalIdBuilder representing the parsed string
-		 * @throws std::invalid_argument If parsing fails
-		 */
-		static LocalIdBuilder parse( const std::string& localIdStr );
-
-		/**
-		 * @brief Static method to try parsing a LocalId string
-		 * @param localIdStr String to parse
-		 * @param[out] errors Object to receive parsing errors
-		 * @param[out] localId Optional to receive the parsed builder
-		 * @return true if parsing succeeded
-		 */
-		static bool tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId );
-
-		/**
-		 * @brief Static method to try parsing a LocalId string with detailed errors
-		 * @param localIdStr String to parse
-		 * @param[out] errorBuilder Object to receive detailed parsing errors
-		 * @param[out] localIdBuilder Optional to receive the parsed builder
-		 * @return true if parsing succeeded
-		 */
-		static bool tryParseInternal( const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder );
-
-		//-------------------------------------------------------------------------
-		// Operators and Utilities
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Equality operator
-		 * @param other Builder to compare with
-		 * @return true if equal
+		 * @brief Equality comparison operator.
+		 * @details Delegates to the `equals` method for state comparison.
+		 * @param[in] other The builder instance to compare against.
+		 * @return True if the builders represent the same state, false otherwise.
+		 * @see equals
 		 */
 		bool operator==( const LocalIdBuilder& other ) const;
 
 		/**
-		 * @brief Inequality operator
-		 * @param other Builder to compare with
-		 * @return true if not equal
+		 * @brief Inequality comparison operator.
+		 * @details Returns the negation of the `equals` method result.
+		 * @param[in] other The builder instance to compare against.
+		 * @return True if the builders represent different states, false otherwise.
+		 * @see equals
 		 */
 		bool operator!=( const LocalIdBuilder& other ) const;
 
+		//=====================================================================
+		// Hashing
+		//=====================================================================
+
 		/**
-		 * @brief Get hash code
-		 * @return Hash code for this builder
+		 * @brief Calculate hash code based on builder content.
+		 * @details Computes a hash value representing the current state of the builder,
+		 *          suitable for use in hash-based containers like `std::unordered_set`.
+		 *          Builders that are equal according to `equals()` must produce the same hash code.
+		 * @return A `size_t` hash code.
+		 * @see equals
 		 */
 		size_t hashCode() const;
 
+		//=====================================================================
+		// Core Build Method
+		//=====================================================================
+
+		/**
+		 * @brief Creates the final `LocalId` object from the current builder state.
+		 * @details Constructs and returns the target `LocalId` object based
+		 *          on the configuration accumulated in the builder.
+		 * @return A new instance of `LocalId`.
+		 * @throws std::invalid_argument If the builder state is invalid (`isValid()` returns false).
+		 */
+		[[nodiscard]] virtual LocalId build() override;
+
+		//=====================================================================
+		// State Inspection Methods
+		//=====================================================================
+
+		/**
+		 * @brief Checks if the builder state is valid to build a `LocalId`.
+		 * @details Validity typically requires at least a VIS version and a primary item.
+		 *          Specific rules depend on the `LocalId` definition.
+		 * @return True if the current state allows for a successful `build()`, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isValid() const override;
+
+		/**
+		 * @brief Checks if the builder is in its initial, empty state.
+		 * @details An empty builder has no VIS version, no items, and no metadata tags set.
+		 * @return True if the builder holds no configuration data, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isEmpty() const override;
+
+		/**
+		 * @brief Gets the VIS version currently set in the builder, if any.
+		 * @return An `std::optional<VisVersion>` containing the VIS version if set,
+		 *         or `std::nullopt` if no version is set.
+		 */
+		[[nodiscard]] virtual std::optional<VisVersion> visVersion() const override;
+
+		/**
+		 * @brief Checks if verbose mode is enabled for the `toString()` representation.
+		 * @details Verbose mode typically includes descriptive text alongside codes in the string output.
+		 * @return True if verbose mode is enabled, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isVerboseMode() const override;
+
+		/**
+		 * @brief Gets the primary item path.
+		 * @details The primary item is mandatory for a valid `LocalId`.
+		 *          This implementation returns a reference to the internal path.
+		 * @return A const reference to the primary item's `GmodPath`.
+		 * @warning Behavior is undefined if called when no primary item is set (`isValid()` is false).
+		 */
+		[[nodiscard]] virtual const GmodPath& primaryItem() const override;
+
+		/**
+		 * @brief Gets the secondary item path, if one is set.
+		 * @return A const reference to an `std::optional<GmodPath>` containing the
+		 *         secondary item path if set, or `std::nullopt` otherwise.
+		 */
+		[[nodiscard]] virtual const std::optional<GmodPath>& secondaryItem() const override;
+
+		/**
+		 * @brief Gets all metadata tags currently set in the builder.
+		 * @details Returns a collection of the `MetadataTag` objects configured.
+		 *          The order within the vector corresponds to the standard Local ID format.
+		 * @return A vector containing copies of the MetadataTag objects currently set.
+		 */
+		[[nodiscard]] virtual std::vector<MetadataTag> metadataTags() const override;
+
+		//=====================================================================
+		// Metadata Inspection Methods
+		//=====================================================================
+
+		/**
+		 * @brief Checks if the builder has no metadata tags set.
+		 * @return True if no metadata tags (quantity, content, etc.) are present, false otherwise.
+		 */
+		[[nodiscard]] bool isEmptyMetadata() const;
+
+		/**
+		 * @brief Checks if the builder has any custom (non-standard) metadata tags.
+		 * @return True if the builder contains custom tags, false otherwise.
+		 */
+		[[nodiscard]] bool hasCustomTag() const;
+
+		/**
+		 * @brief Gets the internal `LocalIdItems` object containing primary and secondary items.
+		 * @return A const reference to the `LocalIdItems` member.
+		 */
+		[[nodiscard]] const LocalIdItems& items() const;
+
+		/**
+		 * @brief Gets the quantity metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for quantity.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& quantity() const;
+
+		/**
+		 * @brief Gets the content metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for content.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& content() const;
+
+		/**
+		 * @brief Gets the calculation metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for calculation.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& calculation() const;
+
+		/**
+		 * @brief Gets the state metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for state.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& state() const;
+
+		/**
+		 * @brief Gets the command metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for command.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& command() const;
+
+		/**
+		 * @brief Gets the type metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for type.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& type() const;
+
+		/**
+		 * @brief Gets the position metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for position.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& position() const;
+
+		/**
+		 * @brief Gets the detail metadata tag, if present.
+		 * @return A const reference to an `std::optional<MetadataTag>` for detail.
+		 */
+		[[nodiscard]] const std::optional<MetadataTag>& detail() const;
+
+		//=====================================================================
+		// Conversion and Comparison
+		//=====================================================================
+
+		/**
+		 * @brief Generates the string representation of the Local ID based on the current builder state.
+		 * @details The format follows the standard Local ID string conventions.
+		 *          The output is affected by the `isVerboseMode()` setting.
+		 * @return A `std::string` representing the configured Local ID.
+		 *         Returns an empty string if the state is not valid (`isValid()` is false).
+		 */
+		[[nodiscard]] virtual std::string toString() const override;
+
+		/**
+		 * @brief Appends the string representation of the Local ID to a stringstream.
+		 * @details Efficiently builds the string representation directly into the provided stream.
+		 * @param[in,out] builder The `std::stringstream` to append the representation to.
+		 */
+		void toString( std::stringstream& builder ) const;
+
+		/**
+		 * @brief Checks for logical equality between this builder's state and another's.
+		 * @details Compares all relevant configuration aspects (VIS version, items, tags, modes)
+		 *          to determine if two builders would produce equivalent `LocalId` objects.
+		 * @param[in] other The other `LocalIdBuilder` instance to compare against.
+		 * @return True if the builders represent the same logical state, false otherwise.
+		 */
+		virtual bool equals( const LocalIdBuilder& other ) const override;
+
+		//=====================================================================
+		// Builder Methods (Immutable Fluent Interface)
+		//=====================================================================
+
+		//----------------------------------------------
+		// Creation
+		//----------------------------------------------
+
+		/**
+		 * @brief Creates a new builder instance initialized with the specified VIS version.
+		 * @param[in] version The initial `VisVersion` for the builder.
+		 * @return A new `LocalIdBuilder` instance.
+		 */
+		[[nodiscard]] static LocalIdBuilder create( VisVersion version );
+
+		//----------------------------------------------
+		// Verbose Mode
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the specified verbose mode setting.
+		 * @param[in] verboseMode True to enable verbose mode for `toString()`, false to disable.
+		 * @return A new `LocalIdBuilder` instance with the updated verbose mode setting.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withVerboseMode( bool verboseMode ) override;
+
+		//----------------------------------------------
+		// VIS Version
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the VIS version set from a string.
+		 * @details Parses the string (e.g., "vis-3.8") and sets the corresponding version.
+		 * @param[in] visVersionStr The VIS version string to parse and set.
+		 * @return A new `LocalIdBuilder` instance with the updated VIS version.
+		 * @throws std::invalid_argument If the `visVersionStr` format is invalid or unrecognized.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withVisVersion( const std::string& visVersionStr ) override;
+
+		/**
+		 * @brief Returns a new builder with the VIS version set from an enum value.
+		 * @param[in] version The `VisVersion` enum value to set.
+		 * @return A new `LocalIdBuilder` instance with the updated VIS version.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withVisVersion( VisVersion version ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the VIS version set from an optional enum.
+		 * @details If `version` contains a value, the returned builder has that version set.
+		 *          Otherwise, returns a builder identical to the current one (effectively a no-op).
+		 * @param[in] version An `std::optional<VisVersion>` containing the version to set, if present.
+		 * @return A new `LocalIdBuilder` instance, potentially updated.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithVisVersion( const std::optional<VisVersion>& version ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the VIS version set from an optional string.
+		 * @details If `visVersionStr` contains a value, attempts to parse and set it.
+		 *          Reports success or failure via the `succeeded` output parameter.
+		 * @param[in] visVersionStr An `std::optional<std::string>` containing the version string to set, if present.
+		 * @param[out] succeeded Set to true if the version was successfully set (i.e., optional had a value
+		 *                       and the string was valid), false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithVisVersion( const std::optional<std::string>& visVersionStr, bool& succeeded ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the VIS version set from an optional enum. Reports success.
+		 * @details If `version` contains a value, the returned builder has that version set and `succeeded` is true.
+		 *          Otherwise, `succeeded` is false and the builder is identical to the current one.
+		 * @param[in] version An `std::optional<VisVersion>` containing the version to set, if present.
+		 * @param[out] succeeded Set to true if the version was present and set, false otherwise.
+		 * @return A new `LocalIdBuilder` instance, potentially updated.
+		 */
+		[[nodiscard]] LocalIdBuilder tryWithVisVersion( const std::optional<VisVersion>& version, bool& succeeded );
+
+		/**
+		 * @brief Returns a new builder with the VIS version removed.
+		 * @return A new `LocalIdBuilder` instance without any VIS version set.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withoutVisVersion() override;
+
+		//----------------------------------------------
+		// Primary Item
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the primary item set (moves the provided path).
+		 * @details Sets the primary item, taking ownership of the `item` via move semantics.
+		 * @param[in] item The `GmodPath` to set as the primary item (rvalue reference, will be moved).
+		 * @return A new `LocalIdBuilder` instance with the updated primary item.
+		 * @throws std::invalid_argument If setting the primary item fails (e.g., path validation).
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withPrimaryItem( GmodPath&& item ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the primary item set (moves the provided path). Does not throw.
+		 * @details Attempts to set the primary item via move semantics. If setting fails (e.g., validation),
+		 *          it returns a builder identical to the current one.
+		 * @param[in] item The `GmodPath` to attempt to set as primary (rvalue reference, will be moved).
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithPrimaryItem( GmodPath&& item ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the primary item set (moves the provided path). Reports success.
+		 * @details Attempts to set the primary item via move semantics. Reports success or failure via `succeeded`.
+		 * @param[in] item The `GmodPath` to attempt to set as primary (rvalue reference, will be moved).
+		 * @param[out] succeeded Set to true if the primary item was successfully set, false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithPrimaryItem( GmodPath&& item, bool& succeeded ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the primary item set from an optional (moves if present). Does not throw.
+		 * @details If `item` contains a value, attempts to set it as the primary item via move semantics.
+		 * @param[in] item An `std::optional<GmodPath>` containing the item to set, if present (rvalue reference).
+		 * @return A new `LocalIdBuilder` instance, potentially updated.
+		 */
+		[[nodiscard]] LocalIdBuilder tryWithPrimaryItem( std::optional<GmodPath>&& item );
+
+		/**
+		 * @brief Returns a new builder, potentially with the primary item set from an optional (moves if present). Reports success.
+		 * @details If `item` contains a value, attempts to set it as the primary item via move semantics. Reports success.
+		 * @param[in] item An `std::optional<GmodPath>` containing the item to set, if present (rvalue reference).
+		 * @param[out] succeeded Set to true if the item was present and successfully set, false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] LocalIdBuilder tryWithPrimaryItem( std::optional<GmodPath>&& item, bool& succeeded );
+
+		/**
+		 * @brief Returns a new builder with the primary item removed (reset to default/empty).
+		 * @return A new `LocalIdBuilder` instance without a primary item set.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withoutPrimaryItem() override;
+
+		//----------------------------------------------
+		// Secondary Item
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the secondary item set (moves the provided path).
+		 * @details Sets the secondary item, taking ownership of the `item` via move semantics.
+		 * @param[in] item The `GmodPath` to set as the secondary item (rvalue reference, will be moved).
+		 * @return A new `LocalIdBuilder` instance with the updated secondary item.
+		 * @throws std::invalid_argument If setting the secondary item fails (e.g., path validation).
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withSecondaryItem( GmodPath&& item ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the secondary item set (moves the provided path). Does not throw.
+		 * @details Attempts to set the secondary item via move semantics. If setting fails,
+		 *          it returns a builder identical to the current one.
+		 * @param[in] item The `GmodPath` to attempt to set as secondary (rvalue reference, will be moved).
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithSecondaryItem( GmodPath&& item ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the secondary item set (moves the provided path). Reports success.
+		 * @details Attempts to set the secondary item via move semantics. Reports success or failure via `succeeded`.
+		 * @param[in] item The `GmodPath` to attempt to set as secondary (rvalue reference, will be moved).
+		 * @param[out] succeeded Set to true if the secondary item was successfully set, false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithSecondaryItem( GmodPath&& item, bool& succeeded ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the secondary item set from an optional (moves if present). Does not throw.
+		 * @details If `item` contains a value, attempts to set it as the secondary item via move semantics.
+		 * @param[in] item An `std::optional<GmodPath>` containing the item to set, if present (rvalue reference).
+		 * @return A new `LocalIdBuilder` instance, potentially updated.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithSecondaryItem( std::optional<GmodPath>&& item ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the secondary item set from an optional (moves if present). Reports success.
+		 * @details If `item` contains a value, attempts to set it as the secondary item via move semantics. Reports success.
+		 * @param[in] item An `std::optional<GmodPath>` containing the item to set, if present (rvalue reference).
+		 * @param[out] succeeded Set to true if the item was present and successfully set, false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithSecondaryItem( std::optional<GmodPath>&& item, bool& succeeded ) override;
+
+		/**
+		 * @brief Returns a new builder with the secondary item removed.
+		 * @return A new `LocalIdBuilder` instance without a secondary item set.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withoutSecondaryItem() override;
+
+		//----------------------------------------------
+		// Metadata Tags
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the specified metadata tag added or replaced.
+		 * @details Adds the `metadataTag`. If a tag with the same `CodebookName` already exists,
+		 *          it is replaced. Delegates to the appropriate specific `with...` method (e.g., `withQuantity`).
+		 * @param[in] metadataTag The `MetadataTag` to add or replace.
+		 * @return A new `LocalIdBuilder` instance with the added or updated tag.
+		 * @throws std::invalid_argument If the tag's `CodebookName` is not one of the standard metadata types
+		 *         supported directly by `LocalId` (Quantity, Content, etc.).
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withMetadataTag( const MetadataTag& metadataTag ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the specified metadata tag added or replaced. Does not throw.
+		 * @details If `metadataTag` contains a value, attempts to add or replace it using `withMetadataTag`.
+		 *          Otherwise, returns a builder identical to the current one.
+		 * @param[in] metadataTag An `std::optional<MetadataTag>` containing the tag to add/replace, if present.
+		 * @return A new `LocalIdBuilder` instance, potentially updated.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag ) override;
+
+		/**
+		 * @brief Returns a new builder, potentially with the specified metadata tag added or replaced. Reports success.
+		 * @details If `metadataTag` contains a value, attempts to add or replace it using `withMetadataTag`. Reports success via `succeeded`.
+		 * @param[in] metadataTag An `std::optional<MetadataTag>` containing the tag to add/replace, if present.
+		 * @param[out] succeeded Set to true if the tag was present and successfully added/replaced (and was a valid standard tag), false otherwise.
+		 * @return A new `LocalIdBuilder` instance, updated if successful, otherwise identical to the current one.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder tryWithMetadataTag( const std::optional<MetadataTag>& metadataTag, bool& succeeded ) override;
+
+		/**
+		 * @brief Returns a new builder with the specified metadata tag removed.
+		 * @details Removes the metadata tag identified by its `CodebookName`. Delegates to the appropriate
+		 *          specific `without...` method (e.g., `withoutQuantity`).
+		 * @param[in] name The `CodebookName` of the tag to remove.
+		 * @return A new `LocalIdBuilder` instance without the specified metadata tag.
+		 * @throws std::invalid_argument If the `name` is not one of the standard metadata types supported by `LocalId`.
+		 */
+		[[nodiscard]] virtual LocalIdBuilder withoutMetadataTag( CodebookName name ) override;
+
+		//=====================================================================
+		// Specific Metadata Tag Builder Methods
+		//=====================================================================
+
+		//----------------------------------------------
+		// Quantity
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the quantity metadata tag set.
+		 * @param[in] quantity The quantity tag. Must have `CodebookName::Quantity`.
+		 * @return A new `LocalIdBuilder` instance with the updated quantity tag.
+		 * @throws std::invalid_argument If `quantity.name()` is not `CodebookName::Quantity`.
+		 */
+		[[nodiscard]] LocalIdBuilder withQuantity( const MetadataTag& quantity );
+
+		/**
+		 * @brief Returns a new builder with the quantity metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the quantity tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutQuantity();
+
+		//----------------------------------------------
+		// Content
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the content metadata tag set.
+		 * @param[in] content The content tag. Must have `CodebookName::Content`.
+		 * @return A new `LocalIdBuilder` instance with the updated content tag.
+		 * @throws std::invalid_argument If `content.name()` is not `CodebookName::Content`.
+		 */
+		[[nodiscard]] LocalIdBuilder withContent( const MetadataTag& content );
+
+		/**
+		 * @brief Returns a new builder with the content metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the content tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutContent();
+
+		//----------------------------------------------
+		// Calculation
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the calculation metadata tag set.
+		 * @param[in] calculation The calculation tag. Must have `CodebookName::Calculation`.
+		 * @return A new `LocalIdBuilder` instance with the updated calculation tag.
+		 * @throws std::invalid_argument If `calculation.name()` is not `CodebookName::Calculation`.
+		 */
+		[[nodiscard]] LocalIdBuilder withCalculation( const MetadataTag& calculation );
+
+		/**
+		 * @brief Returns a new builder with the calculation metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the calculation tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutCalculation();
+
+		//----------------------------------------------
+		// State
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the state metadata tag set.
+		 * @param[in] state The state tag. Must have `CodebookName::State`.
+		 * @return A new `LocalIdBuilder` instance with the updated state tag.
+		 * @throws std::invalid_argument If `state.name()` is not `CodebookName::State`.
+		 */
+		[[nodiscard]] LocalIdBuilder withState( const MetadataTag& state );
+
+		/**
+		 * @brief Returns a new builder with the state metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the state tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutState();
+
+		//----------------------------------------------
+		// Command
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the command metadata tag set.
+		 * @param[in] command The command tag. Must have `CodebookName::Command`.
+		 * @return A new `LocalIdBuilder` instance with the updated command tag.
+		 * @throws std::invalid_argument If `command.name()` is not `CodebookName::Command`.
+		 */
+		[[nodiscard]] LocalIdBuilder withCommand( const MetadataTag& command );
+
+		/**
+		 * @brief Returns a new builder with the command metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the command tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutCommand();
+
+		//----------------------------------------------
+		// Type
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the type metadata tag set.
+		 * @param[in] type The type tag. Must have `CodebookName::Type`.
+		 * @return A new `LocalIdBuilder` instance with the updated type tag.
+		 * @throws std::invalid_argument If `type.name()` is not `CodebookName::Type`.
+		 */
+		[[nodiscard]] LocalIdBuilder withType( const MetadataTag& type );
+
+		/**
+		 * @brief Returns a new builder with the type metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the type tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutType();
+
+		//----------------------------------------------
+		// Position
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the position metadata tag set.
+		 * @param[in] position The position tag. Must have `CodebookName::Position`.
+		 * @return A new `LocalIdBuilder` instance with the updated position tag.
+		 * @throws std::invalid_argument If `position.name()` is not `CodebookName::Position`.
+		 */
+		[[nodiscard]] LocalIdBuilder withPosition( const MetadataTag& position );
+
+		/**
+		 * @brief Returns a new builder with the position metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the position tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutPosition();
+
+		//----------------------------------------------
+		// Detail
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns a new builder with the detail metadata tag set.
+		 * @param[in] detail The detail tag. Must have `CodebookName::Detail`.
+		 * @return A new `LocalIdBuilder` instance with the updated detail tag.
+		 * @throws std::invalid_argument If `detail.name()` is not `CodebookName::Detail`.
+		 */
+		[[nodiscard]] LocalIdBuilder withDetail( const MetadataTag& detail );
+
+		/**
+		 * @brief Returns a new builder with the detail metadata tag removed.
+		 * @return A new `LocalIdBuilder` instance without the detail tag.
+		 */
+		[[nodiscard]] LocalIdBuilder withoutDetail();
+
+		//=====================================================================
+		// Static Parsing Methods
+		//=====================================================================
+
+		/**
+		 * @brief Parses a string representation into a `LocalIdBuilder` instance.
+		 * @details Creates a `LocalIdBuilder` configured according to the parsed `localIdStr`.
+		 *          Expects the standard Local ID format (e.g., "/dnv-v2/vis-3.0/...").
+		 * @param[in] localIdStr The Local ID string to parse.
+		 * @return A new `LocalIdBuilder` instance representing the parsed string.
+		 * @throws std::invalid_argument If parsing fails due to invalid format or content.
+		 */
+		[[nodiscard]] static LocalIdBuilder parse( const std::string& localIdStr );
+
+		/**
+		 * @brief Attempts to parse a string representation into a `LocalIdBuilder` instance. Does not throw.
+		 * @details Tries to create a `LocalIdBuilder` from `localIdStr`. If successful, the result
+		 *          is placed in the `localId` output parameter. No detailed error information is provided on failure.
+		 * @param[in] localIdStr The Local ID string to parse.
+		 * @param[out] localId An `std::optional<LocalIdBuilder>` that will contain the resulting builder
+		 *                     if parsing succeeds, or `std::nullopt` otherwise.
+		 * @return True if parsing was successful, false otherwise.
+		 */
+		[[nodiscard]] static bool tryParse( const std::string& localIdStr, std::optional<LocalIdBuilder>& localId );
+
+		/**
+		 * @brief Attempts to parse a string representation into a `LocalIdBuilder` instance, providing error details.
+		 * @details Tries to create a `LocalIdBuilder` from `localIdStr`. If successful, the result
+		 *          is placed in `localId`. If parsing fails, detailed error information is added to `errors`.
+		 * @param[in] localIdStr The Local ID string to parse.
+		 * @param[out] errors A `ParsingErrors` object to collect detailed error information if parsing fails.
+		 * @param[out] localId An `std::optional<LocalIdBuilder>` that will contain the resulting builder
+		 *                     if parsing succeeds, or `std::nullopt` otherwise.
+		 * @return True if parsing was successful, false otherwise.
+		 */
+		[[nodiscard]] static bool tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId );
+
 	private:
-		//-------------------------------------------------------------------------
-		// Private Helper Methods
-		//-------------------------------------------------------------------------
+		//=====================================================================
+		// Private Static Helper Methods for Parsing
+		//=====================================================================
 
 		/**
-		 * @brief Adds a parsing error to the error builder
-		 * @param errorBuilder Error builder to add the error to
-		 * @param state State where the error occurred
-		 * @param message Optional error message (empty for default message)
+		 * @brief Internal core parsing logic used by public `tryParse` methods.
+		 * @param[in] localIdStr The complete Local ID string to parse.
+		 * @param[in,out] errorBuilder A helper object to accumulate parsing errors.
+		 * @param[out] localIdBuilder Output parameter where the successfully parsed builder is placed.
+		 * @return True if parsing succeeded (potentially with non-critical errors recorded), false if a critical error occurred.
 		 */
-		static void addError( LocalIdParsingErrorBuilder& errorBuilder, LocalIdParsingState state, const std::string& message = "" );
+		[[nodiscard]] static bool tryParseInternal(
+			const std::string& localIdStr, LocalIdParsingErrorBuilder& errorBuilder, std::optional<LocalIdBuilder>& localIdBuilder );
 
 		/**
-		 * @brief Advances parser position and state
-		 * @param i Current position index
-		 * @param segment Current segment being parsed
-		 * @param state Current parsing state to update
+		 * @brief Helper to add a parsing error associated with a specific state.
+		 * @param[in,out] errorBuilder The error collection object.
+		 * @param[in] state The `LocalIdParsingState` where the error occurred.
+		 * @param[in] message Optional additional detail about the error.
 		 */
-		static void advanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state );
+		static void addError(
+			LocalIdParsingErrorBuilder& errorBuilder, LocalIdParsingState state, const std::string& message = "" );
 
 		/**
-		 * @brief Advances parser position only
-		 * @param i Current position index
-		 * @param segment Current segment being parsed
-		 */
-		static void advanceParser( size_t& i, const std::string& segment );
-
-		/**
-		 * @brief Advances parser state only
-		 * @param state Current parsing state
-		 * @param to Target state to transition to
-		 */
-		static void advanceParser( LocalIdParsingState& state, LocalIdParsingState to );
-
-		/**
-		 * @brief Advances both parser position and state
-		 * @param i Current position index
-		 * @param segment Current segment being parsed
-		 * @param state Current parsing state
-		 * @param to Target state to transition to
-		 */
-		static void advanceParser( size_t& i, const std::string& segment, LocalIdParsingState& state, LocalIdParsingState to );
-
-		/**
-		 * @brief Advances parser position and state using string_view
-		 * @param i Current position index
-		 * @param segment Current segment being parsed as string_view
-		 * @param state Current parsing state to update
-		 */
-		static void advanceParser( size_t& i, const std::string_view& segment, LocalIdParsingState& state );
-
-		/**
-		 * @brief Advances parser position only using string_view
-		 * @param i Current position index
-		 * @param segment Current segment being parsed as string_view
+		 * @brief Advances the parsing index `i` past the current `segment` and the following separator '/'.
+		 * @param[in,out] i The current parsing index within the input string.
+		 * @param[in] segment The string view representing the segment just processed.
 		 */
 		static void advanceParser( size_t& i, const std::string_view& segment );
 
 		/**
-		 * @brief Advances both parser position and state using string_view
-		 * @param i Current position index
-		 * @param segment Current segment being parsed as string_view
-		 * @param state Current parsing state
-		 * @param to Target state to transition to
+		 * @brief Advances the parsing index `i` and updates the parsing `state`.
+		 * @param[in,out] i The current parsing index.
+		 * @param[in] segment The segment just processed.
+		 * @param[in,out] state The current parsing state (will be updated based on standard progression).
+		 */
+		static void advanceParser( size_t& i, const std::string_view& segment, LocalIdParsingState& state );
+
+		/**
+		 * @brief Advances the parsing index `i` and explicitly sets the parsing `state` to `to`.
+		 * @param[in,out] i The current parsing index.
+		 * @param[in] segment The segment just processed.
+		 * @param[in,out] state The current parsing state (will be set to `to`).
+		 * @param[in] to The target `LocalIdParsingState` to transition to.
 		 */
 		static void advanceParser( size_t& i, const std::string_view& segment, LocalIdParsingState& state, LocalIdParsingState to );
 
 		/**
-		 * @brief Gets the indexes for transitioning to the next state
-		 * @param str String being parsed
-		 * @param state Current parsing state
-		 * @return Pair of (start index, end index) for the next segment
+		 * @brief Explicitly sets the parsing `state` to `to`.
+		 * @param[in,out] state The current parsing state (will be set to `to`).
+		 * @param[in] to The target `LocalIdParsingState` to transition to.
+		 */
+		static void advanceParser( LocalIdParsingState& state, LocalIdParsingState to );
+
+		/**
+		 * @brief Finds the start and end+1 indices of the next major section (secondary item, metadata, or end-of-string).
+		 * @details Used to delimit sections during parsing.
+		 * @param[in] str The full input string being parsed.
+		 * @param[in] state The current parsing state (used to determine search context).
+		 * @return A `std::pair` containing the start index and the end+1 index of the next section.
 		 */
 		static std::pair<size_t, size_t> nextStateIndexes( const std::string& str, LocalIdParsingState state );
 
 		/**
-		 * @brief Converts a metadata prefix string to its corresponding parsing state
-		 * @param prefix String prefix to convert (e.g., "qty", "q", "cnt", etc.)
-		 * @return The corresponding LocalIdParsingState if the prefix is valid, nullopt otherwise
+		 * @brief Converts a metadata prefix string (e.g., "q", "qty") to its corresponding `LocalIdParsingState`.
+		 * @param[in] prefix The string view representing the metadata prefix.
+		 * @return An `std::optional<LocalIdParsingState>` containing the state if the prefix is recognized,
+		 *         or `std::nullopt` otherwise.
 		 */
 		static std::optional<LocalIdParsingState> metaPrefixToState( const std::string_view& prefix );
 
 		/**
-		 * @brief Determines the next parsing state in the metadata state machine sequence
-		 * @param prev Current parsing state
-		 * @return The next state in the sequence if one exists, nullopt if at the end of the sequence
+		 * @brief Determines the expected next parsing state in the standard metadata sequence.
+		 * @param[in] prev The previous `LocalIdParsingState` (must be a metadata state).
+		 * @return An `std::optional<LocalIdParsingState>` containing the next expected state,
+		 *         or `std::nullopt` if `prev` is the last state in the sequence (e.g., MetaDetail).
 		 */
 		static std::optional<LocalIdParsingState> nextParsingState( LocalIdParsingState prev );
 
 		/**
-		 * @brief Parses a metadata tag from the string
-		 * @param codebookName Codebook name for the tag
-		 * @param state Current parsing state
-		 * @param i Current position index
-		 * @param segment Current segment being parsed
-		 * @param tag Optional MetadataTag to fill
-		 * @param codebooks Codebooks object for validation
-		 * @param errorBuilder Error builder to report errors
-		 * @return true if parsing succeeded, false otherwise
+		 * @brief Parses a single metadata tag segment (e.g., "q-value" or "qty-value").
+		 * @param[in] codebookName The expected `CodebookName` for this tag.
+		 * @param[in,out] state The current parsing state (updated on success).
+		 * @param[in,out] i The current parsing index (updated on success).
+		 * @param[in] segment The string view representing the full metadata segment (e.g., "q-value").
+		 * @param[out] tag Output parameter where the successfully parsed `MetadataTag` is placed.
+		 * @param[in] codebooks A shared pointer to the loaded codebooks, used for validation.
+		 * @param[in,out] errorBuilder Used to record errors encountered during parsing.
+		 * @return True if the segment was successfully parsed as the expected tag, false otherwise.
 		 */
-		static bool parseMetaTag( CodebookName codebookName, LocalIdParsingState& state,
-			size_t& i, const std::string_view& segment, std::optional<MetadataTag>& tag,
-			const std::shared_ptr<Codebooks>& codebooks, LocalIdParsingErrorBuilder& errorBuilder );
+		static bool parseMetaTag(
+			CodebookName codebookName, LocalIdParsingState& state, size_t& i, const std::string_view& segment,
+			std::optional<MetadataTag>& tag, const std::shared_ptr<const Codebooks>& codebooks,
+			LocalIdParsingErrorBuilder& errorBuilder );
 
-		//-------------------------------------------------------------------------
-		// Member Variables
-		//-------------------------------------------------------------------------
+		//=====================================================================
+		// Private Member Variables
+		//=====================================================================
 
+		/** @brief The VIS version, if set. */
 		std::optional<VisVersion> m_visVersion;
+
+		/** @brief Flag indicating verbose mode for `toString()`. Defaults to false. */
 		bool m_verboseMode = false;
+
+		/** @brief Holds the primary and optional secondary GmodPath items. */
 		LocalIdItems m_items;
+
+		/** @brief Quantity metadata tag, if set. */
 		std::optional<MetadataTag> m_quantity;
+
+		/** @brief Content metadata tag, if set. */
 		std::optional<MetadataTag> m_content;
+
+		/** @brief Calculation metadata tag, if set. */
 		std::optional<MetadataTag> m_calculation;
+
+		/** @brief State metadata tag, if set. */
 		std::optional<MetadataTag> m_state;
+
+		/** @brief Command metadata tag, if set. */
 		std::optional<MetadataTag> m_command;
+
+		/** @brief Type metadata tag, if set. */
 		std::optional<MetadataTag> m_type;
+
+		/** @brief Position metadata tag, if set. */
 		std::optional<MetadataTag> m_position;
+
+		/** @brief Detail metadata tag, if set. */
 		std::optional<MetadataTag> m_detail;
 	};
 }
