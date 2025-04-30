@@ -3,7 +3,9 @@
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/Codebook.h"
+#include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/VisVersion.h"
+#include "dnv/vista/sdk/MetadataTag.h"
 
 namespace dnv::vista::sdk
 {
@@ -64,20 +66,22 @@ namespace dnv::vista::sdk
 
 	class CodebookTest : public ::testing::Test
 	{
+	public:
 	protected:
-		VIS& Vis = VIS::instance();
-		Codebooks Codebooks;
-
-		virtual void SetUp() override
+		CodebookTest()
+			: m_vis{ VIS::instance() },
+			  m_codebooks{ m_vis.codebooks( VisVersion::v3_4a ) }
 		{
-			Codebooks = Vis.codebooks( VisVersion::v3_4a );
 		}
+
+		VIS& m_vis;
+		const Codebooks& m_codebooks;
 	};
 
 	TEST_F( CodebookTest, Test_Position_Validation )
 	{
 		auto testCases = TestData::getPositionValidationTestData();
-		auto codebookType = Codebooks[CodebookName::Position];
+		const auto& codebookType = m_codebooks[CodebookName::Position];
 
 		for ( const auto& [input, expectedOutput] : testCases )
 		{
@@ -94,7 +98,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& [invalidStandardValue, validStandardValue] : testCases )
 		{
-			auto positions = Codebooks[CodebookName::Position];
+			const auto& positions = m_codebooks[CodebookName::Position];
 
 			EXPECT_FALSE( positions.hasStandardValue( invalidStandardValue ) );
 			EXPECT_TRUE( positions.hasStandardValue( validStandardValue ) );
@@ -103,7 +107,7 @@ namespace dnv::vista::sdk
 
 	TEST_F( CodebookTest, Test_Standard_Values )
 	{
-		auto positions = Codebooks[CodebookName::Position];
+		const auto& positions = m_codebooks[CodebookName::Position];
 
 		EXPECT_TRUE( positions.hasStandardValue( "upper" ) );
 
@@ -118,7 +122,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& data : testCases )
 		{
-			const auto& states = Codebooks[CodebookName::State];
+			const auto& states = m_codebooks[CodebookName::State];
 
 			EXPECT_FALSE( states.hasGroup( data.invalidGroup ) );
 			EXPECT_TRUE( states.hasStandardValue( data.validValue ) );
@@ -133,7 +137,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& data : testCases )
 		{
-			const auto& codebookType = Codebooks[CodebookName::Position];
+			const auto& codebookType = m_codebooks[CodebookName::Position];
 
 			auto metadataTag1 = codebookType.createTag( data.firstTag );
 			EXPECT_EQ( metadataTag1.value(), data.firstTag );
@@ -163,12 +167,12 @@ namespace dnv::vista::sdk
 
 	TEST_F( CodebookTest, Test_Get_Groups )
 	{
-		const auto& groups = Codebooks[CodebookName::Position].groups();
+		const auto& groups = m_codebooks[CodebookName::Position].groups();
 		EXPECT_GT( groups.count(), 1 );
 
 		EXPECT_TRUE( groups.contains( "Vertical" ) );
 
-		const auto& rawData = Codebooks[CodebookName::Position].rawData();
+		const auto& rawData = m_codebooks[CodebookName::Position].rawData();
 
 		EXPECT_EQ( groups.count(), rawData.size() - 1 );
 		EXPECT_TRUE( rawData.find( "Vertical" ) != rawData.end() );
@@ -176,12 +180,11 @@ namespace dnv::vista::sdk
 
 	TEST_F( CodebookTest, Test_Iterate_Groups )
 	{
-		const auto& groups = Codebooks[CodebookName::Position].groups();
+		const auto& groups = m_codebooks[CodebookName::Position].groups();
 		int count = 0;
 
-		for ( const auto& group : groups )
+		for ( [[maybe_unused]] const auto& group : groups )
 		{
-			(void)group;
 			count++;
 		}
 
@@ -190,12 +193,11 @@ namespace dnv::vista::sdk
 
 	TEST_F( CodebookTest, Test_Iterate_Values )
 	{
-		const auto& values = Codebooks[CodebookName::Position].standardValues();
+		const auto& values = m_codebooks[CodebookName::Position].standardValues();
 		int count = 0;
 
-		for ( const auto& value : values )
+		for ( [[maybe_unused]] const auto& value : values )
 		{
-			(void)value;
 			count++;
 		}
 
@@ -208,7 +210,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& data : testCases )
 		{
-			const auto& codebook = Codebooks[CodebookName::Detail];
+			const auto& codebook = m_codebooks[CodebookName::Detail];
 
 			EXPECT_TRUE( codebook.tryCreateTag( data.validCustomTag ).has_value() );
 			EXPECT_EQ( codebook.tryCreateTag( data.firstInvalidCustomTag ), std::nullopt );
@@ -228,8 +230,8 @@ namespace dnv::vista::sdk
 		auto [input, expectedOutput] = GetParam();
 
 		VIS& vis = VIS::instance();
-		auto codebooks = vis.codebooks( VisVersion::v3_4a );
-		auto codebookType = codebooks[CodebookName::Position];
+		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
+		const auto& codebookType = codebooks[CodebookName::Position];
 
 		auto validPosition = codebookType.validatePosition( input );
 		auto parsedExpectedOutput = PositionValidationResults::fromString( expectedOutput );

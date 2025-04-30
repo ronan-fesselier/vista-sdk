@@ -19,6 +19,7 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <numeric>
 #include <optional>
 #include <queue>
 #include <regex>
@@ -30,6 +31,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -37,8 +39,11 @@
 
 /* Libs */
 #include <spdlog/spdlog.h>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/error/en.h>
+#include <nlohmann/json.hpp>
+#include <fmt/format.h>
 #include <zlib.h>
-#include <libcpuid/libcpuid.h>
+#if defined( _MSC_VER )
+#	include <libcpuid.h>
+#elif defined( __GNUC__ )
+#	include <cpuid.h>
+#endif

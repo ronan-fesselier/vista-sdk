@@ -96,3 +96,10 @@ Thumbs.db
 # Python test files
 *.pytest_cache/
 build/
+
+# User-specific files
+.user
+.config
+
+# Docs directories
+docs/
