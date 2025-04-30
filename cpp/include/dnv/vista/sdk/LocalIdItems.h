@@ -1,3 +1,7 @@
+/**
+ * @file LocalIdItems.h
+ * @brief Defines the LocalIdItems class for representing primary and secondary items in LocalIds.
+ */
 #pragma once
 
 #include "GmodPath.h"
@@ -5,108 +9,186 @@
 namespace dnv::vista::sdk
 {
 	/**
-	 * @brief Structure representing primary and secondary items for a LocalId
-	 * @note Internal implementation detail for LocalId functionality
+	 * @brief Immutable structure representing primary and optional secondary GMOD items for a LocalId.
+	 *
+	 * This class stores primary and secondary GmodPath items. It is designed to be
+	 * immutable after construction. Due to GmodPath being non-copyable, this class
+	 * also enforces move-only semantics for construction involving GmodPath objects.
 	 */
 	class LocalIdItems final
 	{
 	public:
 		//-------------------------------------------------------------------------
-		// Constructors and Assignment
+		// Constructors, Destructor, Assignment Operators
 		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Default constructor
+		 * @brief Default constructor.
+		 *
+		 * Creates an empty LocalIdItems instance with no primary or secondary items.
+		 * Both `m_primaryItem` and `m_secondaryItem` will be `std::nullopt`.
 		 */
 		LocalIdItems() = default;
 
 		/**
-		 * @brief Copy constructor
-		 * @param other The object to copy from
+		 * @brief Base move constructor.
+		 *
+		 * Constructs LocalIdItems by taking ownership of the provided GmodPath objects.
+		 * This is the primary way to create a populated instance from scratch.
+		 *
+		 * @param primaryItem The primary GmodPath (moved into `m_primaryItem`).
+		 * @param secondaryItem The optional secondary GmodPath (moved into `m_secondaryItem`).
 		 */
-		LocalIdItems( const LocalIdItems& other );
+		LocalIdItems( GmodPath&& primaryItem, std::optional<GmodPath>&& secondaryItem );
 
 		/**
-		 * @brief Assignment operator
-		 * @param other The object to copy from
-		 * @return Reference to this object
+		 * @brief Constructor to create a new instance by replacing the primary item.
+		 *
+		 * Creates a new instance by moving the secondary item from `other` and
+		 * moving the provided `newPrimaryItem`.
+		 * @param other The existing LocalIdItems instance (moved from).
+		 * @param newPrimaryItem The new primary GmodPath (moved).
 		 */
-		LocalIdItems& operator=( const LocalIdItems& other );
+		LocalIdItems( LocalIdItems&& other, GmodPath&& newPrimaryItem );
 
 		/**
-		 * @brief Constructor with primary and secondary items
-		 * @param primaryItem Optional primary item
-		 * @param secondaryItem Optional secondary item
+		 * @brief Constructor to create a new instance by replacing the secondary item.
+		 *
+		 * Creates a new instance by moving the primary item from `other` and
+		 * moving the provided `newSecondaryItem`.
+		 * @param other The existing LocalIdItems instance (moved from).
+		 * @param newSecondaryItem The new optional secondary GmodPath (moved).
 		 */
-		LocalIdItems(
-			const GmodPath& primaryItem,
-			std::optional<GmodPath> secondaryItem );
+		LocalIdItems( LocalIdItems&& other, std::optional<GmodPath>&& newSecondaryItem );
+
+		/**
+		 * @brief Destructor.
+		 */
+		~LocalIdItems() = default;
+
+		/**
+		 * @brief Deleted copy constructor.
+		 *
+		 * Copying is disallowed because GmodPath is non-copyable, enforcing immutability
+		 * and preventing potential ownership issues.
+		 */
+		LocalIdItems( const LocalIdItems& ) = delete;
+
+		/**
+		 * @brief Deleted copy assignment operator.
+		 *
+		 * Copy assignment is disallowed for the same reasons as copy construction.
+		 */
+		LocalIdItems& operator=( const LocalIdItems& ) = delete;
+
+		/**
+		 * @brief Defaulted move constructor.
+		 *
+		 * Allows moving LocalIdItems instances efficiently.
+		 */
+		LocalIdItems( LocalIdItems&& ) noexcept = default;
+
+		/**
+		 * @brief Defaulted move assignment operator.
+		 *
+		 * Allows move-assigning LocalIdItems instances efficiently.
+		 */
+		LocalIdItems& operator=( LocalIdItems&& ) noexcept = default;
 
 		//-------------------------------------------------------------------------
-		// Core Properties
+		// Public Accessors (Read-only)
 		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Get primary item
-		 * @return Optional primary item
+		 * @brief Gets the primary item.
+		 * @return A const reference to the optional primary GmodPath.
 		 */
-		const GmodPath& primaryItem() const;
+		[[nodiscard]] const std::optional<GmodPath>& primaryItem() const noexcept;
 
 		/**
-		 * @brief Get secondary item
-		 * @return Optional secondary item
+		 * @brief Gets the optional secondary item.
+		 * @return A const reference to the optional secondary GmodPath.
 		 */
-		std::optional<GmodPath> secondaryItem() const;
+		[[nodiscard]] const std::optional<GmodPath>& secondaryItem() const noexcept;
+
+		/**
+		 * @brief Checks if both primary and secondary items are uninitialized (nullopt).
+		 * @return True if both `m_primaryItem` and `m_secondaryItem` are `std::nullopt`, false otherwise.
+		 */
+		[[nodiscard]] bool isEmpty() const noexcept;
 
 		//-------------------------------------------------------------------------
-		// String Generation
+		// Public Methods
 		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Append items to string builder
-		 * @param builder String stream to append to
-		 * @param verboseMode Whether to include verbose output
+		 * @brief Appends the string representation of the items to a stringstream.
+		 *
+		 * Formats and appends the primary and secondary items according to LocalId
+		 * formatting rules. Includes verbose common name details if requested.
+		 *
+		 * @param builder The stringstream to append to.
+		 * @param verboseMode If true, appends verbose common name information.
 		 */
 		void append( std::stringstream& builder, bool verboseMode ) const;
+
+		/**
+		 * @brief Converts the items to their string representation.
+		 * @param verboseMode If true, includes verbose common name information. Defaults to false.
+		 * @return The string representation of the items.
+		 */
+		[[nodiscard]] std::string toString( bool verboseMode = false ) const;
 
 		//-------------------------------------------------------------------------
 		// Comparison Operators
 		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Equality operator
-		 * @param other The other LocalIdItems to compare
-		 * @return true if equal, false otherwise
+		 * @brief Equality comparison operator.
+		 *
+		 * Compares the `m_primaryItem` and `m_secondaryItem` members for equality.
+		 * `std::optional` handles comparisons involving `std::nullopt` correctly.
+		 * Requires `GmodPath` to have `operator==` defined.
+		 *
+		 * @param other The other LocalIdItems instance to compare with.
+		 * @return true if both primary and secondary items are equal, false otherwise.
 		 */
-		bool operator==( const LocalIdItems& other ) const;
+		[[nodiscard]] bool operator==( const LocalIdItems& other ) const noexcept;
 
 		/**
-		 * @brief Inequality operator
-		 * @param other The other LocalIdItems to compare
-		 * @return true if not equal, false otherwise
+		 * @brief Inequality comparison operator.
+		 * @param other The other LocalIdItems instance to compare with.
+		 * @return true if the instances are not equal, false otherwise.
 		 */
-		bool operator!=( const LocalIdItems& other ) const;
+		[[nodiscard]] bool operator!=( const LocalIdItems& other ) const noexcept;
 
 	private:
-		//-------------------------------------------------------------------------
-		// Member Variables
-		//-------------------------------------------------------------------------
-		GmodPath m_primaryItem;
-		std::optional<GmodPath> m_secondaryItem;
-
 		//-------------------------------------------------------------------------
 		// Private Helper Methods
 		//-------------------------------------------------------------------------
 
 		/**
-		 * @brief Append common name with location
-		 * @param builder String stream to append to
-		 * @param commonName Common name to append
-		 * @param location Optional location string
+		 * @brief Appends a formatted common name with optional location to a stringstream.
+		 *
+		 * Helper method used by `append` during verbose string formatting.
+		 *
+		 * @param builder The stringstream to append to.
+		 * @param commonName The common name string_view to format and append.
+		 * @param location An optional location string to append if present.
 		 */
 		static void appendCommonName(
 			std::stringstream& builder,
-			const std::string& commonName,
-			std::optional<std::string> location );
+			std::string_view commonName,
+			const std::optional<std::string>& location );
+
+		//-------------------------------------------------------------------------
+		// Member Variables
+		//-------------------------------------------------------------------------
+
+		/** @brief The optional primary item path. */
+		std::optional<GmodPath> m_primaryItem;
+
+		/** @brief The optional secondary item path. */
+		std::optional<GmodPath> m_secondaryItem;
 	};
 }

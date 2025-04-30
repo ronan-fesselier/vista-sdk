@@ -1,3 +1,11 @@
+/**
+ * @file VIS.h
+ * @brief Vessel Information Structure (VIS) interface and implementation
+ *
+ * Provides access to VIS data like GMOD, Codebooks, and Locations,
+ * along with version conversion utilities and ISO string validation.
+ */
+
 #pragma once
 
 #include "CodebooksDto.h"
@@ -7,25 +15,32 @@
 
 namespace dnv::vista::sdk
 {
+	//-------------------------------------------------------------------------
+	// Forward declarations
+	//-------------------------------------------------------------------------
+
+	enum class VisVersion;
 	class GmodNode;
 	class GmodPath;
 	class LocalId;
 	class LocalIdBuilder;
 	class Locations;
-	enum class VisVersion;
 	class GmodDto;
 	class GmodVersioningDto;
 	class LocationsDto;
 
 	/**
 	 * @brief Interface for VIS (Vessel Information Structure) operations
+	 *
+	 * This interface defines the core operations for accessing and manipulating
+	 * Vessel Information Structure (VIS) data across different versions.
 	 */
 	class IVIS
 	{
 	public:
-		//-------------------------------------------------------------------------
-		// Destructor
-		//-------------------------------------------------------------------------
+		/**
+		 * @brief Virtual destructor
+		 */
 		virtual ~IVIS() = default;
 
 		//-------------------------------------------------------------------------
@@ -36,51 +51,43 @@ namespace dnv::vista::sdk
 		 * @brief Get the GMOD for a specific VIS version
 		 * @param visVersion The VIS version
 		 * @return The GMOD (Generic Product Model) for the specified version
+		 * @throws std::invalid_argument If the VIS version is invalid
+		 * @note This method is const as it only provides read access to data
 		 */
-		virtual Gmod gmod( VisVersion visVersion ) const = 0;
+		virtual const Gmod& gmod( VisVersion visVersion ) const = 0;
 
 		/**
 		 * @brief Get the codebooks for a specific VIS version
-		 * @param visversion The VIS version
+		 * @param visVersion The VIS version
 		 * @return The codebooks for the specified version
+		 * @throws std::invalid_argument If the VIS version is invalid
+		 * @note This method is non-const because it may update the internal cache
 		 */
-		virtual Codebooks codebooks( VisVersion visversion ) = 0;
+		virtual const Codebooks& codebooks( VisVersion visVersion ) = 0;
 
 		/**
 		 * @brief Get the locations for a specific VIS version
-		 * @param visversion The VIS version
+		 * @param visVersion The VIS version
 		 * @return The locations for the specified version
+		 * @throws std::invalid_argument If the VIS version is invalid
+		 * @note This method is non-const because it may update the internal cache
 		 */
-		virtual Locations locations( VisVersion visversion ) = 0;
+		virtual const Locations& locations( VisVersion visVersion ) = 0;
 
 		//-------------------------------------------------------------------------
 		// Batch Data Access Methods
 		//-------------------------------------------------------------------------
 
-		/**
-		 * @brief Get a map of codebooks for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve codebooks for
-		 * @return Map of VIS versions to their corresponding codebooks
-		 */
-		virtual std::unordered_map<VisVersion, Codebooks> codebooksMap( const std::vector<VisVersion>& visVersions ) = 0;
+		virtual std::unordered_map<VisVersion, const Codebooks*> codebooksMap( const std::vector<VisVersion>& visVersions ) = 0;
 
-		/**
-		 * @brief Get a map of GMODs for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve GMODs for
-		 * @return Map of VIS versions to their corresponding GMODs
-		 */
-		virtual std::unordered_map<VisVersion, Gmod> gmodsMap( const std::vector<VisVersion>& visVersions ) = 0;
+		virtual std::unordered_map<VisVersion, const Gmod*> gmodsMap( const std::vector<VisVersion>& visVersions ) const = 0;
 
-		/**
-		 * @brief Get a map of locations for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve locations for
-		 * @return Map of VIS versions to their corresponding locations
-		 */
-		virtual std::unordered_map<VisVersion, Locations> locationsMap( const std::vector<VisVersion>& visVersions ) = 0;
+		virtual std::unordered_map<VisVersion, const Locations*> locationsMap( const std::vector<VisVersion>& visVersions ) = 0;
 
 		/**
 		 * @brief Get all available VIS versions
 		 * @return Vector of all supported VIS versions
+		 * @note This method is non-const because it may update the internal cache
 		 */
 		virtual std::vector<VisVersion> visVersions() = 0;
 
@@ -94,6 +101,7 @@ namespace dnv::vista::sdk
 		 * @param sourceNode The node to convert
 		 * @param targetVersion The target VIS version
 		 * @return The converted node, or none if conversion is not possible
+		 * @note This method is non-const because it may update internal caches when loading required data
 		 */
 		virtual std::optional<GmodNode> convertNode( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) = 0;
 
@@ -103,12 +111,17 @@ namespace dnv::vista::sdk
 		 * @param sourcePath The path to convert
 		 * @param targetVersion The target VIS version
 		 * @return The converted path, or none if conversion is not possible
+		 * @note This method is non-const because it may update internal caches when loading required data
 		 */
 		virtual std::optional<GmodPath> convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) = 0;
 	};
 
 	/**
 	 * @brief Implementation of the IVIS interface for Vessel Information Structure operations
+	 *
+	 * This class implements the IVIS interface and provides efficient access to VIS data
+	 * using thread-safe caching mechanisms. It follows the Singleton pattern to ensure
+	 * consistent data access throughout the application.
 	 */
 	class VIS final : public IVIS
 	{
@@ -123,32 +136,6 @@ namespace dnv::vista::sdk
 		static const VisVersion LatestVisVersion;
 
 		//-------------------------------------------------------------------------
-		// Constructors & Destructors
-		//-------------------------------------------------------------------------
-
-		/**
-		 * @brief Constructor
-		 */
-		VIS();
-
-		/**
-		 * @brief Copy constructor (deleted)
-		 * @details VIS is a singleton and shouldn't be copied
-		 */
-		VIS( const VIS& ) = delete;
-
-		/**
-		 * @brief Copy assignment operator (deleted)
-		 * @details VIS is a singleton and shouldn't be assigned
-		 */
-		VIS& operator=( const VIS& ) = delete;
-
-		/**
-		 * @brief Virtual destructor
-		 */
-		virtual ~VIS() = default;
-
-		//-------------------------------------------------------------------------
 		// Singleton Access
 		//-------------------------------------------------------------------------
 
@@ -159,7 +146,7 @@ namespace dnv::vista::sdk
 		static VIS& instance();
 
 		//-------------------------------------------------------------------------
-		// Core Data Access Methods (IVIS implementation)
+		// IVIS Interface Implementation
 		//-------------------------------------------------------------------------
 
 		/**
@@ -168,59 +155,35 @@ namespace dnv::vista::sdk
 		 * @return The GMOD for the specified version
 		 * @throws std::invalid_argument If the VIS version is invalid
 		 */
-		virtual Gmod gmod( VisVersion visVersion ) const override;
+		virtual const Gmod& gmod( VisVersion visVersion ) const override;
 
 		/**
 		 * @brief Get the codebooks for a specific VIS version
-		 * @param visversion The VIS version
+		 * @param visVersion The VIS version
 		 * @return The codebooks for the specified version
+		 * @throws std::invalid_argument If the VIS version is invalid
 		 */
-		virtual Codebooks codebooks( VisVersion visversion ) override;
+		virtual const Codebooks& codebooks( VisVersion visVersion ) override;
 
 		/**
 		 * @brief Get the locations for a specific VIS version
-		 * @param visversion The VIS version
+		 * @param visVersion The VIS version
 		 * @return The locations for the specified version
+		 * @throws std::invalid_argument If the VIS version is invalid
 		 */
-		virtual Locations locations( VisVersion visversion ) override;
+		virtual const Locations& locations( VisVersion visVersion ) override;
 
-		//-------------------------------------------------------------------------
-		// Batch Data Access Methods (IVIS implementation)
-		//-------------------------------------------------------------------------
+		virtual std::unordered_map<VisVersion, const Codebooks*> codebooksMap( const std::vector<VisVersion>& visVersions ) override;
 
-		/**
-		 * @brief Get a map of codebooks for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve codebooks for
-		 * @return Map of VIS versions to their corresponding codebooks
-		 * @throws std::invalid_argument If any VIS version is invalid
-		 */
-		virtual std::unordered_map<VisVersion, Codebooks> codebooksMap( const std::vector<VisVersion>& visVersions ) override;
+		virtual std::unordered_map<VisVersion, const Gmod*> gmodsMap( const std::vector<VisVersion>& visVersions ) const override;
 
-		/**
-		 * @brief Get a map of GMODs for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve GMODs for
-		 * @return Map of VIS versions to their corresponding GMODs
-		 * @throws std::invalid_argument If any VIS version is invalid
-		 */
-		virtual std::unordered_map<VisVersion, Gmod> gmodsMap( const std::vector<VisVersion>& visVersions ) override;
-
-		/**
-		 * @brief Get a map of locations for multiple VIS versions
-		 * @param visVersions The VIS versions to retrieve locations for
-		 * @return Map of VIS versions to their corresponding locations
-		 * @throws std::invalid_argument If any VIS version is invalid
-		 */
-		virtual std::unordered_map<VisVersion, Locations> locationsMap( const std::vector<VisVersion>& visVersions ) override;
+		virtual std::unordered_map<VisVersion, const Locations*> locationsMap( const std::vector<VisVersion>& visVersions ) override;
 
 		/**
 		 * @brief Get all available VIS versions
 		 * @return Vector of all supported VIS versions
 		 */
 		virtual std::vector<VisVersion> visVersions() override;
-
-		//-------------------------------------------------------------------------
-		// Conversion Methods (IVIS implementation)
-		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Convert a GMOD node from one VIS version to another
@@ -246,6 +209,9 @@ namespace dnv::vista::sdk
 
 		/**
 		 * @brief Convert a GMOD node to a different VIS version
+		 *
+		 * This overload assumes the source node's VIS version is known from the node itself.
+		 *
 		 * @param sourceNode The node to convert
 		 * @param targetVersion The target VIS version
 		 * @param sourceParent Optional parent node for context
@@ -255,6 +221,9 @@ namespace dnv::vista::sdk
 
 		/**
 		 * @brief Convert a GMOD path to a different VIS version
+		 *
+		 * This overload assumes the source path's VIS version is known from the path itself.
+		 *
 		 * @param sourcePath The path to convert
 		 * @param targetVersion The target VIS version
 		 * @return The converted path, or none if conversion is not possible
@@ -306,6 +275,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Get the GMOD versioning
 		 * @return The GMOD versioning object
+		 * @throws std::runtime_error If the versioning data cannot be loaded
 		 */
 		GmodVersioning gmodVersioning();
 
@@ -362,7 +332,7 @@ namespace dnv::vista::sdk
 		 * @param value The string view to check
 		 * @return True if the string view contains only valid ISO characters
 		 */
-		static bool isISOString( const std::string_view value );
+		static bool isISOString( std::string_view value );
 
 		/**
 		 * @brief Check if a string contains only valid ISO characters
@@ -394,11 +364,54 @@ namespace dnv::vista::sdk
 
 	private:
 		//-------------------------------------------------------------------------
+		// Constructors & Assignment Operators
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Constructor
+		 * @details Initializes the VIS singleton with empty caches
+		 */
+		VIS();
+
+		/**
+		 * @brief Copy constructor (deleted)
+		 * @details VIS is a singleton and shouldn't be copied
+		 */
+		VIS( const VIS& ) = delete;
+
+		/**
+		 * @brief Copy assignment operator (deleted)
+		 * @details VIS is a singleton and shouldn't be assigned
+		 */
+		VIS& operator=( const VIS& ) = delete;
+
+		/**
+		 * @brief Move constructor (deleted)
+		 * @details VIS is a singleton and shouldn't be moved
+		 */
+		VIS( VIS&& ) = delete;
+
+		/**
+		 * @brief Move assignment operator (deleted)
+		 * @details VIS is a singleton and shouldn't be moved
+		 */
+		VIS& operator=( VIS&& ) = delete;
+
+		/**
+		 * @brief Virtual destructor
+		 */
+		~VIS() override = default;
+
+		//-------------------------------------------------------------------------
 		// Private Inner Types
 		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Simple template-based cache implementation
+		 *
+		 * This class provides thread-safe caching for VIS data, with automatic
+		 * cleanup of expired entries and LRU-based eviction when the cache grows too large.
+		 *
 		 * @tparam K The key type
 		 * @tparam V The value type
 		 */
@@ -406,11 +419,50 @@ namespace dnv::vista::sdk
 		class Cache final
 		{
 		public:
-			Cache() : m_lastCleanup( std::chrono::steady_clock::now() ) {}
+			/**
+			 * @brief Constructor
+			 */
+			Cache() : m_lastCleanup{ std::chrono::steady_clock::now() } {}
 
+			/**
+			 * @brief Copy constructor (deleted)
+			 * @details Cache contains non-copyable mutex
+			 */
+			Cache( const Cache& ) = delete;
+
+			/**
+			 * @brief Copy assignment operator (deleted)
+			 * @details Cache contains non-copyable mutex
+			 */
+			Cache& operator=( const Cache& ) = delete;
+
+			/**
+			 * @brief Move constructor (deleted)
+			 * @details Cache contains non-movable mutex
+			 */
+			Cache( Cache&& ) = delete;
+
+			/**
+			 * @brief Move assignment operator (deleted)
+			 * @details Cache contains non-movable mutex
+			 */
+			Cache& operator=( Cache&& ) = delete;
+
+			/**
+			 * @brief Get an item from the cache or create it if not found
+			 *
+			 * This method is thread-safe and manages cache expiration and eviction.
+			 *
+			 * @param key The cache key
+			 * @param factory Function to create the value if not found in cache
+			 * @return Reference to the cached value
+			 */
 			V& getOrCreate( const K& key, std::function<V()> factory ) const
 			{
 				const auto now = std::chrono::steady_clock::now();
+
+				std::scoped_lock lock( m_mutex );
+
 				if ( now - m_lastCleanup > std::chrono::hours( 1 ) )
 				{
 					cleanupCache();
@@ -426,22 +478,33 @@ namespace dnv::vista::sdk
 					}
 
 					auto result = factory();
-					auto [inserted_it, success] = m_cache.emplace(
-						key, CacheItem{ std::move( result ), now } );
+					auto [inserted_it, success] = m_cache.emplace( key, CacheItem{ std::move( result ), now } );
+					SPDLOG_TRACE( "Cache miss for key. Created and inserted." );
+
 					return inserted_it->second.value;
 				}
 
 				it->second.lastAccess = now;
+
+				SPDLOG_TRACE( "Cache hit for key." );
+
 				return it->second.value;
 			}
 
 		private:
+			/**
+			 * @brief Cache item containing value and last access time
+			 */
 			struct CacheItem final
 			{
 				V value;
 				std::chrono::steady_clock::time_point lastAccess;
 			};
 
+			/**
+			 * @brief Remove expired cache entries
+			 * @details Assumes the mutex is locked by the caller
+			 */
 			void cleanupCache() const
 			{
 				const auto now = std::chrono::steady_clock::now();
@@ -452,12 +515,19 @@ namespace dnv::vista::sdk
 					else
 						++it;
 				}
+
+				SPDLOG_TRACE( "Cache cleanup performed." );
 			}
 
+			/**
+			 * @brief Remove the least recently used cache entry
+			 * @details Assumes the mutex is locked by the caller
+			 */
 			void removeOldestEntry() const
 			{
 				if ( m_cache.empty() )
 					return;
+
 				auto oldest = m_cache.begin();
 				for ( auto it = std::next( m_cache.begin() ); it != m_cache.end(); ++it )
 				{
@@ -467,8 +537,11 @@ namespace dnv::vista::sdk
 					}
 				}
 				m_cache.erase( oldest );
+
+				SPDLOG_TRACE( "Cache eviction performed (removed oldest)." );
 			}
 
+			mutable std::mutex m_mutex;
 			mutable std::unordered_map<K, CacheItem> m_cache;
 			mutable std::chrono::steady_clock::time_point m_lastCleanup;
 		};
@@ -477,10 +550,13 @@ namespace dnv::vista::sdk
 		// Private Static Members
 		//-------------------------------------------------------------------------
 
+		/**
+		 * @brief GMOD versioning data path
+		 */
 		static const std::string m_versioning;
 
 		//-------------------------------------------------------------------------
-		// Private Member Variables
+		// Private Member Variables - Caches
 		//-------------------------------------------------------------------------
 
 		Cache<VisVersion, GmodDto> m_gmodDtoCache;

@@ -9,9 +9,9 @@
 
 namespace dnv::vista::sdk
 {
-	//-------------------------------------------------------------------
+	//=====================================================================
 	// Constants
-	//-------------------------------------------------------------------
+	//=====================================================================
 
 	namespace
 	{
@@ -29,7 +29,7 @@ namespace dnv::vista::sdk
 
 		static const std::string VALID_PREFIXES = "qty, cnt, calc, state, cmd, type, funct.svc, maint.cat, act.type, pos, detail";
 
-		static const std::unordered_map<std::string_view, CodebookName> g_prefixMap = {
+		static const std::unordered_map<std::string_view, CodebookName> s_prefixMap = {
 			{ QUANTITY_PREFIX, CodebookName::Quantity },
 			{ CONTENT_PREFIX, CodebookName::Content },
 			{ CALCULATION_PREFIX, CodebookName::Calculation },
@@ -42,36 +42,46 @@ namespace dnv::vista::sdk
 			{ POSITION_PREFIX, CodebookName::Position },
 			{ DETAIL_PREFIX, CodebookName::Detail } };
 	}
+}
 
-	//-------------------------------------------------------------------
+namespace dnv::vista::sdk
+{
+	//=====================================================================
 	// Public Methods
-	//-------------------------------------------------------------------
+	//=====================================================================
 
 	CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
 	{
+		SPDLOG_TRACE( "Attempting to convert prefix string '{}' to CodebookName enum", prefix );
+
 		if ( prefix.empty() )
 		{
-			SPDLOG_ERROR( "Rejecting empty codebook prefix" );
-			throw std::invalid_argument( "Rejecting empty codebook prefix" );
+			SPDLOG_WARN( "Input prefix is empty." );
+			throw std::invalid_argument( "prefix cannot be empty" );
 		}
 
-		SPDLOG_TRACE( "Converting prefix '{}' to CodebookName enum", prefix );
+		auto it = s_prefixMap.find( prefix );
 
-		auto it = g_prefixMap.find( prefix );
-		if ( it != g_prefixMap.end() )
+		if ( it != s_prefixMap.end() )
 		{
-			SPDLOG_DEBUG( "Successfully mapped prefix '{}' to CodebookName enum value {}", prefix, static_cast<int>( it->second ) );
+			SPDLOG_DEBUG( "Successfully mapped prefix '{}' to CodebookName enum value {}",
+				prefix, static_cast<int>( it->second ) );
+
 			return it->second;
 		}
 
-		SPDLOG_WARN( "Unknown prefix: '{}'. Valid prefixes are: {}", prefix, VALID_PREFIXES );
+		SPDLOG_WARN( "Unknown prefix: '{}'. Valid prefixes are: {}",
+			prefix, VALID_PREFIXES );
 
-		throw std::invalid_argument( std::string( "unknown prefix: " ).append( prefix ) );
+		std::string errorMsg = "unknown prefix: ";
+		errorMsg.append( prefix );
+		throw std::invalid_argument( errorMsg );
 	}
 
-	std::string CodebookNames::toPrefix( CodebookName name )
+	std::string_view CodebookNames::toPrefix( CodebookName name )
 	{
-		SPDLOG_WARN( "Converting CodebookName enum {} to prefix string", static_cast<int>( name ) );
+		SPDLOG_TRACE( "Converting CodebookName enum {} to prefix string",
+			static_cast<int>( name ) );
 
 		switch ( name )
 		{
@@ -99,7 +109,7 @@ namespace dnv::vista::sdk
 				return DETAIL_PREFIX;
 			default:
 			{
-				SPDLOG_WARN( "Unknown codebook: {}", static_cast<int>( name ) );
+				SPDLOG_ERROR( "Unknown codebook: {}", static_cast<int>( name ) );
 				throw std::invalid_argument( "unknown codebook: " + std::to_string( static_cast<int>( name ) ) );
 			}
 		}

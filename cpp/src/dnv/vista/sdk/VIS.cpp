@@ -1,3 +1,8 @@
+/**
+ * @file VIS.cpp
+ * @brief Implementation of Vessel Information Structure (VIS) interface
+ */
+
 #include "pch.h"
 
 #include "dnv/vista/sdk/VIS.h"
@@ -14,8 +19,25 @@
 
 namespace dnv::vista::sdk
 {
+	//-------------------------------------------------------------------------
+	// Constants
+	//-------------------------------------------------------------------------
+
 	const VisVersion VIS::LatestVisVersion = VisVersionExtensions::latestVersion();
 	const std::string VIS::m_versioning = "versioning";
+
+	//-------------------------------------------------------------------------
+	// Constructors & Assignment Operators
+	//-------------------------------------------------------------------------
+
+	VIS::VIS() : IVIS{}
+	{
+		SPDLOG_INFO( "Initializing VIS singleton with empty caches" );
+	}
+
+	//-------------------------------------------------------------------------
+	// Singleton Access
+	//-------------------------------------------------------------------------
 
 	VIS& VIS::instance()
 	{
@@ -23,9 +45,187 @@ namespace dnv::vista::sdk
 		return instance;
 	}
 
-	VIS::VIS() : IVIS{}
+	//-------------------------------------------------------------------------
+	// IVIS Interface Implementation
+	//-------------------------------------------------------------------------
+
+	const Gmod& VIS::gmod( VisVersion visVersion ) const
 	{
+		if ( !VisVersionExtensions::isValid( visVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
+			throw std::invalid_argument( "Invalid VIS version: " +
+										 std::to_string( static_cast<int>( visVersion ) ) );
+		}
+
+		SPDLOG_INFO( "Attempting to load GMOD for version: {}",
+			VisVersionExtensions::toVersionString( visVersion ) );
+
+		return m_gmodCache.getOrCreate( visVersion, [this, visVersion]() {
+			auto dto = gmodDto( visVersion );
+			SPDLOG_INFO( "Successfully loaded GMOD DTO for version: {}",
+				VisVersionExtensions::toVersionString( visVersion ) );
+
+			Gmod gmod( visVersion, dto );
+
+			SPDLOG_INFO( "Created Gmod with {} nodes in dictionary",
+				!gmod.isEmpty() ? "non-empty" : "EMPTY" );
+
+			return gmod;
+		} );
 	}
+
+	const Codebooks& VIS::codebooks( VisVersion visVersion )
+	{
+		if ( !VisVersionExtensions::isValid( visVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
+			throw std::invalid_argument( "Invalid VIS version" );
+		}
+
+		SPDLOG_INFO( "Getting codebooks for version: {}",
+			VisVersionExtensions::toVersionString( visVersion ) );
+
+		return m_codebooksCache.getOrCreate( visVersion, [this, visVersion]() {
+			auto dto = codebooksDto( visVersion );
+			SPDLOG_INFO( "Successfully loaded codebooks for version: {}",
+				VisVersionExtensions::toVersionString( visVersion ) );
+			return Codebooks( visVersion, dto );
+		} );
+	}
+
+	const Locations& VIS::locations( VisVersion visVersion )
+	{
+		if ( !VisVersionExtensions::isValid( visVersion ) )
+		{
+			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
+			throw std::invalid_argument( "Invalid VIS version" );
+		}
+
+		SPDLOG_INFO( "Getting locations for version: {}",
+			VisVersionExtensions::toVersionString( visVersion ) );
+
+		return m_locationsCache.getOrCreate( visVersion, [this, visVersion]() {
+			auto dto = locationsDto( visVersion );
+			SPDLOG_INFO( "Successfully loaded locations for version: {}",
+				VisVersionExtensions::toVersionString( visVersion ) );
+			return Locations( visVersion, dto );
+		} );
+	}
+
+	std::unordered_map<VisVersion, const Codebooks*> VIS::codebooksMap(
+		const std::vector<VisVersion>& visVersions )
+	{
+		SPDLOG_INFO( "Getting codebooks map for {} versions", visVersions.size() );
+
+		std::unordered_map<VisVersion, const Codebooks*> result;
+		result.reserve( visVersions.size() );
+		for ( auto version : visVersions )
+		{
+			try
+			{
+				result.emplace( version, &codebooks( version ) );
+			}
+			catch ( [[maybe_unused]] const std::exception& ex )
+			{
+				SPDLOG_ERROR( "Failed to get codebooks for version {}: {}",
+					VisVersionExtensions::toVersionString( version ), ex.what() );
+			}
+		}
+		return result;
+	}
+
+	std::unordered_map<VisVersion, const Gmod*> VIS::gmodsMap(
+		const std::vector<VisVersion>& visVersions ) const
+	{
+		SPDLOG_INFO( "Getting GMOD map for {} versions", visVersions.size() );
+
+		std::unordered_map<VisVersion, const Gmod*> result;
+		result.reserve( visVersions.size() );
+		for ( auto version : visVersions )
+		{
+			try
+			{
+				result.emplace( version, &gmod( version ) );
+			}
+			catch ( [[maybe_unused]] const std::exception& ex )
+			{
+				SPDLOG_ERROR( "Failed to get GMOD for version {}: {}",
+					VisVersionExtensions::toVersionString( version ), ex.what() );
+			}
+		}
+		return result;
+	}
+
+	std::unordered_map<VisVersion, const Locations*> VIS::locationsMap(
+		const std::vector<VisVersion>& visVersions )
+	{
+		SPDLOG_INFO( "Getting locations map for {} versions", visVersions.size() );
+
+		std::unordered_map<VisVersion, const Locations*> result;
+		result.reserve( visVersions.size() );
+		for ( auto version : visVersions )
+		{
+			try
+			{
+				result.emplace( version, &locations( version ) );
+			}
+			catch ( [[maybe_unused]] const std::exception& ex )
+			{
+				SPDLOG_ERROR( "Failed to get locations for version {}: {}",
+					VisVersionExtensions::toVersionString( version ), ex.what() );
+			}
+		}
+		return result;
+	}
+
+	std::vector<VisVersion> VIS::visVersions()
+	{
+		SPDLOG_INFO( "Getting all VIS versions" );
+		return VisVersionExtensions::allVersions();
+	}
+
+	std::optional<GmodNode> VIS::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
+		VisVersion targetVersion )
+	{
+		return gmodVersioning().convertNode( sourceVersion, sourceNode, targetVersion );
+	}
+
+	std::optional<GmodPath> VIS::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath,
+		VisVersion targetVersion )
+	{
+		return gmodVersioning().convertPath( sourceVersion, sourcePath, targetVersion );
+	}
+
+	//-------------------------------------------------------------------------
+	// Extended Conversion Methods
+	//-------------------------------------------------------------------------
+
+	std::optional<GmodNode> VIS::convertNode( const GmodNode& sourceNode, VisVersion targetVersion,
+		[[maybe_unused]] const GmodNode* sourceParent )
+	{
+		return convertNode( sourceNode.visVersion(), sourceNode, targetVersion );
+	}
+
+	std::optional<GmodPath> VIS::convertPath( const GmodPath& sourcePath, VisVersion targetVersion )
+	{
+		return convertPath( sourcePath.visVersion(), sourcePath, targetVersion );
+	}
+
+	std::optional<LocalIdBuilder> VIS::convertLocalId( const LocalIdBuilder& sourceLocalId,
+		VisVersion targetVersion )
+	{
+		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
+	}
+
+	std::optional<LocalId> VIS::convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion )
+	{
+		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
+	}
+
+	//-------------------------------------------------------------------------
+	// DTO Access Methods
+	//-------------------------------------------------------------------------
 
 	GmodDto VIS::gmodDto( VisVersion visVersion ) const
 	{
@@ -50,32 +250,6 @@ namespace dnv::vista::sdk
 			VisVersionExtensions::toVersionString( visVersion ) );
 
 		return EmbeddedResource::gmod( VisVersionExtensions::toVersionString( visVersion ) );
-	}
-
-	Gmod VIS::gmod( VisVersion visVersion ) const
-	{
-		if ( !VisVersionExtensions::isValid( visVersion ) )
-		{
-			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
-			throw std::invalid_argument( "Invalid VIS version: " +
-										 std::to_string( static_cast<int>( visVersion ) ) );
-		}
-
-		SPDLOG_INFO( "Attempting to load GMOD for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
-		return m_gmodCache.getOrCreate( visVersion, [this, visVersion]() {
-			auto dto = gmodDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded GMOD DTO for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
-
-			Gmod gmod( visVersion, dto );
-
-			SPDLOG_INFO( "Created Gmod with {} nodes in dictionary",
-				!gmod.isEmpty() ? "non-empty" : "EMPTY" );
-
-			return gmod;
-		} );
 	}
 
 	std::unordered_map<std::string, GmodVersioningDto> VIS::gmodVersioningDto()
@@ -121,25 +295,6 @@ namespace dnv::vista::sdk
 		} );
 	}
 
-	Codebooks VIS::codebooks( VisVersion visVersion )
-	{
-		if ( !VisVersionExtensions::isValid( visVersion ) )
-		{
-			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
-			throw std::invalid_argument( "Invalid VIS version" );
-		}
-
-		SPDLOG_INFO( "Getting codebooks for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
-		return m_codebooksCache.getOrCreate( visVersion, [this, visVersion]() {
-			auto dto = codebooksDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded codebooks for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
-			return Codebooks( visVersion, dto );
-		} );
-	}
-
 	LocationsDto VIS::locationsDto( VisVersion visVersion )
 	{
 		SPDLOG_INFO( "Getting locations DTO for version: {}",
@@ -157,126 +312,9 @@ namespace dnv::vista::sdk
 		} );
 	}
 
-	Locations VIS::locations( VisVersion visVersion )
-	{
-		if ( !VisVersionExtensions::isValid( visVersion ) )
-		{
-			SPDLOG_ERROR( "Invalid VIS version: {}", static_cast<int>( visVersion ) );
-			throw std::invalid_argument( "Invalid VIS version" );
-		}
-
-		SPDLOG_INFO( "Getting locations for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
-		return m_locationsCache.getOrCreate( visVersion, [this, visVersion]() {
-			auto dto = locationsDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded locations for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
-			return Locations( visVersion, dto );
-		} );
-	}
-
-	std::unordered_map<VisVersion, Codebooks> VIS::codebooksMap(
-		const std::vector<VisVersion>& visVersions )
-	{
-		SPDLOG_INFO( "Getting codebooks map for {} versions", visVersions.size() );
-
-		std::unordered_map<VisVersion, Codebooks> result;
-		for ( auto version : visVersions )
-		{
-			try
-			{
-				result.insert_or_assign( version, codebooks( version ) );
-			}
-			catch ( const std::exception& e )
-			{
-				SPDLOG_ERROR( "Failed to get codebooks for version {}: {}",
-					VisVersionExtensions::toVersionString( version ), e.what() );
-			}
-		}
-		return result;
-	}
-
-	std::unordered_map<VisVersion, Gmod> VIS::gmodsMap(
-		const std::vector<VisVersion>& visVersions )
-	{
-		SPDLOG_INFO( "Getting GMOD map for {} versions", visVersions.size() );
-
-		std::unordered_map<VisVersion, Gmod> result;
-		for ( auto version : visVersions )
-		{
-			try
-			{
-				result.insert_or_assign( version, gmod( version ) );
-			}
-			catch ( const std::exception& e )
-			{
-				SPDLOG_ERROR( "Failed to get GMOD for version {}: {}",
-					VisVersionExtensions::toVersionString( version ), e.what() );
-			}
-		}
-		return result;
-	}
-
-	std::unordered_map<VisVersion, Locations> VIS::locationsMap(
-		const std::vector<VisVersion>& visVersions )
-	{
-		SPDLOG_INFO( "Getting locations map for {} versions", visVersions.size() );
-
-		std::unordered_map<VisVersion, Locations> result;
-		for ( auto version : visVersions )
-		{
-			try
-			{
-				result.insert_or_assign( version, locations( version ) );
-			}
-			catch ( const std::exception& e )
-			{
-				SPDLOG_ERROR( "Failed to get locations for version {}: {}",
-					VisVersionExtensions::toVersionString( version ), e.what() );
-			}
-		}
-		return result;
-	}
-
-	std::vector<VisVersion> VIS::visVersions()
-	{
-		SPDLOG_INFO( "Getting all VIS versions" );
-		return VisVersionExtensions::allVersions();
-	}
-
-	std::optional<GmodNode> VIS::convertNode( const GmodNode& sourceNode, VisVersion targetVersion, [[maybe_unused]] const GmodNode* sourceParent )
-	{
-		return convertNode( sourceNode.visVersion(), sourceNode, targetVersion );
-	}
-
-	std::optional<GmodNode> VIS::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
-		VisVersion targetVersion )
-	{
-		return gmodVersioning().convertNode( sourceVersion, sourceNode, targetVersion );
-	}
-
-	std::optional<GmodPath> VIS::convertPath( const GmodPath& sourcePath, VisVersion targetVersion )
-	{
-		return convertPath( sourcePath.visVersion(), sourcePath, targetVersion );
-	}
-
-	std::optional<GmodPath> VIS::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath,
-		VisVersion targetVersion )
-	{
-		return gmodVersioning().convertPath( sourceVersion, sourcePath, targetVersion );
-	}
-
-	std::optional<LocalIdBuilder> VIS::convertLocalId( const LocalIdBuilder& sourceLocalId,
-		VisVersion targetVersion )
-	{
-		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
-	}
-
-	std::optional<LocalId> VIS::convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion )
-	{
-		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
-	}
+	//-------------------------------------------------------------------------
+	// ISO String Validation Methods
+	//-------------------------------------------------------------------------
 
 	bool VIS::matchISOLocalIdString( const std::string& value )
 	{
@@ -365,6 +403,7 @@ namespace dnv::vista::sdk
 		std::string str = builder.str();
 		return isISOString( std::string_view( str ) );
 	}
+
 	bool VIS::isISOLocalIdString( const std::string& value )
 	{
 		SPDLOG_DEBUG( "Checking if string is ISO local ID compliant: '{}'", value );
