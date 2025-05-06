@@ -24,10 +24,7 @@ namespace dnv::vista::sdk
 
 		constexpr const char* WHITESPACE = " \t\n\r\f\v";
 	}
-}
 
-namespace dnv::vista::sdk
-{
 	//=====================================================================
 	// Position Validation
 	//=====================================================================
@@ -362,7 +359,7 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "Invalid value for metadata tag: codebook={}, value={}", static_cast<int>( m_name ), value );
 			throw std::invalid_argument( "Invalid value for metadata tag: codebook=" + std::to_string( static_cast<int>( m_name ) ) + ", value=" + value );
 		}
-		return tagOpt.value();
+		return std::move( tagOpt.value() );
 	}
 
 	PositionValidationResult Codebook::validatePosition( std::string_view position ) const
