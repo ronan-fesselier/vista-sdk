@@ -140,15 +140,15 @@ if(MSVC)
 	#add_compile_options(/wd4061) # switch not handled
 	#add_compile_options(/wd4100) # unreferenced formal parameter
 	#add_compile_options(/wd4189) # local variable is initialized but not referenced
-	#add_compile_options(/wd4244) # 'conversion' conversion from 'type1' to 'type2', possible loss of data
+	#add_compile_options(/wd4244) # conversion from 'type1' to 'type2', possible loss of data
 	#add_compile_options(/wd4267) # conversion from 'size_t' to 'type', possible loss of data
 	#add_compile_options(/wd4365) # conversion signed/unsigned mismatch
 	#add_compile_options(/wd4388) # signed/unsigned mismatch
 	#add_compile_options(/wd4456) # declaration hides previous local declaration
-	#add_compile_options(/wd4514) # 'function' : unreferenced inline function has been removed
+	#add_compile_options(/wd4514) # unreferenced inline function has been removed
 	#add_compile_options(/wd4625) # copy constructor was implicitly defined as deleted
 	#add_compile_options(/wd4626) # assignement operator was implicitly defined as deleted
-	add_compile_options(/wd4710) # 'function' : function not inlined
+	add_compile_options(/wd4710) # function not inlined
 	add_compile_options(/wd4711) # function 'function' selected for inline expansion
 	add_compile_options(/wd4820) # padding
 	#add_compile_options(/wd4868) # compiler may not enforce left-to-right evaluation order in braced initializer list
@@ -159,7 +159,7 @@ if(MSVC)
 	#add_compile_options(/wd5267) # definition of implicit copy constructor/assignment operator is deprecated because it has a user-provided assignment operator/copy constructor
 	#add_compile_options(/wd6246) # local declaration of 'variable' hides declaration of same name in outer scope
 	#add_compile_options(/wd6326) # potential comparison of a constant with another constant
-	#add_compile_options(/wd6387) # 'argument' may be 'value': this does not adhere to the specification for the function
+	#add_compile_options(/wd6387) # this does not adhere to the specification for the function
 
 	add_compile_options(/arch:AVX)
 	add_compile_options(/arch:AVX2)
@@ -221,6 +221,7 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/LocalIdBuilder.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/LocalIdItems.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/LocalIdParsingErrorBuilder.h
+	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/LocationParsingErrorBuilder.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/Locations.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/LocationsDto.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/MetadataTag.h
@@ -228,6 +229,7 @@ set(PUBLIC_HEADERS
 	# ${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/UniversalIdBuilder.h
 	# ${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/UniversalId.h
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/VIS.h
+	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/VIS.inl
 	${VISTA_SDK_INCLUDE_DIR}/dnv/vista/sdk/VisVersion.h
 )
 
@@ -250,6 +252,7 @@ set(PRIVATE_SOURCES
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/LocalIdBuilder.cpp
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/LocalIdItems.cpp
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/LocalIdParsingErrorBuilder.cpp
+	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/LocationParsingErrorBuilder.cpp
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/Locations.cpp
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/LocationsDto.cpp
 	${VISTA_SDK_SOURCE_DIR}/dnv/vista/sdk/MetadataTag.cpp
@@ -298,14 +301,14 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 # --- Samples ---
-# if(VISTA_SDK_BUILD_SAMPLES)
-#     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../examples ${CMAKE_CURRENT_BINARY_DIR}/examples)
-# endif()
+if(VISTA_SDK_BUILD_SAMPLES)
+	#add_subdirectory(${VISTA_SDK_SAMPLES_DIR} samples)
+endif()
 
 # --- Tests ---
 if(VISTA_SDK_BUILD_TESTS)
 	enable_testing()
-	add_subdirectory(test)
+	add_subdirectory(${VISTA_SDK_TEST_DIR} test)
 endif()
 
 # --- Configuration Summary ---

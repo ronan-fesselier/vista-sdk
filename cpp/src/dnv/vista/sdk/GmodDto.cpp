@@ -9,53 +9,53 @@
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Constants
-	//=====================================================================
-
-	static constexpr const char* CATEGORY_KEY = "category";
-	static constexpr const char* TYPE_KEY = "type";
-	static constexpr const char* CODE_KEY = "code";
-	static constexpr const char* NAME_KEY = "name";
-	static constexpr const char* COMMON_NAME_KEY = "commonName";
-	static constexpr const char* DEFINITION_KEY = "definition";
-	static constexpr const char* COMMON_DEFINITION_KEY = "commonDefinition";
-	static constexpr const char* INSTALL_SUBSTRUCTURE_KEY = "installSubstructure";
-	static constexpr const char* NORMAL_ASSIGNMENT_NAMES_KEY = "normalAssignmentNames";
-
-	static constexpr const char* VIS_RELEASE_KEY = "visRelease";
-	static constexpr const char* ITEMS_KEY = "items";
-	static constexpr const char* RELATIONS_KEY = "relations";
-
-	//=====================================================================
-	// Helper Functions
-	//=====================================================================
-
-	/**
-	 * @brief Interns short strings to reduce memory usage for commonly repeated values
-	 * @param value The string to be interned
-	 * @return A reference to the cached string instance
-	 */
-	static const std::string& internString( const std::string& value )
+	namespace
 	{
-		static std::unordered_map<std::string, std::string> cache;
-		if ( value.length() > 30 )
-		{
-			return value;
-		}
+		//=====================================================================
+		// Constants
+		//=====================================================================
 
-		auto it = cache.find( value );
-		if ( it != cache.end() )
-		{
-			return it->second;
-		}
+		static constexpr const char* CATEGORY_KEY = "category";
+		static constexpr const char* TYPE_KEY = "type";
+		static constexpr const char* CODE_KEY = "code";
+		static constexpr const char* NAME_KEY = "name";
+		static constexpr const char* COMMON_NAME_KEY = "commonName";
+		static constexpr const char* DEFINITION_KEY = "definition";
+		static constexpr const char* COMMON_DEFINITION_KEY = "commonDefinition";
+		static constexpr const char* INSTALL_SUBSTRUCTURE_KEY = "installSubstructure";
+		static constexpr const char* NORMAL_ASSIGNMENT_NAMES_KEY = "normalAssignmentNames";
 
-		return cache.emplace( value, value ).first->first;
+		static constexpr const char* VIS_RELEASE_KEY = "visRelease";
+		static constexpr const char* ITEMS_KEY = "items";
+		static constexpr const char* RELATIONS_KEY = "relations";
+
+		//=====================================================================
+		// Helper Functions
+		//=====================================================================
+
+		/**
+		 * @brief Interns short strings to reduce memory usage for commonly repeated values
+		 * @param value The string to be interned
+		 * @return A reference to the cached string instance
+		 */
+		static const std::string& internString( const std::string& value )
+		{
+			static std::unordered_map<std::string, std::string> cache;
+			if ( value.length() > 30 )
+			{
+				return value;
+			}
+
+			auto it = cache.find( value );
+			if ( it != cache.end() )
+			{
+				return it->second;
+			}
+
+			return cache.emplace( value, value ).first->first;
+		}
 	}
-}
 
-namespace dnv::vista::sdk
-{
 	//=====================================================================
 	// GMOD Node Data Transfer Object
 	//=====================================================================
@@ -277,6 +277,7 @@ namespace dnv::vista::sdk
 			}
 
 			SPDLOG_ERROR( "nlohmann::json exception during GmodNodeDto parsing (hint: code='{}'): {}", codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
@@ -293,6 +294,7 @@ namespace dnv::vista::sdk
 			{
 			}
 			SPDLOG_ERROR( "Standard exception during GmodNodeDto parsing (hint: code='{}'): {}", codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}

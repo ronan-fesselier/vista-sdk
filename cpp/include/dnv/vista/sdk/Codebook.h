@@ -20,10 +20,7 @@ namespace dnv::vista::sdk
 
 	class MetadataTag;
 	enum class CodebookName;
-}
 
-namespace dnv::vista::sdk
-{
 	//=====================================================================
 	// Position Validation
 	//=====================================================================
@@ -330,7 +327,7 @@ namespace dnv::vista::sdk
 		Codebook& operator=( Codebook&& ) noexcept = default;
 
 		//----------------------------------------------
-		// Public Methods
+		// Accessors
 		//----------------------------------------------
 
 		/**
