@@ -10,8 +10,110 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Construction / Destruction
+	// ChdDictionary Class
 	//=====================================================================
+
+	//----------------------------------------------
+	// Iterator Inner Class
+	//----------------------------------------------
+
+	//---------------------------
+	// Construction
+	//---------------------------
+
+	template <typename TValue>
+	ChdDictionary<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index )
+		: m_table{ table },
+		  m_index{ index }
+	{
+	}
+
+	//---------------------------
+	// Operations
+	//---------------------------
+
+	template <typename TValue>
+	typename ChdDictionary<TValue>::Iterator::reference ChdDictionary<TValue>::Iterator::operator*() const
+	{
+		if ( m_index >= m_table->size() )
+		{
+			SPDLOG_ERROR( "Iterator: Dereference out of bounds (index: {}, table size: {}).", m_index, m_table->size() );
+			throw std::logic_error( "Invalid operation" );
+		}
+
+		return ( *m_table )[m_index];
+	}
+
+	template <typename TValue>
+	typename ChdDictionary<TValue>::Iterator::pointer ChdDictionary<TValue>::Iterator::operator->() const
+	{
+		if ( m_index >= m_table->size() )
+		{
+			SPDLOG_ERROR( "Iterator: Arrow operator out of bounds (index: {}, table size: {}).", m_index, m_table->size() );
+			throw std::logic_error( "Invalid operation" );
+		}
+		return &( ( *m_table )[m_index] );
+	}
+
+	template <typename TValue>
+	typename ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++()
+	{
+		if ( m_table == nullptr )
+		{
+			return *this;
+		}
+
+		while ( ++m_index < m_table->size() )
+		{
+			const auto& entry{ ( *m_table )[m_index] };
+			if ( !entry.first.empty() )
+			{
+				return *this;
+			}
+		}
+
+		m_index = m_table->size();
+
+		return *this;
+	}
+
+	template <typename TValue>
+	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::Iterator::operator++( int )
+	{
+		auto tmp{ Iterator{ *this } };
+		++( *this );
+		return tmp;
+	}
+
+	//---------------------------
+	// Comparison
+	//---------------------------
+
+	template <typename TValue>
+	bool ChdDictionary<TValue>::Iterator::operator==( const Iterator& other ) const
+	{
+		return m_table == other.m_table && m_index == other.m_index;
+	}
+
+	template <typename TValue>
+	bool ChdDictionary<TValue>::Iterator::operator!=( const Iterator& other ) const
+	{
+		return !( *this == other );
+	}
+
+	//---------------------------
+	// Utility
+	//---------------------------
+
+	template <typename TValue>
+	void ChdDictionary<TValue>::Iterator::reset()
+	{
+		m_index = std::numeric_limits<size_t>::max();
+	}
+
+	//----------------------------------------------
+	// Construction / Destruction
+	//----------------------------------------------
 
 	template <typename TValue>
 	ChdDictionary<TValue>::ChdDictionary( std::vector<std::pair<std::string, TValue>> items )
@@ -45,9 +147,9 @@ namespace dnv::vista::sdk
 		for ( size_t i{ 0 }; i < items.size(); ++i )
 		{
 			const auto& key{ items[i].first };
-			auto hashValue{ hash( key ) };
+			uint32_t hashValue{ hash( key ) };
 			auto index{ hashValue & ( size - 1 ) };
-			hashBuckets[index].emplace_back( static_cast<unsigned>( i + 1 ), hashValue );
+			hashBuckets[index].emplace_back( static_cast<unsigned int>( i + 1 ), hashValue );
 		}
 
 		std::sort( hashBuckets.begin(), hashBuckets.end(), []( const auto& a, const auto& b ) {
@@ -62,7 +164,7 @@ namespace dnv::vista::sdk
 		for ( ; index < hashBuckets.size() && hashBuckets[index].size() > 1; ++index )
 		{
 			const auto& subKeys{ hashBuckets[index] };
-			auto entries{ std::unordered_map<uint32_t, unsigned>() };
+			auto entries{ std::unordered_map<size_t, unsigned>() };
 			entries.reserve( subKeys.size() );
 			uint32_t seed{ 0 };
 
@@ -170,32 +272,37 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "CHD Dictionary memory usage: {:.2f}KB ({:.2f}MB) ({} table entries, {} seeds)", static_cast<float>( memoryUsage ) / 1024.0f, static_cast<float>( memoryUsage ) / ( 1024.0f * 1024.0f ), m_table.size(), m_seeds.size() );
 	}
 
-	//=====================================================================
+	//----------------------------------------------
 	// Lookup Operators
-	//=====================================================================
+	//----------------------------------------------
 
 	template <typename TValue>
-	const TValue& ChdDictionary<TValue>::operator[]( std::string_view key ) const
+	TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
 	{
-		if ( m_table.empty() || m_seeds.empty() )
-		{
-			SPDLOG_ERROR( "Attempted to access empty dictionary with key '{}'", key );
-			internal::ThrowHelper::throwInvalidOperationException();
-		}
-
-		const TValue* valuePtr = nullptr;
-		if ( !tryGetValue( key, valuePtr ) )
-		{
-			SPDLOG_ERROR( "Key '{}' not found in dictionary", key );
-			internal::ThrowHelper::throwKeyNotFoundException( key );
-		}
-
-		return *valuePtr;
+		const TValue& const_val_ref = static_cast<const ChdDictionary<TValue>*>( this )->at( key );
+		return const_cast<TValue&>( const_val_ref );
 	}
 
-	//=====================================================================
+	//----------------------------------------------
 	// Lookup Methods
-	//=====================================================================
+	//----------------------------------------------
+
+	template <typename TValue>
+	const TValue& ChdDictionary<TValue>::at( std::string_view key ) const
+	{
+		if ( isEmpty() )
+		{
+			throw std::out_of_range( "Key not found in dictionary: ChdDictionary is empty." );
+		}
+
+		const TValue* outValue = nullptr;
+		if ( tryGetValue( key, outValue ) && outValue != nullptr )
+		{
+			return *outValue;
+		}
+
+		throw std::out_of_range( "Key not found in dictionary: " + std::string( key ) );
+	}
 
 	template <typename TValue>
 	bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const
@@ -212,10 +319,10 @@ namespace dnv::vista::sdk
 		++s_lookupCount;
 		if ( s_lookupCount % 10000 == 0 )
 		{
-			SPDLOG_INFO( "Dictionary performance: {} lookups, hit rate: {:.1f}%", s_lookupCount, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
+			SPDLOG_DEBUG( "Dictionary performance: {} lookups, hit rate: {:.1f}%", s_lookupCount, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
 		}
 
-		auto hashValue{ hash( key ) };
+		uint32_t hashValue{ hash( key ) };
 		auto size{ m_table.size() };
 		auto index{ hashValue & ( size - 1 ) }; /* Use bitwise AND as fast modulo since size is power of 2 */
 		int seed{ m_seeds[index] };
@@ -231,6 +338,7 @@ namespace dnv::vista::sdk
 			if ( finalIndex >= m_table.size() )
 			{
 				SPDLOG_WARN( "Invalid negative seed index {} for key '{}'", finalIndex, key );
+
 				return false;
 			}
 			kvp = &m_table[finalIndex];
@@ -238,10 +346,11 @@ namespace dnv::vista::sdk
 		else
 		{
 			/* Positive seed requires secondary hash calculation */
-			finalIndex = internal::Hashing::seed( static_cast<uint32_t>( seed ), hashValue, size );
+			finalIndex = internal::Hashing::seed( static_cast<uint32_t>( seed ), hashValue, static_cast<uint64_t>( size ) );
 			if ( finalIndex >= m_table.size() )
 			{
 				SPDLOG_WARN( "Invalid positive seed index {} for key '{}'", finalIndex, key );
+
 				return false;
 			}
 			kvp = &m_table[finalIndex];
@@ -253,6 +362,7 @@ namespace dnv::vista::sdk
 
 			auto end = std::chrono::high_resolution_clock::now();
 			s_totalLookupDuration += ( end - start );
+
 			return false;
 		}
 
@@ -274,9 +384,25 @@ namespace dnv::vista::sdk
 		return true;
 	}
 
-	//=====================================================================
+	//----------------------------------------------
+	// Capacity
+	//----------------------------------------------
+
+	template <typename TValue>
+	bool ChdDictionary<TValue>::isEmpty() const
+	{
+		return m_table.empty();
+	}
+
+	template <typename TValue>
+	size_t ChdDictionary<TValue>::size() const
+	{
+		return m_table.size();
+	}
+
+	//----------------------------------------------
 	// Iteration
-	//=====================================================================
+	//----------------------------------------------
 
 	template <typename TValue>
 	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::begin() const
@@ -288,6 +414,7 @@ namespace dnv::vista::sdk
 			if ( !m_table[i].first.empty() )
 			{
 				SPDLOG_TRACE( "Found first valid entry at {}: key={}", i, m_table[i].first );
+
 				return Iterator{ &m_table, i };
 			}
 		}
@@ -301,131 +428,13 @@ namespace dnv::vista::sdk
 		return Iterator{ &m_table, m_table.size() };
 	}
 
-	template <typename TValue>
-	typename ChdDictionary<TValue>::Enumerator ChdDictionary<TValue>::enumerator() const
-	{
-		return begin();
-	}
-
-	//=====================================================================
-	// Iterator
-	//=====================================================================
-
 	//----------------------------------------------
-	// Construction
-	//----------------------------------------------
-
-	template <typename TValue>
-	ChdDictionary<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index )
-		: m_table{ table },
-		  m_index{ index }
-	{
-		/*
-		 When constructing the iterator for the beginning (index == 0) of a valid table,
-		 this block ensures that the iterator is immediately advanced past any initial
-		 empty slots in the underlying table. This guarantees that begin() points to
-		 the first actual element, or to end() if the table is entirely empty or
-		 only contains empty slots initially.
-		*/
-		if ( m_table != nullptr && index == 0 )
-		{
-			/* Loop advances the iterator past any initial empty slots. */
-			while ( m_index < m_table->size() && ( *m_table )[m_index].first.empty() )
-			{
-				++m_index;
-			}
-		}
-	}
-
-	//----------------------------------------------
-	// Iterator Operations
-	//----------------------------------------------
-
-	template <typename TValue>
-	typename ChdDictionary<TValue>::Iterator::reference ChdDictionary<TValue>::Iterator::operator*() const
-	{
-		if ( static_cast<size_t>( m_index ) >= m_table->size() )
-		{
-			internal::ThrowHelper::throwInvalidOperationException();
-		}
-
-		return ( *m_table )[m_index];
-	}
-
-	template <typename TValue>
-	typename ChdDictionary<TValue>::Iterator::pointer ChdDictionary<TValue>::Iterator::operator->() const
-	{
-		if ( static_cast<size_t>( m_index ) >= m_table->size() )
-		{
-			internal::ThrowHelper::throwInvalidOperationException();
-		}
-
-		return &( ( *m_table )[m_index] );
-	}
-
-	template <typename TValue>
-	typename ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++()
-	{
-		if ( m_table == nullptr )
-		{
-			return *this;
-		}
-
-		while ( ++m_index < m_table->size() )
-		{
-			const auto& entry{ ( *m_table )[m_index] };
-			if ( !entry.first.empty() )
-			{
-				return *this;
-			}
-		}
-
-		m_index = m_table->size();
-
-		return *this;
-	}
-
-	template <typename TValue>
-	typename ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::Iterator::operator++( int )
-	{
-		auto tmp{ Iterator{ *this } };
-		++( *this );
-		return tmp;
-	}
-
-	//----------------------------------------------
-	// Comparison Operators
-	//----------------------------------------------
-
-	template <typename TValue>
-	bool ChdDictionary<TValue>::Iterator::operator==( const Iterator& other ) const
-	{
-		return m_table == other.m_table && m_index == other.m_index;
-	}
-
-	template <typename TValue>
-	bool ChdDictionary<TValue>::Iterator::operator!=( const Iterator& other ) const
-	{
-		return !( *this == other );
-	}
-
-	//----------------------------------------------
-	// Utility
-	//----------------------------------------------
-
-	template <typename TValue>
-	void ChdDictionary<TValue>::Iterator::reset()
-	{
-		m_index = std::numeric_limits<size_t>::max();
-	}
-
-	//=====================================================================
 	// Private Helper Methods
-	//=====================================================================
+	//----------------------------------------------
 
-	//----------------------------------------------
+	//---------------------------
 	// Hashing
-	//----------------------------------------------
+	//---------------------------
 
 	template <typename TValue>
 	uint32_t ChdDictionary<TValue>::processHashByte( uint32_t hash, uint8_t byte )
@@ -459,7 +468,7 @@ namespace dnv::vista::sdk
 
 		if ( s_cacheMisses % 1000 == 0 )
 		{
-			SPDLOG_INFO( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
+			SPDLOG_DEBUG( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 		}
 
 		/* Hashing logic */
@@ -485,9 +494,9 @@ namespace dnv::vista::sdk
 		return hashValue;
 	}
 
-	//----------------------------------------------
+	//---------------------------
 	// Utility
-	//----------------------------------------------
+	//---------------------------
 
 	template <typename TValue>
 	bool ChdDictionary<TValue>::stringsEqual( std::string_view a, const std::string& b ) noexcept
@@ -551,9 +560,9 @@ namespace dnv::vista::sdk
 		return std::memcmp( a.data(), b.data(), aLen ) == 0;
 	}
 
-	//=====================================================================
+	//----------------------------------------------
 	// Caching and Performance Monitoring
-	//=====================================================================
+	//----------------------------------------------
 
 	template <typename TValue>
 	thread_local std::array<std::string, internal::HASH_CACHE_SIZE> ChdDictionary<TValue>::s_hashCacheStorage{};
