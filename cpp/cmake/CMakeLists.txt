@@ -10,73 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# --- Header-only dependencies ---
-set(NLOHMANN_JSON_VERSION "v3.12.0")
-set(NLOHMANN_JSON_URL "https://github.com/nlohmann/json/releases/download/${NLOHMANN_JSON_VERSION}/json.hpp")
-set(NLOHMANN_JSON_INCLUDE_DIR "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-include")
-set(NLOHMANN_JSON_HEADER "${NLOHMANN_JSON_INCLUDE_DIR}/nlohmann/json.hpp")
-
-if(NOT EXISTS ${NLOHMANN_JSON_HEADER})
-	message(STATUS "Downloading nlohmann/json header (${NLOHMANN_JSON_VERSION})...")
-	file(DOWNLOAD ${NLOHMANN_JSON_URL} ${NLOHMANN_JSON_HEADER}
-		 SHOW_PROGRESS
-		 STATUS download_status
-		 LOG download_log)
-	list(GET download_status 0 download_code)
-	if(NOT download_code EQUAL 0)
-		message(FATAL_ERROR "Failed to download nlohmann/json header. Error: ${download_log}")
-	else()
-		message(STATUS "Downloaded nlohmann/json header to ${NLOHMANN_JSON_HEADER}")
-	endif()
-else()
-	message(STATUS "Found existing nlohmann/json header: ${NLOHMANN_JSON_HEADER}")
-endif()
-
-add_library(nlohmann_json INTERFACE)
-target_include_directories(nlohmann_json INTERFACE ${NLOHMANN_JSON_INCLUDE_DIR})
-add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
-
-# --- FetchContent dependencies ---
-include(FetchContent)
-
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        v1.15.2
-  GIT_SHALLOW    TRUE
-  CMAKE_ARGS     -DSPDLOG_BUILD_SHARED=OFF -DSPDLOG_BUILD_EXAMPLE=OFF -DSPDLOG_BUILD_TESTING=OFF -DSPDLOG_FMT_EXTERNAL=OFF -DSPDLOG_BUILD_BENCH=OFF
-)
-FetchContent_Declare(
-  zlib
-  GIT_REPOSITORY https://github.com/madler/zlib.git
-  GIT_TAG        v1.3.1
-  GIT_SHALLOW    TRUE
-  CMAKE_ARGS     -DZLIB_BUILD_SHARED=OFF -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_STATIC=ON -DZLIB_BUILD_MINIZIP=OFF -DZLIB_INSTALL=OFF
-)
-FetchContent_Declare(
-  cpuid
-  GIT_REPOSITORY https://github.com/anrieff/libcpuid.git
-  GIT_TAG        v0.7.0
-  GIT_SHALLOW    TRUE
-  CMAKE_ARGS     -DBUILD_SHARED_LIBS=OFF -DLIBCPUID_ENABLE_TESTS=OFF -DLIBCPUID_BUILD_DRIVERS=OFF -DLIBCPUID_ENABLE_DOCS=OFF
-)
-FetchContent_Declare(
-  fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG        11.0.2
-  GIT_SHALLOW    TRUE
-  CMAKE_ARGS     -DBUILD_SHARED_LIBS=OFF -DFMT_TEST=OFF -DFMT_DOC=OFF -DFMT_INSTALL=OFF
-)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        v1.16.0
-  GIT_SHALLOW    TRUE
-  CMAKE_ARGS
-	-Dgtest_build_shared_libs=OFF
-	-DBUILD_SHARED_LIBS=OFF -DBUILD_GMOCK=OFF -DINSTALL_GTEST=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL
-)
-FetchContent_MakeAvailable(fmt spdlog zlib cpuid googletest)
+# --- Dependencies ---
+include(Dependencies.cmake)
 
 # --- Build options ---
 option(VISTA_SDK_CPP_BUILD_TESTS           "Build tests"                                               ON     )
@@ -116,68 +51,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>)
 
 # --- Compiler settings ---
-include(CheckCXXSourceCompiles)
-
-if(MSVC)
-	add_compile_options(/std:c++20)
-	add_compile_options(/MP)
-	add_compile_options(/W4)
-	add_compile_options(/Wall)
-	add_compile_options(/WX-)
-	add_compile_options(/permissive-)
-	add_compile_options(/fp:precise)
-	add_compile_options(/Zc:__cplusplus)
-	add_compile_options(/Zc:inline)
-	add_compile_options(/Zc:preprocessor)
-	add_compile_options(/external:anglebrackets)
-	add_compile_options(/external:W0)
-	#add_compile_options(/analyze:WX-)
-	#add_compile_options(/analyze:external-)
-	#add_compile_options(/analyze)
-
-	#add_compile_options(/wd4061) # switch not handled
-	#add_compile_options(/wd4100) # unreferenced formal parameter
-	#add_compile_options(/wd4189) # local variable is initialized but not referenced
-	#add_compile_options(/wd4244) # conversion from 'type1' to 'type2', possible loss of data
-	#add_compile_options(/wd4267) # conversion from 'size_t' to 'type', possible loss of data
-	#add_compile_options(/wd4365) # conversion signed/unsigned mismatch
-	#add_compile_options(/wd4388) # signed/unsigned mismatch
-	#add_compile_options(/wd4456) # declaration hides previous local declaration
-	#add_compile_options(/wd4514) # unreferenced inline function has been removed
-	#add_compile_options(/wd4625) # copy constructor was implicitly defined as deleted
-	#add_compile_options(/wd4626) # assignement operator was implicitly defined as deleted
-	add_compile_options(/wd4710) # function not inlined
-	add_compile_options(/wd4711) # function 'function' selected for inline expansion
-	add_compile_options(/wd4820) # padding
-	add_compile_options(/wd4866) # compiler may not enforce left-to-right evaluation order for call to operator_name
-	#add_compile_options(/wd4868) # compiler may not enforce left-to-right evaluation order in braced initializer list
-	#add_compile_options(/wd5026) # move constructor was implicitly defined as deleted
-	#add_compile_options(/wd5027) # move assignement operator was implicitly defined as deleted
-	#add_compile_options(/wd5038) # will be initialized after
-	add_compile_options(/wd5045) # Qspectre
-	#add_compile_options(/wd5267) # definition of implicit copy constructor/assignment operator is deprecated because it has a user-provided assignment operator/copy constructor
-	#add_compile_options(/wd6246) # local declaration of 'variable' hides declaration of same name in outer scope
-	#add_compile_options(/wd6326) # potential comparison of a constant with another constant
-	#add_compile_options(/wd6387) # this does not adhere to the specification for the function
-
-	add_compile_options(/arch:AVX)
-	add_compile_options(/arch:AVX2)
-else() # GCC / Clang
-	add_compile_options(-Wall)
-	add_compile_options(-Wextra)
-	add_compile_options(-Wpedantic)
-	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-		add_compile_options(-fdiagnostics-color=always)
-	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		add_compile_options(-std=c++20)
-		add_compile_options(-fno-pie)
-		add_compile_options(-fPIC)
-		add_compile_options(-Wno-pre-c++17-compat)
-		add_compile_options(-Wno-c++98-compat)
-		add_compile_options(-msse4.2)
-		add_compile_options(-fcolor-diagnostics)
-	endif()
-endif()
+include(CompilersSettings.cmake)
 
 # --- Copy resources at build time ---
 if(VISTA_SDK_CPP_COPY_RESOURCES)
@@ -254,55 +128,119 @@ string(REPLACE ";" " " FORMATTED_COMPILE_OPTIONS "${COMPILE_OPTIONS}")
 string(REPLACE ";" " " FORMATTED_COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS}")
 string(REPLACE ";" " " FORMATTED_LINK_OPTIONS "${LINK_OPTIONS}")
 
+message(STATUS "=========================================================")
 message(STATUS "========== VISTA SDK C++ library configuration ==========")
-message(STATUS "Project:                 ${PROJECT_NAME} ${PROJECT_VERSION}")
-message(STATUS "Description:             ${PROJECT_DESCRIPTION}")
-message(STATUS "Top-Level Source Dir:    ${CMAKE_SOURCE_DIR}")
-message(STATUS "Build Directory:         ${CMAKE_BINARY_DIR}")
-message(STATUS "Install Prefix:          ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "Generator:               ${CMAKE_GENERATOR}")
-message(STATUS "Platform:                ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})")
-message(STATUS "Build Type:              ${CMAKE_BUILD_TYPE}")
-message(STATUS "Build Shared Libs:       ${BUILD_SHARED_LIBS}")
-message(STATUS "C++ Compiler:            ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "C++ Compiler Path:       ${CMAKE_CXX_COMPILER}")
-message(STATUS "C++ Standard:            ${CMAKE_CXX_STANDARD}")
-message(STATUS "--- Build Options ---")
-message(STATUS "Build Tests:             ${VISTA_SDK_CPP_BUILD_TESTS}")
-message(STATUS "Build Samples:           ${VISTA_SDK_CPP_BUILD_SAMPLES}")
-message(STATUS "Build Documentation:     ${VISTA_SDK_CPP_BUILD_DOCUMENTATION}")
-message(STATUS "Copy Resources:          ${VISTA_SDK_CPP_COPY_RESOURCES}")
-message(STATUS "CI Force Spdlog WARN:    ${CI_FORCE_DEBUG_SPDLOG_WARN}")
-message(STATUS "--- Paths ---")
-if(VISTA_SDK_CPP_COPY_RESOURCES)
-	message(STATUS "Resources Source:        ${VISTA_SDK_RESOURCE_DIR}")
-	message(STATUS "Resources Target:        ${VISTA_SDK_CPP_BIN_DIR}/<CONFIG>/resources")
-endif()
-message(STATUS "Library Include Dir:     ${VISTA_SDK_CPP_INCLUDE_DIR}")
-message(STATUS "Library Source Dir:      ${VISTA_SDK_CPP_SOURCE_DIR}")
-message(STATUS "Output Base Directory:   ${VISTA_SDK_CPP_BIN_DIR}")
-if(CCACHE_PROGRAM)
-	message(STATUS "ccache Enabled:          ${CCACHE_PROGRAM}")
+message(STATUS "=========================================================")
+
+message(STATUS "Project             : ${PROJECT_NAME} ${PROJECT_VERSION}")
+message(STATUS "Description         : ${PROJECT_DESCRIPTION}")
+message(STATUS "Top-Level Source Dir: ${CMAKE_SOURCE_DIR}")
+message(STATUS "Build Directory     : ${CMAKE_BINARY_DIR}")
+message(STATUS "Install Prefix      : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Generator           : ${CMAKE_GENERATOR}")
+message(STATUS "Platform            : ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})")
+if(CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Build Type          : Multi-config (${CMAKE_CONFIGURATION_TYPES})")
 else()
-	message(STATUS "ccache Enabled:          No")
+    message(STATUS "Build Type          : ${CMAKE_BUILD_TYPE}")
 endif()
-message(STATUS "")
-message(STATUS "---------- Compiler Options ----------")
-message(STATUS "Compile Options:         ${FORMATTED_COMPILE_OPTIONS}")
-message(STATUS "Compile Definitions:     ${FORMATTED_COMPILE_DEFINITIONS}")
-message(STATUS "Link Options:            ${FORMATTED_LINK_OPTIONS}")
+message(STATUS "Build Shared Libs   : ${BUILD_SHARED_LIBS}")
+message(STATUS "C++ Compiler        : ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "C++ Compiler Path   : ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ Standard        : ${CMAKE_CXX_STANDARD}")
+
+message(STATUS "--------- Build Options ---------")
+message(STATUS "Build Tests         : ${VISTA_SDK_CPP_BUILD_TESTS}")
+message(STATUS "Build Samples       : ${VISTA_SDK_CPP_BUILD_SAMPLES}")
+message(STATUS "Build Documentation : ${VISTA_SDK_CPP_BUILD_DOCUMENTATION}")
+message(STATUS "Copy Resources      : ${VISTA_SDK_CPP_COPY_RESOURCES}")
+message(STATUS "CI Force Spdlog WARN: ${CI_FORCE_DEBUG_SPDLOG_WARN}")
+
+message(STATUS "--------- Paths ---------")
+if(VISTA_SDK_CPP_COPY_RESOURCES)
+    message(STATUS "Resources Source     : ${VISTA_SDK_RESOURCE_DIR}")
+    message(STATUS "Resources Target     : ${VISTA_SDK_CPP_BIN_DIR}/<CONFIG>/resources")
+endif()
+message(STATUS "Library Include Dir  : ${VISTA_SDK_CPP_INCLUDE_DIR}")
+message(STATUS "Library Source Dir   : ${VISTA_SDK_CPP_SOURCE_DIR}")
+message(STATUS "Output Base Directory: ${VISTA_SDK_CPP_BIN_DIR}")
+if(CCACHE_PROGRAM)
+	message(STATUS "ccache Enabled: ${CCACHE_PROGRAM}")
+else()
+	message(STATUS "ccache Enabled: No")
+endif()
+message(STATUS "--------- Compiler Options ---------")
+message(STATUS "Compile Options    : ${FORMATTED_COMPILE_OPTIONS}")
+message(STATUS "Compile Definitions: ${FORMATTED_COMPILE_DEFINITIONS}")
+message(STATUS "Link Options       : ${FORMATTED_LINK_OPTIONS}")
+
+message(STATUS "--------- System Information ---------")
+cmake_host_system_information(RESULT TOTAL_MEMORY QUERY TOTAL_PHYSICAL_MEMORY)
+cmake_host_system_information(RESULT AVAILABLE_MEMORY QUERY AVAILABLE_PHYSICAL_MEMORY)
+math(EXPR MEMORY_GB "${TOTAL_MEMORY} / 1024")
+message(STATUS "System Memory      : ${MEMORY_GB} GB total")
+message(STATUS "Processor Count    : ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+
+message(STATUS "--------- Dependencies ---------")
+if(TARGET spdlog::spdlog)
+    get_target_property(SPDLOG_VERSION spdlog::spdlog VERSION)
+endif()
+
+if(TARGET nlohmann_json::nlohmann_json)
+    string(REPLACE "v" "" NLOHMANN_VERSION "${NLOHMANN_JSON_VERSION}")
+endif()
+
+if(TARGET fmt::fmt)
+    get_target_property(FMT_VERSION fmt::fmt VERSION)
+endif()
+
+if(TARGET zlibstatic)
+    get_target_property(ZLIB_VERSION zlibstatic VERSION)
+    if(NOT ZLIB_VERSION)
+        if(zlib_SOURCE_DIR AND EXISTS "${zlib_SOURCE_DIR}/zlib.h")
+            file(STRINGS "${zlib_SOURCE_DIR}/zlib.h" ZLIB_VER_LINES
+                REGEX "^#define[ \t]+ZLIB_VERSION[ \t]+\"[^\"]*\"")
+            if(ZLIB_VER_LINES)
+                string(REGEX REPLACE "^#define[ \t]+ZLIB_VERSION[ \t]+\"([^\"]*)\".*" "\\1"
+                    ZLIB_VERSION "${ZLIB_VER_LINES}")
+            endif()
+        endif()
+    endif()
+endif()
+
+if(TARGET cpuid)
+    get_target_property(CPUID_VERSION cpuid VERSION)
+endif()
+
+if(TARGET GTest::gtest)
+    get_target_property(GTEST_VERSION GTest::gtest VERSION)
+endif()
+
+message(STATUS "spdlog Version      : ${SPDLOG_VERSION}")
+message(STATUS "nlohmann_json       : ${NLOHMANN_VERSION}")
+message(STATUS "fmt Version         : ${FMT_VERSION}")
+message(STATUS "zlib Version        : ${ZLIB_VERSION}")
+message(STATUS "libcpuid Version    : ${CPUID_VERSION}")
+message(STATUS "GoogleTest Version  : ${GTEST_VERSION}")
 
 if(CCACHE_PROGRAM)
-	message(STATUS "")
-	message(STATUS "---------- ccache Statistics ----------")
-	execute_process(
-		COMMAND ${CCACHE_PROGRAM} -s
-		OUTPUT_VARIABLE CCACHE_STATS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	string(REPLACE "\n" ";" CCACHE_STATS_LINES "${CCACHE_STATS}")
-	foreach(LINE ${CCACHE_STATS_LINES})
-		message(STATUS "${LINE}")
-	endforeach()
+    message(STATUS "--------- ccache Statistics ---------")
+    execute_process(
+        COMMAND ${CCACHE_PROGRAM} -s
+        OUTPUT_VARIABLE CCACHE_STATS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(REPLACE "\n" ";" CCACHE_STATS_LINES "${CCACHE_STATS}")
+    foreach(LINE ${CCACHE_STATS_LINES})
+        message(STATUS "${LINE}")
+    endforeach()
+
+    execute_process(
+        COMMAND ${CCACHE_PROGRAM} -s
+        OUTPUT_VARIABLE CCACHE_STATS_RAW
+    )
+
+    if(CCACHE_STATS_RAW MATCHES "cache hit rate ([0-9.]+)%")
+        message(STATUS "Cache Efficiency    : ${CMAKE_MATCH_1}% hit rate")
+    endif()
 endif()
-message(STATUS "=======================================================")
