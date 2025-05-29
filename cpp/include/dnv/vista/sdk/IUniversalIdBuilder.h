@@ -19,7 +19,7 @@ namespace dnv::vista::sdk
 	class UniversalIdBuilder;
 
 	//=====================================================================
-	// IUniversalIdBuilder Class
+	// IUniversalIdBuilder class
 	//=====================================================================
 
 	/**
@@ -34,9 +34,9 @@ namespace dnv::vista::sdk
 	class IUniversalIdBuilder
 	{
 	public:
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 	protected:
 		/** @brief Default constructor. */
@@ -44,7 +44,7 @@ namespace dnv::vista::sdk
 
 	public:
 		/** @brief Copy constructor */
-		IUniversalIdBuilder( const IUniversalIdBuilder& ) = delete;
+		IUniversalIdBuilder( const IUniversalIdBuilder& ) = default;
 
 		/** @brief Move constructor */
 		IUniversalIdBuilder( IUniversalIdBuilder&& ) noexcept = default;
@@ -52,19 +52,19 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~IUniversalIdBuilder() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		IUniversalIdBuilder& operator=( const IUniversalIdBuilder& ) = delete;
 
 		/** @brief Move assignment operator */
-		IUniversalIdBuilder& operator=( IUniversalIdBuilder&& ) noexcept = default;
+		IUniversalIdBuilder& operator=( IUniversalIdBuilder&& ) noexcept = delete;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Accessors
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Gets the IMO number currently set in the builder, if any.
@@ -80,13 +80,38 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual const std::optional<LocalIdBuilder>& localId() const = 0;
 
-		//=====================================================================
-		// Builder Methods (Immutable Fluent Interface)
-		//=====================================================================
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
 
-		//-------------------------------------------------------------------------
+		/**
+		 * @brief Checks if the builder state is valid to build a Local ID.
+		 * @details Validity typically requires at least a VIS version, a primary item,
+		 *          and one or more metadata tags, depending on the specific `TResult` rules.
+		 * @return True if the current state allows for a successful `build()`, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isValid() const = 0;
+
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
+
+		/**
+		 * @brief Generates the string representation of the Universal ID based on the current builder state.
+		 * @details The format typically combines the IMO number and the Local ID string
+		 *          (e.g., "IMO1234567/dnv-v2/vis-3-4a/..."). Returns an empty or specific
+		 *          "invalid" string if the state is not valid (`isValid()` is false).
+		 * @return The `std::string` representation of the configured Universal ID.
+		 */
+		[[nodiscard]] virtual std::string toString() const = 0;
+
+		//----------------------------------------------
+		// Build methods (Immutable fluent interface)
+		//----------------------------------------------
+
+		//----------------------------
 		// Local Id
-		//-------------------------------------------------------------------------
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the Local ID builder set.
@@ -120,9 +145,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual UniversalIdBuilder withoutLocalId() const = 0;
 
-		//-------------------------------------------------------------------------
-		// IMO Number
-		//-------------------------------------------------------------------------
+		//----------------------------
+		// IMO number
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the IMO number set.
@@ -154,30 +179,5 @@ namespace dnv::vista::sdk
 		 * @return A new `UniversalIdBuilder` instance without an IMO number set.
 		 */
 		[[nodiscard]] virtual UniversalIdBuilder withoutImoNumber() const = 0;
-
-		//=====================================================================
-		// State Inspection Methods
-		//=====================================================================
-
-		/**
-		 * @brief Checks if the builder state is valid to build a Local ID.
-		 * @details Validity typically requires at least a VIS version, a primary item,
-		 *          and one or more metadata tags, depending on the specific `TResult` rules.
-		 * @return True if the current state allows for a successful `build()`, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isValid() const = 0;
-
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
-
-		/**
-		 * @brief Generates the string representation of the Universal ID based on the current builder state.
-		 * @details The format typically combines the IMO number and the Local ID string
-		 *          (e.g., "IMO1234567/dnv-v2/vis-3-4a/..."). Returns an empty or specific
-		 *          "invalid" string if the state is not valid (`isValid()` is false).
-		 * @return The `std::string` representation of the configured Universal ID.
-		 */
-		[[nodiscard]] virtual std::string toString() const = 0;
 	};
 }

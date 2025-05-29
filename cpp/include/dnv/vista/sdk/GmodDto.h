@@ -34,7 +34,7 @@ namespace dnv::vista::sdk
 		using NormalAssignmentNamesMap = std::unordered_map<std::string, std::string>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -73,7 +73,7 @@ namespace dnv::vista::sdk
 		~GmodNodeDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -181,7 +181,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Category classification of the node (e.g., "PRODUCT", "ASSET") */
@@ -240,7 +240,7 @@ namespace dnv::vista::sdk
 		using Items = std::vector<GmodNodeDto>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -267,7 +267,7 @@ namespace dnv::vista::sdk
 		~GmodDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -339,7 +339,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief VIS version string (e.g., "3.8a") */

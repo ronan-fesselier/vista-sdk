@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -65,7 +65,7 @@ namespace dnv::vista::sdk
 		GmodNodeMetadata() = delete;
 
 		/** @brief Copy constructor */
-		GmodNodeMetadata( const GmodNodeMetadata& ) = default;
+		GmodNodeMetadata( const GmodNodeMetadata& );
 
 		/** @brief Move constructor */
 		GmodNodeMetadata( GmodNodeMetadata&& ) noexcept = default;
@@ -74,11 +74,11 @@ namespace dnv::vista::sdk
 		~GmodNodeMetadata() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodNodeMetadata& operator=( const GmodNodeMetadata& ) = delete;
+		GmodNodeMetadata& operator=( const GmodNodeMetadata& );
 
 		/** @brief Move assignment operator */
 		GmodNodeMetadata& operator=( GmodNodeMetadata&& ) noexcept = default;
@@ -161,7 +161,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Category classification of the node. */
@@ -210,11 +210,8 @@ namespace dnv::vista::sdk
 
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
-
-		/** @brief Default constructor. Initializes an empty/invalid node. */
-		GmodNode();
 
 		/**
 		 * @brief Constructs a GmodNode from a Data Transfer Object (DTO).
@@ -223,8 +220,11 @@ namespace dnv::vista::sdk
 		 */
 		GmodNode( VisVersion version, const GmodNodeDto& dto );
 
+		/** @brief Default constructor. */
+		GmodNode() = delete;
+
 		/** @brief Copy constructor */
-		GmodNode( const GmodNode& ) = default;
+		GmodNode( const GmodNode& ); //= default;
 
 		/** @brief Move constructor */
 		GmodNode( GmodNode&& ) noexcept = default;
@@ -232,17 +232,8 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		~GmodNode() = default;
 
-		/**
-		 * @brief Internal constructor for creating modified copies (e.g., for "wither" methods like `withLocation`).
-		 * @details This constructor is typically used internally to create a new node instance
-		 *          based on an existing one, often with a specific modification.
-		 * @param other The source node to copy data from.
-		 * @param b A tag parameter, marked [[maybe_unused]] if its value isn't directly used beyond dispatching to this constructor.
-		 */
-		GmodNode( const GmodNode& other, [[maybe_unused]] bool b );
-
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -356,19 +347,19 @@ namespace dnv::vista::sdk
 		[[nodiscard]] GmodNode withoutLocation() const;
 
 		/**
-		 * @brief Creates a new GmodNode instance identical to this one but with the specified location string.
-		 * @param locationStr The location string to parse and set (e.g., "FR-10-20-30").
-		 * @return A new `GmodNode` instance with the parsed location.
-		 * @throws std::invalid_argument If the `locationStr` is invalid or cannot be parsed.
-		 */
-		[[nodiscard]] GmodNode withLocation( const std::string& locationStr ) const;
-
-		/**
 		 * @brief Creates a new GmodNode instance identical to this one but with the specified Location object.
-		 * @param location The `Location` object to set.
+		 * @param location The Location object to set for the new node.
 		 * @return A new `GmodNode` instance with the given location.
 		 */
 		[[nodiscard]] GmodNode withLocation( const Location& location ) const;
+
+		/**
+		 * @brief Creates a new GmodNode instance identical to this one but with the specified location string.
+		 * @param locationStr The location string to parse and set.
+		 * @return A new `GmodNode` instance with the parsed location.
+		 * @throws std::invalid_argument If the `locationStr` is invalid or cannot be parsed.
+		 */
+		[[nodiscard]] GmodNode withLocation( std::string_view locationStr ) const;
 
 		/**
 		 * @brief Tries to create a new GmodNode instance with the specified location string, returning a copy on failure.
@@ -378,7 +369,7 @@ namespace dnv::vista::sdk
 		 * @param locationStr The location string to parse and set.
 		 * @return A new `GmodNode` instance, with the location set if parsing was successful.
 		 */
-		[[nodiscard]] GmodNode tryWithLocation( const std::string& locationStr ) const;
+		[[nodiscard]] GmodNode tryWithLocation( std::string_view locationStr ) const;
 
 		/**
 		 * @brief Tries to create a new GmodNode instance with the specified location string, capturing parsing errors.
@@ -389,7 +380,7 @@ namespace dnv::vista::sdk
 		 * @param errors A `ParsingErrors` object to collect detailed error information if parsing fails.
 		 * @return A new `GmodNode` instance, with the location set if parsing was successful.
 		 */
-		[[nodiscard]] GmodNode tryWithLocation( const std::string& locationStr, ParsingErrors& errors ) const;
+		[[nodiscard]] GmodNode tryWithLocation( std::string_view locationStr, ParsingErrors& errors ) const;
 
 		/**
 		 * @brief Tries to create a new GmodNode instance with the specified optional Location object.
@@ -533,7 +524,7 @@ namespace dnv::vista::sdk
 		void trim();
 
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Unique identifier code of the node. */

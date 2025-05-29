@@ -19,7 +19,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//=====================================================================
-		// Construction / Destruction
+		// Construction / destruction
 		//=====================================================================
 
 		/**
@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 		~ImoNumber() = default;
 
 		//=====================================================================
-		// Assignment Operators
+		// Assignment operators
 		//=====================================================================
 
 		/** @brief Copy assignment operator */

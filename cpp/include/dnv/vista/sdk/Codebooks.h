@@ -131,7 +131,7 @@ namespace dnv::vista::sdk
 		};
 
 		//=====================================================================
-		// Construction / Destruction
+		// Construction / destruction
 		//=====================================================================
 
 		/**
@@ -156,7 +156,7 @@ namespace dnv::vista::sdk
 		~Codebooks() = default;
 
 		//=====================================================================
-		// Assignment Operators
+		// Assignment operators
 		//=====================================================================
 
 		/** @brief Copy assignment operator */

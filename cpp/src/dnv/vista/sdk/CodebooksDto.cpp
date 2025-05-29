@@ -26,7 +26,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	CodebookDto::CodebookDto( std::string name, ValuesMap values )
@@ -40,7 +40,7 @@ namespace dnv::vista::sdk
 	// Accessor
 	//----------------------------------------------
 
-	const std::string& CodebookDto::name() const
+	std::string_view CodebookDto::name() const
 	{
 		return m_name;
 	}
@@ -226,7 +226,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	CodebooksDto::CodebooksDto( std::string visVersion, Items items )

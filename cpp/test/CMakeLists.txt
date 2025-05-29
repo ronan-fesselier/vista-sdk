@@ -1,5 +1,5 @@
 # ==============================================================================
-# VISTA-SDK-CPP - Test Suite CMake Configuration
+# VISTA-SDK-CPP - Test suite CMake configuration
 # ==============================================================================
 
 cmake_minimum_required(VERSION 3.20)
@@ -9,10 +9,10 @@ project(vista-sdk-cpp-tests
 	DESCRIPTION "DNV VISTA SDK C++ Tests"
 	LANGUAGES CXX)
 
-# --- GoogleTest Integration ---
+# --- GoogleTest integration ---
 include(GoogleTest)
 
-# --- Test Executable Definitions ---
+# --- Test source files ---
 set(TEST_SOURCES
 	CodebookTests.cpp
 	CodebooksTests.cpp
@@ -23,18 +23,37 @@ set(TEST_SOURCES
 	ISOStringTests.cpp
 	LocalIdTests.cpp
 	LocationsTests.cpp
+	UniversalIdTests.cpp
 )
 
-# --- Configure Each Test Target ---
+# --- Copy test data at build time ---
+if(EXISTS ${VISTA_SDK_TEST_DATA_DIR})
+	set(VISTA_SDK_CPP_TEST_DATA_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testdata)
+
+	if(NOT TARGET CopyTestData)
+		add_custom_target(CopyTestData ALL
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${VISTA_SDK_CPP_TEST_DATA_OUTPUT_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy_directory
+				${VISTA_SDK_TEST_DATA_DIR} ${VISTA_SDK_CPP_TEST_DATA_OUTPUT_DIR}
+			COMMENT "Copying VISTA SDK testdata to build directory ($<CONFIG>)"
+			VERBATIM
+		)
+		message(STATUS "Test data will be copied from ${VISTA_SDK_TEST_DATA_DIR} to ${VISTA_SDK_CPP_TEST_DATA_OUTPUT_DIR} at build time")
+	endif()
+else()
+	message(WARNING "Test data directory not found: ${VISTA_SDK_TEST_DATA_DIR}. Skipping test data copy.")
+endif()
+
+# --- Configure test executables ---
 foreach(test_source ${TEST_SOURCES})
-	get_filename_component(test_target ${test_source} NAME_WE)
+	get_filename_component(test_target_name ${test_source} NAME_WE)
 
-	if(NOT TARGET ${test_target})
-		add_executable(${test_target} ${test_source})
+	if(NOT TARGET ${test_target_name})
+		add_executable(${test_target_name} TestDataLoader.h ${test_source})
 
-		target_precompile_headers(${test_target} PRIVATE pch.h)
+		target_precompile_headers(${test_target_name} PRIVATE pch.h)
 
-		target_link_libraries(${test_target} PRIVATE
+		target_link_libraries(${test_target_name} PRIVATE
 			vista-sdk-cpp
 			GTest::gtest_main
 			spdlog::spdlog
@@ -42,26 +61,30 @@ foreach(test_source ${TEST_SOURCES})
 			zlibstatic
 		)
 
-		# Add include directories.
-		target_include_directories(${test_target} PRIVATE
-			${VISTA_SDK_INCLUDE_DIR}
+		target_compile_definitions(${test_target_name} PRIVATE
+			$<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
+			$<$<AND:$<CONFIG:Debug>,$<BOOL:${CI_FORCE_DEBUG_SPDLOG_WARN}>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
 		)
 
-		target_compile_definitions(${test_target} PRIVATE
-			 $<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
+		target_include_directories(${test_target_name} PRIVATE
+			${VISTA_SDK_CPP_INCLUDE_DIR}
 		)
 
-		set(TARGET_OUTPUT_DIR "$<TARGET_FILE_DIR:${test_target}>")
+		if(TARGET CopyTestData)
+			add_dependencies(${test_target_name} CopyTestData)
+		endif()
 
-		# Discover tests.
-		gtest_discover_tests(${test_target}
-			WORKING_DIRECTORY ${TARGET_OUTPUT_DIR}
+		gtest_discover_tests(${test_target_name}
+			WORKING_DIRECTORY "$<TARGET_FILE_DIR:${test_target_name}>"
 			DISCOVERY_VERBOSE_OUTPUT TRUE
+			PROPERTIES
+				TIMEOUT 120
+				WILL_FAIL FALSE
+				OUTPUT_ON_FAILURE TRUE
 		)
 
-		# Apply MSVC-specific warning suppressions.
 		if(MSVC)
-			target_compile_options(${test_target} PRIVATE
+			target_compile_options(${test_target_name} PRIVATE
 				/wd4625 # copy constructor was implicitly defined as deleted
 				/wd4626 # assignement operator was implicitly defined as deleted
 				/wd4702 # unreachable code
@@ -70,24 +93,5 @@ foreach(test_source ${TEST_SOURCES})
 				/wd5027 # move assignment operator was implicitly defined as deleted
 			)
 		endif()
-
 	endif()
 endforeach()
-
-# --- Copy Test Data (Build Time) ---
-if(EXISTS ${VISTA_SDK_TEST_DATA_DIR})
-	set(VISTA_SDK_TESTDATA_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testdata)
-
-	if(NOT TARGET CopyTestData)
-		add_custom_target(CopyTestData ALL
-			COMMAND ${CMAKE_COMMAND} -E make_directory ${VISTA_SDK_TESTDATA_OUTPUT_DIR}
-			COMMAND ${CMAKE_COMMAND} -E copy_directory
-				${VISTA_SDK_TEST_DATA_DIR} ${VISTA_SDK_TESTDATA_OUTPUT_DIR}
-			COMMENT "Copying VISTA SDK testdata to build directory ($<CONFIG>)"
-			VERBATIM
-		)
-		message(STATUS "testdata will be copied from ${VISTA_SDK_TEST_DATA_DIR} to ${VISTA_SDK_TESTDATA_OUTPUT_DIR} at build time")
-	endif()
-else()
-	message(WARNING "testdata directory not found: ${VISTA_SDK_TEST_DATA_DIR}. Skipping testdata copy.")
-endif()

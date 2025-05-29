@@ -20,6 +20,10 @@ namespace dnv::vista::sdk
 	enum class VisVersion;
 	enum class CodebookName;
 
+	//=====================================================================
+	// ILocalIdBuilder class
+	//=====================================================================
+
 	/**
 	 * @interface ILocalIdBuilder
 	 * @brief Abstract interface for building Local IDs using an immutable fluent pattern.
@@ -40,9 +44,9 @@ namespace dnv::vista::sdk
 	template <typename TBuilder, typename TResult>
 	class ILocalIdBuilder
 	{
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 	protected:
 		/** @brief Default constructor. */
@@ -50,7 +54,7 @@ namespace dnv::vista::sdk
 
 	public:
 		/** @brief Copy constructor */
-		ILocalIdBuilder( const ILocalIdBuilder& ) = delete;
+		ILocalIdBuilder( const ILocalIdBuilder& ) = default;
 
 		/** @brief Move constructor */
 		ILocalIdBuilder( ILocalIdBuilder&& ) noexcept = default;
@@ -58,19 +62,19 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~ILocalIdBuilder() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		ILocalIdBuilder& operator=( const ILocalIdBuilder& ) = delete;
 
 		/** @brief Move assignment operator */
-		ILocalIdBuilder& operator=( ILocalIdBuilder&& ) noexcept = default;
+		ILocalIdBuilder& operator=( ILocalIdBuilder&& ) noexcept = delete;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Operators
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Equality comparison operator.
@@ -90,38 +94,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] bool operator!=( const TBuilder& other ) const noexcept;
 
-		//=====================================================================
-		// Core Build Method
-		//=====================================================================
-
-		/**
-		 * @brief Creates the final Local ID object from the current builder state.
-		 * @details This method constructs and returns the target `TResult` object based
-		 *          on the configuration accumulated in the builder.
-		 * @return A new instance of the Local ID (`TResult`).
-		 * @throws std::invalid_argument If the builder state is invalid (`isValid()` returns false).
-		 *         Implementations should throw if building is attempted on an invalid state.
-		 */
-		[[nodiscard]] virtual TResult build() = 0;
-
-		//=====================================================================
-		// State Inspection Methods
-		//=====================================================================
-
-		/**
-		 * @brief Checks if the builder state is valid to build a Local ID.
-		 * @details Validity typically requires at least a VIS version, a primary item,
-		 *          and one or more metadata tags, depending on the specific `TResult` rules.
-		 * @return True if the current state allows for a successful `build()`, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isValid() const noexcept = 0;
-
-		/**
-		 * @brief Checks if the builder is in its initial, empty state.
-		 * @details An empty builder typically has no VIS version, no items, and no metadata tags set.
-		 * @return True if the builder holds no configuration data, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isEmpty() const noexcept = 0;
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Gets the VIS version currently set in the builder, if any.
@@ -129,13 +104,6 @@ namespace dnv::vista::sdk
 		 *         or `std::nullopt` if no version is set.
 		 */
 		[[nodiscard]] virtual std::optional<VisVersion> visVersion() const = 0;
-
-		/**
-		 * @brief Checks if verbose mode is enabled for the `toString()` representation.
-		 * @details Verbose mode typically includes descriptive text alongside codes in the string output.
-		 * @return True if verbose mode is enabled, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isVerboseMode() const noexcept = 0;
 
 		/**
 		 * @brief Gets the primary item path.
@@ -165,6 +133,32 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual std::vector<MetadataTag> metadataTags() const = 0;
 
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Checks if the builder state is valid to build a Local ID.
+		 * @details Validity typically requires at least a VIS version, a primary item,
+		 *          and one or more metadata tags, depending on the specific `TResult` rules.
+		 * @return True if the current state allows for a successful `build()`, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isValid() const noexcept = 0;
+
+		/**
+		 * @brief Checks if the builder is in its initial, empty state.
+		 * @details An empty builder typically has no VIS version, no items, and no metadata tags set.
+		 * @return True if the builder holds no configuration data, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isEmpty() const noexcept = 0;
+
+		/**
+		 * @brief Checks if verbose mode is enabled for the `toString()` representation.
+		 * @details Verbose mode typically includes descriptive text alongside codes in the string output.
+		 * @return True if verbose mode is enabled, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isVerboseMode() const noexcept = 0;
+
 		/**
 		 * @brief Checks if the builder has a custom metadata tag defined.
 		 * @details A custom tag is typically one that isn't part of the standard VIS structure
@@ -173,9 +167,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual bool hasCustomTag() const noexcept = 0;
 
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
 
 		/**
 		 * @brief Generates the string representation of the Local ID based on the current builder state.
@@ -195,13 +189,27 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual bool equals( const TBuilder& other ) const = 0;
 
-		//=====================================================================
-		// Builder Methods (Immutable Fluent Interface)
-		//=====================================================================
+		//----------------------------------------------
+		// Build methods (Immutable fluent interface)
+		//----------------------------------------------
 
-		//----------------------------------------------
-		// Verbose Mode
-		//----------------------------------------------
+		//----------------------------
+		// Build
+		//----------------------------
+
+		/**
+		 * @brief Creates the final Local ID object from the current builder state.
+		 * @details This method constructs and returns the target `TResult` object based
+		 *          on the configuration accumulated in the builder.
+		 * @return A new instance of the Local ID (`TResult`).
+		 * @throws std::invalid_argument If the builder state is invalid (`isValid()` returns false).
+		 *         Implementations should throw if building is attempted on an invalid state.
+		 */
+		[[nodiscard]] virtual TResult build() = 0;
+
+		//----------------------------
+		// Verbose
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the specified verbose mode setting.
@@ -210,9 +218,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual TBuilder withVerboseMode( bool verboseMode ) = 0;
 
-		//----------------------------------------------
+		//----------------------------
 		// VIS Version
-		//----------------------------------------------
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the VIS version set from a string.
@@ -256,9 +264,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual TBuilder withoutVisVersion() = 0;
 
-		//----------------------------------------------
-		// Primary Item
-		//----------------------------------------------
+		//----------------------------
+		// Primary item
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the primary item set (moves the provided path).
@@ -310,9 +318,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual TBuilder withoutPrimaryItem() = 0;
 
-		//----------------------------------------------
-		// Secondary Item
-		//----------------------------------------------
+		//----------------------------
+		// Secondary item
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the secondary item set (moves the provided path).
@@ -364,9 +372,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual TBuilder withoutSecondaryItem() = 0;
 
-		//----------------------------------------------
-		// Metadata Tags
-		//----------------------------------------------
+		//----------------------------
+		// Metadata tags
+		//----------------------------
 
 		/**
 		 * @brief Returns a new builder with the specified metadata tag added or replaced.
@@ -407,9 +415,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual TBuilder withoutMetadataTag( CodebookName name ) = 0;
 
-		//=====================================================================
-		// Static Parsing Methods
-		//=====================================================================
+		//----------------------------------------------
+		// Static parsing methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Parses a string representation into a builder instance.

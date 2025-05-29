@@ -14,7 +14,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	template <typename K, typename V>

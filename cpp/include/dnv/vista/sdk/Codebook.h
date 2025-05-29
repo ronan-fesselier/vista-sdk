@@ -49,7 +49,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -65,7 +65,7 @@ namespace dnv::vista::sdk
 		~PositionValidationResults() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -84,7 +84,7 @@ namespace dnv::vista::sdk
 		 * @return The matching `PositionValidationResult` enum value.
 		 * @throws std::invalid_argument If the provided `name` does not correspond to any known validation result.
 		 */
-		static PositionValidationResult fromString( const std::string& name );
+		static PositionValidationResult fromString( std::string_view name );
 	};
 
 	//=====================================================================
@@ -107,7 +107,7 @@ namespace dnv::vista::sdk
 		using iterator = std::unordered_set<std::string>::const_iterator;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -130,7 +130,7 @@ namespace dnv::vista::sdk
 		~CodebookStandardValues() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -174,7 +174,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The name of the codebook */
@@ -206,7 +206,7 @@ namespace dnv::vista::sdk
 		using Iterator = std::unordered_set<std::string>::const_iterator;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -228,7 +228,7 @@ namespace dnv::vista::sdk
 		~CodebookGroups() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -272,7 +272,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The set of groups */
@@ -294,7 +294,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -317,7 +317,7 @@ namespace dnv::vista::sdk
 		~Codebook() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -359,18 +359,18 @@ namespace dnv::vista::sdk
 		 * @param group The group to check
 		 * @return True if the group exists
 		 */
-		[[nodiscard]] bool hasGroup( const std::string& group ) const;
+		[[nodiscard]] bool hasGroup( std::string_view group ) const;
 
 		/**
 		 * @brief Check if a value is a standard value
 		 * @param value The value to check
 		 * @return True if the value is standard
 		 */
-		[[nodiscard]] bool hasStandardValue( const std::string& value ) const;
+		[[nodiscard]] bool hasStandardValue( std::string_view value ) const;
 
 		/**
 		 * @brief Try to create a metadata tag
-		 * @param value The tag value
+		 * @param valueView The tag value
 		 * @return The metadata tag, or none if invalid
 		 */
 		[[nodiscard]] std::optional<MetadataTag> tryCreateTag( std::string_view valueView ) const;
@@ -397,14 +397,14 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The name of this codebook */
 		CodebookName m_name;
 
 		/** @brief Mapping from values to their group names */
-		std::unordered_map<std::string, std::string> m_groupMap;
+		std::unordered_map<std::string, std::string_view> m_groupMap;
 
 		/** @brief Container for standard values */
 		CodebookStandardValues m_standardValues;

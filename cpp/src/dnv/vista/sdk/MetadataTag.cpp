@@ -10,13 +10,13 @@
 namespace dnv::vista::sdk
 {
 	//-------------------------------------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//-------------------------------------------------------------------------
 
 	MetadataTag::MetadataTag( CodebookName name, const std::string& value, bool isCustom )
 		: m_name{ name }, m_value{ value }, m_custom{ isCustom }
 	{
-		SPDLOG_INFO( "Created MetadataTag: name={}, value='{}', custom={}",
+		SPDLOG_TRACE( "Created MetadataTag: name={}, value='{}', custom={}",
 			static_cast<int>( name ), value, isCustom );
 	}
 
@@ -56,7 +56,7 @@ namespace dnv::vista::sdk
 		return m_name;
 	}
 
-	const std::string& MetadataTag::value() const noexcept
+	std::string_view MetadataTag::value() const noexcept
 	{
 		return m_value;
 	}
@@ -71,7 +71,7 @@ namespace dnv::vista::sdk
 		return m_custom ? '~' : '-';
 	}
 
-	size_t MetadataTag::hashCode() const
+	size_t MetadataTag::hashCode() const noexcept
 	{
 		return std::hash<std::string>{}( m_value );
 	}

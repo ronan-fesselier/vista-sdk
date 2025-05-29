@@ -3,8 +3,6 @@
  * @brief Template implementation of CHD Dictionary class
  */
 
-#pragma once
-
 #include "ChdDictionary.h"
 
 namespace dnv::vista::sdk
@@ -112,7 +110,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	template <typename TValue>
@@ -127,6 +125,28 @@ namespace dnv::vista::sdk
 			SPDLOG_DEBUG( "Created empty CHD Dictionary from empty input" );
 			return;
 		}
+
+		SPDLOG_TRACE( "Validating input items for duplicate keys..." );
+		std::unordered_set<std::string_view> unique_keys;
+		unique_keys.reserve( items.size() ); //
+		for ( size_t i = 0; i < items.size(); ++i )
+		{
+			const auto& key = items[i].first;
+			if ( key.empty() )
+			{
+				std::string errorMsg = fmt::format( "Input item at index {} has an empty key, which is not allowed.", i );
+				SPDLOG_ERROR( errorMsg );
+				throw std::invalid_argument( errorMsg );
+			}
+			auto [_, inserted] = unique_keys.insert( key );
+			if ( !inserted )
+			{
+				std::string errorMsg = fmt::format( "Duplicate key found in input items: '{}' at index {}.", key, i );
+				SPDLOG_ERROR( errorMsg );
+				throw std::invalid_argument( errorMsg );
+			}
+		}
+		SPDLOG_TRACE( "Input items validated, no duplicate or empty keys found." );
 
 		uint64_t size{ 1 };
 		/* Ensure table size is a power of 2 and at least 2x item count for efficient modulo operations (using '&') */
@@ -148,8 +168,8 @@ namespace dnv::vista::sdk
 		{
 			const auto& key{ items[i].first };
 			uint32_t hashValue{ hash( key ) };
-			auto index{ hashValue & ( size - 1 ) };
-			hashBuckets[index].emplace_back( static_cast<unsigned int>( i + 1 ), hashValue );
+			auto bucket_for_item_idx{ hashValue & ( size - 1 ) };
+			hashBuckets[bucket_for_item_idx].emplace_back( static_cast<unsigned int>( i + 1 ), hashValue );
 		}
 
 		std::sort( hashBuckets.begin(), hashBuckets.end(), []( const auto& a, const auto& b ) {
@@ -160,38 +180,38 @@ namespace dnv::vista::sdk
 		auto indices{ std::vector<unsigned int>( size, 0 ) };
 		auto seeds{ std::vector<int>( size, 0 ) };
 
-		size_t index{ 0 };
-		for ( ; index < hashBuckets.size() && hashBuckets[index].size() > 1; ++index )
+		size_t current_bucket_idx{ 0 };
+		for ( ; current_bucket_idx < hashBuckets.size() && hashBuckets[current_bucket_idx].size() > 1; ++current_bucket_idx )
 		{
-			const auto& subKeys{ hashBuckets[index] };
+			const auto& subKeys{ hashBuckets[current_bucket_idx] };
 			auto entries{ std::unordered_map<size_t, unsigned>() };
 			entries.reserve( subKeys.size() );
-			uint32_t seed{ 0 };
+			uint32_t current_seed_value{ 0 };
 
-			SPDLOG_TRACE( "Bucket {}: Starting seed search for {} items", index, subKeys.size() );
+			SPDLOG_TRACE( "Bucket {}: Starting seed search for {} items", current_bucket_idx, subKeys.size() );
 
 			while ( true )
 			{
-				++seed;
-				SPDLOG_TRACE( "Bucket {}: Trying seed {}", index, seed );
+				++current_seed_value;
+				SPDLOG_TRACE( "Bucket {}: Trying seed {}", current_bucket_idx, current_seed_value );
 				entries.clear();
 				bool seedValid{ true };
 
 				for ( const auto& k : subKeys )
 				{
 					/* Calculate final position using secondary hash with current seed */
-					auto finalHash{ internal::Hashing::seed( seed, k.second, size ) };
+					auto finalHash{ internal::Hashing::seed( current_seed_value, k.second, size ) };
 					bool slotOccupied = indices[finalHash] != 0;
-					bool entryClaimed = entries.find( finalHash ) != entries.end();
+					bool entryClaimedThisTry = entries.count( finalHash ) != 0;
 
-					if ( !slotOccupied && !entryClaimed )
+					if ( !slotOccupied && !entryClaimedThisTry )
 					{
 						entries[finalHash] = k.first;
 					}
 					else
 					{
 						SPDLOG_TRACE( "Bucket {}: Seed {} collision for item {} (hash {}) at finalHash {}. Slot occupied: {}, Claimed this trial: {}",
-							index, seed, k.first, k.second, finalHash, slotOccupied, entryClaimed );
+							current_bucket_idx, current_seed_value, k.first, k.second, finalHash, slotOccupied, entryClaimedThisTry );
 						seedValid = false;
 						break;
 					}
@@ -199,16 +219,15 @@ namespace dnv::vista::sdk
 
 				if ( seedValid )
 				{
-					SPDLOG_TRACE( "Bucket {}: Found valid seed {}", index, seed );
+					SPDLOG_TRACE( "Bucket {}: Found valid seed {}", current_bucket_idx, current_seed_value );
 					break;
 				}
 
-				if ( seed > size * 100 )
+				if ( current_seed_value > size * 100 )
 				{
-					std::string errorMsg = fmt::format( "Bucket {}: Seed search exceeded threshold ({}), aborting construction!", index, seed );
+					std::string errorMsg = fmt::format( "Bucket {}: Seed search exceeded threshold ({}), aborting construction!", current_bucket_idx, current_seed_value );
 					SPDLOG_CRITICAL( errorMsg );
 					throw std::runtime_error( errorMsg );
-					break;
 				}
 			}
 
@@ -218,46 +237,62 @@ namespace dnv::vista::sdk
 				{
 					indices[finalHash] = itemIdx;
 				}
-				seeds[subKeys[0].second & ( size - 1 )] = static_cast<int>( seed );
+				seeds[subKeys[0].second & ( size - 1 )] = static_cast<int>( current_seed_value );
 			}
 			else
 			{
-				std::string errorMsg = fmt::format( "Bucket {}: Failed to populate entries despite finding seed {}.", index, seed );
+				std::string errorMsg = fmt::format( "Bucket {}: Failed to populate entries despite finding seed {}.", current_bucket_idx, current_seed_value );
 				SPDLOG_CRITICAL( errorMsg );
 				throw std::runtime_error( errorMsg );
 			}
 		}
 
-		m_table.resize( size );
+		/* Resizes m_table to 'size' elements, initializing new slots with an empty string key and a value copied from the first input item. */
+		m_table.resize( size, { std::string(), items[0].second } );
+
 		std::vector<size_t> freeSlots;
 		freeSlots.reserve( size );
 
 		for ( size_t i{ 0 }; i < indices.size(); ++i )
 		{
-			if ( indices[i] == 0 )
+			if ( indices[i] != 0 )
+			{
+				if ( ( indices[i] - 1 ) < items.size() )
+				{
+					m_table[i] = std::move( items[indices[i] - 1] );
+				}
+				else
+				{
+					SPDLOG_ERROR( "ChdDictionary constructor: Invalid item index {} from 'indices' for items.size() {}.", indices[i], items.size() );
+				}
+			}
+			else
 			{
 				freeSlots.push_back( i );
 			}
-			else
-			{
-				m_table[i] = std::move( items[indices[i] - 1] );
-			}
 		}
 
-		size_t freeIndex{ 0 };
-		for ( ; index < hashBuckets.size() && !hashBuckets[index].empty(); ++index )
+		size_t freeSlotsIndex{ 0 };
+		for ( ; current_bucket_idx < hashBuckets.size() && !hashBuckets[current_bucket_idx].empty(); ++current_bucket_idx )
 		{
-			const auto& k{ hashBuckets[index][0] };
-			if ( freeIndex < freeSlots.size() )
+			const auto& k{ hashBuckets[current_bucket_idx][0] };
+			if ( freeSlotsIndex < freeSlots.size() )
 			{
-				auto slotIndex{ freeSlots[freeIndex++] };
-				m_table[slotIndex] = std::move( items[k.first - 1] );
+				auto slotIndexInMTable{ freeSlots[freeSlotsIndex++] };
+				if ( ( k.first - 1 ) < items.size() )
+				{
+					m_table[slotIndexInMTable] = std::move( items[k.first - 1] );
+				}
+				else
+				{
+					SPDLOG_ERROR( "ChdDictionary constructor: Invalid item index {} from hashBucket for items.size() {}.", k.first, items.size() );
+				}
 				/* Use negative seed to directly encode the final table index for single-item buckets */
-				seeds[k.second & ( size - 1 )] = -static_cast<int>( slotIndex + 1 );
+				seeds[k.second & ( size - 1 )] = -static_cast<int>( slotIndexInMTable + 1 );
 			}
 			else
 			{
-				SPDLOG_ERROR( "Ran out of free slots!" );
+				SPDLOG_ERROR( "Ran out of free slots for single-item buckets!" );
 				break;
 			}
 		}
@@ -409,7 +444,7 @@ namespace dnv::vista::sdk
 	{
 		SPDLOG_TRACE( "Creating iterator - table has {} entries", m_table.size() );
 
-		for ( size_t i{ 0 }; i < m_table.size(); i++ )
+		for ( size_t i{ 0 }; i < m_table.size(); ++i )
 		{
 			if ( !m_table[i].first.empty() )
 			{
@@ -515,7 +550,7 @@ namespace dnv::vista::sdk
 
 		if ( aLen < 16 )
 		{
-			for ( size_t i{ 0 }; i < aLen; i++ )
+			for ( size_t i{ 0 }; i < aLen; ++i )
 			{
 				if ( a[i] != b[i] )
 				{
@@ -528,36 +563,6 @@ namespace dnv::vista::sdk
 		{
 			return std::memcmp( a.data(), b.data(), aLen ) == 0;
 		}
-	}
-
-	template <typename TValue>
-	bool ChdDictionary<TValue>::stringsEqual( std::span<const char> a, std::span<const char> b ) noexcept
-	{
-		const auto aLen{ a.size() };
-
-		if ( aLen != b.size() )
-		{
-			return false;
-		}
-
-		if ( aLen == 0 )
-		{
-			return true;
-		}
-
-		if ( aLen < 16 )
-		{
-			for ( size_t i{ 0 }; i < aLen; ++i )
-			{
-				if ( a[i] != b[i] )
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-
-		return std::memcmp( a.data(), b.data(), aLen ) == 0;
 	}
 
 	//----------------------------------------------

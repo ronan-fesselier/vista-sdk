@@ -69,7 +69,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -85,7 +85,7 @@ namespace dnv::vista::sdk
 		~CodebookNames() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -113,5 +113,13 @@ namespace dnv::vista::sdk
 		 * @throws std::invalid_argument If the name is unknown
 		 */
 		[[nodiscard]] static std::string_view toPrefix( CodebookName name );
+
+		/**
+		 * @brief Convert a CodebookName to its full string name
+		 * @param name The CodebookName to convert
+		 * @return The corresponding full string name (e.g., "Position" for Position, "Quantity" for Quantity)
+		 * @throws std::invalid_argument If the name is unknown
+		 */
+		[[nodiscard]] static std::string toString( CodebookName name );
 	};
 }

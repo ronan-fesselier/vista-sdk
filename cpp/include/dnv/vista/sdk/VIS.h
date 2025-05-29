@@ -9,9 +9,9 @@
 #pragma once
 
 #include "CodebooksDto.h"
-#include "GmodVersioning.h"
 #include "Codebooks.h"
 #include "Gmod.h"
+#include "VISVersion.h"
 
 namespace dnv::vista::sdk
 {
@@ -19,14 +19,14 @@ namespace dnv::vista::sdk
 	// Forward declarations
 	//=====================================================================
 
-	enum class VisVersion;
+	class GmodDto;
 	class GmodNode;
 	class GmodPath;
+	class GmodVersioningDto;
+	class GmodVersioning;
 	class LocalId;
 	class LocalIdBuilder;
 	class Locations;
-	class GmodDto;
-	class GmodVersioningDto;
 	class LocationsDto;
 
 	//=====================================================================
@@ -44,7 +44,7 @@ namespace dnv::vista::sdk
 	{
 	protected:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -61,7 +61,7 @@ namespace dnv::vista::sdk
 		virtual ~IVIS() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -173,7 +173,7 @@ namespace dnv::vista::sdk
 	{
 	private:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/** @brief Constructor */
@@ -190,7 +190,7 @@ namespace dnv::vista::sdk
 		virtual ~VIS() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -377,13 +377,6 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/**
-		 * @brief Checks if a string matches the expected format for an ISO Local ID string.
-		 * @param value The std::string to validate.
-		 * @return True if the string matches the ISO Local ID format, false otherwise.
-		 */
-		[[nodiscard]] static bool matchISOLocalIdString( const std::string& value );
-
-		/**
 		 * @brief Checks if the content of a std::stringstream matches the ISO Local ID format.
 		 * @param builder The std::stringstream whose content is to be validated.
 		 * @return True if the content matches the ISO Local ID format, false otherwise.
@@ -461,7 +454,7 @@ namespace dnv::vista::sdk
 		{
 		public:
 			//----------------------------------------------
-			// Construction / Destruction
+			// Construction / destruction
 			//----------------------------------------------
 
 			/** @brief constructor. */
@@ -477,7 +470,7 @@ namespace dnv::vista::sdk
 			~Cache() = default;
 
 			//----------------------------------------------
-			// Assignment Operators
+			// Assignment operators
 			//----------------------------------------------
 
 			/** @brief Copy assignment operator */
@@ -533,7 +526,7 @@ namespace dnv::vista::sdk
 			void removeOldestEntry() const;
 
 			//----------------------------------------------
-			// Private Member Variables
+			// Private member variables
 			//----------------------------------------------
 
 			mutable std::mutex m_mutex;
@@ -542,7 +535,7 @@ namespace dnv::vista::sdk
 		};
 
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Cache for GMOD Data Transfer Objects, keyed by VisVersion. */

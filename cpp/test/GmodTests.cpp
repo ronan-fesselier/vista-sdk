@@ -1,456 +1,545 @@
+/**
+ * @file GmodTests.cpp
+ * @brief Unit tests for the Generic Product Model (GMOD) functionality
+ */
+
 #include "pch.h"
 
-#include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/VisVersion.h"
-#include "dnv/vista/sdk/Gmod.h"
-#include "dnv/vista/sdk/GmodDto.h"
-#include "dnv/vista/sdk/GmodNode.h"
+#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodPath.h"
+#include "dnv/vista/sdk/VIS.h"
 
 namespace dnv::vista::sdk::tests
 {
-	struct ExpectedValues
+	namespace GmodTestsFixture
 	{
-		std::string MaxCode;
-		int NodeCount;
-	};
-
-	const std::map<VisVersion, ExpectedValues> ExpectedMaxes = {
-		{ VisVersion::v3_4a, { "C1053.3112", 6420 } },
-		{ VisVersion::v3_5a, { "C1053.3112", 6557 } },
-		{ VisVersion::v3_6a, { "C1053.3112", 6557 } },
-		{ VisVersion::v3_7a, { "H346.11113", 6672 } },
-		{ VisVersion::v3_8a, { "H346.11112", 6335 } } };
-
-	struct TraversalState
-	{
-		TraversalState( int stopAfter ) : StopAfter( stopAfter ), NodeCount( 0 ) {}
-		int StopAfter;
-		int NodeCount;
-	};
-
-	std::size_t occurrences( const std::vector<const GmodNode*>& parents, const GmodNode& node )
-	{
-		return static_cast<size_t>(
-			std::count_if( parents.begin(), parents.end(),
-				[&node]( const GmodNode* p ) {
-					return p != nullptr && p->code() == node.code();
-				} ) );
-	}
-
-	class GmodTests : public ::testing::TestWithParam<VisVersion>
-	{
-	protected:
-		static std::pair<VIS&, const Gmod&> visAndGmod( VisVersion visVersion )
+		class GmodTests : public ::testing::Test
 		{
-			VIS& vis = VIS::instance();
-			const auto& gmod = vis.gmod( visVersion );
-			return { vis, gmod };
-		}
-	};
+		public:
+			static std::pair<VIS&, const Gmod&> visAndGmod( VisVersion visVersion )
+			{
+				VIS& vis = VIS::instance();
+				const auto& gmod = vis.gmod( visVersion );
 
-	//=====================================================================
-	// TEST_F
-	//=====================================================================
+				return { vis, gmod };
+			}
+		};
 
-	//----------------------------------------------
-	// TEST_F Passing :)
-	//----------------------------------------------
+		//=====================================================================
+		// Helper Functions
+		//=====================================================================
 
-	TEST_F( GmodTests, Test_Gmod_Node_Equality )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
-
-		const auto& node1 = gmod["400a"];
-		const auto& node2 = gmod["400a"];
-
-		EXPECT_EQ( node1, node2 );
-		EXPECT_EQ( &node1, &node2 );
-
-		auto node3 = node1.withLocation( "1" );
-		EXPECT_NE( node1, node3 );
-		EXPECT_NE( &node1, &node3 );
-	}
-
-	TEST_F( GmodTests, Test_Gmod_Node_Types )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
-
-		std::unordered_set<std::string> types;
-		for ( auto it = gmod.begin(); it != gmod.end(); ++it )
+		static std::size_t occurrences( const std::vector<const GmodNode*>& parents, const GmodNode& node )
 		{
-			const auto& node = *it;
-			types.insert( node.metadata().category() + " | " + node.metadata().type() );
+			return static_cast<size_t>(
+				std::count_if(
+					parents.begin(), parents.end(),
+					[&node]( const GmodNode* p ) {
+						return p != nullptr && p->code() == node.code();
+					} ) );
 		}
 
-		EXPECT_FALSE( types.empty() );
-	}
+		//=====================================================================
+		// Traversal Helper Struct
+		//=====================================================================
 
-	TEST_F( GmodTests, Test_Product_Selection )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+		struct TraversalState
+		{
+			TraversalState( int stopAfter )
+				: stopAfter{ stopAfter },
+				  nodeCount{ 0 }
+			{
+			}
 
-		const auto& node = gmod["CS1"];
-		EXPECT_TRUE( node.isProductSelection() );
-	}
+			int stopAfter;
+			int nodeCount;
+		};
 
-	TEST_F( GmodTests, Test_Normal_Assignments )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+		//=====================================================================
+		// Tests
+		//=====================================================================
 
-		const auto& node1 = gmod["411.3"];
-		(void)node1;
-		EXPECT_TRUE( node1.productType() != nullptr );
-		EXPECT_TRUE( node1.productSelection() == nullptr );
+		//----------------------------------------------
+		// Test_Gmod_Node_Equality
+		//----------------------------------------------
 
-		const auto& node2 = gmod["H601"];
-		(void)node2;
-		EXPECT_TRUE( node2.productType() == nullptr );
-	}
+		TEST_F( GmodTests, Test_Gmod_Node_Equality )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
-	TEST_F( GmodTests, Test_Node_With_Product_Selection )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+			const GmodNode& node1 = gmod["400a"];
+			const GmodNode& node2 = gmod["400a"];
 
-		const auto& node1 = gmod["411.2"];
-		(void)node1;
-		EXPECT_TRUE( node1.productSelection() != nullptr );
-		EXPECT_TRUE( node1.productType() == nullptr );
+			EXPECT_EQ( node1, node2 );
+			EXPECT_EQ( &node1, &node2 );
 
-		const auto& node2 = gmod["H601"];
-		(void)node2;
-		EXPECT_TRUE( node2.productSelection() == nullptr );
-	}
+			GmodNode node3 = node2.withLocation( "1" );
+			EXPECT_NE( node1, node3 );
+			EXPECT_NE( &node1, &node3 );
 
-	//----------------------------------------------
-	// TEST_F Failing :(
-	//----------------------------------------------
+			GmodNode node4 = node2;
+			EXPECT_EQ( node1, node4 );
+			EXPECT_NE( &node1, &node4 );
+		}
 
-	TEST_F( GmodTests, Test_Full_Traversal )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+		//----------------------------------------------
+		// Test_Gmod_Node_Types
+		//----------------------------------------------
 
-		int pathCount = 0;
-		const int maxExpected = Gmod::TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
-		size_t maxOccurrence = 0;
+		TEST_F( GmodTests, Test_Gmod_Node_Types )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
-		bool completed = gmod.traverse(
-			[&]( const std::vector<const GmodNode*>& parents, const GmodNode& node ) {
-				EXPECT_TRUE( parents.empty() || ( parents[0] != nullptr && parents[0]->isRoot() ) );
+			std::unordered_set<std::string> set;
+			Gmod::Enumerator enumerator = gmod.enumerator();
 
-				if ( std::any_of( parents.begin(), parents.end(),
-						 []( const GmodNode* p ) { return p != nullptr && p->code() == "HG3"; } ) ||
-					 node.code() == "HG3" )
+			while ( enumerator.next() )
+			{
+				const GmodNode& node = enumerator.current();
+				const GmodNodeMetadata& metadata = node.metadata();
+				std::string category_type_string = metadata.category();
+				category_type_string += " | ";
+				category_type_string += metadata.type();
+				set.insert( category_type_string );
+			}
+
+			EXPECT_FALSE( set.empty() );
+		}
+
+		//----------------------------------------------
+		// Test_Normal_Assignments
+		//----------------------------------------------
+
+		TEST_F( GmodTests, Test_Normal_Assignments )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+
+			const GmodNode& node1 = gmod["411.3"];
+			EXPECT_NE( node1.productType(), nullptr );
+			EXPECT_EQ( node1.productSelection(), nullptr );
+
+			const GmodNode& node2 = gmod["H601"];
+			EXPECT_EQ( node2.productType(), nullptr );
+		}
+
+		//----------------------------------------------
+		// Test_Node_With_Product_Selection
+		//----------------------------------------------
+
+		TEST_F( GmodTests, Test_Node_With_Product_Selection )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+
+			const GmodNode& node1 = gmod["411.2"];
+			EXPECT_NE( node1.productSelection(), nullptr );
+			EXPECT_EQ( node1.productType(), nullptr );
+
+			const GmodNode& node2 = gmod["H601"];
+			EXPECT_EQ( node2.productSelection(), nullptr );
+		}
+
+		//----------------------------------------------
+		// Test_Product_Selection
+		//----------------------------------------------
+
+		TEST_F( GmodTests, Test_Product_Selection )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+
+			const GmodNode& node = gmod["CS1"];
+			EXPECT_TRUE( node.isProductSelection() );
+		}
+
+		//----------------------------------------------
+		// Test_Full_Traversal
+		//----------------------------------------------
+
+		TEST_F( GmodTests, Test_Full_Traversal )
+		{
+			auto visVersionForPath = VisVersion::v3_4a;
+			auto [vis, gmod] = visAndGmod( visVersionForPath );
+
+			std::vector<GmodPath> paths;
+			int maxExpected = TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
+			int maxOccurrence = 0;
+
+			bool completed = GmodTraversal::traverse( gmod,
+				[&paths, &maxOccurrence, &gmod]( const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+					EXPECT_TRUE( parents.empty() || parents[0]->isRoot() );
+
+					bool isHG3Related = ( node.code() == "HG3" ) ||
+										std::any_of( parents.begin(), parents.end(), []( const GmodNode* p ) {
+											return p != nullptr && p->code() == "HG3";
+										} );
+
+					if ( isHG3Related )
+					{
+						std::vector<GmodNode*> nonConstParents;
+						nonConstParents.reserve( parents.size() );
+						for ( const GmodNode* p_const : parents )
+						{
+							nonConstParents.push_back( const_cast<GmodNode*>( p_const ) );
+						}
+						GmodNode* nonConstNode = const_cast<GmodNode*>( &node );
+
+						paths.emplace_back( gmod, nonConstNode, std::move( nonConstParents ) );
+					}
+
+					const GmodNode* lastParent = parents.empty() ? nullptr : parents.back();
+
+					bool skipOccurenceCheck = Gmod::isProductSelectionAssignment( lastParent, &node );
+					if ( skipOccurenceCheck )
+					{
+						return TraversalHandlerResult::Continue;
+					}
+
+					int occ = static_cast<int>( occurrences( parents, node ) );
+					if ( occ > maxOccurrence )
+					{
+						maxOccurrence = occ;
+					}
+
+					return TraversalHandlerResult::Continue;
+				} );
+
+			EXPECT_EQ( maxExpected, maxOccurrence );
+			EXPECT_TRUE( completed );
+		}
+
+		//----------------------------------------------
+		// Test_Full_Traversal_With_Options
+		//----------------------------------------------
+
+		TEST_F( GmodTests, Test_Full_Traversal_With_Options )
+		{
+			auto visVersionForPath = VisVersion::v3_4a;
+			auto [vis, gmod] = visAndGmod( visVersionForPath );
+
+			int maxExpected = 2;
+			int maxOccurrence = 0;
+			TraversalOptions options;
+			options.maxTraversalOccurrence = maxExpected;
+
+			bool completed = GmodTraversal::traverse( gmod, [&maxOccurrence]( const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+				const GmodNode* lastParent = parents.empty() ? nullptr : parents.back();
+				bool skipOccurenceCheck = Gmod::isProductSelectionAssignment( lastParent, &node );
+				if ( skipOccurenceCheck )
 				{
-					pathCount++;
+					return TraversalHandlerResult::Continue;
 				}
 
-				bool skipOccurrenceCheck = Gmod::isProductSelectionAssignment(
-					parents.empty() ? nullptr : parents.back(), &node );
-
-				if ( skipOccurrenceCheck )
-					return Gmod::TraversalHandlerResult::Continue;
-
-				size_t occ = occurrences( parents, node );
+				int occ = static_cast<int>( occurrences( parents, node ) );
 				if ( occ > maxOccurrence )
 				{
 					maxOccurrence = occ;
 				}
 
-				return Gmod::TraversalHandlerResult::Continue;
-			} );
+				return TraversalHandlerResult::Continue; }, options );
 
-		EXPECT_EQ( maxExpected, maxOccurrence );
-		EXPECT_TRUE( completed );
-		EXPECT_GT( pathCount, 0 );
-	}
+			EXPECT_EQ( maxExpected, maxOccurrence );
+			EXPECT_TRUE( completed );
+		}
 
-	TEST_F( GmodTests, Test_Full_Traversal_With_Options )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+		//----------------------------------------------
+		// Test_Partial_Traversal
+		//----------------------------------------------
 
-		const int maxExpected = 2;
-		size_t maxOccurrence = 0;
+		TEST_F( GmodTests, Test_Partial_Traversal )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
-		Gmod::TraversalOptions options;
-		options.maxTraversalOccurrence = maxExpected;
+			TraversalState state( 5 );
 
-		bool completed = gmod.traverse(
-			[&]( const std::vector<const GmodNode*>& parents, const GmodNode& node ) {
-				bool skipOccurrenceCheck = Gmod::isProductSelectionAssignment(
-					parents.empty() ? nullptr : parents.back(), &node );
-
-				if ( skipOccurrenceCheck )
+			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler =
+				[]( TraversalState& currentState, const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
+				EXPECT_TRUE( parents.empty() || parents[0]->isRoot() );
+				if ( ++currentState.nodeCount == currentState.stopAfter )
 				{
-					return Gmod::TraversalHandlerResult::Continue;
+					return TraversalHandlerResult::Stop;
 				}
 
-				size_t occ = occurrences( parents, node );
-				if ( occ > maxOccurrence )
-				{
-					maxOccurrence = occ;
-				}
+				return TraversalHandlerResult::Continue;
+			};
 
-				return Gmod::TraversalHandlerResult::Continue;
-			},
-			options );
+			bool completed = GmodTraversal::traverse( gmod, state, handler );
 
-		EXPECT_EQ( maxExpected, maxOccurrence );
-		EXPECT_TRUE( completed );
-	}
+			EXPECT_EQ( state.stopAfter, state.nodeCount );
+			EXPECT_FALSE( completed );
+		}
 
-	TEST_F( GmodTests, Test_Partial_Traversal )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
+		//----------------------------------------------
+		// Test_Full_Traversal_From
+		//----------------------------------------------
 
-		TraversalState state( 5 );
+		TEST_F( GmodTests, Test_Full_Traversal_From )
+		{
+			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
-		bool completed = gmod.traverse(
-			[&state]( const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) {
-				EXPECT_TRUE( parents.empty() || ( parents[0] != nullptr && parents[0]->isRoot() ) );
-				if ( ++state.NodeCount == state.StopAfter )
-					return Gmod::TraversalHandlerResult::Stop;
-				return Gmod::TraversalHandlerResult::Continue;
-			} );
+			TraversalState state( 0 );
 
-		EXPECT_EQ( state.StopAfter, state.NodeCount );
-		EXPECT_FALSE( completed );
-	}
+			const GmodNode& startNode = gmod["400a"];
 
-	TEST_F( GmodTests, Test_Full_Traversal_From )
-	{
-		auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
-
-		TraversalState state( 0 );
-		const auto& startNode = gmod["400a"];
-		ASSERT_FALSE( startNode.code().empty() ) << "Start node '400a' not found or invalid.";
-
-		bool completed = gmod.traverse<TraversalState>(
-			state,
-			startNode,
-			[]( TraversalState& state, const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) -> Gmod::TraversalHandlerResult {
+			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler =
+				[]( TraversalState& currentState, const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
 				EXPECT_TRUE( parents.empty() || ( parents[0] != nullptr && parents[0]->code() == "400a" ) );
-				++state.NodeCount;
-				return Gmod::TraversalHandlerResult::Continue;
-			} );
 
-		EXPECT_TRUE( completed );
-		EXPECT_GT( state.NodeCount, 0 );
+				++currentState.nodeCount;
+
+				return TraversalHandlerResult::Continue;
+			};
+
+			bool completed = GmodTraversal::traverse( state, startNode, handler );
+
+			EXPECT_TRUE( completed );
+		}
 	}
 
-	//=====================================================================
-	// TEST_P
-	//=====================================================================
-
-	//----------------------------------------------
-	// TEST_P Passing :)
-	//----------------------------------------------
-
-	TEST_P( GmodTests, Test_Gmod_Loads )
+	namespace GmodTestsParametrized
 	{
-		auto visVersion = GetParam();
-		auto [vis, gmod] = visAndGmod( visVersion );
-
-		const GmodNode* tempNodePtr = nullptr;
-		ASSERT_TRUE( gmod.tryGetNode( std::string( "400a" ), tempNodePtr ) ) << "Node '400a' not found in GMOD.";
-		ASSERT_NE( tempNodePtr, nullptr ) << "tryGetNode succeeded but pointer is null.";
-	}
-
-	TEST_P( GmodTests, Test_Gmod_Lookup )
-	{
-		auto visVersion = GetParam();
-		auto [vis, gmod] = visAndGmod( visVersion );
-
-		auto gmodDto = vis.gmodDto( visVersion );
-
+		class GmodTests : public ::testing::TestWithParam<VisVersion>
 		{
-			std::unordered_set<std::string> seen;
-			int counter = 0;
-
-			ASSERT_FALSE( gmodDto.items().empty() );
-
-			for ( const auto& item : gmodDto.items() )
+		public:
+			static std::pair<VIS&, const Gmod&> visAndGmod( VisVersion visVersion )
 			{
-				ASSERT_FALSE( item.code().empty() );
-				auto insertResult = seen.insert( item.code() );
-				EXPECT_TRUE( insertResult.second ) << "Code: " << item.code();
+				VIS& vis = VIS::instance();
+				const auto& gmod = vis.gmod( visVersion );
 
-				const GmodNode* foundNodePtr = nullptr;
-				ASSERT_TRUE( gmod.tryGetNode( item.code(), foundNodePtr ) );
-				ASSERT_NE( foundNodePtr, nullptr );
-				EXPECT_EQ( item.code(), foundNodePtr->code() );
-				counter++;
+				return { vis, gmod };
 			}
+		};
+
+		//=====================================================================
+		// Tests
+		//=====================================================================
+
+		//----------------------------------------------
+		// Test_Gmod_Loads
+		//----------------------------------------------
+
+		TEST_P( GmodTests, Test_Gmod_Loads )
+		{
+			auto visVersion = GetParam();
+			auto [vis, gmod] = visAndGmod( visVersion );
+
+			const GmodNode* tempNodePtr = nullptr;
+			ASSERT_TRUE( gmod.tryGetNode( std::string( "400a" ), tempNodePtr ) ) << "Node '400a' not found in GMOD for version " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( tempNodePtr, nullptr ) << "tryGetNode succeeded but pointer is null for '400a' in GMOD version " << VisVersionExtensions::toVersionString( visVersion );
 		}
 
+		//----------------------------------------------
+		// Test_Gmod_Properties
+		//----------------------------------------------
+
+		struct ExpectedValues
 		{
-			std::unordered_set<std::string> seen;
-			int counter = 0;
-			for ( auto it = gmod.begin(); it != gmod.end(); ++it )
+			std::string maxCode;
+			int nodeCount;
+		};
+
+		const std::map<VisVersion, ExpectedValues> expectedMaxes = {
+			{ VisVersion::v3_4a, { "C1053.3114", 6420 } },
+			{ VisVersion::v3_5a, { "C1053.3114", 6557 } },
+			{ VisVersion::v3_6a, { "C1053.3114", 6557 } },
+			{ VisVersion::v3_7a, { "H346.11113", 6672 } },
+			{ VisVersion::v3_8a, { "H346.11113", 6335 } } };
+
+		TEST_P( GmodTests, Test_Gmod_Properties )
+		{
+			/*
+			 * This test ensures certain properties of the Gmod data
+			 * that we make some design desicisions based on,
+			 * i.e for hashing of the node code
+			 */
+			auto visVersion = GetParam();
+			auto [vis, gmod] = visAndGmod( visVersion );
+
+			const GmodNode* minLengthLexiographicallyOrderedNode = nullptr;
+			const GmodNode* maxLengthLexiographicallyOrderedNode = nullptr;
+			size_t currentMinLength = std::string::npos;
+			size_t currentMaxLength = 0;
+			int nodeCount = 0;
+
+			Gmod::Enumerator enumerator = gmod.enumerator();
+			while ( enumerator.next() )
 			{
-				const auto& node = *it;
-				ASSERT_FALSE( node.code().empty() );
-				auto insertResult = seen.insert( node.code() );
-				EXPECT_TRUE( insertResult.second ) << "Code: " << node.code();
+				const GmodNode& node = enumerator.current();
+				nodeCount++;
+				const std::string& code = node.code();
+				size_t len = code.length();
 
-				const GmodNode* foundNodePtr = nullptr;
-				ASSERT_TRUE( gmod.tryGetNode( node.code(), foundNodePtr ) );
-				ASSERT_NE( foundNodePtr, nullptr );
-				EXPECT_EQ( node.code(), foundNodePtr->code() );
-				counter++;
+				if ( !minLengthLexiographicallyOrderedNode || len < currentMinLength )
+				{
+					currentMinLength = len;
+					minLengthLexiographicallyOrderedNode = &node;
+				}
+				else if ( len == currentMinLength )
+				{
+					if ( minLengthLexiographicallyOrderedNode && code < minLengthLexiographicallyOrderedNode->code() )
+					{
+						minLengthLexiographicallyOrderedNode = &node;
+					}
+				}
+
+				if ( !maxLengthLexiographicallyOrderedNode || len > currentMaxLength )
+				{
+					currentMaxLength = len;
+					maxLengthLexiographicallyOrderedNode = &node;
+				}
+				else if ( len == currentMaxLength )
+				{
+					if ( maxLengthLexiographicallyOrderedNode && code > maxLengthLexiographicallyOrderedNode->code() )
+					{
+						maxLengthLexiographicallyOrderedNode = &node;
+					}
+				}
 			}
+
+			ASSERT_NE( minLengthLexiographicallyOrderedNode, nullptr ) << "minLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( maxLengthLexiographicallyOrderedNode, nullptr ) << "maxLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
+
+			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code().length(), 2 ) << "Min code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code(), "VE" ) << "Min code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+
+			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code().length(), 10 ) << "Max code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+
+			auto expectedIt = expectedMaxes.find( visVersion );
+			ASSERT_NE( expectedIt, expectedMaxes.end() ) << "Expected values not found for GMOD version " << VisVersionExtensions::toVersionString( visVersion );
+			const auto& expectedValues = expectedIt->second;
+
+			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code(), expectedValues.maxCode ) << "Max code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( nodeCount, expectedValues.nodeCount ) << "Node count mismatch for " << VisVersionExtensions::toVersionString( visVersion );
 		}
 
-		const GmodNode* notFoundNodePtr = nullptr;
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "ABC" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "SDFASDFSDAFb" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "✅" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "a✅b" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "ac✅bc" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "✅bc" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "a✅" ), notFoundNodePtr ) );
-		EXPECT_FALSE( gmod.tryGetNode( std::string( "ag✅" ), notFoundNodePtr ) );
-	}
+		//----------------------------------------------
+		// Test_Gmod_Lookup
+		//----------------------------------------------
 
-	//----------------------------------------------
-	// TEST_P Failing :(
-	//----------------------------------------------
-
-	TEST_P( GmodTests, Test_Gmod_RootNode_Children )
-	{
-		auto visVersion = GetParam();
-		auto [vis, gmod] = visAndGmod( visVersion );
-
-		const auto& node = gmod.rootNode();
-
-		EXPECT_FALSE( node.children().empty() );
-	}
-
-	TEST_P( GmodTests, Test_Gmod_Properties )
-	{
-		auto visVersion = GetParam();
-		auto [vis, gmod] = visAndGmod( visVersion );
-
-		auto expectedIt = ExpectedMaxes.find( visVersion );
-		ASSERT_NE( expectedIt, ExpectedMaxes.end() );
-		std::string expectedMaxCode = expectedIt->second.MaxCode;
-
-		const GmodNode* minLength = nullptr;
-		const GmodNode* maxLength = nullptr;
-		const GmodNode* expectedMax = nullptr;
-
-		int nodeCount = 0;
-		for ( auto nodeIt = gmod.begin(); nodeIt != gmod.end(); ++nodeIt )
+		TEST_P( GmodTests, Test_Gmod_Lookup )
 		{
-			const auto& node = *nodeIt;
-			nodeCount++;
+			auto visVersion = GetParam();
+			auto [vis, gmod] = visAndGmod( visVersion );
 
-			if ( !node.code().empty() )
+			const GmodDto& gmodDtoObject = vis.gmodDto( visVersion );
+
 			{
-				if ( minLength == nullptr || node.code().length() < minLength->code().length() )
-					minLength = &node;
+				std::unordered_set<std::string> seen_codes;
+				for ( const GmodNodeDto& nodeDto : gmodDtoObject.items() )
+				{
+					const std::string& dtoCode = nodeDto.code();
+					ASSERT_FALSE( dtoCode.empty() ) << "DTO code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
 
-				if ( maxLength == nullptr || node.code().length() > maxLength->code().length() )
-					maxLength = &node;
+					auto insert_result = seen_codes.insert( dtoCode );
+					ASSERT_TRUE( insert_result.second ) << "Duplicate DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
 
-				if ( node.code() == expectedMaxCode )
-					expectedMax = &node;
+					const GmodNode* foundNodePtr = nullptr;
+					ASSERT_TRUE( gmod.tryGetNode( dtoCode, foundNodePtr ) ) << "Failed to find node from DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_NE( foundNodePtr, nullptr ) << "Found node pointer is null for DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_EQ( dtoCode, foundNodePtr->code() ) << "Mismatch between DTO code and found node code for: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+				}
 			}
-		}
 
-		SPDLOG_INFO( "Found min length node: {}", minLength ? minLength->code() : "null" );
-		SPDLOG_INFO( "Found max length node: {}", maxLength ? maxLength->code() : "null" );
-
-		if ( expectedMax )
-		{
-			SPDLOG_INFO( "Using expected max node: {} (length {})",
-				expectedMax->code(), expectedMax->code().length() );
-			ASSERT_EQ( expectedMax->code().length(), 10 );
-			maxLength = expectedMax;
-		}
-		else
-		{
-			SPDLOG_ERROR( "Expected max node {} not found!", expectedMaxCode );
-		}
-
-		ASSERT_NE( minLength, nullptr );
-		ASSERT_NE( maxLength, nullptr );
-		EXPECT_EQ( minLength->code().length(), 2 );
-		EXPECT_EQ( minLength->code(), "VE" );
-		EXPECT_EQ( maxLength->code().length(), 10 );
-		EXPECT_EQ( maxLength->code(), expectedMaxCode );
-
-		EXPECT_EQ( nodeCount, expectedIt->second.NodeCount );
-	}
-
-	struct MappabilityTestCase
-	{
-		std::string Code;
-		bool Mappable;
-	};
-
-	class MappabilityTests : public ::testing::TestWithParam<MappabilityTestCase>
-	{
-	};
-
-	TEST_P( MappabilityTests, Test_Mappability )
-	{
-		try
-		{
-			const auto& testCase = GetParam();
-
-			auto& vis = VIS::instance();
-			const auto& gmod = vis.gmod( VisVersion::v3_4a );
-
-			const GmodNode* nodePtr = nullptr;
-			if ( !gmod.tryGetNode( testCase.Code, nodePtr ) )
+			int gmodIteratedCount = 0;
 			{
-				FAIL() << "Node '" << testCase.Code << "' not found.";
-				return;
+				std::unordered_set<std::string> seen_codes;
+				Gmod::Enumerator enumerator = gmod.enumerator();
+				while ( enumerator.next() )
+				{
+					const GmodNode& node = enumerator.current();
+					const std::string& gmodNodeCode = node.code();
+					ASSERT_FALSE( gmodNodeCode.empty() ) << "Gmod iterated node code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
+
+					auto insert_result = seen_codes.insert( gmodNodeCode );
+					ASSERT_TRUE( insert_result.second ) << "Duplicate Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+
+					const GmodNode* foundNodePtr = nullptr;
+					ASSERT_TRUE( gmod.tryGetNode( gmodNodeCode, foundNodePtr ) ) << "Failed to find node from Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_NE( foundNodePtr, nullptr ) << "Found node pointer is null for Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_EQ( gmodNodeCode, foundNodePtr->code() ) << "Mismatch between Gmod iterated code and found node code for: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					gmodIteratedCount++;
+				}
 			}
-			ASSERT_NE( nodePtr, nullptr );
 
-			EXPECT_EQ( nodePtr->isMappable(), testCase.Mappable )
-				<< "Mappability mismatch for node '" << testCase.Code << "'.";
+			const GmodNode* tempNodePtr = nullptr;
+			ASSERT_FALSE( gmod.tryGetNode( std::string( "ABC" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "SDFASDFSDAFb" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "✅" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "a✅b" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "ac✅bc" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "✅bc" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "a✅" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "ag✅" ), tempNodePtr ) );
 		}
-		catch ( const std::exception& ex )
+
+		//----------------------------------------------
+		// Test_Gmod_RootNode_Children
+		//----------------------------------------------
+
+		TEST_P( GmodTests, Test_Gmod_RootNode_Children )
 		{
-			FAIL() << "Exception during mappability test: " << ex.what();
+			auto visVersion = GetParam();
+			auto [vis, gmod] = visAndGmod( visVersion );
+
+			const GmodNode& node = gmod.rootNode();
+
+			EXPECT_FALSE( node.children().empty() );
 		}
-		catch ( ... )
+
+		//----------------------------------------------
+		// Test_Mappability
+		//----------------------------------------------
+
+		struct MappabilityTestData
 		{
-			FAIL() << "Unknown exception during mappability test";
+			std::string code;
+			bool expectedMappable;
+		};
+
+		class GmodMappabilityTests : public ::testing::TestWithParam<MappabilityTestData>
+		{
+		};
+
+		TEST_P( GmodMappabilityTests, Test_Mappability )
+		{
+			const auto& testData = GetParam();
+			auto [vis, gmod] = GmodTests::visAndGmod( VisVersion::v3_4a );
+
+			const GmodNode& node = gmod[testData.code];
+			EXPECT_EQ( node.isMappable(), testData.expectedMappable );
 		}
+
+		//=====================================================================
+		// Instantiate
+		//=====================================================================
+
+		INSTANTIATE_TEST_SUITE_P(
+			GmodTestSuite,
+			GmodTests,
+			::testing::Values(
+				VisVersion::v3_4a,
+				VisVersion::v3_5a,
+				VisVersion::v3_6a,
+				VisVersion::v3_7a,
+				VisVersion::v3_8a ) );
+
+		INSTANTIATE_TEST_SUITE_P(
+			GmodMappabilityTestSuite,
+			GmodMappabilityTests,
+			::testing::Values(
+				MappabilityTestData{ "VE", false },
+				MappabilityTestData{ "300a", false },
+				MappabilityTestData{ "300", true },
+				MappabilityTestData{ "411", true },
+				MappabilityTestData{ "410", true },
+				MappabilityTestData{ "651.21s", false },
+				MappabilityTestData{ "924.2", true },
+				MappabilityTestData{ "411.1", false },
+				MappabilityTestData{ "C101", true },
+				MappabilityTestData{ "CS1", false },
+				MappabilityTestData{ "C101.663", true },
+				MappabilityTestData{ "C101.4", true },
+				MappabilityTestData{ "C101.21s", false },
+				MappabilityTestData{ "F201.11", true },
+				MappabilityTestData{ "C101.211", false } ) );
 	}
-
-	INSTANTIATE_TEST_SUITE_P(
-		GmodTests,
-		MappabilityTests,
-		::testing::Values(
-			MappabilityTestCase{ "VE", false },
-			MappabilityTestCase{ "300a", false },
-			MappabilityTestCase{ "300", true },
-			MappabilityTestCase{ "411", true },
-			MappabilityTestCase{ "410", true },
-			MappabilityTestCase{ "651.21s", false },
-			MappabilityTestCase{ "924.2", true },
-			MappabilityTestCase{ "411.1", false },
-			MappabilityTestCase{ "C101", true },
-			MappabilityTestCase{ "CS1", false },
-			MappabilityTestCase{ "C101.663", true },
-			MappabilityTestCase{ "C101.4", true },
-			MappabilityTestCase{ "C101.21s", false },
-			MappabilityTestCase{ "F201.11", true },
-			MappabilityTestCase{ "C101.211", false } ) );
-
-	INSTANTIATE_TEST_SUITE_P(
-		GmodTestSuite,
-		GmodTests,
-		::testing::Values(
-			VisVersion::v3_4a,
-			VisVersion::v3_5a,
-			VisVersion::v3_6a,
-			VisVersion::v3_7a,
-			VisVersion::v3_8a ) );
 }

@@ -23,7 +23,7 @@ namespace dnv::vista::sdk
 	class ParsingErrors;
 
 	//=====================================================================
-	// LocalId Class
+	// LocalId class
 	//=====================================================================
 
 	/**
@@ -37,9 +37,9 @@ namespace dnv::vista::sdk
 	 */
 	class LocalId final : public ILocalId<LocalId>
 	{
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 	public:
 		/**
@@ -61,9 +61,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~LocalId() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		LocalId& operator=( const LocalId& ) = delete;
@@ -71,9 +71,9 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		LocalId& operator=( LocalId&& other ) noexcept = default;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Operators
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Equality comparison operator.
@@ -95,24 +95,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] bool operator!=( const LocalId& other ) const;
 
-		//=====================================================================
-		// Hashing
-		//=====================================================================
-
-		/**
-		 * @brief Calculate hash code based on Local ID content.
-		 * @details Computes a hash value representing the state of the Local ID,
-		 *          suitable for use in hash-based containers like `std::unordered_set`.
-		 *          Local IDs that are equal according to `equals()` must produce the same hash code.
-		 *          Delegates to the underlying builder's `hashCode`.
-		 * @return A `size_t` hash code.
-		 * @see equals, LocalIdBuilder::hashCode
-		 */
-		[[nodiscard]] size_t hashCode() const;
-
-		//=====================================================================
-		// Builder Accessor
-		//=====================================================================
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Gets a constant reference to the underlying `LocalIdBuilder` holding the state.
@@ -122,10 +107,6 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] const LocalIdBuilder& builder() const;
 
-		//=====================================================================
-		// Core Properties
-		//=====================================================================
-
 		/**
 		 * @brief Gets the VIS version associated with this Local ID.
 		 * @details Delegates to the underlying builder. Assumes the VIS version is present
@@ -134,13 +115,6 @@ namespace dnv::vista::sdk
 		 * @note This method relies on the `LocalId` constructor ensuring a valid VIS version exists.
 		 */
 		[[nodiscard]] virtual VisVersion visVersion() const override;
-
-		/**
-		 * @brief Checks if the Local ID was parsed or generated in verbose mode.
-		 * @details Delegates to the underlying builder.
-		 * @return True if verbose mode is indicated, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isVerboseMode() const noexcept override;
 
 		/**
 		 * @brief Gets the primary GMOD path item of the Local ID.
@@ -161,22 +135,26 @@ namespace dnv::vista::sdk
 		[[nodiscard]] virtual const std::optional<GmodPath>& secondaryItem() const override;
 
 		/**
-		 * @brief Checks if the Local ID includes any custom (non-standard) metadata tags.
-		 * @details Delegates to the underlying builder.
-		 * @return True if at least one custom tag exists, false otherwise.
-		 */
-		[[nodiscard]] virtual bool hasCustomTag() const noexcept override;
-
-		/**
 		 * @brief Gets all metadata tags associated with the Local ID.
 		 * @details Delegates to the underlying builder. Returns a collection of the `MetadataTag` objects.
 		 * @return A vector containing copies of the `MetadataTag` objects.
 		 */
 		[[nodiscard]] virtual std::vector<MetadataTag> metadataTags() const override;
 
-		//=====================================================================
-		// Metadata Accessors
-		//=====================================================================
+		/**
+		 * @brief Calculate hash code based on Local ID content.
+		 * @details Computes a hash value representing the state of the Local ID,
+		 *          suitable for use in hash-based containers like `std::unordered_set`.
+		 *          Local IDs that are equal according to `equals()` must produce the same hash code.
+		 *          Delegates to the underlying builder's `hashCode`.
+		 * @return A `size_t` hash code.
+		 * @see equals, LocalIdBuilder::hashCode
+		 */
+		[[nodiscard]] size_t hashCode() const noexcept;
+
+		//----------------------------
+		//  Metadata accessors
+		//----------------------------
 
 		/**
 		 * @brief Gets the quantity metadata tag, if present.
@@ -234,9 +212,27 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] const std::optional<MetadataTag>& detail() const;
 
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Checks if the Local ID was parsed or generated in verbose mode.
+		 * @details Delegates to the underlying builder.
+		 * @return True if verbose mode is indicated, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isVerboseMode() const noexcept override;
+
+		/**
+		 * @brief Checks if the Local ID includes any custom (non-standard) metadata tags.
+		 * @details Delegates to the underlying builder.
+		 * @return True if at least one custom tag exists, false otherwise.
+		 */
+		[[nodiscard]] virtual bool hasCustomTag() const noexcept override;
+
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
 
 		/**
 		 * @brief Converts the Local ID to its canonical string representation.
@@ -256,9 +252,9 @@ namespace dnv::vista::sdk
 		[[nodiscard]] virtual bool equals( const LocalId& other ) const override;
 
 	private:
-		//=====================================================================
-		// Private Member Variables
-		//=====================================================================
+		//----------------------------------------------
+		// Private member variables
+		//----------------------------------------------
 
 		/**
 		 * @brief Shared pointer to the immutable builder holding the Local ID's state.

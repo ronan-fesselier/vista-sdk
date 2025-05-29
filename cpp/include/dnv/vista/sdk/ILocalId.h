@@ -20,6 +20,10 @@ namespace dnv::vista::sdk
 	class MetadataTag;
 	enum class VisVersion;
 
+	//=====================================================================
+	// IUniversalId class
+	//=====================================================================
+
 	/**
 	 * @interface ILocalId
 	 * @brief Base interface for Local IDs using the CRTP pattern.
@@ -38,9 +42,9 @@ namespace dnv::vista::sdk
 	template <typename T>
 	class ILocalId
 	{
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 	protected:
 		/** @brief Default constructor. */
@@ -56,9 +60,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~ILocalId() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		ILocalId& operator=( const ILocalId& ) = delete;
@@ -66,9 +70,9 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		ILocalId& operator=( ILocalId&& ) noexcept = default;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Operators
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Equality comparison operator.
@@ -88,9 +92,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] bool operator!=( const T& other ) const;
 
-		//=====================================================================
-		// Core Properties
-		//=====================================================================
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Gets the VIS version associated with this Local ID.
@@ -98,13 +102,6 @@ namespace dnv::vista::sdk
 		 * @return The `VisVersion` enum value.
 		 */
 		[[nodiscard]] virtual VisVersion visVersion() const = 0;
-
-		/**
-		 * @brief Checks if the Local ID was parsed or generated in verbose mode.
-		 * @details Verbose mode typically affects the `toString()` representation.
-		 * @return True if verbose mode is indicated, false otherwise.
-		 */
-		[[nodiscard]] virtual bool isVerboseMode() const noexcept = 0;
 
 		/**
 		 * @brief Gets the primary GMOD path item of the Local ID.
@@ -126,13 +123,6 @@ namespace dnv::vista::sdk
 		[[nodiscard]] virtual const std::optional<GmodPath>& secondaryItem() const = 0;
 
 		/**
-		 * @brief Checks if the Local ID includes any custom (non-standard) metadata tags.
-		 * @details Custom tags are typically prefixed with '~' in the string representation.
-		 * @return True if at least one custom tag exists, false otherwise.
-		 */
-		[[nodiscard]] virtual bool hasCustomTag() const noexcept = 0;
-
-		/**
 		 * @brief Gets all metadata tags associated with the Local ID.
 		 * @details Returns a collection of the `MetadataTag` objects. The order typically
 		 *          corresponds to the standard Local ID format (Quantity, Content, etc.).
@@ -140,9 +130,27 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual std::vector<MetadataTag> metadataTags() const = 0;
 
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Checks if the Local ID was parsed or generated in verbose mode.
+		 * @details Verbose mode typically affects the `toString()` representation.
+		 * @return True if verbose mode is indicated, false otherwise.
+		 */
+		[[nodiscard]] virtual bool isVerboseMode() const noexcept = 0;
+
+		/**
+		 * @brief Checks if the Local ID includes any custom (non-standard) metadata tags.
+		 * @details Custom tags are typically prefixed with '~' in the string representation.
+		 * @return True if at least one custom tag exists, false otherwise.
+		 */
+		[[nodiscard]] virtual bool hasCustomTag() const noexcept = 0;
+
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
 
 		/**
 		 * @brief Converts the Local ID to its canonical string representation.
@@ -162,9 +170,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual bool equals( const T& other ) const = 0;
 
-		//=====================================================================
-		// Static Parsing Methods
-		//=====================================================================
+		//----------------------------------------------
+		// Static parsing methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Parses a string representation into a concrete Local ID object.
