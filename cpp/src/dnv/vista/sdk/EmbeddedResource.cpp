@@ -104,7 +104,7 @@ namespace dnv::vista::sdk
 			auto cacheIt = gmodCache.find( visVersion );
 			if ( cacheIt != gmodCache.end() )
 			{
-				SPDLOG_DEBUG( "Using cached GMOD DTO for version: {}", visVersion );
+				SPDLOG_TRACE( "Using cached GMOD DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
@@ -114,7 +114,7 @@ namespace dnv::vista::sdk
 		auto names = resourceNames();
 		auto searchStartTime = std::chrono::high_resolution_clock::now();
 
-		SPDLOG_DEBUG( "Searching through {} total resources", names.size() );
+		SPDLOG_TRACE( "Searching through {} total resources", names.size() );
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
@@ -126,7 +126,7 @@ namespace dnv::vista::sdk
 
 		auto searchEndTime = std::chrono::high_resolution_clock::now();
 		auto searchDuration = std::chrono::duration_cast<std::chrono::microseconds>( searchEndTime - searchStartTime );
-		SPDLOG_DEBUG( "Resource search completed in {} μs", searchDuration.count() );
+		SPDLOG_TRACE( "Resource search completed in {} μs", searchDuration.count() );
 
 		if ( it == names.end() )
 		{
@@ -184,7 +184,7 @@ namespace dnv::vista::sdk
 			std::lock_guard<std::mutex> lock( gmodVersioningCacheMutex );
 			if ( cacheInitialized )
 			{
-				SPDLOG_DEBUG( "Using cached GMOD Versioning DTO map" );
+				SPDLOG_TRACE( "Using cached GMOD Versioning DTO map" );
 				return gmodVersioningCache;
 			}
 		}
@@ -283,7 +283,7 @@ namespace dnv::vista::sdk
 			auto cacheIt = codebooksCache.find( visVersion );
 			if ( cacheIt != codebooksCache.end() )
 			{
-				SPDLOG_DEBUG( "Using cached Codebooks DTO for version: {}", visVersion );
+				SPDLOG_TRACE( "Using cached Codebooks DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
@@ -351,7 +351,7 @@ namespace dnv::vista::sdk
 			auto cacheIt = locationsCache.find( visVersion );
 			if ( cacheIt != locationsCache.end() )
 			{
-				SPDLOG_DEBUG( "Using cached Locations DTO for version: {}", visVersion );
+				SPDLOG_TRACE( "Using cached Locations DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
@@ -419,7 +419,7 @@ namespace dnv::vista::sdk
 			auto cacheIt = dataChannelTypeNamesCache.find( version );
 			if ( cacheIt != dataChannelTypeNamesCache.end() )
 			{
-				SPDLOG_DEBUG( "Using cached DataChannelTypeNames DTO for version: {}", version );
+				SPDLOG_TRACE( "Using cached DataChannelTypeNames DTO for version: {}", version );
 				return cacheIt->second;
 			}
 		}
@@ -488,7 +488,7 @@ namespace dnv::vista::sdk
 			auto cacheIt = fdTypesCache.find( version );
 			if ( cacheIt != fdTypesCache.end() )
 			{
-				SPDLOG_DEBUG( "Using cached FormatDataTypes DTO for version: {}", version );
+				SPDLOG_TRACE( "Using cached FormatDataTypes DTO for version: {}", version );
 				return cacheIt->second;
 			}
 		}
@@ -562,7 +562,7 @@ namespace dnv::vista::sdk
 			std::lock_guard<std::mutex> lock( cacheMutex );
 			if ( initialized )
 			{
-				SPDLOG_DEBUG( "Using cached resource names ({} entries)", cachedResourceNames.size() );
+				SPDLOG_TRACE( "Using cached resource names ({} entries)", cachedResourceNames.size() );
 				return cachedResourceNames;
 			}
 		}
@@ -574,7 +574,7 @@ namespace dnv::vista::sdk
 		if ( successfulDir )
 		{
 			possibleDirs.push_back( *successfulDir );
-			SPDLOG_DEBUG( "Trying previously successful directory first: {}", successfulDir->string() );
+			SPDLOG_TRACE( "Trying previously successful directory first: {}", successfulDir->string() );
 		}
 
 		possibleDirs.push_back( std::filesystem::current_path() / "resources" );
@@ -590,11 +590,11 @@ namespace dnv::vista::sdk
 			{
 				if ( !std::filesystem::exists( dir ) || !std::filesystem::is_directory( dir ) )
 				{
-					SPDLOG_DEBUG( "Directory does not exist or is not a directory: {}", dir.string() );
+					SPDLOG_TRACE( "Directory does not exist or is not a directory: {}", dir.string() );
 					continue;
 				}
 
-				SPDLOG_DEBUG( "Scanning directory: {}", dir.string() );
+				SPDLOG_TRACE( "Scanning directory: {}", dir.string() );
 				for ( const auto& entry : std::filesystem::directory_iterator( dir ) )
 				{
 					if ( entry.is_regular_file() )
@@ -615,7 +615,7 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					SPDLOG_DEBUG( "No resources found in directory: {}", dir.string() );
+					SPDLOG_TRACE( "No resources found in directory: {}", dir.string() );
 				}
 			}
 			catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
@@ -632,7 +632,7 @@ namespace dnv::vista::sdk
 		{
 			for ( [[maybe_unused]] const auto& n : foundNames )
 			{
-				SPDLOG_DEBUG( "Found resource: {}", n );
+				SPDLOG_TRACE( "Found resource: {}", n );
 			}
 		}
 		else
@@ -670,7 +670,7 @@ namespace dnv::vista::sdk
 			throw std::runtime_error( "Failed to initialize zlib for decompression for " + resourceName );
 		}
 
-		SPDLOG_DEBUG( "Decompressing resource: {}", resourceName );
+		SPDLOG_TRACE( "Decompressing resource: {}", resourceName );
 
 		const size_t CHUNK_IN_SIZE = 16384;
 		std::vector<char> inBuffer( CHUNK_IN_SIZE );
@@ -729,7 +729,7 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "Decompressed resource '{}' in {} ms. Read: {} bytes, Wrote: {} bytes. Ratio: {:.2f}x. Compression: {:.1f}%.",
 			resourceName, duration.count(), totalCompressedRead, totalDecompressedWritten, ratio, compressionPercent );
 
-		SPDLOG_DEBUG( "Memory footprint: Decompressed ~{:.2f} MB", static_cast<double>( totalDecompressedWritten ) / ( 1024.0 * 1024.0 ) );
+		SPDLOG_TRACE( "Memory footprint: Decompressed ~{:.2f} MB", static_cast<double>( totalDecompressedWritten ) / ( 1024.0 * 1024.0 ) );
 
 		return decompressedBuffer;
 	}
@@ -753,7 +753,7 @@ namespace dnv::vista::sdk
 					if ( fileStream->is_open() )
 					{
 						cacheHits++;
-						SPDLOG_DEBUG( "Resource path cache hit: '{}' -> '{}'", resourceName, it->second.string() );
+						SPDLOG_TRACE( "Resource path cache hit: '{}' -> '{}'", resourceName, it->second.string() );
 						if ( ( cacheHits + cacheMisses ) % 50 == 0 && ( cacheHits + cacheMisses ) > 0 )
 						{
 							SPDLOG_INFO( "Path Cache effectiveness: {:.1f}% hit rate ({} hits, {} misses)",
@@ -769,7 +769,7 @@ namespace dnv::vista::sdk
 			cacheMisses++;
 		}
 
-		SPDLOG_DEBUG( "Resource path cache miss for: '{}'. Searching...", resourceName );
+		SPDLOG_TRACE( "Resource path cache miss for: '{}'. Searching...", resourceName );
 
 		std::vector<std::filesystem::path> possiblePaths;
 
@@ -792,7 +792,7 @@ namespace dnv::vista::sdk
 		for ( const auto& path : possiblePaths )
 		{
 			attemptedPathsStr += "'" + path.string() + "', ";
-			SPDLOG_DEBUG( "Attempting to open resource: '{}'", path.string() );
+			SPDLOG_TRACE( "Attempting to open resource: '{}'", path.string() );
 			try
 			{
 				if ( std::filesystem::exists( path ) && std::filesystem::is_regular_file( path ) )
@@ -808,7 +808,7 @@ namespace dnv::vista::sdk
 							if ( path.has_parent_path() )
 							{
 								lastSuccessfulBaseDir = path.parent_path();
-								SPDLOG_DEBUG( "Updated last successful base directory: '{}'", lastSuccessfulBaseDir->string() );
+								SPDLOG_TRACE( "Updated last successful base directory: '{}'", lastSuccessfulBaseDir->string() );
 							}
 						}
 						return fileStream;

@@ -45,7 +45,7 @@ namespace dnv::vista::sdk
 		: m_visVersion{ version },
 		  m_rootNode{ nullptr }
 	{
-		SPDLOG_DEBUG( "Gmod constructor: Starting for VIS version {}", dto.visVersion() );
+		SPDLOG_TRACE( "Gmod constructor: Starting for VIS version {}", dto.visVersion() );
 
 		std::vector<std::pair<std::string, GmodNode>> nodePairs;
 		nodePairs.reserve( dto.items().size() );
@@ -106,16 +106,15 @@ namespace dnv::vista::sdk
 				SPDLOG_WARN( "Gmod constructor (linking): Relation with insufficient size ({}) encountered. Skipping.", relation.size() );
 			}
 		}
-		SPDLOG_INFO( "Gmod constructor: Pointer fix-up for children and parents complete." );
 
-		SPDLOG_INFO( "Gmod constructor: Trimming nodes in m_nodeMap..." );
 		if ( !m_nodeMap.isEmpty() )
 		{
 			std::vector<std::string> nodeKeysToTrim;
 			nodeKeysToTrim.reserve( m_nodeMap.size() );
-			for ( auto it_keys = m_nodeMap.begin(); it_keys != m_nodeMap.end(); ++it_keys )
+
+			for ( const auto& [key, node] : m_nodeMap )
 			{
-				nodeKeysToTrim.emplace_back( it_keys->first );
+				nodeKeysToTrim.push_back( key );
 			}
 
 			for ( const auto& key : nodeKeysToTrim )
@@ -130,9 +129,7 @@ namespace dnv::vista::sdk
 				}
 			}
 		}
-		SPDLOG_INFO( "Gmod constructor: Trimming nodes complete." );
 
-		SPDLOG_INFO( "Gmod constructor: Initializing m_rootNode..." );
 		try
 		{
 			m_rootNode = &m_nodeMap["VE"];
@@ -147,9 +144,6 @@ namespace dnv::vista::sdk
 		{
 			SPDLOG_ERROR( "Gmod constructor: Exception while initializing m_rootNode from m_nodeMap for VIS version {}. Error: {}", VisVersionExtensions::toVersionString( version ), ex.what() );
 		}
-
-		SPDLOG_INFO( "Gmod constructor: Successfully created Gmod for VIS version {}. Node count in map: {}. Root node code: '{}'",
-			VisVersionExtensions::toVersionString( version ), m_nodeMap.size(), m_rootNode->code().empty() ? "UNINITIALIZED OR MISSING" : m_rootNode->code() );
 	}
 
 	Gmod::Gmod( VisVersion version, const std::unordered_map<std::string, GmodNode>& nodeMap )
@@ -170,7 +164,6 @@ namespace dnv::vista::sdk
 		try
 		{
 			m_rootNode = &m_nodeMap["VE"];
-			SPDLOG_INFO( "Gmod constructor from map: m_rootNode initialized from internal m_nodeMap, code: '{}'", m_rootNode->code() );
 		}
 		catch ( [[maybe_unused]] const std::out_of_range& oor )
 		{
@@ -198,12 +191,10 @@ namespace dnv::vista::sdk
 		{
 			SPDLOG_WARN( "Gmod constructor from map: m_nodeMap size ({}) does not match input nodeMap size ({}).", m_nodeMap.size(), nodeMap.size() );
 		}
-
-		SPDLOG_INFO( "Gmod constructor from map: Consider if pointer fix-up is needed for children/parents in m_nodeMap." );
 	}
 
 	//----------------------------------------------
-	// Lookup Operators
+	// Lookup operators
 	//----------------------------------------------
 
 	const GmodNode& Gmod::operator[]( std::string_view key ) const
@@ -261,8 +252,6 @@ namespace dnv::vista::sdk
 				SPDLOG_ERROR( "TryGetNode: m_nodeMap.tryGetValue succeeded but outNodePtr is null for code '{}'", code );
 				return false;
 			}
-
-			// SPDLOG_INFO( "TryGetNode: Node '{}' found in GMOD", code );
 
 			return true;
 		}

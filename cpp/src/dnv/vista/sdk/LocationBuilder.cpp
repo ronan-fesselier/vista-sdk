@@ -221,7 +221,7 @@ namespace dnv::vista::sdk
 		std::string_view span = locationStr;
 		std::optional<int> number;
 
-		for ( size_t i = 0; i < span.length(); i++ )
+		for ( size_t i = 0; i < span.length(); ++i )
 		{
 			char ch = span[i];
 

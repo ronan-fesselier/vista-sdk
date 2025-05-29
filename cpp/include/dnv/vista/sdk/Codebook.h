@@ -75,7 +75,7 @@ namespace dnv::vista::sdk
 		PositionValidationResults& operator=( PositionValidationResults&& ) noexcept = delete;
 
 		//----------------------------------------------
-		// Public Static Methods
+		// Public static methods
 		//----------------------------------------------
 
 		/**

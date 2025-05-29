@@ -136,7 +136,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The string value representing the location. */
@@ -253,7 +253,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The single character code for this relative location (e.g., 'P', '1'). */
@@ -311,7 +311,7 @@ namespace dnv::vista::sdk
 		LocationCharDict& operator=( LocationCharDict&& ) noexcept = default;
 
 		//----------------------------------------------
-		// Lookup Operators
+		// Lookup operators
 		//----------------------------------------------
 
 		/**

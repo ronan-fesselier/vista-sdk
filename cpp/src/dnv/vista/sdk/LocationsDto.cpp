@@ -39,7 +39,7 @@ namespace dnv::vista::sdk
 					hits++;
 					if ( calls % 10000 == 0 )
 					{
-						SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
+						SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
 							hits * 100.0 / calls, hits, calls, cache.size() );
 					}
 					return it->second;
@@ -102,7 +102,7 @@ namespace dnv::vista::sdk
 	std::optional<RelativeLocationsDto> RelativeLocationsDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Attempting to parse RelativeLocationsDto from nlohmann::json" );
+		SPDLOG_TRACE( "Attempting to parse RelativeLocationsDto from nlohmann::json" );
 
 		try
 		{
@@ -115,7 +115,7 @@ namespace dnv::vista::sdk
 			RelativeLocationsDto dto = json.get<RelativeLocationsDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed RelativeLocationsDto: code={}, name={} in {} µs", dto.code(), dto.name(), duration.count() );
+			SPDLOG_TRACE( "Parsed RelativeLocationsDto: code={}, name={} in {} µs", dto.code(), dto.name(), duration.count() );
 
 			return std::optional<RelativeLocationsDto>{ std::move( dto ) };
 		}
@@ -157,7 +157,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json RelativeLocationsDto::toJson() const
 	{
-		SPDLOG_DEBUG( "Serializing RelativeLocationsDto: code={}, name={}", m_code, m_name );
+		SPDLOG_TRACE( "Serializing RelativeLocationsDto: code={}, name={}", m_code, m_name );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -204,7 +204,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_definition.reset();
-			SPDLOG_DEBUG( "RelativeLocationsDto JSON missing optional '{}' field for code '{}'", DEFINITION_KEY, dto.m_code );
+			SPDLOG_TRACE( "RelativeLocationsDto JSON missing optional '{}' field for code '{}'", DEFINITION_KEY, dto.m_code );
 		}
 
 		if ( dto.m_name.empty() )
@@ -305,7 +305,7 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "Serializing LocationsDto: visVersion={}, items={}", m_visVersion, m_items.size() );
 		nlohmann::json j = *this;
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized {} locations in {}ms", m_items.size(), duration.count() );
+		SPDLOG_TRACE( "Serialized {} locations in {}ms", m_items.size(), duration.count() );
 		return j;
 	}
 
