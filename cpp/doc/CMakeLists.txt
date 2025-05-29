@@ -9,7 +9,7 @@ find_package(Doxygen COMPONENTS dot)
 if(Doxygen_FOUND)
     message(STATUS "Doxygen found: ${Doxygen_EXECUTABLE}")
     message(STATUS "Doxygen Dot (from Graphviz) found: ${Doxygen_DOT_EXECUTABLE}")
-    message(STATUS "\t\tConfiguring Doxygen documentation")
+    message(STATUS "Configuring Doxygen documentation...")
 
     # --- Project ---
     set (	DOXYGEN_PROJECT_NAME			"DNV Vista C++ SDK"			)
