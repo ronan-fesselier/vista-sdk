@@ -615,11 +615,11 @@ namespace dnv::vista::sdk
 			nodeChanges = it->second;
 			if ( nodeChanges.target.has_value() && nodeChanges.target.value() != code )
 			{
-				SPDLOG_DEBUG( "Found code change: {} -> {} in version {}", code, *nodeChanges.target, VisVersionExtensions::toVersionString( m_visVersion ) );
+				SPDLOG_TRACE( "Found code change: {} -> {} in version {}", code, *nodeChanges.target, VisVersionExtensions::toVersionString( m_visVersion ) );
 			}
 			else if ( !nodeChanges.operations.empty() )
 			{
-				SPDLOG_DEBUG( "Found operational changes for node {} (no direct code change) in version {}", code, VisVersionExtensions::toVersionString( m_visVersion ) );
+				SPDLOG_TRACE( "Found operational changes for node {} (no direct code change) in version {}", code, VisVersionExtensions::toVersionString( m_visVersion ) );
 			}
 			else
 			{
@@ -637,7 +637,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Private Helper Methods
+	// Private helper methods
 	//----------------------------------------------
 
 	std::optional<GmodNode> GmodVersioning::convertNodeInternal(
@@ -658,7 +658,7 @@ namespace dnv::vista::sdk
 			GmodNodeConversion change;
 			if ( versioningNode.tryGetCodeChanges( sourceNode.code(), change ) && change.target.has_value() )
 			{
-				SPDLOG_DEBUG( "Code change found: {} -> {}", sourceNode.code().data(), change.target.value().data() );
+				SPDLOG_TRACE( "Code change found: {} -> {}", sourceNode.code().data(), change.target.value().data() );
 				nextCode = change.target.value();
 			}
 		}
@@ -687,7 +687,7 @@ namespace dnv::vista::sdk
 		}
 		else if ( sourceNode.location().has_value() )
 		{
-			SPDLOG_DEBUG( "Successfully preserved/set location {} for node {} during conversion",
+			SPDLOG_TRACE( "Successfully preserved/set location {} for node {} during conversion",
 				sourceNode.location()->value().toString(), resultNode.code() );
 		}
 
@@ -716,7 +716,7 @@ namespace dnv::vista::sdk
 
 	const GmodVersioning::GmodVersioningNode* GmodVersioning::tryGetVersioningNode( VisVersion visVersion ) const noexcept
 	{
-		SPDLOG_DEBUG( "Looking for versioning node for version {}", static_cast<int>( visVersion ) );
+		SPDLOG_TRACE( "Looking for versioning node for version {}", static_cast<int>( visVersion ) );
 
 		auto it = m_versioningsMap.find( visVersion );
 		if ( it != m_versioningsMap.end() )

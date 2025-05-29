@@ -95,7 +95,7 @@ namespace dnv::vista::sdk
 		CodebookNames& operator=( CodebookNames&& ) noexcept = delete;
 
 		//----------------------------------------------
-		// Public Static Methods
+		// Public static methods
 		//----------------------------------------------
 
 		/**

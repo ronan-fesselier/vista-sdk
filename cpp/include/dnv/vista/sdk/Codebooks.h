@@ -248,7 +248,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//=====================================================================
-		// Private Member variables
+		// Private member variables
 		//=====================================================================
 
 		/** @brief The VIS version these codebooks belong to. */

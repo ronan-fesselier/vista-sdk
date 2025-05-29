@@ -17,7 +17,7 @@ namespace dnv::vista::sdk
 	namespace internal
 	{
 		//=====================================================================
-		// Internal Helper Components
+		// Internal helper components
 		//=====================================================================
 
 		//----------------------------------------------
@@ -34,7 +34,7 @@ namespace dnv::vista::sdk
 		static inline constexpr size_t HASH_CACHE_SIZE = 128;
 
 		//----------------------------------------------
-		// CPU Feature Detection
+		// CPU feature detection
 		//----------------------------------------------
 
 		/**
@@ -43,10 +43,10 @@ namespace dnv::vista::sdk
 		 *          which can accelerate CRC32 hashing. The result is cached for efficiency.
 		 * @return `true` if SSE4.2 is supported, `false` otherwise.
 		 */
-		bool hasSSE42Support();
+		[[nodiscard]] bool hasSSE42Support();
 
 		//----------------------------------------------
-		// Hashing Class
+		// Hashing class
 		//----------------------------------------------
 
 		/**
@@ -56,9 +56,35 @@ namespace dnv::vista::sdk
 		class Hashing final
 		{
 		public:
-			//---------------------------
-			//  Public Static Methods
-			//---------------------------
+			//----------------------------
+			// Construction / destruction
+			//----------------------------
+
+			/** @brief Default constructor. */
+			Hashing() = delete;
+
+			/** @brief Copy constructor */
+			Hashing( const Hashing& ) = delete;
+
+			/** @brief Move constructor */
+			Hashing( Hashing&& ) noexcept = delete;
+
+			/** @brief Destructor */
+			~Hashing() = delete;
+
+			//----------------------------
+			// Assignment operators
+			//----------------------------
+
+			/** @brief Copy assignment operator */
+			Hashing& operator=( const Hashing& ) = delete;
+
+			/** @brief Move assignment operator */
+			Hashing& operator=( Hashing&& ) noexcept = delete;
+
+			//----------------------------
+			// Public static methods
+			//----------------------------
 
 			/**
 			 * @brief Computes one step of the FNV-1a hash function.
@@ -67,7 +93,7 @@ namespace dnv::vista::sdk
 			 * @return The updated hash value.
 			 * @see https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function
 			 */
-			static uint32_t fnv1a( uint32_t hash, uint8_t ch );
+			[[nodiscard]] static uint32_t fnv1a( uint32_t hash, uint8_t ch );
 
 			/**
 			 * @brief Computes one step of the CRC32 hash function using SSE4.2 instructions if available.
@@ -76,7 +102,7 @@ namespace dnv::vista::sdk
 			 * @return The updated hash value.
 			 * @see https://en.wikipedia.org/wiki/Cyclic_redundancy_check
 			 */
-			static uint32_t crc32( uint32_t hash, uint8_t ch );
+			[[nodiscard]] static uint32_t crc32( uint32_t hash, uint8_t ch );
 
 			/**
 			 * @brief Computes the final table index using the seed mixing function for the CHD algorithm.
@@ -86,7 +112,7 @@ namespace dnv::vista::sdk
 			 * @return The final table index for the key (as size_t).
 			 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 			 */
-			static uint32_t seed( uint32_t seed, uint32_t hash, uint64_t size );
+			[[nodiscard]] static uint32_t seed( uint32_t seed, uint32_t hash, uint64_t size );
 		};
 	}
 }
@@ -94,7 +120,7 @@ namespace dnv::vista::sdk
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// ChdDictionary Class
+	// ChdDictionary class
 	//=====================================================================
 
 	/**
@@ -130,7 +156,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Iterator Inner Class
+		// Iterator inner class
 		//----------------------------------------------
 
 		/**
@@ -144,7 +170,7 @@ namespace dnv::vista::sdk
 		{
 		public:
 			//---------------------------
-			// Standard Iterator Traits
+			// Standard iterator traits
 			//---------------------------
 
 			using iterator_category = std::forward_iterator_tag;
@@ -168,7 +194,7 @@ namespace dnv::vista::sdk
 			explicit Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index );
 
 			//---------------------------
-			// Operations
+			// Operators
 			//---------------------------
 
 			/**
@@ -195,23 +221,19 @@ namespace dnv::vista::sdk
 			 */
 			Iterator operator++( int );
 
-			//---------------------------
-			// Comparison
-			//---------------------------
-
 			/**
 			 * @brief Checks if this iterator is equal to another iterator.
 			 * @param[in] other The iterator to compare against.
 			 * @return `true` if both iterators point to the same element or are both end iterators for the same container, `false` otherwise.
 			 */
-			bool operator==( const Iterator& other ) const;
+			[[nodiscard]] bool operator==( const Iterator& other ) const;
 
 			/**
 			 * @brief Checks if this iterator is not equal to another iterator.
 			 * @param[in] other The iterator to compare against.
 			 * @return `true` if the iterators point to different elements, `false` otherwise.
 			 */
-			bool operator!=( const Iterator& other ) const;
+			[[nodiscard]] bool operator!=( const Iterator& other ) const;
 
 			//---------------------------
 			// Utility
@@ -225,6 +247,10 @@ namespace dnv::vista::sdk
 			void reset();
 
 		private:
+			//----------------------------------------------
+			// Private member variables
+			//----------------------------------------------
+
 			/** @brief Pointer to the dictionary's internal data table. Null for default-constructed iterators. */
 			const std::vector<std::pair<std::string, TValue>>* m_table = nullptr;
 
@@ -268,7 +294,7 @@ namespace dnv::vista::sdk
 		ChdDictionary& operator=( ChdDictionary&& other ) noexcept = default;
 
 		//----------------------------------------------
-		// Lookup Operators
+		// Lookup operators
 		//----------------------------------------------
 
 		/**
@@ -282,7 +308,7 @@ namespace dnv::vista::sdk
 		[[nodiscard]] TValue& operator[]( std::string_view key );
 
 		//----------------------------------------------
-		// Lookup Methods
+		// Lookup methods
 		//----------------------------------------------
 
 		/**
@@ -293,6 +319,30 @@ namespace dnv::vista::sdk
 		 * @throws std::out_of_range if the `key` is not found in the dictionary or if the dictionary is empty.
 		 */
 		[[nodiscard]] const TValue& at( std::string_view key ) const;
+
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
+
+		/**
+		 * @brief Returns the number of elements in the dictionary.
+		 * @return The number of key-value pairs stored in the dictionary.
+		 */
+		[[nodiscard]] size_t size() const;
+
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Checks if the dictionary is empty.
+		 * @return `true` if the dictionary contains no elements, `false` otherwise.
+		 */
+		[[nodiscard]] bool isEmpty() const;
+
+		//----------------------------------------------
+		// Static query methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Attempts to retrieve the value associated with the specified key without throwing exceptions.
@@ -305,22 +355,6 @@ namespace dnv::vista::sdk
 		 * @return `true` if the `key` was found and `outValue` was updated, `false` otherwise.
 		 */
 		[[nodiscard]] bool tryGetValue( std::string_view key, const TValue*& outValue ) const;
-
-		//----------------------------------------------
-		// Capacity
-		//----------------------------------------------
-
-		/**
-		 * @brief Checks if the dictionary is empty.
-		 * @return `true` if the dictionary contains no elements, `false` otherwise.
-		 */
-		[[nodiscard]] bool isEmpty() const;
-
-		/**
-		 * @brief Returns the number of elements in the dictionary.
-		 * @return The number of key-value pairs stored in the dictionary.
-		 */
-		[[nodiscard]] size_t size() const;
 
 		//----------------------------------------------
 		// Iteration
@@ -342,7 +376,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Helper Methods
+		// Private helper methods
 		//----------------------------------------------
 
 		//---------------------------
@@ -388,7 +422,7 @@ namespace dnv::vista::sdk
 		std::vector<int> m_seeds;
 
 		//----------------------------------------------
-		// Caching and Performance Monitoring
+		// Caching & performance monitoring
 		//----------------------------------------------
 
 		/** @brief Structure defining an entry in the thread-local hash cache. */

@@ -48,7 +48,7 @@ namespace dnv::vista::sdk
 				hits++;
 				if ( calls % 10000 == 0 )
 				{
-					SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings", hits * 100.0 / calls, hits, calls, cache.size() );
+					SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings", hits * 100.0 / calls, hits, calls, cache.size() );
 				}
 				return it->second;
 			}
@@ -94,7 +94,7 @@ namespace dnv::vista::sdk
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Attempting to parse GmodVersioningAssignmentChangeDto from nlohmann::json" );
+		SPDLOG_TRACE( "Attempting to parse GmodVersioningAssignmentChangeDto from nlohmann::json" );
 
 		try
 		{
@@ -107,7 +107,7 @@ namespace dnv::vista::sdk
 			GmodVersioningAssignmentChangeDto dto = json.get<GmodVersioningAssignmentChangeDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed assignment change: {} → {} in {} µs", dto.oldAssignment(), dto.currentAssignment(), duration.count() );
+			SPDLOG_TRACE( "Parsed assignment change: {} → {} in {} µs", dto.oldAssignment(), dto.currentAssignment(), duration.count() );
 
 			return std::optional<GmodVersioningAssignmentChangeDto>{ std::move( dto ) };
 		}
@@ -145,7 +145,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json GmodVersioningAssignmentChangeDto::toJson() const
 	{
-		SPDLOG_DEBUG( "Serializing GmodVersioningAssignmentChangeDto to nlohmann::json: {} -> {}", m_oldAssignment, m_currentAssignment );
+		SPDLOG_TRACE( "Serializing GmodVersioningAssignmentChangeDto to nlohmann::json: {} -> {}", m_oldAssignment, m_currentAssignment );
 		return *this;
 	}
 
@@ -247,7 +247,7 @@ namespace dnv::vista::sdk
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Attempting to parse GmodNodeConversionDto from nlohmann::json" );
+		SPDLOG_TRACE( "Attempting to parse GmodNodeConversionDto from nlohmann::json" );
 
 		try
 		{
@@ -260,7 +260,7 @@ namespace dnv::vista::sdk
 			GmodNodeConversionDto dto = json.get<GmodNodeConversionDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed node conversion: source={}, target={}, operations={} in {} µs", dto.source(), dto.target(), dto.operations().size(), duration.count() );
+			SPDLOG_TRACE( "Parsed node conversion: source={}, target={}, operations={} in {} µs", dto.source(), dto.target(), dto.operations().size(), duration.count() );
 
 			return std::optional<GmodNodeConversionDto>{ std::move( dto ) };
 		}
@@ -299,10 +299,10 @@ namespace dnv::vista::sdk
 	nlohmann::json GmodNodeConversionDto::toJson() const
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Serializing GmodNodeConversionDto to nlohmann::json: source={}, target={}", m_source, m_target );
+		SPDLOG_TRACE( "Serializing GmodNodeConversionDto to nlohmann::json: source={}, target={}", m_source, m_target );
 		nlohmann::json j = *this;
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized node conversion in {} µs", duration.count() );
+		SPDLOG_TRACE( "Serialized node conversion in {} µs", duration.count() );
 		return j;
 	}
 
@@ -386,7 +386,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_oldAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", OLD_ASSIGNMENT_KEY );
+			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field", OLD_ASSIGNMENT_KEY );
 		}
 
 		if ( j.contains( NEW_ASSIGNMENT_KEY ) )
@@ -400,7 +400,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_newAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", NEW_ASSIGNMENT_KEY );
+			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field", NEW_ASSIGNMENT_KEY );
 		}
 
 		if ( j.contains( DELETE_ASSIGNMENT_KEY ) )
@@ -414,7 +414,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_deleteAssignment = false;
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", DELETE_ASSIGNMENT_KEY );
+			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", DELETE_ASSIGNMENT_KEY );
 		}
 
 		if ( dto.m_operations.empty() )

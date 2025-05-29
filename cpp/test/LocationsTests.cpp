@@ -186,7 +186,7 @@ namespace dnv::vista::sdk::tests
 		ASSERT_EQ( 0, static_cast<int>( LocationGroup::Number ) );
 
 		std::sort( values.begin(), values.end() );
-		for ( size_t i = 0; i < values.size() - 1; i++ )
+		for ( size_t i = 0; i < values.size() - 1; ++i )
 		{
 			ASSERT_EQ( i, values[i + 1] - 1 );
 		}

@@ -12,11 +12,11 @@ namespace dnv::vista::sdk
 	namespace internal
 	{
 		//=====================================================================
-		// Internal Helper Components
+		// Internal helper components
 		//=====================================================================
 
 		//----------------------------------------------
-		// CPU Feature Detection
+		// CPU feature detection
 		//----------------------------------------------
 
 		bool hasSSE42Support()
@@ -46,8 +46,12 @@ namespace dnv::vista::sdk
 		}
 
 		//----------------------------------------------
-		// Hashing Class
+		// Hashing class
 		//----------------------------------------------
+
+		//----------------------------
+		// Public static methods
+		//----------------------------
 
 		uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch )
 		{

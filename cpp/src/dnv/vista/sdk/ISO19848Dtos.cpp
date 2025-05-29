@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 					hits++;
 					if ( calls % 10000 == 0 )
 					{
-						SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
+						SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
 							hits * 100.0 / calls, hits, calls, cache.size() );
 					}
 					return it->second;
@@ -92,7 +92,7 @@ namespace dnv::vista::sdk
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Attempting to parse DataChannelTypeNameDto from nlohmann::json" );
+		SPDLOG_TRACE( "Attempting to parse DataChannelTypeNameDto from nlohmann::json" );
 
 		try
 		{
@@ -105,7 +105,7 @@ namespace dnv::vista::sdk
 			DataChannelTypeNameDto dto = json.get<DataChannelTypeNameDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed DataChannelTypeNameDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
+			SPDLOG_TRACE( "Parsed DataChannelTypeNameDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
 
 			return std::optional<DataChannelTypeNameDto>{ std::move( dto ) };
 		}
@@ -143,7 +143,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json DataChannelTypeNameDto::toJson() const
 	{
-		SPDLOG_DEBUG( "Serializing DataChannelTypeNameDto: type={}", m_type );
+		SPDLOG_TRACE( "Serializing DataChannelTypeNameDto: type={}", m_type );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -179,7 +179,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_description.clear();
-			SPDLOG_DEBUG( "DataChannelTypeNameDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
+			SPDLOG_TRACE( "DataChannelTypeNameDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
 		}
 
 		if ( dto.m_type.empty() )
@@ -273,7 +273,7 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "Serializing {} data channel type names to nlohmann::json", m_values.size() );
 		nlohmann::json j = *this;
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized {} data channel type names in {}ms", m_values.size(), duration.count() );
+		SPDLOG_TRACE( "Serialized {} data channel type names in {}ms", m_values.size(), duration.count() );
 		return j;
 	}
 
@@ -383,7 +383,7 @@ namespace dnv::vista::sdk
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_DEBUG( "Attempting to parse FormatDataTypeDto from nlohmann::json" );
+		SPDLOG_TRACE( "Attempting to parse FormatDataTypeDto from nlohmann::json" );
 
 		try
 		{
@@ -396,7 +396,7 @@ namespace dnv::vista::sdk
 			FormatDataTypeDto dto = json.get<FormatDataTypeDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed FormatDataTypeDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
+			SPDLOG_TRACE( "Parsed FormatDataTypeDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
 
 			return std::optional<FormatDataTypeDto>{ std::move( dto ) };
 		}
@@ -434,7 +434,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json FormatDataTypeDto::toJson() const
 	{
-		SPDLOG_DEBUG( "Serializing FormatDataTypeDto: type={}", m_type );
+		SPDLOG_TRACE( "Serializing FormatDataTypeDto: type={}", m_type );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -470,7 +470,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_description.clear();
-			SPDLOG_DEBUG( "FormatDataTypeDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
+			SPDLOG_TRACE( "FormatDataTypeDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
 		}
 
 		if ( dto.m_type.empty() )
@@ -564,7 +564,7 @@ namespace dnv::vista::sdk
 		SPDLOG_INFO( "Serializing {} format data types to nlohmann::json", m_values.size() );
 		nlohmann::json j = *this;
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized {} format data types in {}ms", m_values.size(), duration.count() );
+		SPDLOG_TRACE( "Serialized {} format data types in {}ms", m_values.size(), duration.count() );
 		return j;
 	}
 

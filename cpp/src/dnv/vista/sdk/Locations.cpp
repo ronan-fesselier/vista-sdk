@@ -149,7 +149,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Lookup Operators
+	// Lookup operators
 	//----------------------------------------------
 
 	std::optional<char>& LocationCharDict::operator[]( LocationGroup key )
