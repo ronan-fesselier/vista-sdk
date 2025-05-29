@@ -36,7 +36,7 @@ namespace dnv::vista::sdk
 		using ValuesMap = std::unordered_map<std::string, ValueGroup>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -59,7 +59,7 @@ namespace dnv::vista::sdk
 		~CodebookDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -76,7 +76,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the name of this codebook
 		 * @return The codebook name
 		 */
-		[[nodiscard]] const std::string& name() const;
+		[[nodiscard]] std::string_view name() const;
 
 		/**
 		 * @brief Get the values map of this codebook
@@ -125,7 +125,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Name identifier of the codebook (e.g., "positions", "quantities") */
@@ -157,7 +157,7 @@ namespace dnv::vista::sdk
 		using Items = std::vector<CodebookDto>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -180,7 +180,7 @@ namespace dnv::vista::sdk
 		~CodebooksDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -233,7 +233,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief VIS version string (e.g., "3.8a") */

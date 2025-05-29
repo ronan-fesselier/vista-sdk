@@ -10,7 +10,7 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Construction / Destruction
+	// Construction / destruction
 	//=====================================================================
 
 	ImoNumber::ImoNumber( int value )
@@ -84,7 +84,8 @@ namespace dnv::vista::sdk
 
 	size_t ImoNumber::hashCode() const noexcept
 	{
-		return std::hash<int>{}( m_value );
+		std::size_t hash = std::hash<int>{}( m_value );
+		return hash;
 	}
 
 	//=====================================================================
@@ -121,7 +122,7 @@ namespace dnv::vista::sdk
 		}
 
 		int checkSum = 0;
-		for ( int i = 0; i < 6; i++ )
+		for ( int i = 0; i < 6; ++i )
 		{
 			checkSum += digits[i] * ( 7 - i );
 		}

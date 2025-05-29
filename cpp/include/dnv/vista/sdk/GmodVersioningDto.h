@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -54,7 +54,7 @@ namespace dnv::vista::sdk
 		~GmodVersioningAssignmentChangeDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -120,7 +120,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Previous assignment value (JSON: "oldAssignment") */
@@ -153,7 +153,7 @@ namespace dnv::vista::sdk
 		using OperationSet = std::unordered_set<std::string>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -186,7 +186,7 @@ namespace dnv::vista::sdk
 		~GmodNodeConversionDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -276,7 +276,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Set of operations to apply (JSON: "operations") */
@@ -321,7 +321,7 @@ namespace dnv::vista::sdk
 		using ItemsMap = std::unordered_map<std::string, GmodNodeConversionDto>;
 
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -344,7 +344,7 @@ namespace dnv::vista::sdk
 		~GmodVersioningDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -410,7 +410,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Target VIS version string (e.g., "3.8a") (JSON: "visRelease"). */

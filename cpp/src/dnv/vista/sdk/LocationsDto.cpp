@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	RelativeLocationsDto::RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition )
@@ -137,15 +137,15 @@ namespace dnv::vista::sdk
 		{
 			return json.get<RelativeLocationsDto>();
 		}
-		catch ( const nlohmann::json::exception& e )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", e.what() );
+			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() );
 			SPDLOG_ERROR( errorMsg );
 			throw std::invalid_argument( errorMsg );
 		}
-		catch ( const std::exception& e )
+		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", e.what() );
+			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() );
 			SPDLOG_ERROR( errorMsg );
 			throw std::invalid_argument( errorMsg );
 		}
@@ -218,7 +218,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	LocationsDto::LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items )
@@ -285,15 +285,15 @@ namespace dnv::vista::sdk
 		{
 			return json.get<LocationsDto>();
 		}
-		catch ( const nlohmann::json::exception& e )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", e.what() );
+			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() );
 			SPDLOG_ERROR( errorMsg );
 			throw std::invalid_argument( errorMsg );
 		}
-		catch ( const std::exception& e )
+		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", e.what() );
+			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() );
 			SPDLOG_ERROR( errorMsg );
 			throw std::invalid_argument( errorMsg );
 		}
@@ -371,7 +371,7 @@ namespace dnv::vista::sdk
 		}
 		else if ( itemCount > 0 )
 		{
-			SPDLOG_INFO( "Successfully parsed {}/{} locations very quickly.", successCount, itemCount );
+			SPDLOG_INFO( "Successfully parsed {}/{} locations.", successCount, itemCount );
 		}
 
 		if ( dto.m_items.size() > 1000 )

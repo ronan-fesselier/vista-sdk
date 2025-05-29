@@ -111,4 +111,35 @@ namespace dnv::vista::sdk
 			}
 		}
 	}
+
+	std::string CodebookNames::toString( CodebookName name )
+	{
+		switch ( name )
+		{
+			case CodebookName::Quantity:
+				return "Quantity";
+			case CodebookName::Content:
+				return "Content";
+			case CodebookName::Calculation:
+				return "Calculation";
+			case CodebookName::State:
+				return "State";
+			case CodebookName::Command:
+				return "Command";
+			case CodebookName::Type:
+				return "Type";
+			case CodebookName::Position:
+				return "Position";
+			case CodebookName::Detail:
+				return "Detail";
+			case CodebookName::FunctionalServices:
+				return "FunctionalServices";
+			case CodebookName::MaintenanceCategory:
+				return "MaintenanceCategory";
+			case CodebookName::ActivityType:
+				return "ActivityType";
+			default:
+				return "Unknown";
+		}
+	}
 }

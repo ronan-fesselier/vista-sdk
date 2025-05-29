@@ -21,7 +21,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//-------------------------------------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//-------------------------------------------------------------------------
 
 		/**
@@ -45,7 +45,7 @@ namespace dnv::vista::sdk
 		~MetadataTag() = default;
 
 		//-------------------------------------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//-------------------------------------------------------------------------
 
 		/** @brief Copy assignment operator. */
@@ -98,7 +98,7 @@ namespace dnv::vista::sdk
 		 * @brief Gets the value of the metadata tag.
 		 * @return A constant reference to the string value of the metadata tag.
 		 */
-		[[nodiscard]] const std::string& value() const noexcept;
+		[[nodiscard]] std::string_view value() const noexcept;
 
 		/**
 		 * @brief Checks if the metadata tag is custom.
@@ -117,7 +117,7 @@ namespace dnv::vista::sdk
 		 * The hash code is based solely on the tag's value.
 		 * @return The hash code of the tag's value.
 		 */
-		[[nodiscard]] size_t hashCode() const;
+		[[nodiscard]] size_t hashCode() const noexcept;
 
 		//-------------------------------------------------------------------------
 		// String Conversion Methods
@@ -143,7 +143,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//-------------------------------------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//-------------------------------------------------------------------------
 
 		/** @brief The name of the metadata tag, represented by a CodebookName enum value. */

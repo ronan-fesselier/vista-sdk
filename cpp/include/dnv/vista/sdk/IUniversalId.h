@@ -13,6 +13,10 @@
 
 namespace dnv::vista::sdk
 {
+	//=====================================================================
+	// IUniversalId class
+	//=====================================================================
+
 	/**
 	 * @interface IUniversalId
 	 * @brief Abstract base class representing a Universal Identifier.
@@ -23,10 +27,9 @@ namespace dnv::vista::sdk
 	 */
 	class IUniversalId
 	{
-	public:
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 	protected:
 		/** @brief Default constructor. */
@@ -42,9 +45,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~IUniversalId() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		IUniversalId& operator=( const IUniversalId& ) = delete;
@@ -52,9 +55,9 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		IUniversalId& operator=( IUniversalId&& ) noexcept = default;
 
-		//=====================================================================
-		// Core Properties
-		//=====================================================================
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * @brief Gets the IMO number component of the Universal ID.
@@ -70,9 +73,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] virtual const LocalId& localId() const = 0;
 
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
 
 		/**
 		 * @brief Converts the Universal ID to its canonical string representation.

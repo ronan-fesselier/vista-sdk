@@ -1,59 +1,41 @@
+/**
+ * @file ParsingErrors.cpp
+ * @brief Implementation of ParsingErrors class
+ */
+
 #include "pch.h"
 
 #include "dnv/vista/sdk/ParsingErrors.h"
 
 namespace dnv::vista::sdk
 {
-	const ParsingErrors ParsingErrors::Empty = ParsingErrors();
+	//=====================================================================
+	// ParsingErrors class
+	//=====================================================================
+
+	//----------------------------------------------
+	// Static members
+	//----------------------------------------------
+
+	const ParsingErrors ParsingErrors::Empty = ParsingErrors{};
+
+	//----------------------------------------------
+	// Construction / destruction
+	//----------------------------------------------
 
 	ParsingErrors::ParsingErrors( const std::vector<ErrorEntry>& errors )
-		: m_errors( errors )
+		: m_errors{ errors }
 	{
-		SPDLOG_TRACE( "ParsingErrors constructed with {} errors", m_errors.size() );
 	}
 
-	void ParsingErrors::addError( const std::string& type, const std::string& message )
+	ParsingErrors::ParsingErrors()
+		: m_errors{}
 	{
-		m_errors.emplace_back( type, message );
-		SPDLOG_ERROR( "Added parsing error: {} - {}", type, message );
 	}
 
-	bool ParsingErrors::hasErrors() const
-	{
-		return !m_errors.empty();
-	}
-
-	bool ParsingErrors::hasErrorType( const std::string& type ) const
-	{
-		bool found = std::any_of( m_errors.begin(), m_errors.end(),
-			[&type]( const ErrorEntry& error ) { return std::get<0>( error ) == type; } );
-
-		SPDLOG_INFO( "Error type '{}' {} found", type, found ? "was" : "was not" );
-		return found;
-	}
-
-	bool ParsingErrors::isEmpty() const
-	{
-		return m_errors.empty();
-	}
-
-	std::string ParsingErrors::toString() const
-	{
-		if ( m_errors.empty() )
-			return "Success";
-
-		std::ostringstream builder;
-		builder << "Parsing errors:\n";
-
-		for ( const auto& [type, message] : m_errors )
-		{
-			builder << '\t' << type << " - " << message << '\n';
-		}
-
-		std::string result = builder.str();
-		SPDLOG_TRACE( "ParsingErrors toString generated: {}", result );
-		return result;
-	}
+	//----------------------------------------------
+	// Operators
+	//----------------------------------------------
 
 	bool ParsingErrors::operator==( const ParsingErrors& other ) const
 	{
@@ -65,51 +47,127 @@ namespace dnv::vista::sdk
 		return !( *this == other );
 	}
 
-	ParsingErrors::Iterator::Iterator( const std::vector<ErrorEntry>* data, size_t index )
-		: m_data( data ), m_index( index )
+	//----------------------------------------------
+	// Public methods
+	//----------------------------------------------
+
+	bool ParsingErrors::hasErrors() const
+	{
+		return !m_errors.empty();
+	}
+
+	bool ParsingErrors::hasErrorType( const std::string& type ) const
+	{
+		bool found = std::any_of( m_errors.begin(), m_errors.end(),
+			[&type]( const ErrorEntry& error ) { return error.first == type; } );
+
+		return found;
+	}
+
+	bool ParsingErrors::equals( const ParsingErrors& other ) const
+	{
+		return *this == other;
+	}
+
+	bool ParsingErrors::equals( const void* obj ) const
+	{
+		if ( obj == nullptr )
+		{
+			return false;
+		}
+
+		const ParsingErrors* other = static_cast<const ParsingErrors*>( obj );
+
+		return equals( *other );
+	}
+
+	size_t ParsingErrors::count() const
+	{
+		return m_errors.size();
+	}
+
+	size_t ParsingErrors::hashCode() const noexcept
+	{
+		std::size_t hash = 0;
+		for ( const auto& error : m_errors )
+		{
+			hash ^= std::hash<std::string>{}( error.first ) + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= std::hash<std::string>{}( error.second ) + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+		}
+
+		return hash;
+	}
+
+	std::string ParsingErrors::toString() const
+	{
+		if ( m_errors.empty() )
+		{
+			return "Success";
+		}
+
+		std::ostringstream builder;
+		builder << "Parsing errors:\n";
+
+		for ( const auto& [type, message] : m_errors )
+		{
+			builder << '\t' << type << " - " << message << '\n';
+		}
+
+		std::string result = builder.str();
+
+		return result;
+	}
+
+	//----------------------------
+	// Enumeration
+	//----------------------------
+
+	ParsingErrors::Enumerator ParsingErrors::enumerator() const
+	{
+		return Enumerator( &m_errors );
+	}
+
+	//----------------------------------------------
+	// ParsingErrors enumerator
+	//----------------------------------------------
+
+	//----------------------------
+	// Construction / destruction
+	//----------------------------
+
+	ParsingErrors::Enumerator::Enumerator( const std::vector<ErrorEntry>* data )
+		: m_data{ data },
+		  m_index{ 0 },
+		  m_current{}
 	{
 	}
 
-	ParsingErrors::Iterator::reference ParsingErrors::Iterator::operator*() const
+	//----------------------------
+	// Enumeration methods
+	//----------------------------
+
+	bool ParsingErrors::Enumerator::next()
 	{
-		return ( *m_data )[m_index];
+		if ( m_index < m_data->size() )
+		{
+			m_current = m_data->at( m_index );
+			++m_index;
+			return true;
+		}
+
+		m_index = m_data->size() + 1;
+		m_current = {};
+		return false;
 	}
 
-	ParsingErrors::Iterator::pointer ParsingErrors::Iterator::operator->() const
+	const ParsingErrors::ErrorEntry& ParsingErrors::Enumerator::current() const
 	{
-		return &( ( *m_data )[m_index] );
+		return m_current;
 	}
 
-	ParsingErrors::Iterator& ParsingErrors::Iterator::operator++()
+	void ParsingErrors::Enumerator::reset()
 	{
-		++m_index;
-		return *this;
-	}
-
-	ParsingErrors::Iterator ParsingErrors::Iterator::operator++( int )
-	{
-		Iterator tmp = *this;
-		++( *this );
-		return tmp;
-	}
-
-	bool ParsingErrors::Iterator::operator==( const Iterator& other ) const
-	{
-		return m_data == other.m_data && m_index == other.m_index;
-	}
-
-	bool ParsingErrors::Iterator::operator!=( const Iterator& other ) const
-	{
-		return !( *this == other );
-	}
-
-	ParsingErrors::Iterator ParsingErrors::begin() const
-	{
-		return Iterator( &m_errors, 0 );
-	}
-
-	ParsingErrors::Iterator ParsingErrors::end() const
-	{
-		return Iterator( &m_errors, m_errors.size() );
+		m_index = 0;
+		m_current = {};
 	}
 }

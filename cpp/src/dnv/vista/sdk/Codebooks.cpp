@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/Codebooks.h"
 
-#include "dnv/vista/sdk/VisVersion.h"
+#include "dnv/vista/sdk/VISVersion.h"
 #include "dnv/vista/sdk/CodebooksDto.h"
 #include "dnv/vista/sdk/MetadataTag.h"
 
@@ -69,7 +69,7 @@ namespace dnv::vista::sdk
 	}
 
 	//=====================================================================
-	// Construction / Destruction
+	// Construction / destruction
 	//=====================================================================
 
 	Codebooks::Codebooks( VisVersion version, const CodebooksDto& dto )

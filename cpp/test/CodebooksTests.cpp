@@ -1,55 +1,101 @@
+/**
+ * @file CodebooksTests.cpp
+ * @brief Unit tests for the Codebooks and CodebookName functionalities.
+ */
+
 #include "pch.h"
 
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/Gmod.h"
-#include "dnv/vista/sdk/VisVersion.h"
-#include "dnv/vista/sdk/Codebooks.h"
-#include "dnv/vista/sdk/Codebook.h"
-#include "dnv/vista/sdk/CodebookName.h"
 
-namespace dnv::vista::sdk::tests
+namespace dnv::vista::sdk
 {
-	inline std::pair<VIS&, const Gmod&> visAndGmod()
+	namespace tests
 	{
-		VIS& vis = VIS::instance();
-		const Gmod& gmod = vis.gmod( VisVersion::v3_4a );
-		return { vis, gmod };
-	}
+		//----------------------------------------------
+		// Test_Codebooks_Loads
+		//----------------------------------------------
 
-	TEST( CodebooksTests, Test_Codebooks_Loads )
-	{
-		auto [vis, gmod] = visAndGmod();
-
-		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
-
-		ASSERT_NO_THROW( {
-			[[maybe_unused]] const auto& positionCodebook = codebooks.codebook( CodebookName::Position );
-		} );
-	}
-
-	TEST( CodebooksTests, Test_Codebooks_Equality )
-	{
-		auto [vis, gmod] = visAndGmod();
-
-		const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
-
-		ASSERT_TRUE( codebooks[CodebookName::Position].hasStandardValue( "centre" ) );
-	}
-
-	TEST( CodebooksTests, Test_CodebookName_Properties )
-	{
-		std::vector<int> values;
-		for ( int i = 1; i <= static_cast<int>( CodebookName::Detail ); i++ )
+		TEST( CodebooksTests, Test_Codebooks_Loads )
 		{
-			values.push_back( i );
+			VIS& vis = VIS::instance();
+			const auto allVersions = VisVersionExtensions::allVersions();
+
+			for ( const auto& version : allVersions )
+			{
+				if ( version == VisVersion::Unknown )
+					continue;
+
+				SCOPED_TRACE( "Testing VisVersion: " + VisVersionExtensions::toVersionString( version ) );
+
+				const Codebooks* codebooksPtr = nullptr;
+				ASSERT_NO_THROW( {
+					codebooksPtr = &vis.codebooks( version );
+				} );
+				ASSERT_NE( nullptr, codebooksPtr );
+
+				const Codebook* positionCodebookPtr = nullptr;
+				ASSERT_NO_THROW( {
+					positionCodebookPtr = &codebooksPtr->codebook( CodebookName::Position );
+				} );
+				ASSERT_NE( nullptr, positionCodebookPtr );
+			}
 		}
 
-		std::set<int> uniqueValues( values.begin(), values.end() );
-		ASSERT_EQ( values.size(), uniqueValues.size() );
+		//----------------------------------------------
+		// Test_Codebooks_Equality
+		//----------------------------------------------
 
-		for ( size_t i = 0; i < values.size(); i++ )
+		TEST( CodebooksTests, Test_Codebooks_Equality )
 		{
-			ASSERT_EQ( i, values[i] - 1 );
+			VIS& vis = VIS::instance();
+
+			const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
+
+			ASSERT_TRUE( codebooks[CodebookName::Position].hasStandardValue( "centre" ) );
+		}
+
+		//----------------------------------------------
+		// Test_CodebookName_Properties
+		//----------------------------------------------
+
+		TEST( CodebooksTests, Test_CodebookName_Properties )
+		{
+			const std::vector<dnv::vista::sdk::CodebookName> allCodebookNames = {
+				dnv::vista::sdk::CodebookName::Quantity,
+				dnv::vista::sdk::CodebookName::Content,
+				dnv::vista::sdk::CodebookName::Calculation,
+				dnv::vista::sdk::CodebookName::State,
+				dnv::vista::sdk::CodebookName::Command,
+				dnv::vista::sdk::CodebookName::Type,
+				dnv::vista::sdk::CodebookName::FunctionalServices,
+				dnv::vista::sdk::CodebookName::MaintenanceCategory,
+				dnv::vista::sdk::CodebookName::ActivityType,
+				dnv::vista::sdk::CodebookName::Position,
+				dnv::vista::sdk::CodebookName::Detail };
+
+			std::vector<int> actualEnumValues;
+			actualEnumValues.reserve( allCodebookNames.size() );
+			for ( const auto& cn : allCodebookNames )
+			{
+				actualEnumValues.push_back( static_cast<int>( cn ) );
+			}
+
+			/* Verify uniqueness of underlying integer values */
+			std::set<int> uniqueValues( actualEnumValues.begin(), actualEnumValues.end() );
+			ASSERT_EQ( actualEnumValues.size(), uniqueValues.size() );
+
+			/*
+				Verify that the enum values are sequential starting from 1
+				This assumes the 'allCodebookNames' vector lists them in their natural enum
+				order or that their integer values are inherently sequential as expected.
+			*/
+			std::vector<int> sortedValues = actualEnumValues;
+			std::sort( sortedValues.begin(), sortedValues.end() );
+
+			for ( size_t i = 0; i < sortedValues.size(); ++i )
+			{
+				ASSERT_EQ( static_cast<int>( i + 1 ), sortedValues[i] );
+			}
 		}
 	}
 }

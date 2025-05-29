@@ -2,7 +2,7 @@
  * @file LocationParsingErrorBuilder.h
  * @brief Defines the LocationParsingErrorBuilder class for collecting Location parsing errors.
  * @details This class provides a mechanism to accumulate errors encountered during the
- *          parsing of a Location string.
+ *          parsing of a Location string, associating them with specific validation results.
  */
 
 #pragma once
@@ -20,13 +20,13 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	/**
-	 * @brief Enumeration of location validation results.
-	 *
-	 * Indicates the outcome of a location string validation attempt.
+	 * @brief Represents the result of Location validation.
+	 * @details Used internally by the parser to track validation results and externally
+	 *          within ParsingErrors to categorize issues found during Location parsing.
 	 */
 	enum class LocationValidationResult
 	{
-		Invalid,
+		Invalid = 0,
 		InvalidCode,
 		InvalidOrder,
 		NullOrWhiteSpace,
@@ -34,30 +34,30 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// LocationParsingErrorBuilder Class
+	// LocationParsingErrorBuilder class
 	//=====================================================================
 
 	/**
 	 * @class LocationParsingErrorBuilder
-	 * @brief A builder class for accumulating errors encountered during Location string parsing.
+	 * @brief A builder class for accumulating errors encountered during Location parsing.
 	 *
 	 * @details This class provides methods to add errors associated with specific validation results
 	 *          (defined by `LocationValidationResult`) and finally builds a `ParsingErrors` object
-	 *          containing the collected issues. It is used internally by the `Locations` parsing logic.
-	 *          This class is designed to be non-copyable but movable to manage resource ownership clearly.
+	 *          containing the collected issues, formatted for user presentation. It is used
+	 *          internally by the `Locations` parsing logic.
 	 */
 	class LocationParsingErrorBuilder final
 	{
 	public:
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 		/** @brief Default constructor */
 		LocationParsingErrorBuilder() = default;
 
 		/** @brief Copy constructor */
-		LocationParsingErrorBuilder( const LocationParsingErrorBuilder& ) = delete;
+		LocationParsingErrorBuilder( const LocationParsingErrorBuilder& ) = default;
 
 		/** @brief Move constructor */
 		LocationParsingErrorBuilder( LocationParsingErrorBuilder&& ) noexcept = default;
@@ -65,19 +65,19 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		~LocationParsingErrorBuilder() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		LocationParsingErrorBuilder& operator=( const LocationParsingErrorBuilder& ) = delete;
+		LocationParsingErrorBuilder& operator=( const LocationParsingErrorBuilder& ) = default;
 
 		/** @brief Move assignment operator */
 		LocationParsingErrorBuilder& operator=( LocationParsingErrorBuilder&& ) noexcept = default;
 
-		//=====================================================================
-		// Static Factory Method
-		//=====================================================================
+		//----------------------------------------------
+		// Static factory method
+		//----------------------------------------------
 
 		/**
 		 * @brief Creates a new, empty LocationParsingErrorBuilder instance.
@@ -86,27 +86,23 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] static LocationParsingErrorBuilder create();
 
-		//=====================================================================
-		// Public Methods
-		//=====================================================================
+		//----------------------------------------------
+		// Public methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Adds an error with a specific validation result and message.
 		 * @param[in] validationResult The `LocationValidationResult` indicating the type of error.
-		 * @param[in] message The custom error message describing the issue.
+		 * @param[in] message The error message describing the issue.
 		 * @return A reference to this builder instance for method chaining.
 		 */
-		LocationParsingErrorBuilder& addError( LocationValidationResult validationResult, const std::string& message );
+		LocationParsingErrorBuilder& addError( LocationValidationResult validationResult, const std::optional<std::string>& message );
 
 		/**
 		 * @brief Checks if any errors have been added to the builder.
 		 * @return `true` if at least one error has been added, `false` otherwise.
 		 */
-		[[nodiscard]] bool hasError() const noexcept;
-
-		//=====================================================================
-		// Build Method
-		//=====================================================================
+		[[nodiscard]] bool hasError() const;
 
 		/**
 		 * @brief Constructs a `ParsingErrors` object from the errors collected by this builder.
@@ -117,9 +113,9 @@ namespace dnv::vista::sdk
 		[[nodiscard]] ParsingErrors build() const;
 
 	private:
-		//=====================================================================
-		// Private Member Variables
-		//=====================================================================
+		//----------------------------------------------
+		// Private member variables
+		//----------------------------------------------
 
 		/**
 		 * @brief Internal storage for the collected parsing errors.

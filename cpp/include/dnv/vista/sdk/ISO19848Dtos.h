@@ -27,7 +27,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -50,7 +50,7 @@ namespace dnv::vista::sdk
 		~DataChannelTypeNameDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -116,7 +116,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Type name (JSON: "type") */
@@ -142,7 +142,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -164,7 +164,7 @@ namespace dnv::vista::sdk
 		~DataChannelTypeNamesDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -224,7 +224,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Collection of data channel type name values (JSON: "values") */
@@ -246,7 +246,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -269,7 +269,7 @@ namespace dnv::vista::sdk
 		~FormatDataTypeDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -335,7 +335,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Type name (JSON: "type") */
@@ -361,7 +361,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -383,7 +383,7 @@ namespace dnv::vista::sdk
 		~FormatDataTypesDto() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -443,7 +443,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief Collection of format data type values (JSON: "values") */

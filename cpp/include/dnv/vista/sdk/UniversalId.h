@@ -16,6 +16,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	class IUniversalIdBuilder;
+	class UniversalIdBuilder;
 	class LocalId;
 	class ParsingErrors;
 
@@ -26,11 +27,11 @@ namespace dnv::vista::sdk
 	class UniversalId final : public IUniversalId
 	{
 	public:
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
-		//	explicit UniversalId( const std::shared_ptr<IUniversalIdBuilder>& builder );
+		explicit UniversalId( const UniversalIdBuilder& builder );
 
 		/** @brief Default constructor. */
 		UniversalId() = delete;
@@ -44,9 +45,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		virtual ~UniversalId() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		UniversalId& operator=( const UniversalId& ) = delete;
@@ -54,9 +55,9 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		UniversalId& operator=( UniversalId&& ) noexcept = default;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Operators
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * Equality operator.
@@ -72,15 +73,9 @@ namespace dnv::vista::sdk
 		 */
 		virtual bool operator!=( const UniversalId& other ) const;
 
-		//=====================================================================
-		// Hashing
-		//=====================================================================
-
-		size_t hashCode() const;
-
-		//=====================================================================
-		// Core Properties
-		//=====================================================================
+		//----------------------------------------------
+		// Accessors
+		//----------------------------------------------
 
 		/**
 		 * Gets the IMO number.
@@ -95,9 +90,11 @@ namespace dnv::vista::sdk
 		 */
 		virtual const LocalId& localId() const override;
 
-		//=====================================================================
-		// Conversion and Comparison
-		//=====================================================================
+		[[nodiscard]] size_t hashCode() const noexcept;
+
+		//----------------------------------------------
+		// Conversion and comparison
+		//----------------------------------------------
 
 		/**
 		 * Converts the UniversalId to a string representation.
@@ -112,9 +109,9 @@ namespace dnv::vista::sdk
 		 */
 		virtual bool equals( const UniversalId& other ) const;
 
-		//=====================================================================
-		// Static Parsing
-		//=====================================================================
+		//----------------------------------------------
+		// Static parsing methods
+		//----------------------------------------------
 
 		/**
 		 * Parses a UniversalId from a string.
@@ -134,12 +131,12 @@ namespace dnv::vista::sdk
 		static bool tryParse( const std::string& universalIdStr, ParsingErrors& errors, std::optional<UniversalId>& universalId );
 
 	private:
-		//=====================================================================
-		// Private Member Variables
-		//=====================================================================
+		//----------------------------------------------
+		// Private member variables
+		//----------------------------------------------
 
+		ImoNumber m_imoNumber;
 		std::shared_ptr<IUniversalIdBuilder> m_builder;
 		LocalId m_localId;
-		ImoNumber m_imoNumber;
 	};
 }

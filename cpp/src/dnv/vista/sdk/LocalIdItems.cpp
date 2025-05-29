@@ -67,7 +67,10 @@ namespace dnv::vista::sdk
 
 	void LocalIdItems::append( std::stringstream& builder, bool verboseMode ) const
 	{
-		if ( m_primaryItem && m_primaryItem->length() > 0 )
+		if ( !m_primaryItem && !m_secondaryItem )
+			return;
+
+		if ( m_primaryItem )
 		{
 			m_primaryItem->toString( builder );
 			builder << '/';
@@ -82,16 +85,13 @@ namespace dnv::vista::sdk
 
 		if ( verboseMode )
 		{
-			SPDLOG_TRACE( "Appending verbose information for LocalIdItems" );
-
-			if ( m_primaryItem && m_primaryItem->length() > 0 )
+			if ( m_primaryItem )
 			{
-				for ( const auto& [depth, name] : m_primaryItem.value().commonNames() )
+				for ( const auto& [depth, name] : m_primaryItem->commonNames() )
 				{
 					builder << '~';
+					auto nodePtr = ( *m_primaryItem )[depth];
 					std::optional<std::string> locationStr;
-					const GmodNode* nodePtr = m_primaryItem.value()[depth];
-
 					if ( nodePtr && nodePtr->location().has_value() )
 					{
 						locationStr = nodePtr->location()->toString();
@@ -104,15 +104,14 @@ namespace dnv::vista::sdk
 			if ( m_secondaryItem )
 			{
 				std::string prefix = "~for.";
-				for ( const auto& [depth, name] : m_secondaryItem.value().commonNames() )
+				for ( const auto& [depth, name] : m_secondaryItem->commonNames() )
 				{
 					builder << prefix;
 					if ( prefix != "~" )
 						prefix = "~";
 
+					auto nodePtr = ( *m_secondaryItem )[depth];
 					std::optional<std::string> locationStr;
-					const GmodNode* nodePtr = m_secondaryItem.value()[depth];
-
 					if ( nodePtr && nodePtr->location().has_value() )
 					{
 						locationStr = nodePtr->location()->toString();
@@ -122,19 +121,6 @@ namespace dnv::vista::sdk
 				}
 			}
 		}
-	}
-
-	std::string LocalIdItems::toString( bool verboseMode ) const
-	{
-		std::stringstream builder;
-		append( builder, verboseMode );
-		std::string result = builder.str();
-
-		if ( !result.empty() && result.back() == '/' && result.length() > 1 )
-		{
-			result.pop_back();
-		}
-		return result;
 	}
 
 	//-------------------------------------------------------------------------

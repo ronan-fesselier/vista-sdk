@@ -21,9 +21,10 @@ namespace dnv::vista::sdk
 
 	/**
 	 * @brief Represents the specific stage or aspect of LocalId parsing.
-	 *
-	 * Used internally by the parser to track progress and externally
-	 * within ParsingErrors to categorize issues found during LocalId parsing.
+	 * @details Used internally by the parser to track progress and externally
+	 *          within ParsingErrors to categorize issues found during LocalId parsing.
+	 *          Values 0-99 represent sequential parsing stages, 100-199 represent
+	 *          structural errors, and 200+ represent validation errors.
 	 */
 	enum class LocalIdParsingState
 	{
@@ -50,7 +51,7 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// LocalIdParsingErrorBuilder Class
+	// LocalIdParsingErrorBuilder class
 	//=====================================================================
 
 	/**
@@ -65,9 +66,9 @@ namespace dnv::vista::sdk
 	class LocalIdParsingErrorBuilder final
 	{
 	public:
-		//=====================================================================
-		// Construction / Destruction
-		//=====================================================================
+		//----------------------------------------------
+		// Construction / destruction
+		//----------------------------------------------
 
 		/** @brief Default constructor. */
 		LocalIdParsingErrorBuilder() = default;
@@ -81,9 +82,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		~LocalIdParsingErrorBuilder() = default;
 
-		//=====================================================================
-		// Assignment Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Assignment operators
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		LocalIdParsingErrorBuilder& operator=( const LocalIdParsingErrorBuilder& ) = default;
@@ -91,9 +92,9 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		LocalIdParsingErrorBuilder& operator=( LocalIdParsingErrorBuilder&& ) noexcept = default;
 
-		//=====================================================================
-		// Static Factory Method
-		//=====================================================================
+		//----------------------------------------------
+		// Static factory method
+		//----------------------------------------------
 
 		/**
 		 * @brief Creates a new, empty LocalIdParsingErrorBuilder instance.
@@ -102,9 +103,9 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] static LocalIdParsingErrorBuilder create();
 
-		//=====================================================================
-		// Public Methods
-		//=====================================================================
+		//----------------------------------------------
+		// Public methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Adds an error associated with a specific parsing state, using a predefined message.
@@ -115,23 +116,19 @@ namespace dnv::vista::sdk
 		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state );
 
 		/**
-		 * @brief Adds an error associated with a specific parsing state, using a custom message.
-		 * @details Adds the provided `message` associated with the given `state` to the list.
+		 * @brief Adds an error associated with a specific parsing state, with optional custom message.
+		 * @details If message has no value, falls back to predefined message for the state.
 		 * @param[in] state The `LocalIdParsingState` where the error occurred.
-		 * @param[in] message The custom error message describing the issue.
+		 * @param[in] message Optional custom error message. If nullopt, uses predefined message.
 		 * @return A reference to this builder instance for method chaining.
 		 */
-		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state, const std::string& message );
+		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state, const std::optional<std::string>& message );
 
 		/**
 		 * @brief Checks if any errors have been added to the builder.
 		 * @return `true` if at least one error has been added, `false` otherwise.
 		 */
 		[[nodiscard]] bool hasError() const;
-
-		//=====================================================================
-		// Build Method
-		//=====================================================================
 
 		/**
 		 * @brief Constructs a `ParsingErrors` object from the errors collected by this builder.
@@ -142,9 +139,9 @@ namespace dnv::vista::sdk
 		[[nodiscard]] ParsingErrors build() const;
 
 	private:
-		//=====================================================================
-		// Private Member Variables
-		//=====================================================================
+		//----------------------------------------------
+		// Private member variables
+		//----------------------------------------------
 
 		/**
 		 * @brief Internal storage for the collected parsing errors.
