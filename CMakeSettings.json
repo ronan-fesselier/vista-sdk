@@ -1,0 +1,46 @@
+{
+	"configurations": [
+		{
+			"name": "x64-MSVC-Debug",
+			"generator": "Ninja",
+			"configurationType": "Debug",
+			"buildRoot": "${projectDir}/build/x64-MSVC-Debug",
+			"inheritEnvironments": [ "msvc_x64_x64" ],
+			"intelliSenseMode": "windows-msvc-x64"
+		},
+		{
+			"name": "x64-MSVC-RelWithDebInfo",
+			"generator": "Ninja",
+			"configurationType": "RelWithDebInfo",
+			"buildRoot": "${projectDir}/build/x64-MSVC-RelWithDebInfo",
+			"inheritEnvironments": [ "msvc_x64_x64" ],
+			"intelliSenseMode": "windows-msvc-x64"
+		},
+		{
+			"name": "x64-MSVC-Release",
+			"generator": "Ninja",
+			"configurationType": "Release",
+			"buildRoot": "${projectDir}/build/x64-MSVC-Release",
+			"inheritEnvironments": [ "msvc_x64_x64" ],
+			"intelliSenseMode": "windows-msvc-x64"
+		},
+		{
+			"name": "x64-Clang-cl-Debug",
+			"generator": "Ninja",
+			"configurationType": "Debug",
+			"buildRoot": "${projectDir}/build/x64-Clang-cl-Debug",
+			"inheritEnvironments": [ "clang_cl_x64_x64" ],
+			"intelliSenseMode": "windows-clang-x64",
+			"enableClangTidyCodeAnalysis": true
+		},
+		{
+			"name": "x64-Clang-cl-Release",
+			"generator": "Ninja",
+			"configurationType": "Release",
+			"buildRoot": "${projectDir}/build/x64-Clang-cl-Release",
+			"inheritEnvironments": [ "clang_cl_x64_x64" ],
+			"intelliSenseMode": "windows-clang-x64",
+			"enableClangTidyCodeAnalysis": true
+		}
+	]
+}

@@ -11,72 +11,78 @@
 
 namespace dnv::vista::sdk
 {
+	namespace
+	{
+		//=====================================================================
+		// Static data maps
+		//=====================================================================
+
+		static const std::unordered_map<LocationValidationResult, std::string> VALIDATION_RESULT_TO_STRING = {
+			{ LocationValidationResult::Invalid, "Invalid" },
+			{ LocationValidationResult::InvalidCode, "InvalidCode" },
+			{ LocationValidationResult::InvalidOrder, "InvalidOrder" },
+			{ LocationValidationResult::NullOrWhiteSpace, "NullOrWhiteSpace" },
+			{ LocationValidationResult::Valid, "Valid" } };
+	}
+
 	//=====================================================================
-	// Static Factory Method
+	// LocationParsingErrorBuilder class
 	//=====================================================================
+
+	//----------------------------------------------
+	// Static factory method
+	//----------------------------------------------
 
 	LocationParsingErrorBuilder LocationParsingErrorBuilder::create()
 	{
 		return LocationParsingErrorBuilder();
 	}
 
-	//=====================================================================
-	// Public Methods
-	//=====================================================================
+	//----------------------------------------------
+	// Public methods
+	//----------------------------------------------
 
-	LocationParsingErrorBuilder& LocationParsingErrorBuilder::addError( LocationValidationResult validationResult,
-		const std::string& message )
+	LocationParsingErrorBuilder& LocationParsingErrorBuilder::addError( LocationValidationResult validationResult, const std::optional<std::string>& message )
 	{
-		m_errors.emplace_back( validationResult, message );
+		std::string actualMessage = message.has_value() ? *message : "";
+
+		SPDLOG_ERROR( "Adding location parsing error for validation result {}: {}", static_cast<int>( validationResult ), actualMessage );
+
+		m_errors.emplace_back( validationResult, actualMessage );
+
 		return *this;
 	}
 
-	bool LocationParsingErrorBuilder::hasError() const noexcept
+	bool LocationParsingErrorBuilder::hasError() const
 	{
 		return !m_errors.empty();
 	}
 
-	//=====================================================================
-	// Build Method
-	//=====================================================================
-
 	ParsingErrors LocationParsingErrorBuilder::build() const
 	{
-		if ( !hasError() )
+		if ( m_errors.empty() )
 		{
 			return ParsingErrors::Empty;
 		}
 
-		std::vector<ParsingErrors::ErrorEntry> errors;
+		std::vector<ParsingErrors::ErrorEntry> errorEntries;
+		errorEntries.reserve( m_errors.size() );
 
-		errors.reserve( m_errors.size() );
-
-		for ( const auto& err : m_errors )
+		for ( const auto& [validationResult, message] : m_errors )
 		{
-			std::string errorName;
-			switch ( err.first )
+			auto it = VALIDATION_RESULT_TO_STRING.find( validationResult );
+			std::string resultStr = ( it != VALIDATION_RESULT_TO_STRING.end() )
+										? it->second
+										: "ValidationResult" + std::to_string( static_cast<int>( validationResult ) );
+
+			if ( it == VALIDATION_RESULT_TO_STRING.end() )
 			{
-				case LocationValidationResult::Invalid:
-					errorName = "Invalid";
-					break;
-				case LocationValidationResult::InvalidCode:
-					errorName = "InvalidCode";
-					break;
-				case LocationValidationResult::InvalidOrder:
-					errorName = "InvalidOrder";
-					break;
-				case LocationValidationResult::NullOrWhiteSpace:
-					errorName = "NullOrWhiteSpace";
-					break;
-				case LocationValidationResult::Valid:
-					errorName = "Valid";
-					break;
-				default:
-					errorName = "UnknownError";
-					break;
+				SPDLOG_WARN( "Building ParsingErrors with unknown validation result enum value: {}", static_cast<int>( validationResult ) );
 			}
-			errors.emplace_back( errorName, err.second );
+
+			errorEntries.emplace_back( resultStr, message );
 		}
-		return ParsingErrors( errors );
+
+		return ParsingErrors{ errorEntries };
 	}
 }

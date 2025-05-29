@@ -10,7 +10,7 @@
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/MetadataTag.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
-#include "dnv/vista/sdk/VisVersion.h"
+#include "dnv/vista/sdk/VISVersion.h"
 
 namespace dnv::vista::sdk
 {
@@ -21,7 +21,7 @@ namespace dnv::vista::sdk
 	static const std::string namingRule = "dnv-v2";
 
 	//=====================================================================
-	// Construction / Destruction
+	// Construction / destruction
 	//=====================================================================
 
 	LocalId::LocalId( LocalIdBuilder builder )
@@ -63,7 +63,7 @@ namespace dnv::vista::sdk
 	// Hashing
 	//=====================================================================
 
-	size_t LocalId::hashCode() const
+	size_t LocalId::hashCode() const noexcept
 	{
 		return m_builder->hashCode();
 	}
@@ -156,7 +156,7 @@ namespace dnv::vista::sdk
 	}
 
 	//=====================================================================
-	// Conversion and Comparison
+	// Conversion and comparison
 	//=====================================================================
 
 	std::string LocalId::toString() const

@@ -14,8 +14,8 @@
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/LocationsDto.h"
-#include "dnv/vista/sdk/VisVersion.h"
 #include "dnv/vista/sdk/Gmod.h"
+#include "dnv/vista/sdk/GmodVersioning.h"
 
 namespace dnv::vista::sdk
 {
@@ -33,7 +33,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / Destruction
+	// Construction / destruction
 	//----------------------------------------------
 
 	VIS::VIS() : IVIS{}
@@ -63,7 +63,7 @@ namespace dnv::vista::sdk
 
 	GmodVersioning VIS::gmodVersioning()
 	{
-		SPDLOG_INFO( "Getting GMOD versioning" );
+		SPDLOG_TRACE( "Getting GMOD versioning" );
 
 		return m_gmodVersioningCache.getOrCreate( VERSIONING, [this]() {
 			auto dto = gmodVersioningDto();
@@ -86,7 +86,7 @@ namespace dnv::vista::sdk
 										 std::to_string( static_cast<int>( visVersion ) ) );
 		}
 
-		SPDLOG_INFO( "Attempting to load GMOD for version: {}",
+		SPDLOG_DEBUG( "Attempting to load GMOD for version: {}",
 			VisVersionExtensions::toVersionString( visVersion ) );
 
 		return m_gmodCache.getOrCreate( visVersion, [this, visVersion]() {
@@ -95,9 +95,6 @@ namespace dnv::vista::sdk
 				VisVersionExtensions::toVersionString( visVersion ) );
 
 			Gmod gmod( visVersion, dto );
-
-			SPDLOG_INFO( "Created Gmod with {} nodes in dictionary",
-				!gmod.isEmpty() ? "non-empty" : "EMPTY" );
 
 			return gmod;
 		} );
@@ -111,7 +108,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Invalid VIS version" );
 		}
 
-		SPDLOG_INFO( "Getting codebooks for version: {}",
+		SPDLOG_TRACE( "Getting codebooks for version: {}",
 			VisVersionExtensions::toVersionString( visVersion ) );
 
 		return m_codebooksCache.getOrCreate( visVersion, [this, visVersion]() {
@@ -130,7 +127,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Invalid VIS version" );
 		}
 
-		SPDLOG_INFO( "Getting locations for version: {}",
+		SPDLOG_TRACE( "Getting locations for version: {}",
 			VisVersionExtensions::toVersionString( visVersion ) );
 
 		return m_locationsCache.getOrCreate( visVersion, [this, visVersion]() {
@@ -323,26 +320,6 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 	// ISO String Validation Methods
 	//----------------------------------------------
-
-	bool VIS::matchISOLocalIdString( const std::string& value )
-	{
-		SPDLOG_DEBUG( "Checking if string matches ISO local ID format: '{}'", value );
-
-		for ( char ch : value )
-		{
-			if ( ch == '/' )
-				continue;
-
-			if ( !isISOString( ch ) )
-			{
-				SPDLOG_ERROR( "Character '{}' is not ISO compliant", ch );
-				return false;
-			}
-		}
-
-		SPDLOG_DEBUG( "String is ISO local ID compliant" );
-		return true;
-	}
 
 	bool VIS::matchISOLocalIdString( const std::stringstream& builder )
 	{

@@ -1,6 +1,9 @@
 /**
  * @file Locations.h
- * @brief Defines classes and enumerations for handling locations in the VIS system.
+ * @brief Container for Vessel Information Structure (VIS) location definitions and parsing
+ * @details Provides access to standardized location definitions, parsing capabilities,
+ *          and validation for location strings according to the VIS standard.
+ *          Supports building location objects with component-wise validation.
  */
 
 #pragma once
@@ -51,14 +54,14 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
 		 * @brief Constructs a Location object with a specific value.
 		 * @param value The location string value.
 		 */
-		explicit Location( const std::string& value );
+		explicit Location( std::string_view value );
 
 		/** @brief Default constructor */
 		Location() = default;
@@ -73,7 +76,7 @@ namespace dnv::vista::sdk
 		~Location() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -155,7 +158,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -183,7 +186,7 @@ namespace dnv::vista::sdk
 		~RelativeLocation() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -282,7 +285,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -298,7 +301,7 @@ namespace dnv::vista::sdk
 		~LocationCharDict() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -333,7 +336,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief The internal table storing optional characters for each relevant `LocationGroup`.
@@ -359,7 +362,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / Destruction
+		// Construction / destruction
 		//----------------------------------------------
 
 		/**
@@ -382,11 +385,11 @@ namespace dnv::vista::sdk
 		~Locations() = default;
 
 		//----------------------------------------------
-		// Assignment Operators
+		// Assignment operators
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		Locations& operator=( const Locations& ) = delete;
+		Locations& operator=( const Locations& ) = default;
 
 		/** @brief Move assignment operator */
 		Locations& operator=( Locations&& ) noexcept = default;
@@ -414,17 +417,20 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] const std::unordered_map<LocationGroup, std::vector<RelativeLocation>>& groups() const noexcept;
 
+		/**
+		 * @brief Gets a read-only map from character codes to their corresponding location groups.
+		 * @details This map is used for validation purposes to determine which LocationGroup
+		 *          a specific character belongs to (e.g., 'P' -> LocationGroup::Side,
+		 *          'U' -> LocationGroup::Vertical). Essential for validating location components
+		 *          during parsing and building operations.
+		 * @return A constant reference to an unordered_map where keys are character codes
+		 *         (e.g., 'P', 'C', 'S', 'U', 'M', 'L', 'I', 'O', 'F', 'A') and values
+		 *         are their corresponding `LocationGroup` classifications.
+		 */
+		[[nodiscard]] const std::map<char, LocationGroup>& reversedGroups() const noexcept;
 		//----------------------------------------------
 		// Public Methods - Parsing
 		//----------------------------------------------
-
-		/**
-		 * @brief Parses a location string into a `Location` object.
-		 * @param locationStr The location string to parse.
-		 * @return The parsed `Location` object.
-		 * @throws std::invalid_argument If parsing fails (e.g., invalid format, unknown codes).
-		 */
-		[[nodiscard]] Location parse( const std::string& locationStr ) const;
 
 		/**
 		 * @brief Parses a location string (represented by a string_view) into a `Location` object.
@@ -479,9 +485,9 @@ namespace dnv::vista::sdk
 		 */
 		bool tryParse( std::string_view value, Location& location, ParsingErrors& errors ) const;
 
-	private:
+	public:
 		//----------------------------------------------
-		// Private Static Helper Methods
+		// Public static helper methods
 		//----------------------------------------------
 
 		/**
@@ -494,6 +500,7 @@ namespace dnv::vista::sdk
 		 */
 		static bool tryParseInt( std::string_view span, int start, int length, int& number );
 
+	private:
 		//----------------------------------------------
 		// Private Methods
 		//----------------------------------------------
@@ -512,7 +519,7 @@ namespace dnv::vista::sdk
 			LocationParsingErrorBuilder& errorBuilder ) const;
 
 		//----------------------------------------------
-		// Private Member Variables
+		// Private member variables
 		//----------------------------------------------
 
 		/** @brief A sorted list of all valid single character location codes for quick lookup. */
@@ -522,7 +529,7 @@ namespace dnv::vista::sdk
 		std::vector<RelativeLocation> m_relativeLocations;
 
 		/** @brief A map from character codes to their `LocationGroup` for quick classification. */
-		std::unordered_map<char, LocationGroup> m_reversedGroups;
+		std::map<char, LocationGroup> m_reversedGroups;
 
 		/** @brief The VIS version this `Locations` instance is configured for. */
 		VisVersion m_visVersion;
