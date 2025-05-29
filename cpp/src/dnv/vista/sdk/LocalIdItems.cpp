@@ -17,7 +17,7 @@ namespace dnv::vista::sdk
 		: m_primaryItem( std::move( primaryItem ) ),
 		  m_secondaryItem( std::move( secondaryItem ) )
 	{
-		SPDLOG_DEBUG( "LocalIdItems created via base move constructor." );
+		SPDLOG_TRACE( "LocalIdItems created via base move constructor." );
 		if ( m_primaryItem )
 		{
 			SPDLOG_TRACE( "  Primary Item: {}", m_primaryItem->toString() );
@@ -138,7 +138,7 @@ namespace dnv::vista::sdk
 	}
 
 	//-------------------------------------------------------------------------
-	// Private Helper Methods
+	// Private helper methods
 	//-------------------------------------------------------------------------
 
 	void LocalIdItems::appendCommonName(

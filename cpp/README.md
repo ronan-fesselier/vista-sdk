@@ -172,6 +172,12 @@ Test suites include:
 
 ## TODO List
 
+-   **Code Organization / Patterns:**
+
+    -   Clean up public API/interface headers to expose only essential public functionality.
+    -   Move private headers to private implementation directories to improve encapsulation.
+    -   Consider implementing PIMPL idiom for core classes to hide implementation details, reduce header dependencies, and improve compilation times.
+
 -   **Query Systems:**
 
     -   Implement `GmodPathQuery` for advanced path querying and filtering capabilities.

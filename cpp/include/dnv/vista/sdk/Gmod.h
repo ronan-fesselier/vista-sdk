@@ -91,7 +91,7 @@ namespace dnv::vista::sdk
 		Gmod& operator=( Gmod&& ) noexcept = delete;
 
 		//----------------------------------------------
-		// Lookup Operators
+		// Lookup operators
 		//----------------------------------------------
 
 		/**

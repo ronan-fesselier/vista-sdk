@@ -140,9 +140,9 @@ message(STATUS "Install Prefix      : ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "Generator           : ${CMAKE_GENERATOR}")
 message(STATUS "Platform            : ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})")
 if(CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Build Type          : Multi-config (${CMAKE_CONFIGURATION_TYPES})")
+	message(STATUS "Build Type          : Multi-config (${CMAKE_CONFIGURATION_TYPES})")
 else()
-    message(STATUS "Build Type          : ${CMAKE_BUILD_TYPE}")
+	message(STATUS "Build Type          : ${CMAKE_BUILD_TYPE}")
 endif()
 message(STATUS "Build Shared Libs   : ${BUILD_SHARED_LIBS}")
 message(STATUS "C++ Compiler        : ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
@@ -158,8 +158,8 @@ message(STATUS "CI Force Spdlog WARN: ${CI_FORCE_DEBUG_SPDLOG_WARN}")
 
 message(STATUS "--------- Paths ---------")
 if(VISTA_SDK_CPP_COPY_RESOURCES)
-    message(STATUS "Resources Source     : ${VISTA_SDK_RESOURCE_DIR}")
-    message(STATUS "Resources Target     : ${VISTA_SDK_CPP_BIN_DIR}/<CONFIG>/resources")
+	message(STATUS "Resources Source     : ${VISTA_SDK_RESOURCE_DIR}")
+	message(STATUS "Resources Target     : ${VISTA_SDK_CPP_BIN_DIR}/<CONFIG>/resources")
 endif()
 message(STATUS "Library Include Dir  : ${VISTA_SDK_CPP_INCLUDE_DIR}")
 message(STATUS "Library Source Dir   : ${VISTA_SDK_CPP_SOURCE_DIR}")
@@ -183,37 +183,37 @@ message(STATUS "Processor Count    : ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 message(STATUS "--------- Dependencies ---------")
 if(TARGET spdlog::spdlog)
-    get_target_property(SPDLOG_VERSION spdlog::spdlog VERSION)
+	get_target_property(SPDLOG_VERSION spdlog::spdlog VERSION)
 endif()
 
 if(TARGET nlohmann_json::nlohmann_json)
-    string(REPLACE "v" "" NLOHMANN_VERSION "${NLOHMANN_JSON_VERSION}")
+	string(REPLACE "v" "" NLOHMANN_VERSION "${NLOHMANN_JSON_VERSION}")
 endif()
 
 if(TARGET fmt::fmt)
-    get_target_property(FMT_VERSION fmt::fmt VERSION)
+	get_target_property(FMT_VERSION fmt::fmt VERSION)
 endif()
 
 if(TARGET zlibstatic)
-    get_target_property(ZLIB_VERSION zlibstatic VERSION)
-    if(NOT ZLIB_VERSION)
-        if(zlib_SOURCE_DIR AND EXISTS "${zlib_SOURCE_DIR}/zlib.h")
-            file(STRINGS "${zlib_SOURCE_DIR}/zlib.h" ZLIB_VER_LINES
-                REGEX "^#define[ \t]+ZLIB_VERSION[ \t]+\"[^\"]*\"")
-            if(ZLIB_VER_LINES)
-                string(REGEX REPLACE "^#define[ \t]+ZLIB_VERSION[ \t]+\"([^\"]*)\".*" "\\1"
-                    ZLIB_VERSION "${ZLIB_VER_LINES}")
-            endif()
-        endif()
-    endif()
+	get_target_property(ZLIB_VERSION zlibstatic VERSION)
+	if(NOT ZLIB_VERSION)
+		if(zlib_SOURCE_DIR AND EXISTS "${zlib_SOURCE_DIR}/zlib.h")
+			file(STRINGS "${zlib_SOURCE_DIR}/zlib.h" ZLIB_VER_LINES
+				REGEX "^#define[ \t]+ZLIB_VERSION[ \t]+\"[^\"]*\"")
+			if(ZLIB_VER_LINES)
+				string(REGEX REPLACE "^#define[ \t]+ZLIB_VERSION[ \t]+\"([^\"]*)\".*" "\\1"
+					ZLIB_VERSION "${ZLIB_VER_LINES}")
+			endif()
+		endif()
+	endif()
 endif()
 
 if(TARGET cpuid)
-    get_target_property(CPUID_VERSION cpuid VERSION)
+	get_target_property(CPUID_VERSION cpuid VERSION)
 endif()
 
 if(TARGET GTest::gtest)
-    get_target_property(GTEST_VERSION GTest::gtest VERSION)
+	get_target_property(GTEST_VERSION GTest::gtest VERSION)
 endif()
 
 message(STATUS "spdlog Version      : ${SPDLOG_VERSION}")
@@ -224,23 +224,23 @@ message(STATUS "libcpuid Version    : ${CPUID_VERSION}")
 message(STATUS "GoogleTest Version  : ${GTEST_VERSION}")
 
 if(CCACHE_PROGRAM)
-    message(STATUS "--------- ccache Statistics ---------")
-    execute_process(
-        COMMAND ${CCACHE_PROGRAM} -s
-        OUTPUT_VARIABLE CCACHE_STATS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    string(REPLACE "\n" ";" CCACHE_STATS_LINES "${CCACHE_STATS}")
-    foreach(LINE ${CCACHE_STATS_LINES})
-        message(STATUS "${LINE}")
-    endforeach()
+	message(STATUS "--------- ccache Statistics ---------")
+	execute_process(
+		COMMAND ${CCACHE_PROGRAM} -s
+		OUTPUT_VARIABLE CCACHE_STATS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	string(REPLACE "\n" ";" CCACHE_STATS_LINES "${CCACHE_STATS}")
+	foreach(LINE ${CCACHE_STATS_LINES})
+		message(STATUS "${LINE}")
+	endforeach()
 
-    execute_process(
-        COMMAND ${CCACHE_PROGRAM} -s
-        OUTPUT_VARIABLE CCACHE_STATS_RAW
-    )
+	execute_process(
+		COMMAND ${CCACHE_PROGRAM} -s
+		OUTPUT_VARIABLE CCACHE_STATS_RAW
+	)
 
-    if(CCACHE_STATS_RAW MATCHES "cache hit rate ([0-9.]+)%")
-        message(STATUS "Cache Efficiency    : ${CMAKE_MATCH_1}% hit rate")
-    endif()
+	if(CCACHE_STATS_RAW MATCHES "cache hit rate ([0-9.]+)%")
+		message(STATUS "Cache Efficiency    : ${CMAKE_MATCH_1}% hit rate")
+	endif()
 endif()

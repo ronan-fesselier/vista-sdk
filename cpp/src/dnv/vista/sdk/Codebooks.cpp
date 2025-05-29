@@ -76,20 +76,20 @@ namespace dnv::vista::sdk
 		: m_visVersion{ version },
 		  m_codebooks{}
 	{
-		SPDLOG_DEBUG( "Initializing codebooks for VIS version: {}", VisVersionExtensions::toVersionString( version ) );
+		SPDLOG_TRACE( "Initializing codebooks for VIS version: {}", VisVersionExtensions::toVersionString( version ) );
 
 		for ( const auto& typeDto : dto.items() )
 		{
 			try
 			{
-				SPDLOG_DEBUG( "Processing codebook DTO: {}", typeDto.name() );
+				SPDLOG_TRACE( "Processing codebook DTO: {}", typeDto.name() );
 				Codebook codebook( typeDto );
 				auto index = static_cast<size_t>( codebook.name() ) - 1;
 
 				if ( index < NUM_CODEBOOKS )
 				{
 					m_codebooks[index] = std::move( codebook );
-					SPDLOG_DEBUG( "Added codebook '{}' at index {}", typeDto.name(), index );
+					SPDLOG_TRACE( "Added codebook '{}' at index {}", typeDto.name(), index );
 				}
 				else
 				{
@@ -111,7 +111,7 @@ namespace dnv::vista::sdk
 		{
 			m_codebooks[detailIndex] = std::move( detailCodebook );
 
-			SPDLOG_DEBUG( "Ensured empty Detail codebook exists at index {}", detailIndex );
+			SPDLOG_TRACE( "Ensured empty Detail codebook exists at index {}", detailIndex );
 		}
 		else
 		{
@@ -160,7 +160,7 @@ namespace dnv::vista::sdk
 
 	std::optional<MetadataTag> Codebooks::tryCreateTag( CodebookName name, const std::string_view value ) const
 	{
-		SPDLOG_DEBUG( "Attempting to create tag '{}' for codebook: {} (enum value: {})",
+		SPDLOG_TRACE( "Attempting to create tag '{}' for codebook: {} (enum value: {})",
 			value, CodebookNames::toPrefix( name ), static_cast<int>( name ) );
 
 		try
@@ -171,11 +171,11 @@ namespace dnv::vista::sdk
 
 			if ( result.has_value() )
 			{
-				SPDLOG_DEBUG( "Successfully created tag for '{}' in codebook '{}'", value, CodebookNames::toPrefix( name ) );
+				SPDLOG_TRACE( "Successfully created tag for '{}' in codebook '{}'", value, CodebookNames::toPrefix( name ) );
 			}
 			else
 			{
-				SPDLOG_DEBUG( "Failed to create tag for '{}' in codebook '{}' - invalid value for codebook", value, CodebookNames::toPrefix( name ) );
+				SPDLOG_TRACE( "Failed to create tag for '{}' in codebook '{}' - invalid value for codebook", value, CodebookNames::toPrefix( name ) );
 			}
 
 			return result;
@@ -194,7 +194,7 @@ namespace dnv::vista::sdk
 
 	MetadataTag Codebooks::createTag( CodebookName name, const std::string& value ) const
 	{
-		SPDLOG_DEBUG( "Attempting to create tag (throwing version) '{}' for codebook: {}", value, CodebookNames::toPrefix( name ) );
+		SPDLOG_TRACE( "Attempting to create tag (throwing version) '{}' for codebook: {}", value, CodebookNames::toPrefix( name ) );
 		const Codebook& cb = ( *this )[name];
 
 		return cb.createTag( value );

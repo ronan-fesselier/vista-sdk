@@ -199,7 +199,7 @@ namespace dnv::vista::sdk
 		std::unordered_map<VisVersion, GmodVersioningNode> m_versioningsMap;
 
 		//----------------------------------------------
-		// Private Helper Methods
+		// Private helper methods
 		//----------------------------------------------
 
 		/**

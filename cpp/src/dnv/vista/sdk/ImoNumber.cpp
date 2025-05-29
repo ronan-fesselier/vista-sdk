@@ -132,7 +132,7 @@ namespace dnv::vista::sdk
 
 		bool isValid = ( providedCheckDigit == calculatedCheckDigit );
 
-		SPDLOG_DEBUG( "Validating IMO {}: checksum={}, calculated={}, provided={}, valid={}", imoNumber, checkSum, calculatedCheckDigit, providedCheckDigit, isValid );
+		SPDLOG_TRACE( "Validating IMO {}: checksum={}, calculated={}, provided={}, valid={}", imoNumber, checkSum, calculatedCheckDigit, providedCheckDigit, isValid );
 
 		return isValid;
 	}

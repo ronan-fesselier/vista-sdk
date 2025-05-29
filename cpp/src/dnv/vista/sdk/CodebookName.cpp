@@ -61,7 +61,7 @@ namespace dnv::vista::sdk
 
 		if ( it != s_prefixMap.end() )
 		{
-			SPDLOG_DEBUG( "Successfully mapped prefix '{}' to CodebookName enum value {}",
+			SPDLOG_TRACE( "Successfully mapped prefix '{}' to CodebookName enum value {}",
 				prefix, static_cast<int>( it->second ) );
 
 			return it->second;

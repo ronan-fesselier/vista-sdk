@@ -46,7 +46,7 @@ namespace dnv::vista::sdk
 
 				attemptedPaths += path + ", ";
 				file.clear();
-				SPDLOG_DEBUG( "Failed to open test data file: {}", path );
+				SPDLOG_TRACE( "Failed to open test data file: {}", path );
 			}
 
 			if ( !fileOpened )

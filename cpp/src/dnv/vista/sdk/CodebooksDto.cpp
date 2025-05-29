@@ -67,7 +67,7 @@ namespace dnv::vista::sdk
 			}
 
 			std::string tempName = json.at( NAME_KEY ).get<std::string>();
-			SPDLOG_DEBUG( "Attempting to parse CodebookDto with name: {}", tempName );
+			SPDLOG_TRACE( "Attempting to parse CodebookDto with name: {}", tempName );
 
 			ValuesMap tempValues;
 			size_t totalValuesParsed = 0;
@@ -107,7 +107,7 @@ namespace dnv::vista::sdk
 						}
 					}
 
-					SPDLOG_DEBUG( "Parsed {} groups with {} total values for codebook '{}'", tempValues.size(), totalValuesParsed, tempName );
+					SPDLOG_TRACE( "Parsed {} groups with {} total values for codebook '{}'", tempValues.size(), totalValuesParsed, tempName );
 				}
 			}
 			else
@@ -119,7 +119,7 @@ namespace dnv::vista::sdk
 			CodebookDto resultDto( std::move( tempName ), std::move( tempValues ) );
 
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Successfully parsed CodebookDto '{}' in {} ms", resultDto.name(), duration.count() );
+			SPDLOG_TRACE( "Successfully parsed CodebookDto '{}' in {} ms", resultDto.name(), duration.count() );
 
 			return std::optional<CodebookDto>{ std::move( resultDto ) };
 		}
@@ -174,7 +174,7 @@ namespace dnv::vista::sdk
 		/* Directly construct JSON object from members */
 		nlohmann::json obj = { { NAME_KEY, m_name }, { VALUES_KEY, m_values } };
 
-		SPDLOG_DEBUG( "Serialized CodebookDto '{}' with {} groups", m_name, m_values.size() );
+		SPDLOG_TRACE( "Serialized CodebookDto '{}' with {} groups", m_name, m_values.size() );
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
 		SPDLOG_INFO( "Serialized CodebookDto '{}' with {} groups in {} ms", m_name, m_values.size(), duration.count() );
 
@@ -267,7 +267,7 @@ namespace dnv::vista::sdk
 			}
 
 			std::string tempVisVersion = json.at( VIS_RELEASE_KEY ).get<std::string>();
-			SPDLOG_DEBUG( "Attempting to parse CodebooksDto for VIS version: {}", tempVisVersion );
+			SPDLOG_TRACE( "Attempting to parse CodebooksDto for VIS version: {}", tempVisVersion );
 
 			Items tempItems;
 			size_t totalItems = 0;
@@ -285,7 +285,7 @@ namespace dnv::vista::sdk
 					const auto& itemsArray = json.at( ITEMS_KEY );
 					totalItems = itemsArray.size();
 					tempItems.reserve( totalItems );
-					SPDLOG_DEBUG( "Found {} codebook items to parse", totalItems );
+					SPDLOG_TRACE( "Found {} codebook items to parse", totalItems );
 
 					for ( const auto& itemJson : itemsArray )
 					{
@@ -302,7 +302,7 @@ namespace dnv::vista::sdk
 						}
 					}
 
-					SPDLOG_DEBUG( "Successfully parsed {}/{} codebooks for VIS version {}", successCount, totalItems, tempVisVersion );
+					SPDLOG_TRACE( "Successfully parsed {}/{} codebooks for VIS version {}", successCount, totalItems, tempVisVersion );
 
 					/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory. */
 					if ( totalItems > 0 && static_cast<double>( successCount ) < static_cast<double>( totalItems ) * 0.9 )
@@ -321,7 +321,7 @@ namespace dnv::vista::sdk
 			CodebooksDto resultDto( std::move( tempVisVersion ), std::move( tempItems ) );
 
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Successfully parsed CodebooksDto with {} items for VIS version {} in {} ms", resultDto.items().size(), resultDto.visVersion(), duration.count() );
+			SPDLOG_TRACE( "Successfully parsed CodebooksDto with {} items for VIS version {} in {} ms", resultDto.items().size(), resultDto.visVersion(), duration.count() );
 
 			return std::optional<CodebooksDto>{ std::move( resultDto ) };
 		}
@@ -376,7 +376,7 @@ namespace dnv::vista::sdk
 		/* Directly construct JSON object from members */
 		nlohmann::json obj = { { VIS_RELEASE_KEY, m_visVersion }, { ITEMS_KEY, m_items } };
 
-		SPDLOG_DEBUG( "Serialized CodebooksDto with {} items for VIS version {}", m_items.size(), m_visVersion );
+		SPDLOG_TRACE( "Serialized CodebooksDto with {} items for VIS version {}", m_items.size(), m_visVersion );
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
 		SPDLOG_INFO( "Serialized CodebooksDto with {} items for VIS version {} in {} ms", m_items.size(), m_visVersion, duration.count() );
 
