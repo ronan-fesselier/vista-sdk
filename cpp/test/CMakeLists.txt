@@ -26,6 +26,10 @@ set(TEST_SOURCES
 	UniversalIdTests.cpp
 )
 
+if(VISTA_SDK_CPP_BUILD_SMOKE_TESTS)
+	list(APPEND TEST_SOURCES GmodVersioningSmokeTests.cpp)
+endif()
+
 # --- Copy test data at build time ---
 if(EXISTS ${VISTA_SDK_TEST_DATA_DIR})
 	set(VISTA_SDK_CPP_TEST_DATA_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testdata)

@@ -15,6 +15,7 @@ include(Dependencies.cmake)
 
 # --- Build options ---
 option(VISTA_SDK_CPP_BUILD_TESTS           "Build tests"                                               ON     )
+option(VISTA_SDK_CPP_BUILD_SMOKE_TESTS     "Build smoke tests"                                         ON     )
 option(VISTA_SDK_CPP_COPY_RESOURCES        "Copy resources to build directory"                         ON     )
 option(VISTA_SDK_CPP_BUILD_SAMPLES         "Build vista-sdk-cpp samples"                               OFF    )
 option(VISTA_SDK_CPP_BUILD_DOCUMENTATION   "Build vista-sdk-cpp doxygen documentation"                 OFF    )

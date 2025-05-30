@@ -162,7 +162,7 @@ namespace dnv::vista::sdk
 		}
 		size *= 2;
 
-		SPDLOG_INFO( "Building CHD dictionary with {} items, table size {}", items.size(), size );
+		SPDLOG_TRACE( "Building CHD dictionary with {} items, table size {}", items.size(), size );
 
 		auto hashBuckets{ std::vector<std::vector<std::pair<unsigned, uint32_t>>>( size ) };
 		for ( auto& bucket : hashBuckets )
@@ -325,7 +325,7 @@ namespace dnv::vista::sdk
 
 		auto end = std::chrono::high_resolution_clock::now();
 		[[maybe_unused]] auto duration = std::chrono::duration<double, std::milli>( end - start ).count();
-		SPDLOG_INFO( "CHD Dictionary construction complete: {} entries, {} seeds in {:.2f}ms", m_table.size(), m_seeds.size(), duration );
+		SPDLOG_DEBUG( "CHD Dictionary construction complete: {} entries, {} seeds in {:.2f}ms", m_table.size(), m_seeds.size(), duration );
 
 		[[maybe_unused]] auto memoryUsage = sizeof( typename decltype( m_table )::value_type ) * m_table.capacity() + sizeof( int ) * m_seeds.capacity();
 		SPDLOG_INFO( "CHD Dictionary memory usage: {:.2f}KB ({:.2f}MB) ({} table entries, {} seeds)", static_cast<float>( memoryUsage ) / 1024.0f, static_cast<float>( memoryUsage ) / ( 1024.0f * 1024.0f ), m_table.size(), m_seeds.size() );
@@ -422,7 +422,7 @@ namespace dnv::vista::sdk
 		{
 			static thread_local size_t consecutiveMismatches = 0;
 
-			if ( !stringsEqual( key, kvp->first ) )
+			if ( key != kvp->first )
 			{
 				if ( !kvp->first.empty() )
 				{
@@ -541,7 +541,7 @@ namespace dnv::vista::sdk
 		if ( s_hashCache[cacheIndex].key == key )
 		{
 			++s_cacheHits;
-			if ( s_cacheHits % 1000 == 0 )
+			if ( s_cacheHits % 10000 == 0 )
 			{
 				SPDLOG_TRACE( "Hash cache hit for '{}' (hits: {}, rate: {:.1f}%)", key, s_cacheHits, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 			}
@@ -550,7 +550,7 @@ namespace dnv::vista::sdk
 		}
 		++s_cacheMisses;
 
-		if ( s_cacheMisses % 1000 == 0 )
+		if ( s_cacheMisses % 10000 == 0 )
 		{
 			SPDLOG_INFO( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 		}
@@ -575,42 +575,6 @@ namespace dnv::vista::sdk
 		}
 
 		return hashValue;
-	}
-
-	//---------------------------
-	// Utility
-	//---------------------------
-
-	template <typename TValue>
-	bool ChdDictionary<TValue>::stringsEqual( std::string_view a, const std::string& b ) noexcept
-	{
-		const auto aLen{ a.size() };
-
-		if ( aLen != b.size() )
-		{
-			return false;
-		}
-
-		if ( a.empty() )
-		{
-			return true;
-		}
-
-		if ( aLen < 16 )
-		{
-			for ( size_t i{ 0 }; i < aLen; ++i )
-			{
-				if ( a[i] != b[i] )
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-		else
-		{
-			return std::memcmp( a.data(), b.data(), aLen ) == 0;
-		}
 	}
 
 	//----------------------------------------------

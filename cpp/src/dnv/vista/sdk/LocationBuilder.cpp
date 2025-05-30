@@ -15,7 +15,7 @@ namespace dnv::vista::sdk
 	namespace
 	{
 		//=====================================================================
-		//  Static helper methods
+		// Static helper methods
 		//=====================================================================
 
 		template <typename T>

@@ -43,7 +43,16 @@ namespace dnv::vista::sdk
 
 	Gmod::Gmod( VisVersion version, const GmodDto& dto )
 		: m_visVersion{ version },
-		  m_rootNode{ nullptr }
+		  m_rootNode{ nullptr },
+		  m_nodeMap{ [&dto, version]() {
+			  std::vector<std::pair<std::string, GmodNode>> nodePairs;
+			  nodePairs.reserve( dto.items().size() );
+			  for ( const auto& nodeDto : dto.items() )
+			  {
+				  nodePairs.emplace_back( nodeDto.code(), GmodNode( version, nodeDto ) );
+			  }
+			  return ChdDictionary<GmodNode>( std::move( nodePairs ) );
+		  }() }
 	{
 		SPDLOG_TRACE( "Gmod constructor: Starting for VIS version {}", dto.visVersion() );
 
@@ -55,8 +64,6 @@ namespace dnv::vista::sdk
 		}
 
 		SPDLOG_INFO( "Gmod constructor: Created {} initial GmodNode objects for VIS version {}.", nodePairs.size(), VisVersionExtensions::toVersionString( version ) );
-
-		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
 		SPDLOG_INFO( "Gmod constructor: ChdDictionary m_nodeMap constructed with {} items.", m_nodeMap.size() );
 
 		if ( ( m_nodeMap.begin() == m_nodeMap.end() ) && !dto.items().empty() )

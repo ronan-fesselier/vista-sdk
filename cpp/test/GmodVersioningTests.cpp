@@ -31,23 +31,17 @@ namespace dnv::vista::sdk::tests
 
 				try
 				{
-					SPDLOG_INFO( "Loading versioning data" );
 					auto versioningData = m_vis->gmodVersioningDto();
 					m_gmodVersioning = std::make_unique<GmodVersioning>( versioningData );
-					SPDLOG_INFO( "Successfully loaded versioning data with {} entries", versioningData.size() );
 				}
 				catch ( [[maybe_unused]] const std::exception& ex )
 				{
-					SPDLOG_ERROR( "Failed to load versioning data: {}", ex.what() );
 					std::unordered_map<std::string, GmodVersioningDto> emptyDto;
 					m_gmodVersioning = std::make_unique<GmodVersioning>( emptyDto );
-					SPDLOG_WARN( "Using empty versioning data for tests" );
 				}
 
 				m_gmod_v3_4a = &m_vis->gmod( VisVersion::v3_4a );
 				m_gmod_v3_6a = &m_vis->gmod( VisVersion::v3_6a );
-
-				SPDLOG_INFO( "GmodVersioningTest setup complete" );
 
 				ASSERT_NE( m_gmod_v3_4a, nullptr );
 				ASSERT_NE( m_gmod_v3_6a, nullptr );
@@ -299,7 +293,6 @@ namespace dnv::vista::sdk::tests
 
 		auto targetPath = vis.convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
 
-		SPDLOG_INFO( "Source path!: {}", sourcePathOpt->toString() );
 		EXPECT_EQ( testData.inputPath, sourcePathOpt->toString() );
 
 		EXPECT_TRUE( parsedExpectedPath );
@@ -361,7 +354,6 @@ namespace dnv::vista::sdk::tests
 
 		ASSERT_TRUE( targetPath.has_value() ) << "Path conversion failed for input: " << testData.inputPath;
 
-		SPDLOG_INFO( "Source full path: {}", sourcePathOpt->toFullPathString() );
 		EXPECT_EQ( testData.inputPath, sourcePathOpt->toFullPathString() );
 
 		EXPECT_TRUE( parsedPath );
