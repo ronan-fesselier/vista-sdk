@@ -153,7 +153,7 @@ namespace dnv::vista::sdk
 		[[nodiscard]] size_t hashCode() const noexcept;
 
 		//----------------------------
-		//  Metadata accessors
+		// Metadata accessors
 		//----------------------------
 
 		/**
