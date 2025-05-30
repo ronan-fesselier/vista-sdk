@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 		constexpr uint32_t FNV_PRIME{ 0x01000193 };
 
 		/** @brief Number of entries in the thread-local hash lookup cache. */
-		static inline constexpr size_t HASH_CACHE_SIZE = 128;
+		static inline constexpr size_t HASH_CACHE_SIZE = 2048;
 
 		//----------------------------------------------
 		// CPU feature detection
@@ -275,7 +275,7 @@ namespace dnv::vista::sdk
 		ChdDictionary() = default;
 
 		/** @brief Copy constructor */
-		ChdDictionary( const ChdDictionary& other ) = delete;
+		ChdDictionary( const ChdDictionary& other ) = default;
 
 		/** @brief Move constructor */
 		ChdDictionary( ChdDictionary&& other ) noexcept = default;
@@ -288,7 +288,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		ChdDictionary& operator=( const ChdDictionary& other ) = delete;
+		ChdDictionary& operator=( const ChdDictionary& other ) = default;
 
 		/** @brief Move assignment operator */
 		ChdDictionary& operator=( ChdDictionary&& other ) noexcept = default;
@@ -398,18 +398,6 @@ namespace dnv::vista::sdk
 		 * @return The calculated 32-bit hash value.
 		 */
 		static uint32_t hash( std::string_view key );
-
-		//---------------------------
-		// Utility
-		//---------------------------
-
-		/**
-		 * @brief Performs a no-exception comparison between a `std::string_view` and a `std::string`.
-		 * @param[in] a The first string view to compare.
-		 * @param[in] b The second string to compare.
-		 * @return `true` if the contents of `a` and `b` are identical, `false` otherwise.
-		 */
-		[[nodiscard]] static bool stringsEqual( std::string_view a, const std::string& b ) noexcept;
 
 		//----------------------------------------------
 		// Private member variables
