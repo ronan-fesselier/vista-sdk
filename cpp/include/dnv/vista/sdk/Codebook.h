@@ -22,7 +22,29 @@ namespace dnv::vista::sdk
 	enum class CodebookName;
 
 	//=====================================================================
-	// Position Validation
+	// Heterogeneous lookup
+	//=====================================================================
+
+	struct StringHash
+	{
+		using is_transparent = void;
+
+		[[nodiscard]] size_t operator()( std::string_view sv ) const noexcept;
+		[[nodiscard]] size_t operator()( const std::string& s ) const noexcept;
+	};
+
+	struct StringEqual
+	{
+		using is_transparent = void;
+
+		[[nodiscard]] bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept;
+		[[nodiscard]] bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
+		[[nodiscard]] bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
+		[[nodiscard]] bool operator()( std::string_view lhs, std::string_view rhs ) const noexcept;
+	};
+
+	//=====================================================================
+	// PositionValidationResults class
 	//=====================================================================
 
 	/**
@@ -73,22 +95,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move assignment operator */
 		PositionValidationResults& operator=( PositionValidationResults&& ) noexcept = delete;
-
-		//----------------------------------------------
-		// Public static methods
-		//----------------------------------------------
-
-		/**
-		 * @brief Converts a string representation to its corresponding `PositionValidationResult` enum value.
-		 * @param[in] name The case-sensitive string name of the validation result (e.g., "Valid", "InvalidOrder").
-		 * @return The matching `PositionValidationResult` enum value.
-		 * @throws std::invalid_argument If the provided `name` does not correspond to any known validation result.
-		 */
-		static PositionValidationResult fromString( std::string_view name );
 	};
 
 	//=====================================================================
-	// Standard Values Container
+	// CodebookStandardValues class
 	//=====================================================================
 
 	/**
@@ -104,7 +114,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Iterator type for traversing standard values
 		 */
-		using iterator = std::unordered_set<std::string>::const_iterator;
+		using Iterator = std::unordered_set<std::string>::const_iterator;
 
 		//----------------------------------------------
 		// Construction / destruction
@@ -115,13 +125,13 @@ namespace dnv::vista::sdk
 		 * @param name The codebook name
 		 * @param standardValues The set of standard values
 		 */
-		explicit CodebookStandardValues( CodebookName name, const std::unordered_set<std::string>& standardValues );
+		explicit CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringHash, StringEqual>&& standardValues );
 
 		/** @brief Default constructor. */
 		CodebookStandardValues() = default;
 
 		/** @brief Copy constructor */
-		CodebookStandardValues( const CodebookStandardValues& ) = delete;
+		CodebookStandardValues( const CodebookStandardValues& ) = default;
 
 		/** @brief Move constructor */
 		CodebookStandardValues( CodebookStandardValues&& ) noexcept = default;
@@ -134,27 +144,27 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		CodebookStandardValues& operator=( const CodebookStandardValues& ) = delete;
+		CodebookStandardValues& operator=( const CodebookStandardValues& ) = default;
 
 		/** @brief Move assignment operator */
 		CodebookStandardValues& operator=( CodebookStandardValues&& ) noexcept = default;
 
 		//----------------------------------------------
-		// Public Methods
+		// Public methods
 		//----------------------------------------------
 
 		/**
 		 * @brief Get the number of standard values
 		 * @return The count of standard values
 		 */
-		[[nodiscard]] size_t count() const;
+		[[nodiscard]] size_t count() const noexcept;
 
 		/**
 		 * @brief Check if a value is contained in standard values (string_view overload)
 		 * @param tagValue The value to check
 		 * @return True if the value is in standard values or is a numeric position
 		 */
-		bool contains( std::string_view tagValue ) const;
+		bool contains( std::string_view tagValue ) const noexcept;
 
 		//----------------------------------------------
 		// Iteration
@@ -164,13 +174,13 @@ namespace dnv::vista::sdk
 		 * @brief Get iterator to the beginning
 		 * @return Iterator to the first standard value
 		 */
-		[[nodiscard]] iterator begin() const;
+		[[nodiscard]] Iterator begin() const noexcept;
 
 		/**
 		 * @brief Get iterator to the end
 		 * @return Iterator past the last standard value
 		 */
-		[[nodiscard]] iterator end() const;
+		[[nodiscard]] Iterator end() const noexcept;
 
 	private:
 		//----------------------------------------------
@@ -181,11 +191,11 @@ namespace dnv::vista::sdk
 		CodebookName m_name;
 
 		/** @brief The set of standard values */
-		std::unordered_set<std::string> m_standardValues;
+		std::unordered_set<std::string, StringHash, StringEqual> m_standardValues;
 	};
 
 	//=====================================================================
-	// Groups Container
+	// CodebookGroups class
 	//=====================================================================
 
 	/**
@@ -213,13 +223,13 @@ namespace dnv::vista::sdk
 		 * @brief Construct with groups
 		 * @param groups The set of groups
 		 */
-		explicit CodebookGroups( const std::unordered_set<std::string>& groups );
+		explicit CodebookGroups( std::unordered_set<std::string, StringHash, StringEqual>&& groups );
 
 		/** @brief Default constructor. */
 		CodebookGroups() = default;
 
 		/** @brief Copy constructor */
-		CodebookGroups( const CodebookGroups& ) = delete;
+		CodebookGroups( const CodebookGroups& ) = default;
 
 		/** @brief Move constructor */
 		CodebookGroups( CodebookGroups&& ) noexcept = default;
@@ -232,27 +242,27 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		CodebookGroups& operator=( const CodebookGroups& ) = delete;
+		CodebookGroups& operator=( const CodebookGroups& ) = default;
 
 		/** @brief Move assignment operator */
 		CodebookGroups& operator=( CodebookGroups&& ) noexcept = default;
 
 		//----------------------------------------------
-		// Public Methods
+		// Public methods
 		//----------------------------------------------
 
 		/**
 		 * @brief Get the number of groups
 		 * @return The count of groups
 		 */
-		[[nodiscard]] size_t count() const;
+		[[nodiscard]] size_t count() const noexcept;
 
 		/**
 		 * @brief Check if a group is contained (string_view overload)
 		 * @param group The group to check (as a `std::string_view`)
 		 * @return True if the group exists
 		 */
-		bool contains( std::string_view group ) const;
+		bool contains( std::string_view group ) const noexcept;
 
 		//----------------------------------------------
 		// Iteration
@@ -262,13 +272,13 @@ namespace dnv::vista::sdk
 		 * @brief Get iterator to the beginning
 		 * @return Iterator to the first group
 		 */
-		[[nodiscard]] Iterator begin() const;
+		[[nodiscard]] Iterator begin() const noexcept;
 
 		/**
 		 * @brief Get iterator to the end
 		 * @return Iterator past the last group
 		 */
-		[[nodiscard]] Iterator end() const;
+		[[nodiscard]] Iterator end() const noexcept;
 
 	private:
 		//----------------------------------------------
@@ -276,11 +286,11 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief The set of groups */
-		std::unordered_set<std::string> m_groups;
+		std::unordered_set<std::string, StringHash, StringEqual> m_groups;
 	};
 
 	//=====================================================================
-	// Main Codebook Class
+	// Codebook class
 	//=====================================================================
 
 	/**
@@ -308,7 +318,7 @@ namespace dnv::vista::sdk
 		Codebook() = default;
 
 		/** @brief Copy constructor */
-		Codebook( const Codebook& ) = delete;
+		Codebook( const Codebook& ) = default;
 
 		/** @brief Move constructor */
 		Codebook( Codebook&& ) noexcept = default;
@@ -321,7 +331,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		Codebook& operator=( const Codebook& ) = delete;
+		Codebook& operator=( const Codebook& ) = default;
 
 		/** @brief Move assignment operator */
 		Codebook& operator=( Codebook&& ) noexcept = default;
@@ -334,39 +344,47 @@ namespace dnv::vista::sdk
 		 * @brief Get the codebook name
 		 * @return The codebook name
 		 */
-		[[nodiscard]] CodebookName name() const;
+		[[nodiscard]] CodebookName name() const noexcept;
 
 		/**
 		 * @brief Get the groups
 		 * @return Reference to the groups container
 		 */
-		[[nodiscard]] const CodebookGroups& groups() const;
+		[[nodiscard]] const CodebookGroups& groups() const noexcept;
 
 		/**
 		 * @brief Get the standard values
 		 * @return Reference to the standard values container
 		 */
-		[[nodiscard]] const CodebookStandardValues& standardValues() const;
+		[[nodiscard]] const CodebookStandardValues& standardValues() const noexcept;
 
 		/**
 		 * @brief Get the raw data
 		 * @return Map of groups to their values
 		 */
-		[[nodiscard]] const std::unordered_map<std::string, std::vector<std::string>>& rawData() const;
+		[[nodiscard]] const std::unordered_map<std::string, std::vector<std::string>>& rawData() const noexcept;
+
+		//----------------------------------------------
+		// State inspection methods
+		//----------------------------------------------
 
 		/**
 		 * @brief Check if a group exists
 		 * @param group The group to check
 		 * @return True if the group exists
 		 */
-		[[nodiscard]] bool hasGroup( std::string_view group ) const;
+		[[nodiscard]] bool hasGroup( std::string_view group ) const noexcept;
 
 		/**
 		 * @brief Check if a value is a standard value
 		 * @param value The value to check
 		 * @return True if the value is standard
 		 */
-		[[nodiscard]] bool hasStandardValue( std::string_view value ) const;
+		[[nodiscard]] bool hasStandardValue( std::string_view value ) const noexcept;
+
+		//----------------------------------------------
+		// Metadata tag creation
+		//----------------------------------------------
 
 		/**
 		 * @brief Try to create a metadata tag
@@ -381,7 +399,11 @@ namespace dnv::vista::sdk
 		 * @return The metadata tag
 		 * @throws std::invalid_argument If the value is invalid
 		 */
-		MetadataTag createTag( const std::string& value ) const;
+		MetadataTag createTag( std::string_view value ) const;
+
+		//----------------------------------------------
+		// Position validation
+		//----------------------------------------------
 
 		/**
 		 * @brief Validates a position string according to the rules defined for position codebooks.
@@ -404,7 +426,7 @@ namespace dnv::vista::sdk
 		CodebookName m_name;
 
 		/** @brief Mapping from values to their group names */
-		std::unordered_map<std::string, std::string_view> m_groupMap;
+		std::unordered_map<std::string, std::string, StringHash, StringEqual> m_groupMap;
 
 		/** @brief Container for standard values */
 		CodebookStandardValues m_standardValues;

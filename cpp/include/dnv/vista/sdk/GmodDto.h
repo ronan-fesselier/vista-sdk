@@ -27,7 +27,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Shorthand for the normal assignment names map type */
@@ -168,7 +168,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -227,7 +227,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Type representing a relation between nodes (typically a pair of node codes) */
@@ -326,7 +326,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//-------------------------------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//-------------------------------------------------------------------
 
 		/*

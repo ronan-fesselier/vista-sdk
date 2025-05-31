@@ -54,8 +54,6 @@ namespace dnv::vista::sdk
 			  return ChdDictionary<GmodNode>( std::move( nodePairs ) );
 		  }() }
 	{
-		SPDLOG_TRACE( "Gmod constructor: Starting for VIS version {}", dto.visVersion() );
-
 		std::vector<std::pair<std::string, GmodNode>> nodePairs;
 		nodePairs.reserve( dto.items().size() );
 		for ( const auto& nodeDto : dto.items() )
@@ -63,16 +61,13 @@ namespace dnv::vista::sdk
 			nodePairs.emplace_back( nodeDto.code(), GmodNode( version, nodeDto ) );
 		}
 
-		SPDLOG_INFO( "Gmod constructor: Created {} initial GmodNode objects for VIS version {}.", nodePairs.size(), VisVersionExtensions::toVersionString( version ) );
-		SPDLOG_INFO( "Gmod constructor: ChdDictionary m_nodeMap constructed with {} items.", m_nodeMap.size() );
-
 		if ( ( m_nodeMap.begin() == m_nodeMap.end() ) && !dto.items().empty() )
 		{
 			SPDLOG_ERROR( "Gmod constructor: m_nodeMap is empty after construction despite non-empty DTO items for VIS version {}. Aborting further GMOD initialization.", VisVersionExtensions::toVersionString( version ) );
+
 			return;
 		}
 
-		SPDLOG_INFO( "Gmod constructor: Starting pointer fix-up for children and parents within m_nodeMap..." );
 		for ( const auto& relation : dto.relations() )
 		{
 			if ( relation.size() >= 2 )
@@ -92,7 +87,7 @@ namespace dnv::vista::sdk
 					}
 					catch ( [[maybe_unused]] const std::out_of_range& oorChild )
 					{
-						SPDLOG_WARN( "Gmod constructor (linking): Child node '{}' (for parent '{}') not found in m_nodeMap. Relation skipped. Error: {}", childCode, parentCode, oorChild.what() );
+						SPDLOG_ERROR( "Gmod constructor (linking): Child node '{}' (for parent '{}') not found in m_nodeMap. Relation skipped. Error: {}", childCode, parentCode, oorChild.what() );
 					}
 					catch ( [[maybe_unused]] const std::exception& exChildOrLink )
 					{
@@ -101,7 +96,7 @@ namespace dnv::vista::sdk
 				}
 				catch ( [[maybe_unused]] const std::out_of_range& oorParent )
 				{
-					SPDLOG_WARN( "Gmod constructor (linking): Parent node '{}' (for child '{}') not found in m_nodeMap. Relation skipped. Error: {}", parentCode, childCode, oorParent.what() );
+					SPDLOG_ERROR( "Gmod constructor (linking): Parent node '{}' (for child '{}') not found in m_nodeMap. Relation skipped. Error: {}", parentCode, childCode, oorParent.what() );
 				}
 				catch ( [[maybe_unused]] const std::exception& exParent )
 				{
@@ -140,8 +135,6 @@ namespace dnv::vista::sdk
 		try
 		{
 			m_rootNode = &m_nodeMap["VE"];
-
-			SPDLOG_INFO( "Gmod constructor: m_rootNode initialized from m_nodeMap, code: '{}'", m_rootNode->code() );
 		}
 		catch ( [[maybe_unused]] const std::out_of_range& oor )
 		{
@@ -166,8 +159,6 @@ namespace dnv::vista::sdk
 			  return ChdDictionary<GmodNode>( std::move( pairs ) );
 		  }() }
 	{
-		SPDLOG_CRITICAL( "Creating Gmod from existing map with {} nodes for VIS version {}.", nodeMap.size(), VisVersionExtensions::toVersionString( version ) );
-
 		try
 		{
 			m_rootNode = &m_nodeMap["VE"];
@@ -227,7 +218,6 @@ namespace dnv::vista::sdk
 	{
 		if ( !m_rootNode )
 		{
-			SPDLOG_ERROR( "Gmod::rootNode() called when m_rootNode is null!" );
 			throw std::runtime_error( "Root node is not initialized or 'VE' was not found." );
 		}
 		return *m_rootNode;
@@ -245,18 +235,21 @@ namespace dnv::vista::sdk
 			if ( code.empty() )
 			{
 				SPDLOG_WARN( "TryGetNode: Attempted to look up empty node code" );
+
 				return false;
 			}
 
 			if ( !m_nodeMap.tryGetValue( code, node ) )
 			{
 				SPDLOG_WARN( "TryGetNode: Node '{}' not found in GMOD", code );
+
 				return false;
 			}
 
 			if ( node == nullptr )
 			{
-				SPDLOG_ERROR( "TryGetNode: m_nodeMap.tryGetValue succeeded but outNodePtr is null for code '{}'", code );
+				SPDLOG_WARN( "TryGetNode: m_nodeMap.tryGetValue succeeded but outNodePtr is null for code '{}'", code );
+
 				return false;
 			}
 
@@ -265,7 +258,9 @@ namespace dnv::vista::sdk
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
 			SPDLOG_ERROR( "Exception in TryGetNode for '{}': {}", code, ex.what() );
+
 			node = nullptr;
+
 			return false;
 		}
 	}
@@ -373,7 +368,7 @@ namespace dnv::vista::sdk
 	// Construction / destruction
 	//-----------------------------
 
-	Gmod::Enumerator::Enumerator( const ChdDictionary<GmodNode>* map )
+	Gmod::Enumerator::Enumerator( const ChdDictionary<GmodNode>* map ) noexcept
 		: m_sourceMapPtr( map ), m_isInitialState( true )
 	{
 		if ( m_sourceMapPtr )
@@ -383,7 +378,7 @@ namespace dnv::vista::sdk
 	}
 
 	//-----------------------------
-	// Iteration Interface
+	// Iteration interface
 	//-----------------------------
 
 	const GmodNode& Gmod::Enumerator::current() const
@@ -395,7 +390,7 @@ namespace dnv::vista::sdk
 		return m_currentMapIterator->second;
 	}
 
-	bool Gmod::Enumerator::next()
+	bool Gmod::Enumerator::next() noexcept
 	{
 		if ( !m_sourceMapPtr || m_sourceMapPtr->isEmpty() )
 		{
@@ -417,7 +412,7 @@ namespace dnv::vista::sdk
 		return false;
 	}
 
-	void Gmod::Enumerator::reset()
+	void Gmod::Enumerator::reset() noexcept
 	{
 		m_isInitialState = true;
 		if ( m_sourceMapPtr )

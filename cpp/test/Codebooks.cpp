@@ -34,9 +34,11 @@ namespace dnv::vista::sdk
 				ASSERT_NE( nullptr, codebooksPtr );
 
 				const Codebook* positionCodebookPtr = nullptr;
+
 				ASSERT_NO_THROW( {
-					positionCodebookPtr = &codebooksPtr->codebook( CodebookName::Position );
+					positionCodebookPtr = &( *codebooksPtr )[CodebookName::Position];
 				} );
+
 				ASSERT_NE( nullptr, positionCodebookPtr );
 			}
 		}
@@ -51,7 +53,7 @@ namespace dnv::vista::sdk
 
 			const auto& codebooks = vis.codebooks( VisVersion::v3_4a );
 
-			ASSERT_TRUE( codebooks[CodebookName::Position].hasStandardValue( "centre" ) );
+			ASSERT_TRUE( codebooks.codebook( CodebookName::Position ).hasStandardValue( "centre" ) );
 		}
 
 		//----------------------------------------------

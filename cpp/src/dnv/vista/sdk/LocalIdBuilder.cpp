@@ -7,6 +7,7 @@
 
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 
+#include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/LocalIdParsingErrorBuilder.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
@@ -70,6 +71,37 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::IMONumber:
 				default:
 					return { metaIndex, endOfMetaIndex };
+			}
+		}
+
+		static std::string codebookNametoString( CodebookName name )
+		{
+			switch ( name )
+			{
+				case CodebookName::Position:
+					return "Position";
+				case CodebookName::Quantity:
+					return "Quantity";
+				case CodebookName::Calculation:
+					return "Calculation";
+				case CodebookName::State:
+					return "State";
+				case CodebookName::Content:
+					return "Content";
+				case CodebookName::Command:
+					return "Command";
+				case CodebookName::Type:
+					return "Type";
+				case CodebookName::FunctionalServices:
+					return "FunctionalServices";
+				case CodebookName::MaintenanceCategory:
+					return "MaintenanceCategory";
+				case CodebookName::ActivityType:
+					return "ActivityType";
+				case CodebookName::Detail:
+					return "Detail";
+				default:
+					throw std::invalid_argument( "Unknown codebook: " + std::to_string( static_cast<int>( name ) ) );
 			}
 		}
 	}
@@ -430,12 +462,10 @@ namespace dnv::vista::sdk
 	{
 		if ( isEmpty() )
 		{
-			SPDLOG_ERROR( "Cannot build LocalId: builder is empty." );
 			throw std::invalid_argument( "Cannot build LocalId: builder is empty." );
 		}
 		if ( !isValid() )
 		{
-			SPDLOG_ERROR( "Cannot build LocalId: builder state is invalid." );
 			throw std::invalid_argument( "Cannot build LocalId: builder state is invalid." );
 		}
 
@@ -1069,8 +1099,6 @@ namespace dnv::vista::sdk
 							}
 							if ( !parsedPath )
 							{
-								SPDLOG_ERROR( "parsedPath" );
-
 								errorBuilder.addError( LocalIdParsingState::PrimaryItem,
 									"Invalid GmodPath in Primary item: " + std::string( path ) );
 							}
@@ -1599,7 +1627,7 @@ namespace dnv::vista::sdk
 		auto value = segment.substr( prefixIndex + 1 );
 		if ( value.empty() )
 		{
-			std::string codebookStr = CodebookNames::toString( codebookName );
+			auto codebookStr = codebookNametoString( codebookName );
 			errorBuilder.addError( state,
 				"Invalid " + codebookStr + " metadata tag: missing value" );
 			return false;
@@ -1608,7 +1636,7 @@ namespace dnv::vista::sdk
 		tag = codebooks->tryCreateTag( codebookName, std::string( value ) );
 		if ( !tag.has_value() )
 		{
-			std::string codebookStr = CodebookNames::toString( codebookName );
+			auto codebookStr = codebookNametoString( codebookName );
 
 			if ( prefixIndex == tildeIndex )
 			{
@@ -1627,7 +1655,7 @@ namespace dnv::vista::sdk
 
 		if ( prefixIndex == dashIndex && tag.value().prefix() == '~' )
 		{
-			std::string codebookStr = CodebookNames::toString( codebookName );
+			auto codebookStr = codebookNametoString( codebookName );
 			errorBuilder.addError( state,
 				"Invalid " + codebookStr + " metadata tag: '" + std::string( value ) + "'. Use prefix '~' for custom values" );
 		}

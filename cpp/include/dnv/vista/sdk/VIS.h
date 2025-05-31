@@ -187,7 +187,7 @@ namespace dnv::vista::sdk
 
 	public:
 		/** @brief Destructor */
-		virtual ~VIS() = default;
+		virtual ~VIS();
 
 		//----------------------------------------------
 		// Assignment operators
@@ -480,7 +480,7 @@ namespace dnv::vista::sdk
 			Cache& operator=( Cache&& ) = delete;
 
 			//------------------------------------------
-			// Public Methods
+			// Public methods
 			//------------------------------------------
 
 			/**
@@ -494,6 +494,8 @@ namespace dnv::vista::sdk
 			 * @return A reference to the cached value (either existing or newly created).
 			 */
 			V& getOrCreate( const K& key, std::function<V()> factory ) const;
+
+			void teardown() const;
 
 		private:
 			//------------------------------------------
@@ -529,7 +531,7 @@ namespace dnv::vista::sdk
 			// Private member variables
 			//----------------------------------------------
 
-			mutable std::mutex m_mutex;
+			mutable std::recursive_mutex m_mutex;
 			mutable std::unordered_map<K, CacheItem> m_cache;
 			mutable std::chrono::steady_clock::time_point m_lastCleanup;
 		};
@@ -548,7 +550,7 @@ namespace dnv::vista::sdk
 		Cache<VisVersion, CodebooksDto> m_codebooksDtoCache;
 
 		/** @brief Cache for processed Codebooks objects, keyed by VisVersion. */
-		Cache<VisVersion, Codebooks> m_codebooksCache;
+		Cache<VisVersion, Codebooks*> m_codebooksCache;
 
 		/** @brief Cache for Locations Data Transfer Objects, keyed by VisVersion. */
 		Cache<VisVersion, LocationsDto> m_locationsDtoCache;

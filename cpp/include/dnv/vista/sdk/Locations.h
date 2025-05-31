@@ -214,7 +214,7 @@ namespace dnv::vista::sdk
 		bool operator!=( const RelativeLocation& other ) const;
 
 		//----------------------------------------------
-		// Public Methods
+		// Public methods
 		//----------------------------------------------
 
 		/**
@@ -322,7 +322,7 @@ namespace dnv::vista::sdk
 		std::optional<char>& operator[]( LocationGroup key );
 
 		//----------------------------------------------
-		// Public Methods
+		// Public methods
 		//----------------------------------------------
 
 		/**
@@ -429,7 +429,7 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] const std::map<char, LocationGroup>& reversedGroups() const noexcept;
 		//----------------------------------------------
-		// Public Methods - Parsing
+		// Public methods - Parsing
 		//----------------------------------------------
 
 		/**

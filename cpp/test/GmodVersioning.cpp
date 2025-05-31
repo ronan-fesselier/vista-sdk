@@ -186,8 +186,6 @@ namespace dnv::vista::sdk::tests
 		{
 			const auto& gmod = m_vis->gmod( sourceVersion );
 
-			SPDLOG_INFO( "Converting {} to {}", dnv::vista::sdk::VisVersionExtensions::toVersionString( sourceVersion ), dnv::vista::sdk::VisVersionExtensions::toVersionString( latestVisVersion ) );
-
 			std::vector<std::string>& currentVersionErrors = errored[sourceVersion];
 
 			auto enumerator = gmod.enumerator();
@@ -214,6 +212,7 @@ namespace dnv::vista::sdk::tests
 				{
 					errorNodes += code + ", ";
 				}
+
 				SPDLOG_ERROR( "Failed nodes for {}: {}", dnv::vista::sdk::VisVersionExtensions::toVersionString( pair.first ), errorNodes );
 			}
 		}

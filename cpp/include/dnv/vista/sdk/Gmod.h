@@ -239,7 +239,7 @@ namespace dnv::vista::sdk
 		static bool isProductSelectionAssignment( const GmodNode* parent, const GmodNode* child );
 
 		//----------------------------------------------
-		// Iteration
+		// Enumeration
 		//----------------------------------------------
 
 		/**
@@ -249,7 +249,7 @@ namespace dnv::vista::sdk
 		Enumerator enumerator() const;
 
 		//----------------------------------------------
-		// Gmod::Enumerator Class
+		// Gmod::Enumerator class
 		//----------------------------------------------
 
 		/**
@@ -259,11 +259,7 @@ namespace dnv::vista::sdk
 		 */
 		class Enumerator final
 		{
-		private:
 			friend class Gmod;
-			const ChdDictionary<GmodNode>* m_sourceMapPtr;
-			ChdDictionary<GmodNode>::Iterator m_currentMapIterator;
-			bool m_isInitialState;
 
 			//-----------------------------
 			// Construction / destruction
@@ -271,10 +267,10 @@ namespace dnv::vista::sdk
 
 		private:
 			/**
-			 * @brief Private constructor, typically called by Gmod::getEnumerator().
+			 * @brief Private constructor, typically called by Gmod::enumerator().
 			 * @param map Pointer to the ChdDictionary of GmodNodes to iterate over.
 			 */
-			Enumerator( const ChdDictionary<GmodNode>* map );
+			Enumerator( const ChdDictionary<GmodNode>* map ) noexcept;
 
 		public:
 			/** @brief Default constructor. */
@@ -297,7 +293,7 @@ namespace dnv::vista::sdk
 			Enumerator& operator=( Enumerator&& ) noexcept = delete;
 
 			//-----------------------------
-			// Iteration Interface
+			// Iteration interface
 			//-----------------------------
 
 			/**
@@ -313,13 +309,21 @@ namespace dnv::vista::sdk
 			 * @return True if the enumerator was successfully advanced to the next node;
 			 *         false if the end of the collection has been passed.
 			 */
-			bool next();
+			bool next() noexcept;
 
 			/**
 			 * @brief Resets the enumerator to its initial state, positioned before the first node.
 			 * @details After calling reset, moveNext() must be called to access the first node.
 			 */
-			void reset();
+			void reset() noexcept;
+
+			//-----------------------------
+			// Private member variables
+			//-----------------------------
+
+			const ChdDictionary<GmodNode>* m_sourceMapPtr;
+			ChdDictionary<GmodNode>::Iterator m_currentMapIterator;
+			bool m_isInitialState;
 		};
 
 	private:
