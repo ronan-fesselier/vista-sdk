@@ -87,12 +87,10 @@ namespace dnv::vista::sdk
 									   ? stateIt->second
 									   : std::to_string( static_cast<int>( state ) );
 
-			SPDLOG_ERROR( "Couldn't find predefined message for: {}", stateStr );
 			throw std::runtime_error( "Couldn't find predefined message for: " + stateStr );
 		}
 
 		const std::string& message = it->second;
-		SPDLOG_ERROR( "Adding predefined parsing error for state {}: {}", static_cast<int>( state ), message );
 		m_errors.emplace_back( state, message );
 
 		return *this;
@@ -105,7 +103,6 @@ namespace dnv::vista::sdk
 			return addError( state );
 		}
 
-		SPDLOG_ERROR( "Adding custom parsing error for state {}: {}", static_cast<int>( state ), *message );
 		m_errors.emplace_back( state, *message );
 
 		return *this;

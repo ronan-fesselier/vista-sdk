@@ -12,7 +12,7 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Codebook Data Transfer Object
+	// CodebookDto class
 	//=====================================================================
 
 	/**
@@ -26,7 +26,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Type representing a collection of values within a group */
@@ -112,7 +112,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//-------------------------------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//-------------------------------------------------------------------
 
 		/*
@@ -136,7 +136,7 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// Codebooks Data Transfer Object
+	// CodebooksDto class
 	//=====================================================================
 
 	/**
@@ -150,7 +150,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Type representing a collection of codebook DTOs */

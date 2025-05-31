@@ -112,7 +112,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Public Methods
+	// Public methods
 	//----------------------------------------------
 
 	size_t RelativeLocation::hashCode() const noexcept
@@ -169,7 +169,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Public Methods
+	// Public methods
 	//----------------------------------------------
 
 	bool LocationCharDict::tryAdd( LocationGroup key, char value, std::optional<char>& existingValue )
@@ -285,7 +285,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Public Methods - Parsing
+	// Public methods - Parsing
 	//----------------------------------------------
 
 	Location Locations::parse( std::string_view locationStr ) const

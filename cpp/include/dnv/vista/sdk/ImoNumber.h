@@ -117,7 +117,7 @@ namespace dnv::vista::sdk
 		[[nodiscard]] size_t hashCode() const noexcept;
 
 		//=====================================================================
-		// Static Public Methods
+		// Static Public methods
 		//=====================================================================
 
 		/**

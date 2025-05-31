@@ -28,11 +28,14 @@ namespace dnv::vista::sdk
 
 	/**
 	 * @brief Number of codebooks based on the enum values.
-	 * @details Size accommodates 0-based indexing derived from 1-based enum values.
-	 *          Example: CodebookName::Position (value 1) maps to index 0.
-	 *          The value is derived from the last enumerator in CodebookName.
+	 * @details Array size matches the highest enum value for direct indexing.
+	 *          All enum values are guaranteed to be valid array indices.
 	 */
 	static constexpr size_t NUM_CODEBOOKS = static_cast<size_t>( CodebookName::Detail );
+
+	//=====================================================================
+	// Codebooks class
+	//=====================================================================
 
 	/**
 	 * @class Codebooks
@@ -44,95 +47,9 @@ namespace dnv::vista::sdk
 	class Codebooks final
 	{
 	public:
-		//=====================================================================
-		// Iterator
-		//=====================================================================
-
-		/**
-		 * @brief Forward iterator for the codebooks collection.
-		 * @details Provides standard C++ forward iterator interface, yielding a tuple
-		 *          containing the `CodebookName` and a const reference to the `Codebook`.
-		 */
-		class Iterator final
-		{
-		public:
-			/** @brief Standard iterator type definitions */
-			using iterator_category = std::forward_iterator_tag;
-
-			/** @brief The type returned when dereferencing the iterator. */
-			using value_type = std::tuple<CodebookName, std::reference_wrapper<const Codebook>>;
-
-			/** @brief Type to represent the difference between two iterators. */
-			using difference_type = std::ptrdiff_t;
-
-			/** @brief Pointer to the value type (though not directly used as value_type is returned by value). */
-			using pointer = value_type*;
-
-			/** @brief Reference to the value type (returned by value). */
-			using reference = value_type;
-
-			/**
-			 * @brief Construct an iterator.
-			 * @param codebooks Pointer to the underlying codebooks array.
-			 * @param index Starting position index (0 to NUM_CODEBOOKS).
-			 */
-			Iterator( const std::array<Codebook, NUM_CODEBOOKS>* codebooks, size_t index );
-
-			/**
-			 * @brief Dereference operator.
-			 * @details Provides access to the current element as a tuple.
-			 * @return A `value_type` tuple containing the `CodebookName` and a `std::reference_wrapper<const Codebook>`.
-			 * @throws std::out_of_range if the iterator's index is invalid (>= NUM_CODEBOOKS).
-			 */
-			[[nodiscard]] reference operator*() const;
-
-			/**
-			 * @brief Arrow operator (member access).
-			 * @details Allows accessing members of the returned tuple directly (e.g., `it->first`).
-			 * @return A temporary `value_type` tuple object.
-			 * @throws std::out_of_range if the iterator's index is invalid (>= NUM_CODEBOOKS).
-			 */
-			[[nodiscard]] value_type operator->() const;
-
-			/**
-			 * @brief Pre-increment operator.
-			 * @details Advances the iterator to the next element in the container.
-			 * @return Reference to this iterator after incrementing.
-			 */
-			Iterator& operator++();
-
-			/**
-			 * @brief Post-increment operator.
-			 * @details Advances the iterator to the next element in the container.
-			 * @return A copy of the iterator *before* it was incremented.
-			 */
-			Iterator operator++( int );
-
-			/**
-			 * @brief Equality comparison operator.
-			 * @param other The iterator to compare against.
-			 * @return True if both iterators point to the same element in the same container, false otherwise.
-			 */
-			[[nodiscard]] bool operator==( const Iterator& other ) const;
-
-			/**
-			 * @brief Inequality comparison operator.
-			 * @param other The iterator to compare against.
-			 * @return True if the iterators point to different elements or different containers, false otherwise.
-			 */
-			[[nodiscard]] bool operator!=( const Iterator& other ) const;
-
-		private:
-			/** @brief Pointer to the underlying codebooks array */
-			const std::array<Codebook, NUM_CODEBOOKS>* m_codebooks;
-
-			/** @brief Current position index (0 to NUM_CODEBOOKS) */
-			size_t m_index;
-		};
-
-		//=====================================================================
+		//----------------------------------------------
 		// Construction / destruction
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Construct codebooks from a Data Transfer Object (DTO).
@@ -155,9 +72,9 @@ namespace dnv::vista::sdk
 		/** @brief Destructor */
 		~Codebooks() = default;
 
-		//=====================================================================
+		//----------------------------------------------
 		// Assignment operators
-		//=====================================================================
+		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
 		Codebooks& operator=( const Codebooks& ) = delete;
@@ -165,42 +82,64 @@ namespace dnv::vista::sdk
 		/** @brief Move assignment operator */
 		Codebooks& operator=( Codebooks&& ) noexcept = default;
 
-		//=====================================================================
-		// Operators
-		//=====================================================================
+		//----------------------------------------------
+		// Lookup operators
+		//----------------------------------------------
 
 		/**
-		 * @brief Access a codebook by name using the array index operator.
-		 * @details Provides direct access to a specific codebook.
-		 * @param name The `CodebookName` enum value identifying the desired codebook.
-		 * @return A const reference to the requested `Codebook`.
-		 * @throws std::invalid_argument If the `name` enum value is invalid or out of the expected range.
+		 * @brief Fast access to codebook by name (no bounds checking)
+		 * @param name The codebook name (must be valid)
+		 * @return Reference to the requested codebook
+		 * @note This method does not validate the input for maximum performance.
+		 *       Use codebook() if you need bounds checking.
+		 * @warning Undefined behavior if name is invalid
 		 */
-		[[nodiscard]] const Codebook& operator[]( CodebookName name ) const;
+		[[nodiscard]] const Codebook& operator[]( CodebookName name ) const noexcept;
 
-		//=====================================================================
+		//----------------------------------------------
+		// Range-based iterator
+		//----------------------------------------------
+
+		/** @brief Const iterator type for iterating over codebooks. */
+		using Iterator = const Codebook*;
+
+		/**
+		 * @brief Returns iterator to the first codebook.
+		 * @return Iterator to the beginning of the codebook container
+		 * @note Zero-overhead pointer-based iteration
+		 */
+		[[nodiscard]] Iterator begin() const noexcept;
+
+		/**
+		 * @brief Returns iterator to one past the last codebook.
+		 * @return Iterator to the end of the codebook container
+		 * @note Zero-overhead pointer-based iteration
+		 */
+		[[nodiscard]] Iterator end() const noexcept;
+
+		//----------------------------------------------
 		// Accessors
-		//=====================================================================
-
-		/**
-		 * @brief Get a codebook by name (alternative accessor).
-		 * @details Provides direct access to a specific codebook. Functionally equivalent to `operator[]`.
-		 * @param name The `CodebookName` enum value identifying the desired codebook.
-		 * @return A const reference to the requested `Codebook`.
-		 * @throws std::invalid_argument If the `name` enum value is invalid or out of the expected range.
-		 * @see operator[]
-		 */
-		[[nodiscard]] const Codebook& codebook( CodebookName name ) const;
+		//----------------------------------------------
 
 		/**
 		 * @brief Get the VIS version associated with these codebooks.
 		 * @return The `VisVersion` enum value.
 		 */
-		[[nodiscard]] VisVersion visVersion() const;
+		[[nodiscard]] VisVersion visVersion() const noexcept;
 
-		//=====================================================================
+		/**
+		 * @brief Safe access to codebook by name (with bounds checking)
+		 * @param name The codebook name
+		 * @return Reference to the requested codebook
+		 * @throws std::invalid_argument If name is invalid
+		 * @note This method always validates the input. Use operator[] for maximum performance
+		 *       when you know the input is valid.
+		 */
+		[[nodiscard]] const Codebook& codebook( CodebookName name ) const;
+
+		//----------------------------------------------
 		// Tag creation
-		//=====================================================================
+		//----------------------------------------------
 
 		/**
 		 * @brief Try to create a metadata tag using the appropriate codebook for validation.
@@ -227,34 +166,15 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] MetadataTag createTag( CodebookName name, const std::string& value ) const;
 
-		//=====================================================================
-		// Iteration
-		//=====================================================================
-
-		/**
-		 * @brief Get an iterator to the beginning of the codebook collection.
-		 * @details Allows iterating through all codebooks using standard C++ mechanisms (e.g., range-based for loop).
-		 * @return An `Iterator` pointing to the first codebook element (index 0).
-		 */
-		[[nodiscard]] Iterator begin() const;
-
-		/**
-		 * @brief Get an iterator referring to the past-the-end element.
-		 * @details The past-the-end iterator acts as a sentinel. It does not point to any element
-		 *          and should not be dereferenced.
-		 * @return An `Iterator` pointing one position past the last codebook element (index NUM_CODEBOOKS).
-		 */
-		[[nodiscard]] Iterator end() const;
-
 	private:
-		//=====================================================================
+		//----------------------------------------------
 		// Private member variables
-		//=====================================================================
+		//----------------------------------------------
 
 		/** @brief The VIS version these codebooks belong to. */
 		VisVersion m_visVersion{};
 
-		/** @brief Fixed-size array holding all codebooks, indexed by (CodebookName - 1). */
+		/** @brief Fixed-size array holding all codebooks */
 		std::array<Codebook, NUM_CODEBOOKS> m_codebooks{};
 	};
 }

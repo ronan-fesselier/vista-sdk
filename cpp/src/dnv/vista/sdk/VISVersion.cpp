@@ -39,9 +39,7 @@ namespace dnv::vista::sdk
 				return "Unknown";
 			default:
 			{
-				auto errorMsg = "Invalid VIS version: " + std::to_string( static_cast<int>( version ) );
-				SPDLOG_ERROR( errorMsg );
-				throw std::invalid_argument( errorMsg );
+				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
 			}
 		}
 	}
@@ -89,7 +87,6 @@ namespace dnv::vista::sdk
 		VisVersion result;
 		if ( !tryParse( versionString, result ) )
 		{
-			SPDLOG_ERROR( "Invalid VIS version string: {}", versionString );
 			throw std::invalid_argument( "Invalid VIS version string: " + versionString );
 		}
 		return result;

@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(vista-sdk-cpp-tests
-	VERSION 1.0.0
+	VERSION 0.1.0
 	DESCRIPTION "DNV VISTA SDK C++ Tests"
 	LANGUAGES CXX)
 
@@ -14,20 +14,23 @@ include(GoogleTest)
 
 # --- Test source files ---
 set(TEST_SOURCES
-	CodebookTests.cpp
-	CodebooksTests.cpp
-	GmodPathTests.cpp
-	GmodTests.cpp
-	GmodVersioningTests.cpp
-	ImoNumberTests.cpp
-	ISOStringTests.cpp
-	LocalIdTests.cpp
-	LocationsTests.cpp
-	UniversalIdTests.cpp
+	Codebook.cpp
+	Codebooks.cpp
+	Gmod.cpp
+	GmodPath.cpp
+	GmodVersioning.cpp
+	ImoNumber.cpp
+	ISOString.cpp
+	LocalId.cpp
+	Locations.cpp
+	UniversalId.cpp
 )
 
+# --- Set executables prefix ---
+set(TEST_PREFIX "TEST_")
+
 if(VISTA_SDK_CPP_BUILD_SMOKE_TESTS)
-	list(APPEND TEST_SOURCES GmodVersioningSmokeTests.cpp)
+	list(APPEND TEST_SOURCES GmodVersioningSmoke.cpp)
 endif()
 
 # --- Copy test data at build time ---
@@ -52,6 +55,9 @@ endif()
 foreach(test_source ${TEST_SOURCES})
 	get_filename_component(test_target_name ${test_source} NAME_WE)
 
+	set(test_target_name ${TEST_PREFIX}${test_target_name})
+
+
 	if(NOT TARGET ${test_target_name})
 		add_executable(${test_target_name} TestDataLoader.h ${test_source})
 
@@ -61,6 +67,7 @@ foreach(test_source ${TEST_SOURCES})
 			vista-sdk-cpp
 			GTest::gtest_main
 			spdlog::spdlog
+			fmt::fmt
 			nlohmann_json::nlohmann_json
 			zlibstatic
 		)
@@ -85,6 +92,13 @@ foreach(test_source ${TEST_SOURCES})
 				TIMEOUT 120
 				WILL_FAIL FALSE
 				OUTPUT_ON_FAILURE TRUE
+		)
+
+		set_target_properties(${benchmark_target_name} PROPERTIES
+			CXX_STANDARD 20
+			CXX_STANDARD_REQUIRED ON
+			RUNTIME_OUTPUT_DIRECTORY "${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>"
+			EXCLUDE_FROM_ALL FALSE
 		)
 
 		if(MSVC)
