@@ -38,7 +38,6 @@ namespace dnv::vista::sdk
 
 	VIS::VIS() : IVIS{}
 	{
-		SPDLOG_INFO( "Initializing VIS singleton with empty caches" );
 	}
 
 	//----------------------------------------------
@@ -57,17 +56,13 @@ namespace dnv::vista::sdk
 
 	std::vector<VisVersion> VIS::visVersions()
 	{
-		SPDLOG_INFO( "Getting all VIS versions" );
 		return VisVersionExtensions::allVersions();
 	}
 
 	GmodVersioning VIS::gmodVersioning()
 	{
-		SPDLOG_TRACE( "Getting GMOD versioning" );
-
 		return m_gmodVersioningCache.getOrCreate( VERSIONING, [this]() {
 			auto dto = gmodVersioningDto();
-			SPDLOG_INFO( "Successfully loaded GMOD versioning data with {} entries", dto.size() );
 			return GmodVersioning( dto );
 		} );
 	}
@@ -86,13 +81,8 @@ namespace dnv::vista::sdk
 										 std::to_string( static_cast<int>( visVersion ) ) );
 		}
 
-		SPDLOG_TRACE( "Attempting to load GMOD for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_gmodCache.getOrCreate( visVersion, [this, visVersion]() {
 			auto dto = gmodDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded GMOD DTO for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
 
 			Gmod gmod( visVersion, dto );
 
@@ -108,13 +98,9 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Invalid VIS version" );
 		}
 
-		SPDLOG_TRACE( "Getting codebooks for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_codebooksCache.getOrCreate( visVersion, [this, visVersion]() {
 			auto dto = codebooksDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded codebooks for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
+
 			return Codebooks( visVersion, dto );
 		} );
 	}
@@ -127,13 +113,9 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Invalid VIS version" );
 		}
 
-		SPDLOG_TRACE( "Getting locations for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_locationsCache.getOrCreate( visVersion, [this, visVersion]() {
 			auto dto = locationsDto( visVersion );
-			SPDLOG_INFO( "Successfully loaded locations for version: {}",
-				VisVersionExtensions::toVersionString( visVersion ) );
+
 			return Locations( visVersion, dto );
 		} );
 	}
@@ -141,8 +123,6 @@ namespace dnv::vista::sdk
 	std::unordered_map<VisVersion, const Codebooks*> VIS::codebooksMap(
 		const std::vector<VisVersion>& visVersions )
 	{
-		SPDLOG_INFO( "Getting codebooks map for {} versions", visVersions.size() );
-
 		for ( auto version : visVersions )
 		{
 			if ( !VisVersionExtensions::isValid( version ) )
@@ -165,8 +145,6 @@ namespace dnv::vista::sdk
 	std::unordered_map<VisVersion, const Gmod*> VIS::gmodsMap(
 		const std::vector<VisVersion>& visVersions ) const
 	{
-		SPDLOG_INFO( "Getting GMOD map for {} versions", visVersions.size() );
-
 		for ( auto version : visVersions )
 		{
 			if ( !VisVersionExtensions::isValid( version ) )
@@ -189,8 +167,6 @@ namespace dnv::vista::sdk
 	std::unordered_map<VisVersion, const Locations*> VIS::locationsMap(
 		const std::vector<VisVersion>& visVersions )
 	{
-		SPDLOG_INFO( "Getting locations map for {} versions", visVersions.size() );
-
 		std::unordered_map<VisVersion, const Locations*> result;
 		result.reserve( visVersions.size() );
 		for ( auto version : visVersions )
@@ -207,9 +183,6 @@ namespace dnv::vista::sdk
 
 	GmodDto VIS::gmodDto( VisVersion visVersion ) const
 	{
-		SPDLOG_INFO( "Getting GMOD DTO for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_gmodDtoCache.getOrCreate( visVersion, [visVersion]() {
 			auto dto = loadGmodDto( visVersion );
 			if ( !dto )
@@ -224,16 +197,11 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> VIS::loadGmodDto( VisVersion visVersion )
 	{
-		SPDLOG_INFO( "Loading GMOD DTO from resources for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return EmbeddedResource::gmod( VisVersionExtensions::toVersionString( visVersion ) );
 	}
 
 	std::unordered_map<std::string, GmodVersioningDto> VIS::gmodVersioningDto()
 	{
-		SPDLOG_INFO( "Getting GMOD versioning DTO" );
-
 		return m_gmodVersioningDtoCache.getOrCreate( VERSIONING, []() {
 			auto dto = EmbeddedResource::gmodVersioning();
 			if ( !dto )
@@ -247,9 +215,6 @@ namespace dnv::vista::sdk
 
 	CodebooksDto VIS::codebooksDto( VisVersion visVersion )
 	{
-		SPDLOG_INFO( "Getting codebooks DTO for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_codebooksDtoCache.getOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::codebooks( VisVersionExtensions::toVersionString( visVersion ) );
 			if ( !dto )
@@ -264,9 +229,6 @@ namespace dnv::vista::sdk
 
 	LocationsDto VIS::locationsDto( VisVersion visVersion )
 	{
-		SPDLOG_INFO( "Getting locations DTO for version: {}",
-			VisVersionExtensions::toVersionString( visVersion ) );
-
 		return m_locationsDtoCache.getOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::locations( VisVersionExtensions::toVersionString( visVersion ) );
 			if ( !dto )
@@ -328,8 +290,6 @@ namespace dnv::vista::sdk
 
 	bool VIS::matchISOLocalIdString( std::string_view value )
 	{
-		SPDLOG_TRACE( "Checking if string matches ISO local ID format: '{}'", value );
-
 		for ( char ch : value )
 		{
 			if ( ch == '/' )
@@ -342,17 +302,13 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		SPDLOG_TRACE( "String is ISO local ID compliant" );
 		return true;
 	}
 
 	bool VIS::isISOString( std::string_view value )
 	{
-		SPDLOG_TRACE( "Checking if string_view is ISO compliant: '{}'", value );
-
 		if ( value.empty() )
 		{
-			SPDLOG_INFO( "Empty string_view is ISO compliant" );
 			return true;
 		}
 
@@ -360,13 +316,11 @@ namespace dnv::vista::sdk
 		{
 			if ( !isISOString( ch ) )
 			{
-				SPDLOG_ERROR( "Character '{}' (code {}) makes string not ISO compliant",
-					ch, static_cast<int>( ch ) );
+				SPDLOG_ERROR( "Character '{}' (code {}) makes string not ISO compliant", ch, static_cast<int>( ch ) );
 				return false;
 			}
 		}
 
-		SPDLOG_TRACE( "String_view is ISO compliant" );
 		return true;
 	}
 
@@ -383,7 +337,6 @@ namespace dnv::vista::sdk
 
 	bool VIS::isISOLocalIdString( const std::string& value )
 	{
-		SPDLOG_TRACE( "Checking if string is ISO local ID compliant: '{}'", value );
 		return !value.empty() && matchISOLocalIdString( value );
 	}
 

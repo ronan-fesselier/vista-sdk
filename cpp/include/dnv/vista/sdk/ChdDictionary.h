@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 		constexpr uint32_t FNV_PRIME{ 0x01000193 };
 
 		/** @brief Number of entries in the thread-local hash lookup cache. */
-		static inline constexpr size_t HASH_CACHE_SIZE = 2048;
+		static inline constexpr size_t HASH_CACHE_SIZE = 32768;
 
 		//----------------------------------------------
 		// CPU feature detection
@@ -85,6 +85,8 @@ namespace dnv::vista::sdk
 			//----------------------------
 			// Public static methods
 			//----------------------------
+
+			[[nodiscard]] static uint32_t larssonHash( uint32_t hash, uint8_t ch );
 
 			/**
 			 * @brief Computes one step of the FNV-1a hash function.
@@ -447,9 +449,6 @@ namespace dnv::vista::sdk
 
 		/** @brief Thread-local counter for successful dictionary lookups (key found) (for performance analysis). */
 		static thread_local size_t s_lookupHits;
-
-		/** @brief Thread-local accumulator for total time spent in lookups (for average time calculation). */
-		static thread_local std::chrono::nanoseconds s_totalLookupDuration;
 	};
 }
 

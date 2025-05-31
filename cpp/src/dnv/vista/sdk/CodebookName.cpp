@@ -49,8 +49,6 @@ namespace dnv::vista::sdk
 
 	CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
 	{
-		SPDLOG_TRACE( "Attempting to convert prefix string '{}' to CodebookName enum", prefix );
-
 		if ( prefix.empty() )
 		{
 			SPDLOG_WARN( "Input prefix is empty." );
@@ -61,9 +59,6 @@ namespace dnv::vista::sdk
 
 		if ( it != s_prefixMap.end() )
 		{
-			SPDLOG_TRACE( "Successfully mapped prefix '{}' to CodebookName enum value {}",
-				prefix, static_cast<int>( it->second ) );
-
 			return it->second;
 		}
 
@@ -77,9 +72,6 @@ namespace dnv::vista::sdk
 
 	std::string_view CodebookNames::toPrefix( CodebookName name )
 	{
-		SPDLOG_TRACE( "Converting CodebookName enum {} to prefix string",
-			static_cast<int>( name ) );
-
 		switch ( name )
 		{
 			case CodebookName::Position:

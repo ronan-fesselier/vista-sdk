@@ -37,7 +37,6 @@ namespace dnv::vista::sdk
 #else
 				hasSupport = false;
 #endif
-				SPDLOG_INFO( "SSE4.2 support: {}", hasSupport ? "available" : "not available" );
 
 				return hasSupport;
 			}() };
@@ -52,6 +51,11 @@ namespace dnv::vista::sdk
 		//----------------------------
 		// Public static methods
 		//----------------------------
+
+		uint32_t Hashing::larssonHash( uint32_t hash, uint8_t ch )
+		{
+			return 37 * hash + ch;
+		}
 
 		uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch )
 		{

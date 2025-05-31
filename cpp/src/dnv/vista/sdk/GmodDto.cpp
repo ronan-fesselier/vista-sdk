@@ -84,7 +84,6 @@ namespace dnv::vista::sdk
 		  m_installSubstructure{ installSubstructure },
 		  m_normalAssignmentNames{ std::move( normalAssignmentNames ) }
 	{
-		SPDLOG_TRACE( "Creating GmodNodeDto: code={}, category={}, type={}", m_code, m_category, m_type );
 	}
 
 	//----------------------------------------------
@@ -142,9 +141,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeDto> GmodNodeDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse GmodNodeDto from nlohmann::json" );
-
 		try
 		{
 			if ( !json.contains( CODE_KEY ) || !json.at( CODE_KEY ).is_string() )
@@ -198,9 +194,6 @@ namespace dnv::vista::sdk
 			if ( nameValue.empty() )
 				SPDLOG_WARN( "Empty name field used for GMOD node code='{}'", code );
 
-			SPDLOG_TRACE( "Parsed required GMOD node fields: category={}, type={}, code={}, name={}",
-				category, type, code, nameValue );
-
 			std::optional<std::string> commonName = std::nullopt;
 			std::optional<std::string> definition = std::nullopt;
 			std::optional<std::string> commonDefinition = std::nullopt;
@@ -245,7 +238,6 @@ namespace dnv::vista::sdk
 						if ( !assignments.empty() )
 						{
 							normalAssignmentNames = std::move( assignments );
-							SPDLOG_TRACE( "Parsed {} normal assignment name mappings for code='{}'", normalAssignmentNames->size(), code );
 						}
 					}
 					catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
@@ -269,9 +261,6 @@ namespace dnv::vista::sdk
 				std::move( commonDefinition ),
 				installSubstructure,
 				std::move( normalAssignmentNames ) );
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Successfully parsed GmodNodeDto: code={} in {} µs", resultDto.code(), duration.count() );
 
 			return std::optional<GmodNodeDto>{ std::move( resultDto ) };
 		}
@@ -471,8 +460,6 @@ namespace dnv::vista::sdk
 		  m_items{ std::move( items ) },
 		  m_relations{ std::move( relations ) }
 	{
-		SPDLOG_INFO( "Creating GmodDto: visVersion={}, items={}, relations={}",
-			m_visVersion, m_items.size(), m_relations.size() );
 	}
 
 	//----------------------------------------------
@@ -500,9 +487,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> GmodDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Attempting to parse GMOD from nlohmann::json" );
-
 		try
 		{
 			if ( !json.contains( VIS_RELEASE_KEY ) || !json.at( VIS_RELEASE_KEY ).is_string() )
@@ -511,7 +495,6 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 			std::string visVersion = json.at( VIS_RELEASE_KEY ).get<std::string>();
-			SPDLOG_INFO( "GMOD VIS version: {}", visVersion );
 
 			Items items;
 			if ( json.contains( ITEMS_KEY ) )
@@ -524,7 +507,6 @@ namespace dnv::vista::sdk
 				{
 					const auto& itemsArray = json.at( ITEMS_KEY );
 					size_t totalItems = itemsArray.size();
-					SPDLOG_INFO( "Found {} GMOD node items to parse", totalItems );
 					items.reserve( totalItems );
 					size_t successCount = 0;
 
@@ -541,10 +523,8 @@ namespace dnv::vista::sdk
 							SPDLOG_WARN( "Skipping malformed GMOD node at index {} during GmodDto parsing for VIS version {}", i, visVersion );
 						}
 					}
-					SPDLOG_INFO( "Successfully parsed {}/{} GMOD nodes", successCount, totalItems );
 					if ( totalItems > 0 && static_cast<double>( successCount ) < static_cast<double>( totalItems ) * 0.9 )
 					{
-						SPDLOG_INFO( "Shrinking items vector due to high parsing failure rate ({}/{}) for VIS version {}", successCount, totalItems, visVersion );
 						items.shrink_to_fit();
 					}
 				}
@@ -565,7 +545,6 @@ namespace dnv::vista::sdk
 				{
 					const auto& relationsArray = json.at( RELATIONS_KEY );
 					size_t relationCount = relationsArray.size();
-					SPDLOG_INFO( "Found {} GMOD relation entries to parse", relationCount );
 					relations.reserve( relationCount );
 					size_t validRelationCount = 0;
 
@@ -601,30 +580,22 @@ namespace dnv::vista::sdk
 							SPDLOG_WARN( "Non-array entry found in 'relations' array for VIS version {}", visVersion );
 						}
 					}
-					SPDLOG_TRACE( "Added {} valid relations to GMOD", validRelationCount );
 					if ( relationCount > 0 && static_cast<double>( validRelationCount ) < static_cast<double>( relationCount ) * 0.9 )
 					{
-						SPDLOG_INFO( "Shrinking relations vector due to high parsing failure rate ({}/{}) for VIS version {}", validRelationCount, relationCount, visVersion );
 						relations.shrink_to_fit();
 					}
 				}
 			}
 			else
 			{
-				SPDLOG_INFO( "GMOD has no 'relations' array for VIS version {}", visVersion );
 			}
 
 			if ( items.size() > 10000 )
 			{
 				[[maybe_unused]] const size_t approxMemoryUsage = ( items.size() * sizeof( GmodNodeDto ) + relations.size() * 24 ) / ( 1024 * 1024 );
-				SPDLOG_INFO( "Large GMOD model loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 			}
 
 			GmodDto resultDto( std::move( visVersion ), std::move( items ), std::move( relations ) );
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_INFO( "Parsed GmodDto with {} nodes, {} relations and VIS version {} in {} ms",
-				resultDto.items().size(), resultDto.relations().size(), resultDto.visVersion(), duration.count() );
 
 			return std::optional<GmodDto>{ std::move( resultDto ) };
 		}
@@ -686,13 +657,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json GmodDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-
 		nlohmann::json j = { { VIS_RELEASE_KEY, m_visVersion }, { ITEMS_KEY, m_items }, { RELATIONS_KEY, m_relations } };
-
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_INFO( "Serialized GmodDto with {} items, {} relations for VIS version {} in {} ms",
-			m_items.size(), m_relations.size(), m_visVersion, duration.count() );
 
 		return j;
 	}

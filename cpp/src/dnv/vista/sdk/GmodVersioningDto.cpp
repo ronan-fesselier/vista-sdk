@@ -48,7 +48,6 @@ namespace dnv::vista::sdk
 				hits++;
 				if ( calls % 10000 == 0 )
 				{
-					SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings", hits * 100.0 / calls, hits, calls, cache.size() );
 				}
 				return it->second;
 			}
@@ -70,7 +69,6 @@ namespace dnv::vista::sdk
 		: m_oldAssignment{ std::move( oldAssignment ) },
 		  m_currentAssignment{ std::move( currentAssignment ) }
 	{
-		SPDLOG_INFO( "Created GmodVersioningAssignmentChangeDto: {} → {}", m_oldAssignment, m_currentAssignment );
 	}
 
 	//----------------------------------------------
@@ -93,9 +91,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse GmodVersioningAssignmentChangeDto from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -105,9 +100,6 @@ namespace dnv::vista::sdk
 			}
 
 			GmodVersioningAssignmentChangeDto dto = json.get<GmodVersioningAssignmentChangeDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Parsed assignment change: {} → {} in {} µs", dto.oldAssignment(), dto.currentAssignment(), duration.count() );
 
 			return std::optional<GmodVersioningAssignmentChangeDto>{ std::move( dto ) };
 		}
@@ -145,7 +137,6 @@ namespace dnv::vista::sdk
 
 	nlohmann::json GmodVersioningAssignmentChangeDto::toJson() const
 	{
-		SPDLOG_TRACE( "Serializing GmodVersioningAssignmentChangeDto to nlohmann::json: {} -> {}", m_oldAssignment, m_currentAssignment );
 		return *this;
 	}
 
@@ -203,7 +194,6 @@ namespace dnv::vista::sdk
 		  m_newAssignment{ std::move( newAssignment ) },
 		  m_deleteAssignment{ deleteAssignment }
 	{
-		SPDLOG_INFO( "Created GmodNodeConversionDto: source={}, target={}, operations={}", m_source, m_target, m_operations.size() );
 	}
 
 	//----------------------------------------------
@@ -246,9 +236,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse GmodNodeConversionDto from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -258,9 +245,6 @@ namespace dnv::vista::sdk
 			}
 
 			GmodNodeConversionDto dto = json.get<GmodNodeConversionDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Parsed node conversion: source={}, target={}, operations={} in {} µs", dto.source(), dto.target(), dto.operations().size(), duration.count() );
 
 			return std::optional<GmodNodeConversionDto>{ std::move( dto ) };
 		}
@@ -298,11 +282,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json GmodNodeConversionDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Serializing GmodNodeConversionDto to nlohmann::json: source={}, target={}", m_source, m_target );
 		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_TRACE( "Serialized node conversion in {} µs", duration.count() );
 		return j;
 	}
 
@@ -386,7 +366,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_oldAssignment.clear();
-			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field", OLD_ASSIGNMENT_KEY );
 		}
 
 		if ( j.contains( NEW_ASSIGNMENT_KEY ) )
@@ -400,7 +379,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_newAssignment.clear();
-			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field", NEW_ASSIGNMENT_KEY );
 		}
 
 		if ( j.contains( DELETE_ASSIGNMENT_KEY ) )
@@ -414,7 +392,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_deleteAssignment = false;
-			SPDLOG_TRACE( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", DELETE_ASSIGNMENT_KEY );
 		}
 
 		if ( dto.m_operations.empty() )
@@ -439,7 +416,6 @@ namespace dnv::vista::sdk
 		: m_visVersion{ std::move( visVersion ) },
 		  m_items{ std::move( items ) }
 	{
-		SPDLOG_INFO( "Created GmodVersioningDto for VIS version: {}", m_visVersion );
 	}
 
 	//----------------------------------------------
@@ -462,9 +438,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningDto> GmodVersioningDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Attempting to parse GMOD versioning data from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -474,9 +447,6 @@ namespace dnv::vista::sdk
 			}
 
 			GmodVersioningDto dto = json.get<GmodVersioningDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_INFO( "GMOD versioning parsing completed in {} ms ({} items)", duration.count(), dto.items().size() );
 
 			return std::optional<GmodVersioningDto>{ std::move( dto ) };
 		}
@@ -558,11 +528,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json GmodVersioningDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Serializing GMOD versioning data to nlohmann::json, {} items", m_items.size() );
 		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_INFO( "Successfully serialized GMOD versioning data for VIS {} in {} ms", m_visVersion, duration.count() );
 		return j;
 	}
 
@@ -577,23 +543,7 @@ namespace dnv::vista::sdk
 
 		if ( !dto.m_items.empty() )
 		{
-			[[maybe_unused]] auto serializationStartTime = std::chrono::steady_clock::now();
-
 			j[ITEMS_KEY] = dto.m_items;
-
-			auto serializationEndTime = std::chrono::steady_clock::now();
-			auto serializationDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
-				serializationEndTime - serializationStartTime );
-
-			if ( !dto.m_items.empty() && serializationDuration.count() > 0 )
-			{
-				[[maybe_unused]] double serializationRatePerSecond = static_cast<double>( dto.m_items.size() ) * 1000.0 / static_cast<double>( serializationDuration.count() );
-				SPDLOG_INFO( "Node serialization rate: {:.1f} items/sec", serializationRatePerSecond );
-			}
-			else if ( !dto.m_items.empty() )
-			{
-				SPDLOG_INFO( "Node serialization completed very quickly." );
-			}
 
 			size_t emptyOperationsCount = 0;
 			for ( const auto& [key, value] : dto.m_items )
@@ -621,7 +571,6 @@ namespace dnv::vista::sdk
 			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningDto JSON missing required '{}' field or not a string", VIS_RELEASE_KEY ), nullptr );
 		}
 		dto.m_visVersion = j.at( VIS_RELEASE_KEY ).get<std::string>();
-		SPDLOG_INFO( "GMOD versioning for VIS version: {}", dto.m_visVersion );
 
 		dto.m_items.clear();
 		if ( j.contains( ITEMS_KEY ) )
@@ -633,17 +582,14 @@ namespace dnv::vista::sdk
 
 			const auto& itemsObj = j.at( ITEMS_KEY );
 			size_t itemCount = itemsObj.size();
-			SPDLOG_INFO( "Found {} node conversion items to parse", itemCount );
 
 			if ( itemCount > 10000 )
 			{
-				SPDLOG_INFO( "Large versioning dataset detected ({}), consider performance implications", itemCount );
 			}
 
 			dto.m_items.reserve( itemCount );
 			size_t successCount = 0;
 			size_t emptyOperationsCount = 0;
-			auto parseStartTime = std::chrono::steady_clock::now();
 
 			for ( const auto& [key, value] : itemsObj.items() )
 			{
@@ -668,24 +614,8 @@ namespace dnv::vista::sdk
 				}
 			}
 
-			auto parseEndTime = std::chrono::steady_clock::now();
-			auto parseDuration = std::chrono::duration_cast<std::chrono::milliseconds>( parseEndTime - parseStartTime );
-
-			if ( parseDuration.count() > 0 )
-			{
-				[[maybe_unused]] double parseRatePerSecond = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-				SPDLOG_INFO( "Successfully parsed {}/{} node conversion items ({} with empty operations), rate: {:.1f} items/sec",
-					successCount, itemCount, emptyOperationsCount, parseRatePerSecond );
-			}
-			else if ( itemCount > 0 )
-			{
-				SPDLOG_INFO( "Successfully parsed {}/{} node conversion items ({} with empty operations) very quickly.",
-					successCount, itemCount, emptyOperationsCount );
-			}
-
 			if ( successCount > 0 && static_cast<double>( successCount ) < static_cast<double>( itemCount ) * 0.9 )
 			{
-				SPDLOG_INFO( "Optimizing memory usage after parsing {} of {} items", successCount, itemCount );
 				dto.m_items.rehash( static_cast<size_t>( static_cast<double>( successCount ) * 1.25 ) );
 			}
 		}
@@ -697,7 +627,6 @@ namespace dnv::vista::sdk
 		if ( dto.m_items.size() > 1000 )
 		{
 			[[maybe_unused]] size_t approxMemoryBytes = dto.m_items.size() * ( sizeof( GmodNodeConversionDto ) + sizeof( std::string ) * 4 + 32 );
-			SPDLOG_INFO( "Large versioning dataset loaded: {} items, ~{} MB estimated memory", dto.m_items.size(), approxMemoryBytes / ( 1024 * 1024 ) );
 		}
 	}
 }

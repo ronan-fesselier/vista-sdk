@@ -16,8 +16,6 @@ namespace dnv::vista::sdk
 	MetadataTag::MetadataTag( CodebookName name, const std::string& value, bool isCustom )
 		: m_name{ name }, m_value{ value }, m_custom{ isCustom }
 	{
-		SPDLOG_TRACE( "Created MetadataTag: name={}, value='{}', custom={}",
-			static_cast<int>( name ), value, isCustom );
 	}
 
 	//-------------------------------------------------------------------------
@@ -87,9 +85,6 @@ namespace dnv::vista::sdk
 
 	void MetadataTag::toString( std::ostringstream& builder, char separator ) const
 	{
-		SPDLOG_INFO( "Formatting tag: name={}, value='{}', custom={}, separator='{}'",
-			static_cast<int>( m_name ), m_value, m_custom, separator );
-
 		std::string prefix;
 
 		switch ( m_name )

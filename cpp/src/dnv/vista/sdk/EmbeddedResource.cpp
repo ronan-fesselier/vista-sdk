@@ -29,7 +29,6 @@ namespace dnv::vista::sdk
 
 	std::vector<std::string> EmbeddedResource::visVersions()
 	{
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 		std::vector<std::string> visVersions;
 
@@ -48,7 +47,6 @@ namespace dnv::vista::sdk
 					{
 						std::string version = gmodJson.at( VIS_RELEASE_KEY ).get<std::string>();
 						visVersions.push_back( version );
-						SPDLOG_INFO( "Found GMOD resource: {} with VIS version: {}", resourceName, version );
 					}
 					else
 					{
@@ -79,11 +77,6 @@ namespace dnv::vista::sdk
 			{
 				std::copy( visVersions.begin(), visVersions.end() - 1, std::ostream_iterator<std::string>( versionsList, ", " ) );
 				versionsList << visVersions.back();
-
-				auto endTime = std::chrono::high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-
-				SPDLOG_INFO( "Found {} unique VIS versions in {} ms: {}", visVersions.size(), duration.count(), versionsList.str() );
 			}
 			else
 			{
@@ -104,17 +97,11 @@ namespace dnv::vista::sdk
 			auto cacheIt = gmodCache.find( visVersion );
 			if ( cacheIt != gmodCache.end() )
 			{
-				SPDLOG_TRACE( "Using cached GMOD DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching GMOD resource for version: {}", visVersion );
-
 		auto names = resourceNames();
-		auto searchStartTime = std::chrono::high_resolution_clock::now();
-
-		SPDLOG_TRACE( "Searching through {} total resources", names.size() );
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
@@ -124,10 +111,6 @@ namespace dnv::vista::sdk
 					   name.find( "versioning" ) == std::string::npos;
 			} );
 
-		auto searchEndTime = std::chrono::high_resolution_clock::now();
-		auto searchDuration = std::chrono::duration_cast<std::chrono::microseconds>( searchEndTime - searchStartTime );
-		SPDLOG_TRACE( "Resource search completed in {} μs", searchDuration.count() );
-
 		if ( it == names.end() )
 		{
 			SPDLOG_ERROR( "GMOD resource not found for version: {}", visVersion );
@@ -136,22 +119,14 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		SPDLOG_INFO( "Found matching GMOD resource: {}", *it );
 		std::optional<GmodDto> resultForCache = std::nullopt;
 
 		try
 		{
-			auto startTime = std::chrono::high_resolution_clock::now();
-
 			auto stream = decompressedStream( *it );
 			nlohmann::json gmodJson = nlohmann::json::parse( *stream );
 
 			GmodDto loadedDto = GmodDto::fromJson( gmodJson );
-
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-
-			SPDLOG_INFO( "Successfully loaded GMOD DTO for version {} in {} ms", visVersion, duration.count() );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
@@ -184,13 +159,10 @@ namespace dnv::vista::sdk
 			std::lock_guard<std::mutex> lock( gmodVersioningCacheMutex );
 			if ( cacheInitialized )
 			{
-				SPDLOG_TRACE( "Using cached GMOD Versioning DTO map" );
 				return gmodVersioningCache;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching GMOD Versioning resources" );
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 
 		std::vector<std::string> matchingResources;
@@ -204,8 +176,6 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		SPDLOG_INFO( "Found {} matching versioning resources", matchingResources.size() );
-
 		std::unordered_map<std::string, GmodVersioningDto> resultMap;
 		std::mutex resultMutex;
 		bool foundAnyResource = false;
@@ -214,8 +184,6 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				auto processStartTime = std::chrono::high_resolution_clock::now();
-
 				auto stream = decompressedStream( resourceName );
 				nlohmann::json versioningJson = nlohmann::json::parse( *stream );
 
@@ -230,11 +198,6 @@ namespace dnv::vista::sdk
 						resultMap.emplace( visVersion, std::move( dto ) );
 						foundAnyResource = true;
 					}
-
-					auto processEndTime = std::chrono::high_resolution_clock::now();
-					auto processDuration = std::chrono::duration_cast<std::chrono::milliseconds>( processEndTime - processStartTime );
-
-					SPDLOG_INFO( "Loaded GMOD Versioning DTO for version {} from {} in {} ms", visVersion, resourceName, processDuration.count() );
 				}
 				else
 				{
@@ -255,19 +218,14 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		auto endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-
 		std::lock_guard<std::mutex> lock( gmodVersioningCacheMutex );
 		cacheInitialized = true;
 		if ( foundAnyResource )
 		{
-			SPDLOG_INFO( "Successfully loaded {} GMOD Versioning DTOs in {} ms", resultMap.size(), duration.count() );
 			gmodVersioningCache.emplace( std::move( resultMap ) );
 		}
 		else
 		{
-			SPDLOG_ERROR( "No valid GMOD Versioning resources found after {} ms", duration.count() );
 			gmodVersioningCache = std::nullopt;
 		}
 		return gmodVersioningCache;
@@ -283,13 +241,10 @@ namespace dnv::vista::sdk
 			auto cacheIt = codebooksCache.find( visVersion );
 			if ( cacheIt != codebooksCache.end() )
 			{
-				SPDLOG_TRACE( "Using cached Codebooks DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching Codebooks resource for version: {}", visVersion );
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
@@ -307,7 +262,6 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		SPDLOG_INFO( "Found matching Codebooks resource: {}", *it );
 		std::optional<CodebooksDto> resultForCache = std::nullopt;
 		try
 		{
@@ -315,10 +269,6 @@ namespace dnv::vista::sdk
 			nlohmann::json codebooksJson = nlohmann::json::parse( *stream );
 
 			CodebooksDto loadedDto = CodebooksDto::fromJson( codebooksJson );
-
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-			SPDLOG_INFO( "Successfully loaded Codebooks DTO for version {} in {} ms", visVersion, duration.count() );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
@@ -351,13 +301,10 @@ namespace dnv::vista::sdk
 			auto cacheIt = locationsCache.find( visVersion );
 			if ( cacheIt != locationsCache.end() )
 			{
-				SPDLOG_TRACE( "Using cached Locations DTO for version: {}", visVersion );
 				return cacheIt->second;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching Locations resource for version: {}", visVersion );
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
@@ -375,7 +322,6 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		SPDLOG_INFO( "Found matching Locations resource: {}", *it );
 		std::optional<LocationsDto> resultForCache = std::nullopt;
 		try
 		{
@@ -383,10 +329,6 @@ namespace dnv::vista::sdk
 			nlohmann::json locationsJson = nlohmann::json::parse( *stream );
 
 			LocationsDto loadedDto = LocationsDto::fromJson( locationsJson );
-
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-			SPDLOG_INFO( "Successfully loaded Locations DTO for version {} in {} ms", visVersion, duration.count() );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
@@ -419,13 +361,10 @@ namespace dnv::vista::sdk
 			auto cacheIt = dataChannelTypeNamesCache.find( version );
 			if ( cacheIt != dataChannelTypeNamesCache.end() )
 			{
-				SPDLOG_TRACE( "Using cached DataChannelTypeNames DTO for version: {}", version );
 				return cacheIt->second;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching DataChannelTypeNames resource for version: {}", version );
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
@@ -444,7 +383,6 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		SPDLOG_INFO( "Found matching DataChannelTypeNames resource: {}", *it );
 		std::optional<DataChannelTypeNamesDto> resultForCache = std::nullopt;
 		try
 		{
@@ -452,10 +390,6 @@ namespace dnv::vista::sdk
 			nlohmann::json dtNamesJson = nlohmann::json::parse( *stream );
 
 			DataChannelTypeNamesDto loadedDto = DataChannelTypeNamesDto::fromJson( dtNamesJson );
-
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-			SPDLOG_INFO( "Successfully loaded DataChannelTypeNames DTO for version {} in {} ms", version, duration.count() );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
@@ -488,13 +422,10 @@ namespace dnv::vista::sdk
 			auto cacheIt = fdTypesCache.find( version );
 			if ( cacheIt != fdTypesCache.end() )
 			{
-				SPDLOG_TRACE( "Using cached FormatDataTypes DTO for version: {}", version );
 				return cacheIt->second;
 			}
 		}
 
-		SPDLOG_INFO( "Fetching FormatDataTypes resource for version: {}", version );
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
@@ -513,7 +444,6 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		SPDLOG_INFO( "Found matching FormatDataTypes resource: {}", *it );
 		std::optional<FormatDataTypesDto> resultForCache = std::nullopt;
 		try
 		{
@@ -521,10 +451,6 @@ namespace dnv::vista::sdk
 			nlohmann::json fdTypesJson = nlohmann::json::parse( *stream );
 
 			FormatDataTypesDto loadedDto = FormatDataTypesDto::fromJson( fdTypesJson );
-
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-			SPDLOG_INFO( "Successfully loaded FormatDataTypes DTO for version {} in {} ms", version, duration.count() );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
@@ -562,19 +488,15 @@ namespace dnv::vista::sdk
 			std::lock_guard<std::mutex> lock( cacheMutex );
 			if ( initialized )
 			{
-				SPDLOG_TRACE( "Using cached resource names ({} entries)", cachedResourceNames.size() );
 				return cachedResourceNames;
 			}
 		}
-		SPDLOG_INFO( "Building resource names cache..." );
-		auto startTime = std::chrono::high_resolution_clock::now();
 
 		std::vector<std::filesystem::path> possibleDirs;
 
 		if ( successfulDir )
 		{
 			possibleDirs.push_back( *successfulDir );
-			SPDLOG_TRACE( "Trying previously successful directory first: {}", successfulDir->string() );
 		}
 
 		possibleDirs.push_back( std::filesystem::current_path() / "resources" );
@@ -590,11 +512,10 @@ namespace dnv::vista::sdk
 			{
 				if ( !std::filesystem::exists( dir ) || !std::filesystem::is_directory( dir ) )
 				{
-					SPDLOG_TRACE( "Directory does not exist or is not a directory: {}", dir.string() );
 					continue;
 				}
 
-				SPDLOG_TRACE( "Scanning directory: {}", dir.string() );
+				( "Scanning directory: {}", dir.string() );
 				for ( const auto& entry : std::filesystem::directory_iterator( dir ) )
 				{
 					if ( entry.is_regular_file() )
@@ -609,13 +530,11 @@ namespace dnv::vista::sdk
 
 				if ( !foundNames.empty() )
 				{
-					SPDLOG_INFO( "Found {} resources in directory: {}", foundNames.size(), dir.string() );
 					successfulDir = dir;
 					break;
 				}
 				else
 				{
-					SPDLOG_TRACE( "No resources found in directory: {}", dir.string() );
 				}
 			}
 			catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
@@ -632,17 +551,12 @@ namespace dnv::vista::sdk
 		{
 			for ( [[maybe_unused]] const auto& n : foundNames )
 			{
-				SPDLOG_TRACE( "Found resource: {}", n );
 			}
 		}
 		else
 		{
 			SPDLOG_WARN( "No embedded resource files (.json.gz) found in search paths." );
 		}
-
-		auto endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-		SPDLOG_INFO( "Resource names cache built in {} ms.", duration.count() );
 
 		{
 			std::lock_guard<std::mutex> lock( cacheMutex );
@@ -654,7 +568,6 @@ namespace dnv::vista::sdk
 
 	std::shared_ptr<std::istream> EmbeddedResource::decompressedStream( const std::string& resourceName )
 	{
-		auto startTime = std::chrono::high_resolution_clock::now();
 		auto compressedStream = stream( resourceName );
 
 		auto decompressedBuffer = std::make_shared<std::stringstream>();
@@ -670,7 +583,7 @@ namespace dnv::vista::sdk
 			throw std::runtime_error( "Failed to initialize zlib for decompression for " + resourceName );
 		}
 
-		SPDLOG_TRACE( "Decompressing resource: {}", resourceName );
+		( "Decompressing resource: {}", resourceName );
 
 		const size_t CHUNK_IN_SIZE = 16384;
 		std::vector<char> inBuffer( CHUNK_IN_SIZE );
@@ -720,16 +633,8 @@ namespace dnv::vista::sdk
 
 		decompressedBuffer->seekg( 0 );
 
-		auto endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTime - startTime );
-
 		[[maybe_unused]] double ratio = ( totalCompressedRead > 0 ) ? static_cast<double>( totalDecompressedWritten ) / static_cast<double>( totalCompressedRead ) : 0.0;
 		[[maybe_unused]] double compressionPercent = ( totalDecompressedWritten > 0 ) ? ( static_cast<double>( totalCompressedRead ) * 100.0 ) / static_cast<double>( totalDecompressedWritten ) : 0.0;
-
-		SPDLOG_INFO( "Decompressed resource '{}' in {} ms. Read: {} bytes, Wrote: {} bytes. Ratio: {:.2f}x. Compression: {:.1f}%.",
-			resourceName, duration.count(), totalCompressedRead, totalDecompressedWritten, ratio, compressionPercent );
-
-		SPDLOG_TRACE( "Memory footprint: Decompressed ~{:.2f} MB", static_cast<double>( totalDecompressedWritten ) / ( 1024.0 * 1024.0 ) );
 
 		return decompressedBuffer;
 	}
@@ -753,12 +658,8 @@ namespace dnv::vista::sdk
 					if ( fileStream->is_open() )
 					{
 						cacheHits++;
-						SPDLOG_TRACE( "Resource path cache hit: '{}' -> '{}'", resourceName, it->second.string() );
 						if ( ( cacheHits + cacheMisses ) % 50 == 0 && ( cacheHits + cacheMisses ) > 0 )
 						{
-							SPDLOG_INFO( "Path Cache effectiveness: {:.1f}% hit rate ({} hits, {} misses)",
-								( static_cast<double>( cacheHits ) * 100.0 ) / static_cast<double>( cacheHits + cacheMisses ),
-								cacheHits, cacheMisses );
 						}
 						return fileStream;
 					}
@@ -768,8 +669,6 @@ namespace dnv::vista::sdk
 			}
 			cacheMisses++;
 		}
-
-		SPDLOG_TRACE( "Resource path cache miss for: '{}'. Searching...", resourceName );
 
 		std::vector<std::filesystem::path> possiblePaths;
 
@@ -792,7 +691,6 @@ namespace dnv::vista::sdk
 		for ( const auto& path : possiblePaths )
 		{
 			attemptedPathsStr += "'" + path.string() + "', ";
-			SPDLOG_TRACE( "Attempting to open resource: '{}'", path.string() );
 			try
 			{
 				if ( std::filesystem::exists( path ) && std::filesystem::is_regular_file( path ) )
@@ -800,15 +698,12 @@ namespace dnv::vista::sdk
 					auto fileStream = std::make_shared<std::ifstream>( path, std::ios::binary );
 					if ( fileStream->is_open() )
 					{
-						SPDLOG_INFO( "Successfully opened resource '{}' at path: '{}'", resourceName, path.string() );
-
 						{
 							std::lock_guard<std::mutex> lock( pathCacheMutex );
 							resourcePathCache[resourceName] = path;
 							if ( path.has_parent_path() )
 							{
 								lastSuccessfulBaseDir = path.parent_path();
-								SPDLOG_TRACE( "Updated last successful base directory: '{}'", lastSuccessfulBaseDir->string() );
 							}
 						}
 						return fileStream;

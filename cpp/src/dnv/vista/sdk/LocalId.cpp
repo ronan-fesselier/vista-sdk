@@ -27,8 +27,6 @@ namespace dnv::vista::sdk
 	LocalId::LocalId( LocalIdBuilder builder )
 		: m_builder{ std::make_shared<LocalIdBuilder>( std::move( builder ) ) }
 	{
-		SPDLOG_INFO( "Constructing LocalId from builder" );
-
 		if ( m_builder->isEmpty() )
 		{
 			SPDLOG_ERROR( "LocalId cannot be constructed from empty LocalIdBuilder" );
@@ -40,9 +38,6 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "LocalId cannot be constructed from invalid LocalIdBuilder" );
 			throw std::invalid_argument( "LocalId cannot be constructed from invalid LocalIdBuilder" );
 		}
-
-		SPDLOG_INFO( "LocalId constructed successfully: primaryItem={}",
-			m_builder->primaryItem().value().toString() );
 	}
 
 	//=====================================================================

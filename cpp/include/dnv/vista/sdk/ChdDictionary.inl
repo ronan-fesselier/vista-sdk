@@ -124,8 +124,6 @@ namespace dnv::vista::sdk
 		: m_table{},
 		  m_seeds{}
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-
 		if ( items.empty() )
 		{
 			return;
@@ -162,8 +160,6 @@ namespace dnv::vista::sdk
 		}
 		size *= 2;
 
-		SPDLOG_TRACE( "Building CHD dictionary with {} items, table size {}", items.size(), size );
-
 		auto hashBuckets{ std::vector<std::vector<std::pair<unsigned, uint32_t>>>( size ) };
 		for ( auto& bucket : hashBuckets )
 		{
@@ -193,8 +189,6 @@ namespace dnv::vista::sdk
 			auto entries{ std::unordered_map<size_t, unsigned>() };
 			entries.reserve( subKeys.size() );
 			uint32_t currentSeedValue{ 0 };
-
-			SPDLOG_TRACE( "Bucket {}: Starting seed search for {} items", currentBucketIdx, subKeys.size() );
 
 			while ( true )
 			{
@@ -322,13 +316,6 @@ namespace dnv::vista::sdk
 		}
 
 		m_seeds = std::move( seeds );
-
-		auto end = std::chrono::high_resolution_clock::now();
-		[[maybe_unused]] auto duration = std::chrono::duration<double, std::milli>( end - start ).count();
-		SPDLOG_DEBUG( "CHD Dictionary construction complete: {} entries, {} seeds in {:.2f}ms", m_table.size(), m_seeds.size(), duration );
-
-		[[maybe_unused]] auto memoryUsage = sizeof( typename decltype( m_table )::value_type ) * m_table.capacity() + sizeof( int ) * m_seeds.capacity();
-		SPDLOG_INFO( "CHD Dictionary memory usage: {:.2f}KB ({:.2f}MB) ({} table entries, {} seeds)", static_cast<float>( memoryUsage ) / 1024.0f, static_cast<float>( memoryUsage ) / ( 1024.0f * 1024.0f ), m_table.size(), m_seeds.size() );
 	}
 
 	//----------------------------------------------
@@ -366,18 +353,11 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const
 	{
-		auto start = std::chrono::high_resolution_clock::now();
 		outValue = nullptr;
 
 		if ( key.empty() || m_table.empty() || m_seeds.empty() )
 		{
 			return false;
-		}
-
-		++s_lookupCount;
-		if ( s_lookupCount % 10000 == 0 )
-		{
-			SPDLOG_INFO( "Dictionary performance: {} lookups, hit rate: {:.1f}%", s_lookupCount, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
 		}
 
 		uint32_t hashValue{ hash( key ) };
@@ -446,8 +426,6 @@ namespace dnv::vista::sdk
 					consecutiveMismatches = 0;
 				}
 
-				auto end = std::chrono::high_resolution_clock::now();
-				s_totalLookupDuration += ( end - start );
 				return false;
 			}
 
@@ -457,17 +435,6 @@ namespace dnv::vista::sdk
 		outValue = &kvp->second;
 
 		++s_lookupHits;
-
-		auto end = std::chrono::high_resolution_clock::now();
-		s_totalLookupDuration += ( end - start );
-
-		if ( s_lookupCount > 0 && s_lookupCount % 100000 == 0 )
-		{
-			[[maybe_unused]] auto avgDurationNs = s_totalLookupDuration / s_lookupCount;
-			[[maybe_unused]] auto avgDurationMs = std::chrono::duration<double, std::milli>( avgDurationNs ).count();
-
-			SPDLOG_INFO( "Dictionary lookup stats: avg time {:.3f}ms, hit rate {:.1f}%", avgDurationMs, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
-		}
 
 		return true;
 	}
@@ -543,17 +510,11 @@ namespace dnv::vista::sdk
 			++s_cacheHits;
 			if ( s_cacheHits % 10000 == 0 )
 			{
-				SPDLOG_TRACE( "Hash cache hit for '{}' (hits: {}, rate: {:.1f}%)", key, s_cacheHits, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 			}
 
 			return s_hashCache[cacheIndex].hash;
 		}
 		++s_cacheMisses;
-
-		if ( s_cacheMisses % 10000 == 0 )
-		{
-			SPDLOG_INFO( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
-		}
 
 		/* Hashing logic */
 		auto length{ key.length() };
@@ -571,7 +532,6 @@ namespace dnv::vista::sdk
 
 		if ( s_cacheMisses % 1000 == 0 )
 		{
-			SPDLOG_TRACE( "Hash cache updated at index {}: key='{}', hash={}", cacheIndex, s_hashCache[cacheIndex].key, s_hashCache[cacheIndex].hash );
 		}
 
 		return hashValue;
@@ -598,7 +558,4 @@ namespace dnv::vista::sdk
 
 	template <typename TValue>
 	thread_local size_t ChdDictionary<TValue>::s_lookupHits = 0;
-
-	template <typename TValue>
-	thread_local std::chrono::nanoseconds ChdDictionary<TValue>::s_totalLookupDuration{ 0 };
 }

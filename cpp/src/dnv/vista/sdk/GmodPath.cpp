@@ -159,23 +159,17 @@ namespace dnv::vista::sdk
 			const std::vector<const GmodNode*>& traversedParents,
 			const GmodNode& currentNode )
 		{
-			SPDLOG_TRACE( "parseInternalTraversalHandler: currentNode='{}', toFind='{}'", currentNode.code().data(), context.toFind.code );
-
 			bool foundCurrentToFind = ( currentNode.code() == context.toFind.code );
 
 			if ( !foundCurrentToFind && Gmod::isLeafNode( currentNode.metadata() ) )
 			{
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Leaf node '{}' does not match toFind '{}'. Skipping subtree.", currentNode.code().data(), context.toFind.code );
 				return TraversalHandlerResult::SkipSubtree;
 			}
 
 			if ( !foundCurrentToFind )
 			{
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Node '{}' does not match toFind '{}'. Continuing search.", currentNode.code().data(), context.toFind.code );
 				return TraversalHandlerResult::Continue;
 			}
-
-			SPDLOG_TRACE( "parseInternalTraversalHandler: Found node for toFind='{}'", context.toFind.code );
 
 			if ( context.toFind.location.has_value() )
 			{
@@ -184,18 +178,14 @@ namespace dnv::vista::sdk
 					context.nodeLocations.emplace();
 				}
 				context.nodeLocations->emplace( std::string( context.toFind.code ), context.toFind.location.value() );
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Stored location for '{}'", context.toFind.code );
 			}
 
 			if ( !context.partsQueue.empty() )
 			{
 				context.toFind = context.partsQueue.front();
 				context.partsQueue.pop_front();
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Advanced toFind to '{}'. Parts remaining: {}", context.toFind.code, context.partsQueue.size() );
 				return TraversalHandlerResult::Continue;
 			}
-
-			SPDLOG_TRACE( "parseInternalTraversalHandler: All parts found. Constructing path." );
 
 			std::vector<GmodNode*> pathParents;
 			pathParents.reserve( traversedParents.size() + 1 );
@@ -213,7 +203,7 @@ namespace dnv::vista::sdk
 						GmodNode* newNode = new GmodNode( parent->withLocation( it->second ) );
 						context.ownedNodesForCurrentPath.push_back( newNode );
 						pathParents.push_back( newNode );
-						SPDLOG_TRACE( "parseInternalTraversalHandler: Applied stored location to parent '{}'", parent->code().data() );
+
 						continue;
 					}
 				}
@@ -226,7 +216,6 @@ namespace dnv::vista::sdk
 				GmodNode* newNode = new GmodNode( currentNode.withLocation( context.toFind.location.value() ) );
 				context.ownedNodesForCurrentPath.push_back( newNode );
 				endNode = newNode;
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Applied final location to end_node '{}'", currentNode.code().data() );
 			}
 			else
 			{
@@ -252,7 +241,6 @@ namespace dnv::vista::sdk
 			if ( pathParents.empty() || pathParents[0] != &context.gmod.rootNode() )
 			{
 				pathParents.insert( pathParents.begin(), const_cast<GmodNode*>( &context.gmod.rootNode() ) );
-				SPDLOG_TRACE( "parseInternalTraversalHandler: Prepended GMOD root node." );
 			}
 
 			internal::LocationSetsVisitor locationSetsVisitor;
@@ -277,7 +265,6 @@ namespace dnv::vista::sdk
 
 					if ( setCommonLocation.has_value() )
 					{
-						SPDLOG_TRACE( "parseInternalTraversalHandler: Applying common location from set ({}-{}) to nodes.", setStartIdx, setEndIdx );
 						for ( size_t k = setStartIdx; k <= setEndIdx; ++k )
 						{
 							GmodNode** nodesToUpdateInPath;
@@ -296,9 +283,6 @@ namespace dnv::vista::sdk
 								 currentNodeInSet->location().value() == setCommonLocation.value() )
 							{
 								needsNewNode = false;
-								SPDLOG_TRACE( "Node '{}' already has correct location '{}', no new node needed",
-									currentNodeInSet->code().data(),
-									currentNodeInSet->location().value().toString() );
 							}
 							else if ( !currentNodeInSet->location().has_value() && !setCommonLocation.has_value() )
 							{
@@ -332,8 +316,6 @@ namespace dnv::vista::sdk
 			pathObject.m_ownedNodes = std::move( context.ownedNodesForCurrentPath );
 			context.ownedNodesForCurrentPath.clear();
 
-			SPDLOG_TRACE( "parseInternalTraversalHandler: Successfully constructed GmodPath: {}", pathObject.toString() );
-
 			context.resultingPath.emplace( std::move( pathObject ) );
 			return TraversalHandlerResult::Stop;
 		}
@@ -352,9 +334,6 @@ namespace dnv::vista::sdk
 		  m_node{ node },
 		  m_parents{ std::move( parents ) }
 	{
-		SPDLOG_TRACE( "GmodPath constructor called with node: {} and {} parents.",
-			( m_node ? std::string( m_node->code() ) : "null" ), m_parents.size() );
-
 		if ( !m_node )
 		{
 			SPDLOG_ERROR( "GmodPath constructor: node cannot be null." );
@@ -414,7 +393,6 @@ namespace dnv::vista::sdk
 				}
 			}
 		}
-		SPDLOG_TRACE( "GmodPath structural validation passed for node: {}.", m_node->code() );
 
 		try
 		{
@@ -429,7 +407,6 @@ namespace dnv::vista::sdk
 				}
 				visitor.visit( *nodeToVisit, i, m_parents, *m_node );
 			}
-			SPDLOG_TRACE( "GmodPath LocationSetsVisitor validation passed for node: {}.", m_node->code() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
@@ -440,8 +417,6 @@ namespace dnv::vista::sdk
 
 			throw;
 		}
-
-		SPDLOG_TRACE( "GmodPath constructed successfully for node: {}.", m_node->code() );
 	}
 
 	GmodPath::GmodPath()
@@ -449,7 +424,6 @@ namespace dnv::vista::sdk
 		  m_gmod{ nullptr },
 		  m_node{ nullptr }
 	{
-		SPDLOG_TRACE( "GmodPath default constructor called." );
 	}
 
 	GmodPath::GmodPath( const GmodPath& other )
@@ -507,16 +481,13 @@ namespace dnv::vista::sdk
 		  m_parents{ std::move( other.m_parents ) },
 		  m_ownedNodes{ std::move( other.m_ownedNodes ) }
 	{
-		SPDLOG_TRACE( "GmodPath move constructor called for path ending with node: {}.", ( m_node ? std::string( m_node->code() ) : "null" ) );
 		other.m_node = nullptr;
 		other.m_gmod = nullptr;
 		other.m_visVersion = VisVersion::Unknown;
-		SPDLOG_TRACE( "GmodPath move constructor: Source path members reset." );
 	}
 
 	GmodPath::~GmodPath()
 	{
-		SPDLOG_TRACE( "GmodPath destructor: Deleting {} owned nodes.", m_ownedNodes.size() );
 		for ( GmodNode* ownedNode : m_ownedNodes )
 		{
 			delete ownedNode;
@@ -530,10 +501,8 @@ namespace dnv::vista::sdk
 
 	GmodPath& GmodPath::operator=( const GmodPath& other )
 	{
-		SPDLOG_TRACE( "GmodPath copy assignment operator called." );
 		if ( this == &other )
 		{
-			SPDLOG_TRACE( "GmodPath copy assignment: Self-assignment detected, no action taken." );
 			return *this;
 		}
 
@@ -560,17 +529,14 @@ namespace dnv::vista::sdk
 				m_ownedNodes.push_back( nullptr );
 			}
 		}
-		SPDLOG_TRACE( "GmodPath copy assignment: Assigned from path ending with node '{}', {} owned nodes copied.",
-			( m_node ? std::string( m_node->code() ) : "null" ), m_ownedNodes.size() );
+
 		return *this;
 	}
 
 	GmodPath& GmodPath::operator=( GmodPath&& other ) noexcept
 	{
-		SPDLOG_TRACE( "GmodPath move assignment operator called." );
 		if ( this == &other )
 		{
-			SPDLOG_TRACE( "GmodPath move assignment: Self-assignment detected, no action taken." );
 			return *this;
 		}
 
@@ -589,8 +555,6 @@ namespace dnv::vista::sdk
 		other.m_node = nullptr;
 		other.m_gmod = nullptr;
 		other.m_visVersion = VisVersion::Unknown;
-		SPDLOG_TRACE( "GmodPath move assignment: Assigned from path ending with node '{}', source path members reset.",
-			( m_node ? std::string( m_node->code() ) : "null" ) );
 
 		return *this;
 	}
@@ -601,19 +565,13 @@ namespace dnv::vista::sdk
 
 	bool GmodPath::operator==( const GmodPath& other ) const noexcept
 	{
-		SPDLOG_TRACE( "GmodPath::operator== called." );
 		if ( this == &other )
 		{
-			SPDLOG_TRACE( "GmodPath::operator==: Same instance, returning true." );
-
 			return true;
 		}
 
 		if ( m_parents.size() != other.m_parents.size() )
 		{
-			SPDLOG_TRACE( "GmodPath::operator==: Different parent counts ({} vs {}), returning false.",
-				m_parents.size(), other.m_parents.size() );
-
 			return false;
 		}
 
@@ -628,8 +586,6 @@ namespace dnv::vista::sdk
 			{ /* Null pointers */
 				if ( ( !m_parents[i] && other.m_parents[i] ) || ( m_parents[i] && !other.m_parents[i] ) )
 				{
-					SPDLOG_TRACE( "GmodPath::operator==: One parent node is null at index {}, returning false.", i );
-
 					return false;
 				}
 
@@ -642,9 +598,6 @@ namespace dnv::vista::sdk
 			{ /* Compare codes */
 				if ( m_parents[i]->code() != other.m_parents[i]->code() )
 				{
-					SPDLOG_TRACE( "GmodPath::operator==: Different parent codes at index {} ({} vs {}), returning false.",
-						i, std::string( m_parents[i]->code() ), std::string( other.m_parents[i]->code() ) );
-
 					return false;
 				}
 			}
@@ -655,18 +608,12 @@ namespace dnv::vista::sdk
 
 				if ( thisHasLocation != otherHasLocation )
 				{
-					SPDLOG_TRACE( "GmodPath::operator==: Location presence mismatch for parent at index {} ({} vs {}), returning false.",
-						i, thisHasLocation, otherHasLocation );
-
 					return false;
 				}
 
 				if ( thisHasLocation && otherHasLocation &&
 					 m_parents[i]->location().value() != other.m_parents[i]->location().value() )
 				{
-					SPDLOG_TRACE( "GmodPath::operator==: Different parent locations at index {} ({} vs {}), returning false.",
-						i, m_parents[i]->location().value().toString(), other.m_parents[i]->location().value().toString() );
-
 					return false;
 				}
 			}
@@ -675,15 +622,11 @@ namespace dnv::vista::sdk
 		{ /* Null target nodes */
 			if ( ( !m_node && other.m_node ) || ( m_node && !other.m_node ) )
 			{
-				SPDLOG_TRACE( "GmodPath::operator==: One target node is null while the other is not, returning false." );
-
 				return false;
 			}
 
 			if ( !m_node && !other.m_node )
 			{
-				SPDLOG_TRACE( "GmodPath::operator==: Both target nodes are null, paths are considered equal." );
-
 				return true;
 			}
 		}
@@ -692,9 +635,6 @@ namespace dnv::vista::sdk
 
 			if ( m_node->code() != other.m_node->code() )
 			{
-				SPDLOG_TRACE( "GmodPath::operator==: Different target node codes ({} vs {}), returning false.",
-					std::string( m_node->code() ), std::string( other.m_node->code() ) );
-
 				return false;
 			}
 		}
@@ -706,32 +646,23 @@ namespace dnv::vista::sdk
 
 			if ( thisHasLocation != otherHasLocation )
 			{
-				SPDLOG_TRACE( "GmodPath::operator==: Location presence mismatch for target node ({} vs {}), returning false.",
-					thisHasLocation, otherHasLocation );
-
 				return false;
 			}
 
 			if ( thisHasLocation && otherHasLocation &&
 				 m_node->location().value() != other.m_node->location().value() )
 			{
-				SPDLOG_TRACE( "GmodPath::operator==: Different target node locations ({} vs {}), returning false.",
-					m_node->location().value().toString(), other.m_node->location().value().toString() );
-
 				return false;
 			}
 		}
-
-		SPDLOG_TRACE( "GmodPath::operator==: Paths are equal by value comparison, returning true." );
 
 		return true;
 	}
 
 	bool GmodPath::operator!=( const GmodPath& other ) const noexcept
 	{
-		SPDLOG_TRACE( "GmodPath::operator!= called." );
 		bool areEqual = ( *this == other );
-		SPDLOG_TRACE( "GmodPath::operator!=: Result of equality check was {}. Returning {}.", areEqual, !areEqual );
+
 		return !areEqual;
 	}
 
@@ -741,7 +672,6 @@ namespace dnv::vista::sdk
 
 	GmodNode* GmodPath::operator[]( size_t index ) const
 	{
-		SPDLOG_TRACE( "GmodPath::operator[] (const) called with index: {}.", index );
 		if ( index >= ( m_parents.size() + 1 ) )
 		{
 			SPDLOG_ERROR( "GmodPath::operator[] (const): Index {} out of bounds. Path length is {}.", index, m_parents.size() + 1 );
@@ -751,21 +681,17 @@ namespace dnv::vista::sdk
 		if ( index < m_parents.size() )
 		{
 			GmodNode* parentNode = m_parents[index];
-			SPDLOG_TRACE( "GmodPath::operator[] (const): Index {} corresponds to parent node: {} (code: {}).",
-				index, fmt::ptr( parentNode ), ( parentNode ? std::string( parentNode->code() ) : "null" ) );
+
 			return parentNode;
 		}
 		else
 		{
-			SPDLOG_TRACE( "GmodPath::operator[] (const): Index {} corresponds to final node m_node: {} (code: {}).",
-				index, fmt::ptr( m_node ), ( m_node ? std::string( m_node->code() ) : "null" ) );
 			return m_node;
 		}
 	}
 
 	GmodNode*& GmodPath::operator[]( size_t index )
 	{
-		SPDLOG_TRACE( "GmodPath::operator[] (non-const) called with index: {}.", index );
 		if ( index >= ( m_parents.size() + 1 ) )
 		{
 			SPDLOG_ERROR( "GmodPath::operator[] (non-const): Index {} out of bounds. Path length is {}.", index, m_parents.size() + 1 );
@@ -774,14 +700,10 @@ namespace dnv::vista::sdk
 
 		if ( index < m_parents.size() )
 		{
-			SPDLOG_TRACE( "GmodPath::operator[] (non-const): Index {} corresponds to parent node reference: {}.",
-				index, fmt::ptr( m_parents[index] ) );
 			return m_parents[index];
 		}
 		else
 		{
-			SPDLOG_TRACE( "GmodPath::operator[] (non-const): Index {} corresponds to final node m_node reference: {}.",
-				index, fmt::ptr( m_node ) );
 			return m_node;
 		}
 	}
@@ -1414,7 +1336,6 @@ namespace dnv::vista::sdk
 
 	std::unique_ptr<GmodParsePathResult> GmodPath::parseFullPathInternal( std::string_view item, const Gmod& gmod, const Locations& locations )
 	{
-		SPDLOG_TRACE( "GmodPath::parseFullPathInternal called with item: '{}'", item );
 		assert( gmod.visVersion() == locations.visVersion() );
 
 		bool isEmptyOrWhitespace = item.empty();
@@ -1701,7 +1622,6 @@ namespace dnv::vista::sdk
 			finalPath->m_visVersion = finalPath->m_node->visVersion();
 		}
 
-		SPDLOG_TRACE( "GmodPath::parseFullPathInternal: Successfully parsed full path '{}'.", item );
 		return std::make_unique<GmodParsePathResult::Ok>( std::move( *finalPath ) );
 	}
 
@@ -1778,8 +1698,6 @@ namespace dnv::vista::sdk
 		  m_path{ sourcePath },
 		  m_isBuilt{ false }
 	{
-		SPDLOG_TRACE( "GmodIndividualizableSet constructor: Initializing with {} indices.", nodeIndices.size() );
-
 		if ( m_nodeIndices.empty() )
 		{
 			SPDLOG_ERROR( "GmodIndividualizableSet constructor: nodeIndices cannot be empty." );
@@ -1843,7 +1761,6 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "GmodIndividualizableSet constructor: No nodes in the set are part of the short path (final node or leaf node)." );
 			throw std::invalid_argument( "GmodIndividualizableSet has no nodes that are part of short path" );
 		}
-		SPDLOG_TRACE( "GmodIndividualizableSet constructor: Successfully initialized and validated." );
 	}
 
 	//----------------------------------------------
@@ -1943,7 +1860,6 @@ namespace dnv::vista::sdk
 
 	std::string GmodIndividualizableSet::toString() const
 	{
-		SPDLOG_TRACE( "GmodIndividualizableSet::toString() const called." );
 		std::stringstream ss;
 		bool firstNodeAppended = false;
 
@@ -1971,11 +1887,10 @@ namespace dnv::vista::sdk
 				}
 				currentNode->toString( ss );
 				firstNodeAppended = true;
-				SPDLOG_TRACE( "GmodIndividualizableSet::toString(): Appended node '{}' (index {}).", currentNode->code().data(), nodeIdx );
 			}
 		}
 		std::string result = ss.str();
-		SPDLOG_TRACE( "GmodIndividualizableSet::toString() result: '{}'", result );
+
 		return result;
 	}
 

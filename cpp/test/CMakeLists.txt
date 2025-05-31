@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(vista-sdk-cpp-tests
-	VERSION 1.0.0
+	VERSION 0.1.0
 	DESCRIPTION "DNV VISTA SDK C++ Tests"
 	LANGUAGES CXX)
 
@@ -14,17 +14,20 @@ include(GoogleTest)
 
 # --- Test source files ---
 set(TEST_SOURCES
-	CodebookTests.cpp
-	CodebooksTests.cpp
-	GmodPathTests.cpp
-	GmodTests.cpp
-	GmodVersioningTests.cpp
-	ImoNumberTests.cpp
-	ISOStringTests.cpp
-	LocalIdTests.cpp
-	LocationsTests.cpp
-	UniversalIdTests.cpp
+	Codebook.cpp
+	Codebooks.cpp
+	Gmod.cpp
+	GmodPath.cpp
+	GmodVersioning.cpp
+	ImoNumber.cpp
+	ISOString.cpp
+	LocalId.cpp
+	Locations.cpp
+	UniversalId.cpp
 )
+
+# --- Set executables prefix ---
+set(TEST_PREFIX "TEST_")
 
 if(VISTA_SDK_CPP_BUILD_SMOKE_TESTS)
 	list(APPEND TEST_SOURCES GmodVersioningSmokeTests.cpp)
@@ -51,6 +54,9 @@ endif()
 # --- Configure test executables ---
 foreach(test_source ${TEST_SOURCES})
 	get_filename_component(test_target_name ${test_source} NAME_WE)
+
+	set(test_target_name ${TEST_PREFIX}${test_target_name})
+
 
 	if(NOT TARGET ${test_target_name})
 		add_executable(${test_target_name} TestDataLoader.h ${test_source})

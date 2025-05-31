@@ -22,8 +22,6 @@ namespace dnv::vista::sdk
 		}
 
 		m_value = value;
-
-		SPDLOG_INFO( "Created IMO number: {}", m_value );
 	}
 
 	ImoNumber::ImoNumber( const std::string& value )
@@ -36,14 +34,11 @@ namespace dnv::vista::sdk
 		}
 
 		m_value = static_cast<int>( *result );
-
-		SPDLOG_INFO( "Created IMO number: {} from string '{}'", m_value, value );
 	}
 
 	ImoNumber::ImoNumber( int value, [[maybe_unused]] bool bUnused ) noexcept
 		: m_value{ value }
 	{
-		SPDLOG_INFO( "Created pre-validated IMO number: {}", m_value );
 	}
 
 	ImoNumber::ImoNumber( const ImoNumber& ) = default; /* TODO - transfer in .h file later */
@@ -132,8 +127,6 @@ namespace dnv::vista::sdk
 
 		bool isValid = ( providedCheckDigit == calculatedCheckDigit );
 
-		SPDLOG_TRACE( "Validating IMO {}: checksum={}, calculated={}, provided={}, valid={}", imoNumber, checkSum, calculatedCheckDigit, providedCheckDigit, isValid );
-
 		return isValid;
 	}
 
@@ -152,7 +145,6 @@ namespace dnv::vista::sdk
 			SPDLOG_ERROR( "{}", error_message );
 			throw std::invalid_argument( error_message );
 		}
-		SPDLOG_INFO( "Successfully parsed IMO number: {}", static_cast<int>( *result ) );
 
 		return *result;
 	}
@@ -172,8 +164,6 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Failed to parse ImoNumber: " + value );
 		}
 
-		SPDLOG_INFO( "Successfully parsed IMO number: {}", static_cast<int>( *result ) );
-
 		return *result;
 	}
 
@@ -181,15 +171,11 @@ namespace dnv::vista::sdk
 	{
 		if ( value.empty() )
 		{
-			SPDLOG_INFO( "Empty IMO number string" );
-
 			return std::nullopt;
 		}
 
 		if ( value.find_first_of( " \t\n\r\f\v" ) != std::string::npos )
 		{
-			SPDLOG_INFO( "IMO number contains whitespace: '{}'", value );
-
 			return std::nullopt;
 		}
 
@@ -202,7 +188,6 @@ namespace dnv::vista::sdk
 		if ( hasImoPrefix )
 		{
 			sv = sv.substr( 3 );
-			SPDLOG_INFO( "Removed IMO prefix, remaining: '{}'", fmt::string_view( sv.data(), sv.size() ) );
 		}
 
 		int num = 0;
@@ -227,8 +212,6 @@ namespace dnv::vista::sdk
 
 			return std::nullopt;
 		}
-
-		SPDLOG_INFO( "Successfully parsed IMO number {} from string '{}'", num, value );
 
 		return ImoNumber( num, true );
 	}

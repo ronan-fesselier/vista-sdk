@@ -506,7 +506,6 @@ namespace dnv::vista::sdk
 			struct CacheItem final
 			{
 				V value;
-				std::chrono::steady_clock::time_point lastAccess;
 			};
 
 			//------------------------------------------
@@ -531,7 +530,6 @@ namespace dnv::vista::sdk
 
 			mutable std::mutex m_mutex;
 			mutable std::unordered_map<K, CacheItem> m_cache;
-			mutable std::chrono::steady_clock::time_point m_lastCleanup;
 		};
 
 		//----------------------------------------------

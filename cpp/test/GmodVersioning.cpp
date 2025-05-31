@@ -186,8 +186,6 @@ namespace dnv::vista::sdk::tests
 		{
 			const auto& gmod = m_vis->gmod( sourceVersion );
 
-			SPDLOG_INFO( "Converting {} to {}", dnv::vista::sdk::VisVersionExtensions::toVersionString( sourceVersion ), dnv::vista::sdk::VisVersionExtensions::toVersionString( latestVisVersion ) );
-
 			std::vector<std::string>& currentVersionErrors = errored[sourceVersion];
 
 			auto enumerator = gmod.enumerator();

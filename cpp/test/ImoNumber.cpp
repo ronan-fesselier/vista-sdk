@@ -39,14 +39,12 @@ namespace dnv::vista::sdk
 				file.open( path );
 				if ( file.is_open() )
 				{
-					SPDLOG_INFO( "Found test data at path: {}", path );
 					fileOpened = true;
 					break;
 				}
 
 				attemptedPaths += path + ", ";
 				file.clear();
-				SPDLOG_TRACE( "Failed to open test data file: {}", path );
 			}
 
 			if ( !fileOpened )

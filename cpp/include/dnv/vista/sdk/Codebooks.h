@@ -48,88 +48,6 @@ namespace dnv::vista::sdk
 		// Iterator
 		//=====================================================================
 
-		/**
-		 * @brief Forward iterator for the codebooks collection.
-		 * @details Provides standard C++ forward iterator interface, yielding a tuple
-		 *          containing the `CodebookName` and a const reference to the `Codebook`.
-		 */
-		class Iterator final
-		{
-		public:
-			/** @brief Standard iterator type definitions */
-			using iterator_category = std::forward_iterator_tag;
-
-			/** @brief The type returned when dereferencing the iterator. */
-			using value_type = std::tuple<CodebookName, std::reference_wrapper<const Codebook>>;
-
-			/** @brief Type to represent the difference between two iterators. */
-			using difference_type = std::ptrdiff_t;
-
-			/** @brief Pointer to the value type (though not directly used as value_type is returned by value). */
-			using pointer = value_type*;
-
-			/** @brief Reference to the value type (returned by value). */
-			using reference = value_type;
-
-			/**
-			 * @brief Construct an iterator.
-			 * @param codebooks Pointer to the underlying codebooks array.
-			 * @param index Starting position index (0 to NUM_CODEBOOKS).
-			 */
-			Iterator( const std::array<Codebook, NUM_CODEBOOKS>* codebooks, size_t index );
-
-			/**
-			 * @brief Dereference operator.
-			 * @details Provides access to the current element as a tuple.
-			 * @return A `value_type` tuple containing the `CodebookName` and a `std::reference_wrapper<const Codebook>`.
-			 * @throws std::out_of_range if the iterator's index is invalid (>= NUM_CODEBOOKS).
-			 */
-			[[nodiscard]] reference operator*() const;
-
-			/**
-			 * @brief Arrow operator (member access).
-			 * @details Allows accessing members of the returned tuple directly (e.g., `it->first`).
-			 * @return A temporary `value_type` tuple object.
-			 * @throws std::out_of_range if the iterator's index is invalid (>= NUM_CODEBOOKS).
-			 */
-			[[nodiscard]] value_type operator->() const;
-
-			/**
-			 * @brief Pre-increment operator.
-			 * @details Advances the iterator to the next element in the container.
-			 * @return Reference to this iterator after incrementing.
-			 */
-			Iterator& operator++();
-
-			/**
-			 * @brief Post-increment operator.
-			 * @details Advances the iterator to the next element in the container.
-			 * @return A copy of the iterator *before* it was incremented.
-			 */
-			Iterator operator++( int );
-
-			/**
-			 * @brief Equality comparison operator.
-			 * @param other The iterator to compare against.
-			 * @return True if both iterators point to the same element in the same container, false otherwise.
-			 */
-			[[nodiscard]] bool operator==( const Iterator& other ) const;
-
-			/**
-			 * @brief Inequality comparison operator.
-			 * @param other The iterator to compare against.
-			 * @return True if the iterators point to different elements or different containers, false otherwise.
-			 */
-			[[nodiscard]] bool operator!=( const Iterator& other ) const;
-
-		private:
-			/** @brief Pointer to the underlying codebooks array */
-			const std::array<Codebook, NUM_CODEBOOKS>* m_codebooks;
-
-			/** @brief Current position index (0 to NUM_CODEBOOKS) */
-			size_t m_index;
-		};
-
 		//=====================================================================
 		// Construction / destruction
 		//=====================================================================
@@ -226,25 +144,6 @@ namespace dnv::vista::sdk
 		 *         or if the `name` enum value is invalid.
 		 */
 		[[nodiscard]] MetadataTag createTag( CodebookName name, const std::string& value ) const;
-
-		//=====================================================================
-		// Iteration
-		//=====================================================================
-
-		/**
-		 * @brief Get an iterator to the beginning of the codebook collection.
-		 * @details Allows iterating through all codebooks using standard C++ mechanisms (e.g., range-based for loop).
-		 * @return An `Iterator` pointing to the first codebook element (index 0).
-		 */
-		[[nodiscard]] Iterator begin() const;
-
-		/**
-		 * @brief Get an iterator referring to the past-the-end element.
-		 * @details The past-the-end iterator acts as a sentinel. It does not point to any element
-		 *          and should not be dereferenced.
-		 * @return An `Iterator` pointing one position past the last codebook element (index NUM_CODEBOOKS).
-		 */
-		[[nodiscard]] Iterator end() const;
 
 	private:
 		//=====================================================================

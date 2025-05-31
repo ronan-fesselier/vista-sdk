@@ -37,8 +37,6 @@ namespace dnv::vista::sdk
 					hits++;
 					if ( calls % 10000 == 0 )
 					{
-						SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
-							hits * 100.0 / calls, hits, calls, cache.size() );
 					}
 					return it->second;
 				}
@@ -68,7 +66,6 @@ namespace dnv::vista::sdk
 		: m_type{ std::move( type ) },
 		  m_description{ std::move( description ) }
 	{
-		SPDLOG_INFO( "Creating DataChannelTypeNameDto: type={}, description={}", m_type, m_description );
 	}
 
 	//----------------------------------------------
@@ -91,9 +88,6 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse DataChannelTypeNameDto from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -103,9 +97,6 @@ namespace dnv::vista::sdk
 			}
 
 			DataChannelTypeNameDto dto = json.get<DataChannelTypeNameDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Parsed DataChannelTypeNameDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
 
 			return std::optional<DataChannelTypeNameDto>{ std::move( dto ) };
 		}
@@ -143,7 +134,6 @@ namespace dnv::vista::sdk
 
 	nlohmann::json DataChannelTypeNameDto::toJson() const
 	{
-		SPDLOG_TRACE( "Serializing DataChannelTypeNameDto: type={}", m_type );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -179,7 +169,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_description.clear();
-			SPDLOG_TRACE( "DataChannelTypeNameDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
 		}
 
 		if ( dto.m_type.empty() )
@@ -199,7 +188,6 @@ namespace dnv::vista::sdk
 	DataChannelTypeNamesDto::DataChannelTypeNamesDto( std::vector<DataChannelTypeNameDto> values )
 		: m_values{ std::move( values ) }
 	{
-		SPDLOG_INFO( "Creating DataChannelTypeNamesDto with {} values", m_values.size() );
 	}
 
 	//----------------------------------------------
@@ -217,9 +205,6 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNamesDto> DataChannelTypeNamesDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Attempting to parse data channel type names from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -229,9 +214,6 @@ namespace dnv::vista::sdk
 			}
 
 			DataChannelTypeNamesDto dto = json.get<DataChannelTypeNamesDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_INFO( "Parsed DataChannelTypeNamesDto with {} values in {} ms", dto.values().size(), duration.count() );
 
 			return std::optional<DataChannelTypeNamesDto>{ std::move( dto ) };
 		}
@@ -269,11 +251,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json DataChannelTypeNamesDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Serializing {} data channel type names to nlohmann::json", m_values.size() );
 		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_TRACE( "Serialized {} data channel type names in {}ms", m_values.size(), duration.count() );
 		return j;
 	}
 
@@ -299,11 +277,9 @@ namespace dnv::vista::sdk
 
 			const auto& jsonArray = j.at( VALUES_KEY );
 			size_t valueCount = jsonArray.size();
-			SPDLOG_INFO( "Found {} data channel type entries to parse", valueCount );
 
 			dto.m_values.reserve( valueCount );
 			size_t successCount = 0;
-			auto parseStartTime = std::chrono::steady_clock::now();
 
 			for ( const auto& itemJson : jsonArray )
 			{
@@ -322,23 +298,9 @@ namespace dnv::vista::sdk
 				}
 			}
 
-			auto parseDuration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - parseStartTime );
-
-			if ( valueCount > 0 && parseDuration.count() > 0 )
-			{
-				[[maybe_unused]] double rate = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-				SPDLOG_INFO( "Successfully parsed {}/{} data channel type names in {}ms ({:.1f} items/sec)",
-					successCount, valueCount, parseDuration.count(), rate );
-			}
-			else if ( valueCount > 0 )
-			{
-				SPDLOG_INFO( "Successfully parsed {}/{} data channel type names very quickly.", successCount, valueCount );
-			}
-
 			if ( dto.m_values.size() > 1000 )
 			{
 				[[maybe_unused]] size_t approxBytes = estimateMemoryUsage( dto.m_values );
-				SPDLOG_INFO( "Large collection loaded: {} items, ~{} KB estimated memory", dto.m_values.size(), approxBytes / 1024 );
 			}
 		}
 		else
@@ -359,7 +321,6 @@ namespace dnv::vista::sdk
 		: m_type{ std::move( type ) },
 		  m_description{ std::move( description ) }
 	{
-		SPDLOG_INFO( "Creating FormatDataTypeDto: type={}, description={}", m_type, m_description );
 	}
 
 	//----------------------------------------------
@@ -382,9 +343,6 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse FormatDataTypeDto from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -394,9 +352,6 @@ namespace dnv::vista::sdk
 			}
 
 			FormatDataTypeDto dto = json.get<FormatDataTypeDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Parsed FormatDataTypeDto: type={}, description={} in {} µs", dto.type(), dto.description(), duration.count() );
 
 			return std::optional<FormatDataTypeDto>{ std::move( dto ) };
 		}
@@ -434,7 +389,6 @@ namespace dnv::vista::sdk
 
 	nlohmann::json FormatDataTypeDto::toJson() const
 	{
-		SPDLOG_TRACE( "Serializing FormatDataTypeDto: type={}", m_type );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -470,7 +424,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_description.clear();
-			SPDLOG_TRACE( "FormatDataTypeDto JSON missing optional '{}' field for type '{}'", DESCRIPTION_KEY, dto.m_type );
 		}
 
 		if ( dto.m_type.empty() )
@@ -490,7 +443,6 @@ namespace dnv::vista::sdk
 	FormatDataTypesDto::FormatDataTypesDto( std::vector<FormatDataTypeDto> values )
 		: m_values{ std::move( values ) }
 	{
-		SPDLOG_INFO( "Creating FormatDataTypesDto with {} values", m_values.size() );
 	}
 
 	//----------------------------------------------
@@ -508,9 +460,6 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypesDto> FormatDataTypesDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Attempting to parse format data types from nlohmann::json" );
-
 		try
 		{
 			if ( !json.is_object() )
@@ -520,9 +469,6 @@ namespace dnv::vista::sdk
 			}
 
 			FormatDataTypesDto dto = json.get<FormatDataTypesDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_INFO( "Parsed FormatDataTypesDto with {} values in {} ms", dto.values().size(), duration.count() );
 
 			return std::optional<FormatDataTypesDto>{ std::move( dto ) };
 		}
@@ -560,11 +506,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json FormatDataTypesDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Serializing {} format data types to nlohmann::json", m_values.size() );
 		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_TRACE( "Serialized {} format data types in {}ms", m_values.size(), duration.count() );
 		return j;
 	}
 
@@ -590,11 +532,9 @@ namespace dnv::vista::sdk
 
 			const auto& jsonArray = j.at( VALUES_KEY );
 			size_t valueCount = jsonArray.size();
-			SPDLOG_INFO( "Found {} format data type entries to parse", valueCount );
 
 			dto.m_values.reserve( valueCount );
 			size_t successCount = 0;
-			auto parseStartTime = std::chrono::steady_clock::now();
 
 			for ( const auto& itemJson : jsonArray )
 			{
@@ -611,25 +551,6 @@ namespace dnv::vista::sdk
 				{
 					SPDLOG_ERROR( "Standard exception parsing format data type at index {}: {}", successCount, ex.what() );
 				}
-			}
-
-			auto parseDuration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - parseStartTime );
-
-			if ( valueCount > 0 && parseDuration.count() > 0 )
-			{
-				[[maybe_unused]] double rate = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-				SPDLOG_INFO( "Successfully parsed {}/{} format data types in {}ms ({:.1f} items/sec)",
-					successCount, valueCount, parseDuration.count(), rate );
-			}
-			else if ( valueCount > 0 )
-			{
-				SPDLOG_INFO( "Successfully parsed {}/{} format data types very quickly.", successCount, valueCount );
-			}
-
-			if ( dto.m_values.size() > 1000 )
-			{
-				[[maybe_unused]] size_t approxBytes = estimateMemoryUsage( dto.m_values );
-				SPDLOG_INFO( "Large collection loaded: {} items, ~{} KB estimated memory", dto.m_values.size(), approxBytes / 1024 );
 			}
 		}
 		else
