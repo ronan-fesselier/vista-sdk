@@ -24,7 +24,7 @@ namespace dnv::vista::sdk
 	}
 
 	//------------------------------------------
-	// Public Methods
+	// Public methods
 	//------------------------------------------
 
 	template <typename K, typename V>
@@ -50,16 +50,29 @@ namespace dnv::vista::sdk
 
 			auto result = factory();
 			auto [inserted_it, success] = m_cache.emplace( key, CacheItem{ std::move( result ), now } );
-			SPDLOG_TRACE( "Cache miss for key. Created and inserted." );
 
 			return inserted_it->second.value;
 		}
 
 		it->second.lastAccess = now;
 
-		SPDLOG_TRACE( "Cache hit for key." );
-
 		return it->second.value;
+	}
+
+	template <typename K, typename V>
+	inline void VIS::Cache<K, V>::teardown() const
+	{
+		std::scoped_lock lock( m_mutex );
+
+		if constexpr ( std::is_pointer_v<V> )
+		{
+			for ( auto& [key, item] : m_cache )
+			{
+				delete item.value;
+			}
+		}
+
+		m_cache.clear();
 	}
 
 	//------------------------------------------
@@ -77,8 +90,6 @@ namespace dnv::vista::sdk
 			else
 				++it;
 		}
-
-		SPDLOG_TRACE( "Cache cleanup performed." );
 	}
 
 	template <typename K, typename V>
@@ -96,7 +107,5 @@ namespace dnv::vista::sdk
 			}
 		}
 		m_cache.erase( oldest );
-
-		SPDLOG_TRACE( "Cache eviction performed (removed oldest)." );
 	}
 }

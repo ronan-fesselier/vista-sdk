@@ -107,7 +107,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -146,7 +146,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Type representing a set of operation names */
@@ -263,7 +263,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -314,7 +314,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Types and Aliases
+		// Types and aliases
 		//----------------------------------------------
 
 		/** @brief Type representing a mapping of node codes to conversion information */
@@ -397,7 +397,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*

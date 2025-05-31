@@ -108,7 +108,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//---------------------------------------------
 
 		friend void from_json( const nlohmann::json& j, RelativeLocationsDto& dto );
@@ -222,7 +222,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		friend void from_json( const nlohmann::json& j, LocationsDto& dto );

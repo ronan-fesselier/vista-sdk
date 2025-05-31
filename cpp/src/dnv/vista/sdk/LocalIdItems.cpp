@@ -17,29 +17,18 @@ namespace dnv::vista::sdk
 		: m_primaryItem( std::move( primaryItem ) ),
 		  m_secondaryItem( std::move( secondaryItem ) )
 	{
-		SPDLOG_TRACE( "LocalIdItems created via base move constructor." );
-		if ( m_primaryItem )
-		{
-			SPDLOG_TRACE( "  Primary Item: {}", m_primaryItem->toString() );
-		}
-		if ( m_secondaryItem )
-		{
-			SPDLOG_TRACE( "  Secondary Item: {}", m_secondaryItem->toString() );
-		}
 	}
 
 	LocalIdItems::LocalIdItems( LocalIdItems&& other, GmodPath&& newPrimaryItem )
 		: m_primaryItem( std::move( newPrimaryItem ) ),
 		  m_secondaryItem( std::move( other.m_secondaryItem ) )
 	{
-		SPDLOG_TRACE( "LocalIdItems created by replacing primary via move." );
 	}
 
 	LocalIdItems::LocalIdItems( LocalIdItems&& other, std::optional<GmodPath>&& newSecondaryItem )
 		: m_primaryItem( std::move( other.m_primaryItem ) ),
 		  m_secondaryItem( std::move( newSecondaryItem ) )
 	{
-		SPDLOG_TRACE( "LocalIdItems created by replacing secondary via move." );
 	}
 
 	//-------------------------------------------------------------------------
@@ -62,7 +51,7 @@ namespace dnv::vista::sdk
 	}
 
 	//-------------------------------------------------------------------------
-	// Public Methods
+	// Public methods
 	//-------------------------------------------------------------------------
 
 	void LocalIdItems::append( std::stringstream& builder, bool verboseMode ) const

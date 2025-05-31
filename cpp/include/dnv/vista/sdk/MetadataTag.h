@@ -5,10 +5,18 @@
 
 #pragma once
 
-#include "CodebookName.h"
-
 namespace dnv::vista::sdk
 {
+	//=====================================================================
+	// Forward declarations
+	//=====================================================================
+
+	enum class CodebookName;
+
+	//=====================================================================
+	// MetadataTag class
+	//=====================================================================
+
 	/**
 	 * @brief Represents a metadata tag in the VIS system.
 	 *
@@ -64,8 +72,7 @@ namespace dnv::vista::sdk
 		 * their names are the same and their values are equal.
 		 * @param other The other MetadataTag to compare with this instance.
 		 * @return True if the tags are equal, false otherwise.
-		 * @throws std::invalid_argument If the CodebookName of the tags are different,
-		 *         as comparison is not meaningful in that context.
+		 * @throws std::invalid_argument If the CodebookName of the tags are different.
 		 */
 		bool operator==( const MetadataTag& other ) const;
 
@@ -101,12 +108,6 @@ namespace dnv::vista::sdk
 		[[nodiscard]] std::string_view value() const noexcept;
 
 		/**
-		 * @brief Checks if the metadata tag is custom.
-		 * @return True if the tag is custom, false otherwise.
-		 */
-		[[nodiscard]] bool isCustom() const noexcept;
-
-		/**
 		 * @brief Gets the prefix character used for string representation of the metadata tag.
 		 * @return '~' if the tag is custom, '-' otherwise.
 		 */
@@ -120,26 +121,43 @@ namespace dnv::vista::sdk
 		[[nodiscard]] size_t hashCode() const noexcept;
 
 		//-------------------------------------------------------------------------
+		// State inspection methods
+		//-------------------------------------------------------------------------
+
+		/**
+		 * @brief Checks if the metadata tag is custom.
+		 * @return True if the tag is custom, false otherwise.
+		 */
+		[[nodiscard]] bool isCustom() const noexcept;
+
+		//-------------------------------------------------------------------------
 		// String Conversion Methods
 		//-------------------------------------------------------------------------
 
 		/**
 		 * @brief Converts the metadata tag to its string value.
 		 * This method returns only the 'Value' part of the tag.
-		 * For a fully formatted string including prefix and name, use toString(std::ostringstream&, char).
+		 * For a fully formatted string including prefix and name, use toString(std::string&, char).
 		 * @return The 'Value' of the metadata tag as a string.
 		 */
-		[[nodiscard]] std::string toString() const;
+		[[nodiscard]] std::string toString() const noexcept;
 
+		// In MetadataTag.h:
 		/**
-		 * @brief Appends a fully formatted string representation of the metadata tag to a string stream.
-		 * The format is typically: Prefix + CodebookName (as string) + Separator + Value.
-		 * Example: "-VESSEL_TYPE/TANKER" or "~MY_CUSTOM_TAG/SOME_VALUE".
-		 * @param builder The string stream to append to.
-		 * @param separator The separator character to use between the name and value (default is '/').
+		 * @brief Appends a fully formatted string representation of the metadata tag to a string builder.
+		 * The format is: prefix + delimiter + value + separator
+		 * where delimiter is '~' for custom tags or '-' for standard tags.
+		 * @param builder The string to append to (capacity will be reserved automatically).
+		 * @param separator The separator character to append after the value (default is '/').
 		 * @throws std::invalid_argument If the CodebookName is not recognized for string conversion.
+		 *
+		 * @code
+		 *     MetadataTag tag{CodebookName::Position, "centre", false};
+		 *     std::string result;
+		 *     tag.toString(result);  // result becomes "pos-centre/"
+		 * @endcode
 		 */
-		void toString( std::ostringstream& builder, char separator = '/' ) const;
+		void toString( std::string& builder, char separator = '/' ) const;
 
 	private:
 		//-------------------------------------------------------------------------
@@ -149,10 +167,10 @@ namespace dnv::vista::sdk
 		/** @brief The name of the metadata tag, represented by a CodebookName enum value. */
 		CodebookName m_name;
 
-		/** @brief The string value associated with the metadata tag. */
-		std::string m_value;
-
 		/** @brief A boolean flag indicating whether this is a custom tag (true) or a standard tag (false). */
 		bool m_custom;
+
+		/** @brief The string value associated with the metadata tag. */
+		std::string m_value;
 	};
 }

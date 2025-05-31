@@ -103,7 +103,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -211,7 +211,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -322,7 +322,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*
@@ -430,7 +430,7 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Private Serialization Methods
+		// Private serialization methods
 		//----------------------------------------------
 
 		/*

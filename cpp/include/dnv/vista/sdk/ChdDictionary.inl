@@ -162,8 +162,6 @@ namespace dnv::vista::sdk
 		}
 		size *= 2;
 
-		SPDLOG_TRACE( "Building CHD dictionary with {} items, table size {}", items.size(), size );
-
 		auto hashBuckets{ std::vector<std::vector<std::pair<unsigned, uint32_t>>>( size ) };
 		for ( auto& bucket : hashBuckets )
 		{
@@ -193,8 +191,6 @@ namespace dnv::vista::sdk
 			auto entries{ std::unordered_map<size_t, unsigned>() };
 			entries.reserve( subKeys.size() );
 			uint32_t currentSeedValue{ 0 };
-
-			SPDLOG_TRACE( "Bucket {}: Starting seed search for {} items", currentBucketIdx, subKeys.size() );
 
 			while ( true )
 			{
@@ -328,7 +324,7 @@ namespace dnv::vista::sdk
 		SPDLOG_DEBUG( "CHD Dictionary construction complete: {} entries, {} seeds in {:.2f}ms", m_table.size(), m_seeds.size(), duration );
 
 		[[maybe_unused]] auto memoryUsage = sizeof( typename decltype( m_table )::value_type ) * m_table.capacity() + sizeof( int ) * m_seeds.capacity();
-		SPDLOG_INFO( "CHD Dictionary memory usage: {:.2f}KB ({:.2f}MB) ({} table entries, {} seeds)", static_cast<float>( memoryUsage ) / 1024.0f, static_cast<float>( memoryUsage ) / ( 1024.0f * 1024.0f ), m_table.size(), m_seeds.size() );
+		SPDLOG_DEBUG( "CHD Dictionary memory usage: {:.2f}KB ({:.2f}MB) ({} table entries, {} seeds)", static_cast<float>( memoryUsage ) / 1024.0f, static_cast<float>( memoryUsage ) / ( 1024.0f * 1024.0f ), m_table.size(), m_seeds.size() );
 	}
 
 	//----------------------------------------------
@@ -377,7 +373,7 @@ namespace dnv::vista::sdk
 		++s_lookupCount;
 		if ( s_lookupCount % 10000 == 0 )
 		{
-			SPDLOG_INFO( "Dictionary performance: {} lookups, hit rate: {:.1f}%", s_lookupCount, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
+			SPDLOG_DEBUG( "Dictionary performance: {} lookups, hit rate: {:.1f}%", s_lookupCount, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
 		}
 
 		uint32_t hashValue{ hash( key ) };
@@ -466,7 +462,7 @@ namespace dnv::vista::sdk
 			[[maybe_unused]] auto avgDurationNs = s_totalLookupDuration / s_lookupCount;
 			[[maybe_unused]] auto avgDurationMs = std::chrono::duration<double, std::milli>( avgDurationNs ).count();
 
-			SPDLOG_INFO( "Dictionary lookup stats: avg time {:.3f}ms, hit rate {:.1f}%", avgDurationMs, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
+			SPDLOG_DEBUG( "Dictionary lookup stats: avg time {:.3f}ms, hit rate {:.1f}%", avgDurationMs, 100.0f * static_cast<float>( s_lookupHits ) / static_cast<float>( s_lookupCount ) );
 		}
 
 		return true;
@@ -543,7 +539,7 @@ namespace dnv::vista::sdk
 			++s_cacheHits;
 			if ( s_cacheHits % 10000 == 0 )
 			{
-				SPDLOG_TRACE( "Hash cache hit for '{}' (hits: {}, rate: {:.1f}%)", key, s_cacheHits, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
+				SPDLOG_DEBUG( "Hash cache hit for '{}' (hits: {}, rate: {:.1f}%)", key, s_cacheHits, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 			}
 
 			return s_hashCache[cacheIndex].hash;
@@ -552,7 +548,7 @@ namespace dnv::vista::sdk
 
 		if ( s_cacheMisses % 10000 == 0 )
 		{
-			SPDLOG_INFO( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
+			SPDLOG_DEBUG( "Hash cache performance: {} hits, {} misses, {:.1f}% hit rate", s_cacheHits, s_cacheMisses, 100.0f * static_cast<float>( s_cacheHits ) / static_cast<float>( s_cacheHits + s_cacheMisses ) );
 		}
 
 		/* Hashing logic */
@@ -571,7 +567,7 @@ namespace dnv::vista::sdk
 
 		if ( s_cacheMisses % 1000 == 0 )
 		{
-			SPDLOG_TRACE( "Hash cache updated at index {}: key='{}', hash={}", cacheIndex, s_hashCache[cacheIndex].key, s_hashCache[cacheIndex].hash );
+			SPDLOG_DEBUG( "Hash cache updated at index {}: key='{}', hash={}", cacheIndex, s_hashCache[cacheIndex].key, s_hashCache[cacheIndex].hash );
 		}
 
 		return hashValue;

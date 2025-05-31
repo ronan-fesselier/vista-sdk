@@ -59,7 +59,6 @@ namespace dnv::vista::sdk
 		  m_normalAssignmentNames{ normalAssignmentNames },
 		  m_fullType{ category + " " + type }
 	{
-		SPDLOG_TRACE( "Created GmodNodeMetadata: {}", m_fullType );
 	}
 
 	GmodNodeMetadata::GmodNodeMetadata( const GmodNodeMetadata& other )
@@ -73,7 +72,6 @@ namespace dnv::vista::sdk
 		  m_normalAssignmentNames{ other.m_normalAssignmentNames },
 		  m_fullType{ other.m_fullType }
 	{
-		SPDLOG_TRACE( "Copy constructor: copied GmodNodeMetadata with fullType: {}", m_fullType );
 	}
 
 	GmodNodeMetadata& GmodNodeMetadata::operator=( const GmodNodeMetadata& other )
@@ -191,7 +189,6 @@ namespace dnv::vista::sdk
 		  m_parents{},
 		  m_childrenSet{}
 	{
-		SPDLOG_TRACE( "Created GmodNode with code: {}", m_code );
 	}
 
 	GmodNode::GmodNode( const GmodNode& other )
@@ -203,8 +200,6 @@ namespace dnv::vista::sdk
 		  m_parents{ other.m_parents },
 		  m_childrenSet{ other.m_childrenSet }
 	{
-		SPDLOG_TRACE( "Copy constructor: copying '{}' with fullType '{}' -> result code '{}', fullType '{}'",
-			other.m_code, other.m_metadata.fullType(), m_code, m_metadata.fullType() );
 	}
 
 	//----------------------------------------------
@@ -354,7 +349,6 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		SPDLOG_TRACE( "Product type check succeeded: {}", child->m_code );
 		return child;
 	}
 
@@ -362,13 +356,13 @@ namespace dnv::vista::sdk
 	{
 		if ( m_children.size() != 1 )
 		{
-			SPDLOG_TRACE( "Product selection check failed: expected 1 child, found {}", m_children.size() );
+			SPDLOG_WARN( "Product selection check failed: expected 1 child, found {}", m_children.size() );
 			return nullptr;
 		}
 
 		if ( m_metadata.category().find( NODE_CATEGORY_VALUE_FUNCTION ) == std::string::npos )
 		{
-			SPDLOG_TRACE( "Product selection check failed: current node category '{}' does not contain '{}'", m_metadata.category(), NODE_CATEGORY_VALUE_FUNCTION );
+			SPDLOG_WARN( "Product selection check failed: current node category '{}' does not contain '{}'", m_metadata.category(), NODE_CATEGORY_VALUE_FUNCTION );
 			return nullptr;
 		}
 
@@ -381,17 +375,16 @@ namespace dnv::vista::sdk
 
 		if ( child->m_metadata.category().find( NODE_CATEGORY_PRODUCT ) == std::string::npos )
 		{
-			SPDLOG_TRACE( "Product selection check failed: child category '{}' does not contain '{}'", child->m_metadata.category(), NODE_CATEGORY_PRODUCT );
+			SPDLOG_WARN( "Product selection check failed: child category '{}' does not contain '{}'", child->m_metadata.category(), NODE_CATEGORY_PRODUCT );
 			return nullptr;
 		}
 
 		if ( child->m_metadata.type() != NODE_TYPE_VALUE_SELECTION )
 		{
-			SPDLOG_TRACE( "Product selection check failed: child type '{}' is not '{}'", child->m_metadata.type(), NODE_TYPE_VALUE_SELECTION );
+			SPDLOG_WARN( "Product selection check failed: child type '{}' is not '{}'", child->m_metadata.type(), NODE_TYPE_VALUE_SELECTION );
 			return nullptr;
 		}
 
-		SPDLOG_TRACE( "Product selection check succeeded for child: {}", child->code().data() );
 		return child;
 	}
 
@@ -472,27 +465,22 @@ namespace dnv::vista::sdk
 	{
 		if ( m_metadata.type() == NODE_TYPE_GROUP )
 		{
-			SPDLOG_TRACE( "Node is a group, not individualizable: {}", m_code );
 			return false;
 		}
 		if ( m_metadata.type() == NODE_TYPE_VALUE_SELECTION )
 		{
-			SPDLOG_TRACE( "Node is a selection, not individualizable: {}", m_code );
 			return false;
 		}
 		if ( isProductType() )
 		{
-			SPDLOG_TRACE( "Node is a product type, not individualizable: {}", m_code );
 			return false;
 		}
 		if ( m_metadata.category() == NODE_CATEGORY_ASSET && m_metadata.type() == NODE_TYPE_VALUE_TYPE )
 		{
-			SPDLOG_TRACE( "Node is an asset type, not individualizable: {}", m_code );
 			return false;
 		}
 		if ( isFunctionComposition() )
 		{
-			SPDLOG_TRACE( "Node is a function composition, checking special conditions" );
 			if ( m_code.empty() )
 			{
 				SPDLOG_WARN( "isIndividualizable: Code is empty, cannot check last character for 'i'. Node: {}", m_code );
@@ -502,7 +490,6 @@ namespace dnv::vista::sdk
 			return m_code.back() == 'i' || isInSet || isTargetNode;
 		}
 
-		SPDLOG_TRACE( "Node is individualizable: {}", m_code );
 		return true;
 	}
 
@@ -517,48 +504,29 @@ namespace dnv::vista::sdk
 	{
 		if ( productType() != nullptr )
 		{
-			SPDLOG_TRACE( "Node is a product type, not mappable: {}", m_code );
-
 			return false;
 		}
 		if ( productSelection() != nullptr )
 		{
-			SPDLOG_TRACE( "Node is a product selection, not mappable: {}", m_code );
-
 			return false;
 		}
 		if ( isProductSelection() )
 		{
-			SPDLOG_TRACE( "Node is a product selection, not mappable: {}", m_code );
-
 			return false;
 		}
 		if ( isAsset() )
 		{
-			SPDLOG_TRACE( "Node is an asset, not mappable: {}", m_code );
-
 			return false;
 		}
 
 		if ( m_code.empty() )
 		{
-			SPDLOG_WARN( "isMappable: Code is empty, cannot check last character. Node: {}", m_code );
-
 			return false;
 		}
 
 		char lastChar = m_code.back();
-		SPDLOG_TRACE( "Last character of code: {}", lastChar );
 
 		bool result = ( lastChar != 'a' && lastChar != 's' );
-		if ( result )
-		{
-			SPDLOG_TRACE( "Node is mappable based on last char: {}", m_code );
-		}
-		else
-		{
-			SPDLOG_TRACE( "Node is NOT mappable based on last char: {}", m_code );
-		}
 
 		return result;
 	}
@@ -620,7 +588,6 @@ namespace dnv::vista::sdk
 	{
 		if ( m_location.has_value() )
 		{
-			SPDLOG_CRITICAL( "Converting GmodNode to string with location" );
 			std::string result = m_code;
 			result.reserve( m_code.length() + 1 + m_location->toString().length() );
 			result += '-';
@@ -656,11 +623,9 @@ namespace dnv::vista::sdk
 
 		if ( m_childrenSet.find( child->code() ) != m_childrenSet.end() )
 		{
-			SPDLOG_TRACE( "Child {} already exists for parent {}, skipping", child->code(), m_code );
 			return;
 		}
 
-		SPDLOG_TRACE( "Adding child {} to parent {}", child->code(), m_code );
 		m_children.push_back( std::move( child ) );
 		m_childrenSet.insert( child->code() );
 	}
@@ -673,7 +638,6 @@ namespace dnv::vista::sdk
 			return;
 		}
 
-		SPDLOG_TRACE( "Adding parent {} to child {}", parent->code(), m_code );
 		m_parents.push_back( std::move( parent ) );
 	}
 
@@ -695,7 +659,7 @@ namespace dnv::vista::sdk
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>( end - start );
 
-		SPDLOG_TRACE( "GmodNode::trim completed in {} μs for {} children",
+		SPDLOG_DEBUG( "GmodNode::trim completed in {} μs for {} children",
 			duration.count(), m_children.size() );
 	}
 }

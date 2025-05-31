@@ -59,6 +59,10 @@ namespace dnv::vista::sdk
 		Detail = 11
 	};
 
+	//=====================================================================
+	// CodebookNames class
+	//=====================================================================
+
 	/**
 	 * @brief Utility class for working with CodebookName values
 	 *
@@ -104,7 +108,7 @@ namespace dnv::vista::sdk
 		 * @return The corresponding CodebookName.
 		 * @throws std::invalid_argument If the prefix is empty or unknown.
 		 */
-		static CodebookName fromPrefix( const std::string_view prefix );
+		[[nodiscard]] static CodebookName fromPrefix( const std::string_view prefix );
 
 		/**
 		 * @brief Convert a CodebookName to its string prefix view
@@ -113,13 +117,5 @@ namespace dnv::vista::sdk
 		 * @throws std::invalid_argument If the name is unknown
 		 */
 		[[nodiscard]] static std::string_view toPrefix( CodebookName name );
-
-		/**
-		 * @brief Convert a CodebookName to its full string name
-		 * @param name The CodebookName to convert
-		 * @return The corresponding full string name (e.g., "Position" for Position, "Quantity" for Quantity)
-		 * @throws std::invalid_argument If the name is unknown
-		 */
-		[[nodiscard]] static std::string toString( CodebookName name );
 	};
 }

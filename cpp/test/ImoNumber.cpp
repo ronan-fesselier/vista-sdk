@@ -39,19 +39,16 @@ namespace dnv::vista::sdk
 				file.open( path );
 				if ( file.is_open() )
 				{
-					SPDLOG_INFO( "Found test data at path: {}", path );
 					fileOpened = true;
 					break;
 				}
 
 				attemptedPaths += path + ", ";
 				file.clear();
-				SPDLOG_TRACE( "Failed to open test data file: {}", path );
 			}
 
 			if ( !fileOpened )
 			{
-				SPDLOG_ERROR( "Failed to open test data file. Attempted paths: {}", attemptedPaths );
 				ASSERT_TRUE( false ) << "Failed to open ImoNumbers.json. Attempted paths: " << attemptedPaths;
 				return;
 			}
@@ -63,7 +60,6 @@ namespace dnv::vista::sdk
 			}
 			catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 			{
-				SPDLOG_ERROR( "JSON parse error: {}", ex.what() );
 				ASSERT_TRUE( false ) << "Failed to parse ImoNumbers.json: " << ex.what();
 				return;
 			}

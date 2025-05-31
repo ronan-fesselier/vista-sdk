@@ -85,7 +85,6 @@ namespace dnv::vista::sdk
 
 					if ( occ >= context.maxTraversalOccurrence )
 					{
-						SPDLOG_TRACE( "Node {} occurrence {} reached/exceeded max {}, skipping subtree", node.code(), occ, context.maxTraversalOccurrence );
 						return TraversalHandlerResult::SkipSubtree;
 					}
 				}
@@ -99,7 +98,6 @@ namespace dnv::vista::sdk
 						continue;
 					}
 
-					SPDLOG_TRACE( "Traversing child: {} of parent: {}", child->code(), node.code() );
 					result = traverseNodeRecursive<TState>( context, *child );
 					if ( result == TraversalHandlerResult::Stop )
 					{

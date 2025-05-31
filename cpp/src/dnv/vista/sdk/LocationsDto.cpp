@@ -39,7 +39,7 @@ namespace dnv::vista::sdk
 					hits++;
 					if ( calls % 10000 == 0 )
 					{
-						SPDLOG_TRACE( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
+						SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
 							hits * 100.0 / calls, hits, calls, cache.size() );
 					}
 					return it->second;
@@ -72,8 +72,6 @@ namespace dnv::vista::sdk
 		  m_name{ std::move( name ) },
 		  m_definition{ std::move( definition ) }
 	{
-		SPDLOG_INFO( "RelativeLocationsDto constructed: code={}, name={}, has_definition={}",
-			m_code, m_name, m_definition.has_value() );
 	}
 
 	//----------------------------------------------
@@ -102,31 +100,32 @@ namespace dnv::vista::sdk
 	std::optional<RelativeLocationsDto> RelativeLocationsDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_TRACE( "Attempting to parse RelativeLocationsDto from nlohmann::json" );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
 				SPDLOG_ERROR( "JSON value for RelativeLocationsDto is not an object" );
+
 				return std::nullopt;
 			}
 
 			RelativeLocationsDto dto = json.get<RelativeLocationsDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_TRACE( "Parsed RelativeLocationsDto: code={}, name={} in {} µs", dto.code(), dto.name(), duration.count() );
 
 			return std::optional<RelativeLocationsDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
 			SPDLOG_ERROR( "nlohmann::json exception during RelativeLocationsDto parsing: {}", ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
 			SPDLOG_ERROR( "Standard exception during RelativeLocationsDto parsing: {}", ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -139,25 +138,20 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() );
-			SPDLOG_ERROR( errorMsg );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() ) );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() );
-			SPDLOG_ERROR( errorMsg );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() ) );
 		}
 	}
 
 	//----------------------------------------------
-	// Private Serialization Methods
+	// Private serialization methods
 	//---------------------------------------------
 
 	nlohmann::json RelativeLocationsDto::toJson() const
 	{
-		SPDLOG_TRACE( "Serializing RelativeLocationsDto: code={}, name={}", m_code, m_name );
 		nlohmann::json j = *this;
 		return j;
 	}
@@ -204,7 +198,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_definition.reset();
-			SPDLOG_TRACE( "RelativeLocationsDto JSON missing optional '{}' field for code '{}'", DEFINITION_KEY, dto.m_code );
 		}
 
 		if ( dto.m_name.empty() )
@@ -225,8 +218,6 @@ namespace dnv::vista::sdk
 		: m_visVersion{ std::move( visVersion ) },
 		  m_items{ std::move( items ) }
 	{
-		SPDLOG_INFO( "LocationsDto constructed: visVersion={}, items.size={}",
-			m_visVersion, m_items.size() );
 	}
 
 	//----------------------------------------------
@@ -250,31 +241,33 @@ namespace dnv::vista::sdk
 	std::optional<LocationsDto> LocationsDto::tryFromJson( const nlohmann::json& json )
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Attempting to parse LocationsDto from nlohmann::json" );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
 				SPDLOG_ERROR( "JSON value for LocationsDto is not an object" );
+
 				return std::nullopt;
 			}
 
 			LocationsDto dto = json.get<LocationsDto>();
 
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_INFO( "Parsed LocationsDto for VIS {} with {} items in {} ms", dto.visVersion(), dto.items().size(), duration.count() );
+			SPDLOG_DEBUG( "Parsed LocationsDto for VIS {} with {} items in {} ms", dto.visVersion(), dto.items().size(), duration.count() );
 
 			return std::optional<LocationsDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
 			SPDLOG_ERROR( "nlohmann::json exception during LocationsDto parsing: {}", ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
 			SPDLOG_ERROR( "Standard exception during LocationsDto parsing: {}", ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -287,30 +280,25 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() );
-			SPDLOG_ERROR( errorMsg );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() ) );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string errorMsg = fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() );
-			SPDLOG_ERROR( errorMsg );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() ) );
 		}
 	}
 
 	nlohmann::json LocationsDto::toJson() const
 	{
 		auto startTime = std::chrono::steady_clock::now();
-		SPDLOG_INFO( "Serializing LocationsDto: visVersion={}, items={}", m_visVersion, m_items.size() );
 		nlohmann::json j = *this;
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_TRACE( "Serialized {} locations in {}ms", m_items.size(), duration.count() );
+		SPDLOG_DEBUG( "Serialized {} locations in {}ms", m_items.size(), duration.count() );
 		return j;
 	}
 
 	//----------------------------------------------
-	// Private Serialization Methods
+	// Private serialization methods
 	//----------------------------------------------
 
 	void to_json( nlohmann::json& j, const LocationsDto& dto )
@@ -334,11 +322,9 @@ namespace dnv::vista::sdk
 		}
 
 		dto.m_visVersion = internString( j.at( VIS_RELEASE_KEY ).get<std::string>() );
-		SPDLOG_INFO( "Parsing locations for VIS version: {}", dto.m_visVersion );
 
 		const auto& jsonArray = j.at( ITEMS_KEY );
 		size_t itemCount = jsonArray.size();
-		SPDLOG_INFO( "Found {} location items to parse", itemCount );
 
 		dto.m_items.reserve( itemCount );
 		size_t successCount = 0;
@@ -366,18 +352,14 @@ namespace dnv::vista::sdk
 		if ( itemCount > 0 && parseDuration.count() > 0 )
 		{
 			[[maybe_unused]] double rate = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-			SPDLOG_INFO( "Successfully parsed {}/{} locations in {}ms ({:.1f} items/sec)",
+			SPDLOG_DEBUG( "Successfully parsed {}/{} locations in {}ms ({:.1f} items/sec)",
 				successCount, itemCount, parseDuration.count(), rate );
-		}
-		else if ( itemCount > 0 )
-		{
-			SPDLOG_INFO( "Successfully parsed {}/{} locations.", successCount, itemCount );
 		}
 
 		if ( dto.m_items.size() > 1000 )
 		{
 			[[maybe_unused]] size_t approxBytes = estimateMemoryUsage( dto.m_items );
-			SPDLOG_INFO( "Large location collection loaded: {} items, ~{} KB estimated memory", dto.m_items.size(), approxBytes / 1024 );
+			SPDLOG_DEBUG( "Large location collection loaded: {} items, ~{} KB estimated memory", dto.m_items.size(), approxBytes / 1024 );
 		}
 
 		if ( successCount < itemCount )
@@ -388,7 +370,7 @@ namespace dnv::vista::sdk
 
 			if ( errorRate > 20.0 )
 			{
-				SPDLOG_ERROR( "High error rate in location data suggests possible format issue" );
+				SPDLOG_WARN( "High error rate in location data suggests possible format issue" );
 			}
 		}
 	}
