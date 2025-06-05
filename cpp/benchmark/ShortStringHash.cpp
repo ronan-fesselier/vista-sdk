@@ -14,7 +14,7 @@ namespace dnv::vista::sdk::benchmarks
 {
 	static bool g_initialized = false;
 
-	static void InitializeData()
+	static void initializeData()
 	{
 		if ( !g_initialized )
 		{
@@ -23,7 +23,7 @@ namespace dnv::vista::sdk::benchmarks
 	}
 
 	template <typename THasher>
-	static uint32_t Hash( std::string_view inputStr )
+	static uint32_t hash( std::string_view inputStr )
 	{
 		const char* data = inputStr.data();
 		size_t length = inputStr.length();
@@ -64,7 +64,7 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	};
 
-	static uint32_t GetHashCodeOrdinal( std::string_view str )
+	static uint32_t hashCodeOrdinal( std::string_view str )
 	{
 		const char* data = str.data();
 		size_t length = str.length();
@@ -118,9 +118,9 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	static void Bcl_400( benchmark::State& state )
+	static void BM_bcl_400( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -143,9 +143,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Bcl_H346_11112( benchmark::State& state )
+	static void BM_bcl_H346_11112( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -168,9 +168,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void BclOrd_400( benchmark::State& state )
+	static void BM_bclOrd_400( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -181,7 +181,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "400";
 		for ( auto _ : state )
 		{
-			auto result = GetHashCodeOrdinal( input );
+			auto result = hashCodeOrdinal( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -193,9 +193,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void BclOrd_H346_11112( benchmark::State& state )
+	static void BM_bclOrd_H346_11112( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -206,7 +206,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "H346.11112";
 		for ( auto _ : state )
 		{
-			auto result = GetHashCodeOrdinal( input );
+			auto result = hashCodeOrdinal( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -218,9 +218,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Larsson_400( benchmark::State& state )
+	static void BM_larsson_400( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -245,9 +245,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Larsson_H346_11112( benchmark::State& state )
+	static void BM_larsson_H346_11112( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -272,9 +272,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Crc32Intrinsic_400( benchmark::State& state )
+	static void BM_crc32Intrinsic_400( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -285,7 +285,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "400";
 		for ( auto _ : state )
 		{
-			auto result = Hash<Crc32IntrinsicHasher>( input );
+			auto result = hash<Crc32IntrinsicHasher>( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -297,9 +297,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Crc32Intrinsic_H346_11112( benchmark::State& state )
+	static void BM_crc32Intrinsic_H346_11112( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -310,7 +310,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "H346.11112";
 		for ( auto _ : state )
 		{
-			auto result = Hash<Crc32IntrinsicHasher>( input );
+			auto result = hash<Crc32IntrinsicHasher>( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -322,9 +322,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Fnv_400( benchmark::State& state )
+	static void BM_fnv_400( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -335,7 +335,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "400";
 		for ( auto _ : state )
 		{
-			auto result = Hash<FnvHasher>( input );
+			auto result = hash<FnvHasher>( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -347,9 +347,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Fnv_H346_11112( benchmark::State& state )
+	static void BM_fnv_H346_11112( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -360,7 +360,7 @@ namespace dnv::vista::sdk::benchmarks
 		const std::string input = "H346.11112";
 		for ( auto _ : state )
 		{
-			auto result = Hash<FnvHasher>( input );
+			auto result = hash<FnvHasher>( input );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -371,46 +371,46 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
 #endif
 	}
+
+	BENCHMARK( BM_bcl_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_bcl_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_bclOrd_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_bclOrd_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_larsson_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_larsson_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_crc32Intrinsic_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_crc32Intrinsic_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_fnv_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_fnv_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
 }
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Bcl_400 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Bcl_H346_11112 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::BclOrd_400 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::BclOrd_H346_11112 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Larsson_400 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Larsson_H346_11112 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Crc32Intrinsic_400 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Crc32Intrinsic_H346_11112 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Fnv_400 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Fnv_H346_11112 )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
 
 BENCHMARK_MAIN();
