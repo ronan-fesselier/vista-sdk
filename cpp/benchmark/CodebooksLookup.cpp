@@ -36,7 +36,7 @@ namespace dnv::vista::sdk::benchmarks
 		//----------------------------------------------
 
 		template <typename T>
-		bool TryGetValue( const std::unordered_map<CodebookName, T>& map, CodebookName key ) const
+		bool tryGetValue( const std::unordered_map<CodebookName, T>& map, CodebookName key ) const
 		{
 			return map.find( key ) != map.end();
 		}
@@ -69,22 +69,23 @@ namespace dnv::vista::sdk::benchmarks
 		//----------------------------------------------
 		// Benchmarks
 		//----------------------------------------------
+
 		//-----------------------------
-		// HashTableLookup
+		// hashTableLookup
 		//-----------------------------
 
-		bool HashTableLookup()
+		bool hashTableLookup()
 		{
-			return TryGetValue( m_hashTableCodebooks, CodebookName::Quantity ) &&
-				   TryGetValue( m_hashTableCodebooks, CodebookName::Type ) &&
-				   TryGetValue( m_hashTableCodebooks, CodebookName::Detail );
+			return tryGetValue( m_hashTableCodebooks, CodebookName::Quantity ) &&
+				   tryGetValue( m_hashTableCodebooks, CodebookName::Type ) &&
+				   tryGetValue( m_hashTableCodebooks, CodebookName::Detail );
 		}
 
 		//-----------------------------
-		// SdkApiCodebooks
+		// sdkApiCodebooks
 		//-----------------------------
 
-		bool SdkApiCodebooks()
+		bool sdkApiCodebooks()
 		{
 			const auto& codebooks_ref = m_codebooks->get();
 			const Codebook* a = nullptr;
@@ -105,10 +106,10 @@ namespace dnv::vista::sdk::benchmarks
 		}
 
 		//-----------------------------
-		// SdkApiArrayLookup
+		// sdkApiArrayLookup
 		//-----------------------------
 
-		bool SdkApiArrayLookup()
+		bool sdkApiArrayLookup()
 		{
 			return ( m_arrayCodebooks[0] != nullptr ) &&
 				   ( m_arrayCodebooks[1] != nullptr ) &&
@@ -131,46 +132,46 @@ namespace dnv::vista::sdk::benchmarks
 	}
 
 	//----------------------------------------------
-	// HashTableLookup
+	// hashTableLookup
 	//----------------------------------------------
 
-	static void BM_HashTableLookup( benchmark::State& state )
+	static void BM_hashTableLookup( benchmark::State& state )
 	{
 		BM_Setup( state );
 
 		for ( auto _ : state )
 		{
-			bool result = g_benchmarkInstance.HashTableLookup();
+			bool result = g_benchmarkInstance.hashTableLookup();
 			benchmark::DoNotOptimize( result );
 		}
 	}
 
 	//----------------------------------------------
-	// SdkApiCodebooks
+	// sdkApiCodebooks
 	//----------------------------------------------
 
-	static void BM_SdkApiCodebooks( benchmark::State& state )
+	static void BM_sdkApiCodebooks( benchmark::State& state )
 	{
 		BM_Setup( state );
 
 		for ( auto _ : state )
 		{
-			bool result = g_benchmarkInstance.SdkApiCodebooks();
+			bool result = g_benchmarkInstance.sdkApiCodebooks();
 			benchmark::DoNotOptimize( result );
 		}
 	}
 
 	//----------------------------------------------
-	// SdkApiArrayLookup
+	// sdkApiArrayLookup
 	//----------------------------------------------
 
-	static void BM_SdkApiArrayLookup( benchmark::State& state )
+	static void BM_sdkApiArrayLookup( benchmark::State& state )
 	{
 		BM_Setup( state );
 
 		for ( auto _ : state )
 		{
-			bool result = g_benchmarkInstance.SdkApiArrayLookup();
+			bool result = g_benchmarkInstance.sdkApiArrayLookup();
 			benchmark::DoNotOptimize( result );
 		}
 	}
@@ -179,9 +180,9 @@ namespace dnv::vista::sdk::benchmarks
 	// Benchmark registrations
 	//=====================================================================
 
-	BENCHMARK( BM_HashTableLookup )->MinTime( 10.0 );
-	BENCHMARK( BM_SdkApiCodebooks )->MinTime( 10.0 );
-	BENCHMARK( BM_SdkApiArrayLookup )->MinTime( 10.0 );
+	BENCHMARK( BM_hashTableLookup )->MinTime( 10.0 );
+	BENCHMARK( BM_sdkApiCodebooks )->MinTime( 10.0 );
+	BENCHMARK( BM_sdkApiArrayLookup )->MinTime( 10.0 );
 }
 
 BENCHMARK_MAIN();

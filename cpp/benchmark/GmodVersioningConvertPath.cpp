@@ -16,7 +16,7 @@ namespace dnv::vista::sdk::benchmarks
 	static GmodPath g_gmodPath;
 	static bool g_initialized = false;
 
-	static void InitializeData()
+	static void initializeData()
 	{
 		if ( !g_initialized )
 		{
@@ -34,9 +34,9 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	static void ConvertPath( benchmark::State& state )
+	static void BM_convertPath( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -59,10 +59,10 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
 #endif
 	}
-}
 
-BENCHMARK( dnv::vista::sdk::benchmarks::ConvertPath )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMicrosecond );
+	BENCHMARK( BM_convertPath )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMicrosecond );
+}
 
 BENCHMARK_MAIN();

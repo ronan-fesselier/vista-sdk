@@ -16,7 +16,7 @@ namespace dnv::vista::sdk::benchmarks
 	static const Gmod* g_gmod = nullptr;
 	static bool g_initialized = false;
 
-	static void InitializeData()
+	static void initializeData()
 	{
 		if ( !g_initialized )
 		{
@@ -37,9 +37,9 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	static void Dict( benchmark::State& state )
+	static void BM_dict( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -66,9 +66,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void FrozenDict( benchmark::State& state )
+	static void BM_frozenDict( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -95,9 +95,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void Gmod( benchmark::State& state )
+	static void BM_gmod( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -125,18 +125,18 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
 #endif
 	}
+
+	BENCHMARK( BM_dict )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_frozenDict )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_gmod )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
 }
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Dict )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::FrozenDict )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::Gmod )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kNanosecond );
 
 BENCHMARK_MAIN();

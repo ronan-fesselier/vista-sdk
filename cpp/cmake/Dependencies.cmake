@@ -34,7 +34,7 @@ include(FetchContent)
 FetchContent_Declare(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        v1.15.2
+  GIT_TAG        v1.15.3
   GIT_SHALLOW    TRUE
   CMAKE_ARGS
 	-DSPDLOG_BUILD_SHARED=OFF
@@ -45,7 +45,9 @@ FetchContent_Declare(
 	-DSPDLOG_BUILD_EXAMPLE_HO=OFF
 	-DSPDLOG_BUILD_BENCH=OFF
 	-DSPDLOG_BUILD_WARNINGS=OFF
-	-DSPDLOG_FMT_EXTERNAL=OFF
+	-DSPDLOG_FMT_EXTERNAL=ON
+	-DSPDLOG_NO_EXCEPTIONS=ON
+	-DSPDLOG_PREVENT_CHILD_FD=OFF
 )
 
 FetchContent_Declare(
@@ -65,7 +67,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   cpuid
   GIT_REPOSITORY https://github.com/anrieff/libcpuid.git
-  GIT_TAG        v0.7.0
+  GIT_TAG        v0.8.0
   GIT_SHALLOW    TRUE
   CMAKE_ARGS
 	-DBUILD_SHARED_LIBS=OFF
@@ -77,7 +79,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG        11.0.2
+  GIT_TAG        11.2.0
   GIT_SHALLOW    TRUE
   CMAKE_ARGS
 	-DBUILD_SHARED_LIBS=OFF
@@ -85,12 +87,14 @@ FetchContent_Declare(
 	-DFMT_TEST=OFF
 	-DFMT_DOC=OFF
 	-DFMT_INSTALL=OFF
+	-DFMT_HEADER_ONLY=ON
+	-DFMT_OS=OFF
 )
 
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        v1.16.0
+  GIT_TAG        v1.17.0
   GIT_SHALLOW    TRUE
   CMAKE_ARGS
 	-DBUILD_SHARED_LIBS=OFF

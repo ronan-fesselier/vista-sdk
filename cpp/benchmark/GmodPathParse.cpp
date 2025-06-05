@@ -16,7 +16,7 @@ namespace dnv::vista::sdk::benchmarks
 	static const Locations* g_locations = nullptr;
 	static bool g_initialized = false;
 
-	static void InitializeData()
+	static void initializeData()
 	{
 		if ( !g_initialized )
 		{
@@ -27,9 +27,9 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	static void TryParse( benchmark::State& state )
+	static void BM_tryParse( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -54,9 +54,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void TryParseFullPath( benchmark::State& state )
+	static void BM_tryParseFullPath( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -83,9 +83,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void TryParseIndividualized( benchmark::State& state )
+	static void BM_tryParseIndividualized( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -110,9 +110,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	static void TryParseFullPathIndividualized( benchmark::State& state )
+	static void BM_tryParseFullPathIndividualized( benchmark::State& state )
 	{
-		InitializeData();
+		initializeData();
 
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -138,22 +138,22 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
 #endif
 	}
+
+	BENCHMARK( BM_tryParse )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMicrosecond );
+
+	BENCHMARK( BM_tryParseFullPath )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMicrosecond );
+
+	BENCHMARK( BM_tryParseIndividualized )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMicrosecond );
+
+	BENCHMARK( BM_tryParseFullPathIndividualized )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMicrosecond );
 }
-
-BENCHMARK( dnv::vista::sdk::benchmarks::TryParse )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMicrosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::TryParseFullPath )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMicrosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::TryParseIndividualized )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMicrosecond );
-
-BENCHMARK( dnv::vista::sdk::benchmarks::TryParseFullPathIndividualized )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMicrosecond );
 
 BENCHMARK_MAIN();

@@ -11,7 +11,7 @@ using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
-	static void GmodLoad( benchmark::State& state )
+	static void BM_gmodLoad( benchmark::State& state )
 	{
 #ifdef _WIN32
 		PROCESS_MEMORY_COUNTERS_EX pmc_start;
@@ -42,10 +42,10 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
 #endif
 	}
-}
 
-BENCHMARK( dnv::vista::sdk::benchmarks::GmodLoad )
-	->MinTime( 10.0 )
-	->Unit( benchmark::kMillisecond );
+	BENCHMARK( BM_gmodLoad )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kMillisecond );
+}
 
 BENCHMARK_MAIN();

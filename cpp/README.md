@@ -2,6 +2,27 @@
 
 This directory contains the C++ implementation of the Vista SDK, a native library port of the master C# version for working with the DNV Vessel Information Structure (VIS) standard, ISO 19847/19848, and related functionality.
 
+## Dependencies
+
+The C++ SDK uses CMake and its [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) module to manage external dependencies directly during the build configuration phase. The required libraries are fetched from their respective sources (primarily GitHub):
+
+-   [nlohmann/json](https://github.com/nlohmann/json): For JSON parsing and serialization
+-   [spdlog](https://github.com/gabime/spdlog): For structured logging
+-   [zlib](https://github.com/madler/zlib): For compression and decompression of resources
+-   [libcpuid](https://github.com/anrieff/libcpuid): For CPU feature detection
+-   [{fmt}](https://github.com/fmtlib/fmt): Formatting library
+-   [GoogleTest](https://github.com/google/googletest): For unit testing framework
+-   [Google Benchmark](https://github.com/google/benchmark): For performance benchmarking
+
+## Licensing
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
+### Third-Party Dependencies
+
+The Vista SDK C++ library depends on several high-quality open source libraries.
+See [licenses/README.md](licenses/README.md) for complete licensing information and third-party attributions.
+
 ## Status
 
 > [!NOTE]
@@ -52,7 +73,6 @@ The C++ SDK currently implements:
     -   `LocalIdQueryBuilder`
     -   `MetadataTagsQuery`
     -   MQTT specifics
-    -   Benchmarking suite.
 
 ## Core Features Implemented
 
@@ -86,10 +106,9 @@ The C++ SDK follows a clear interface-based architecture:
 
 ### Template-Based Design
 
-The SDK leverages C++20 templates and concepts extensively:
+The SDK leverages C++ templates extensively:
 
 -   Template-based visitor patterns for location parsing.
--   Concept-based constraints for type safety.
 -   Template specializations for performance optimization.
 
 ### Memory Management
@@ -105,18 +124,18 @@ Memory management patterns:
 
 This C++ implementation follows the same core design principles (Immutability, Builder Pattern, VIS entry point) as the C# SDK but utilizes C++ language features and standard libraries.
 
-| Feature             | C++ Implementation                                                                        | C# Implementation                                          | Notes                                                                     |
-| :------------------ | :---------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------------------ |
-| **Language**        | C++20                                                                                     | C# (.NET)                                                  | Leverages modern C++ features including concepts, ranges, and coroutines. |
-| **Immutability**    | `const` correctness, returning new builder instances, immutable by design                 | `readonly`, records (`struct`/`class`), `with` expressions |                                                                           |
-| **Optional Values** | `std::optional`                                                                           | Nullable types (`?`)                                       | Standard C++ approach with comprehensive null-safety patterns.            |
-| **Collections**     | `std::vector`, `std::unordered_map`, `std::deque`, `std::array`                           | `List<T>`, `Dictionary<K,V>`, `T[]`, `FrozenDictionary`    | Uses STL containers with performance optimizations.                       |
-| **String Handling** | `std::string`, `std::string_view`, `std::stringstream`, extensive view usage              | `string`, `ReadOnlySpan<char>`, `StringBuilder`            | C++ version uses string_view extensively for performance.                 |
+| Feature             | C++ Implementation                                                                        | C# Implementation                                          | Notes                                                          |
+| :------------------ | :---------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------- |
+| **Language**        | C++20                                                                                     | C# (.NET)                                                  | Leverages modern C++ features.                                 |
+| **Immutability**    | `const` correctness, returning new builder instances, immutable by design                 | `readonly`, records (`struct`/`class`), `with` expressions |                                                                |
+| **Optional Values** | `std::optional`                                                                           | Nullable types (`?`)                                       | Standard C++ approach with comprehensive null-safety patterns. |
+| **Collections**     | `std::vector`, `std::unordered_map`, `std::deque`, `std::array`                           | `List<T>`, `Dictionary<K,V>`, `T[]`, `FrozenDictionary`    | Uses STL containers with performance optimizations.            |
+| **String Handling** | `std::string`, `std::string_view`, `std::stringstream`, extensive view usage              | `string`, `ReadOnlySpan<char>`, `StringBuilder`            | C++ version uses string_view extensively for performance.      |
 | **Error Handling**  | `std::exception` hierarchy, comprehensive `ParsingErrors` system, `std::invalid_argument` | `.NET` exceptions, `ParsingErrors` struct                  |
-| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), thread-local cache, comprehensive input validation                  | FNV1a/CRC32 (SSE4.2)                                       | **Incompatible binary formats** due to different hash inputs.             |
+| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), thread-local cache, comprehensive input validation                  | FNV1a/CRC32 (SSE4.2)                                       | **Incompatible binary formats** due to different hash inputs.  |
 | **Logging**         | `spdlog` with extensive diagnostic logging throughout                                     | Minimal built-in logging                                   |
-| **Build System**    | CMake (`FetchContent`) with comprehensive dependency management                           | .NET SDK (MSBuild/NuGet)                                   | CMake configuration with cross-platform support.                          |
-| **Dependencies**    | `nlohmann/json`, `spdlog`, `zlib`, `fmt`, `gtest`, `libcpuid`                             | NuGet packages                                             | Managed via `FetchContent` with version pinning.                          |
+| **Build System**    | CMake (`FetchContent`) with comprehensive dependency management                           | .NET SDK (MSBuild/NuGet)                                   | CMake configuration with cross-platform support.               |
+| **Dependencies**    | `nlohmann/json`, `spdlog`, `zlib`, `fmt`, `gtest`, `libcpuid`                             | NuGet packages                                             | Managed via `FetchContent` with version pinning.               |
 | **Path Parsing**    | Validation with root node checking and structure validation                               | Basic validation                                           |
 
 ## Features
@@ -150,7 +169,6 @@ The C++ implementation includes a perfect hashing system (as well as c# version)
 -   **Immutability:** Core domain objects (`LocalId`, `GmodPath`, `MetadataTag`, etc.) are immutable once created.
 -   **Builder Pattern:** Objects like `LocalId` are constructed using an immutable builder (`LocalIdBuilder`) where modification methods return new builder instances.
 -   **Interface-Based Design:** Clear separation of concerns through abstract interfaces (`ILocalId`, `ILocalIdBuilder`).
--   **Template-Based Safety:** Extensive use of C++20 templates and concepts for type safety and performance.
 
 ## Performance Characteristics
 
@@ -159,29 +177,11 @@ The C++ implementation includes a perfect hashing system (as well as c# version)
 -   **Caching Strategy:** Thread-local caching in performance-critical paths.
 -   **String Optimization:** Extensive use of `string_view` to minimize allocations.
 
-## Testing Infrastructure
-
-Comprehensive test coverage using GoogleTest:
-
--   **Unit Tests:** Complete coverage of core functionality.
--   **Integration Tests:** End-to-end testing of complex scenarios.
--   **Performance Tests:** Validation of performance characteristics.
--   **Parameterized Tests:** Extensive test matrices for edge cases.
-
-Test suites include:
-
--   `CodebookTests`
--   `CodebooksTests`
--   `GmodPathTests`
--   `GmodTests`
--   `GmodVersioningTests`
--   `ImoNumberTests`
--   `ISOStringTests`
--   `LocalIdTests`
--   `LocationsTests`
--   `UniversalIdTests`
-
 ## TODO List
+
+-   **Core Implementation:**
+
+    -   Implement MQTT-specific aspects for `LocalId` (parsing from topics, builder methods, topic validation).
 
 -   **Code Organization / Patterns:**
 
@@ -204,42 +204,136 @@ Test suites include:
 
     -   Implement MQTT-related tests (`Test_LocalId_Mqtt`, `Test_LocalId_Mqtt_Invalid`, `Test_LocalIdBuilder_Mqtt`) when MQTT functionality is added.
 
--   **Performance & Optimization:**
-
-    -   Further optimize string handling to minimize temporary allocations.
-    -   Consider configurable hash functions in `ChdDictionary`.
-    -   **Critical**: Optimize CHD implementation - currently 7.7x slower in Codebooks and 11.1x slower in GMOD lookup vs C#.
-
--   **Benchmarking:**
-
-    -   **Comprehensive benchmarking suite implemented** with cross-platform comparison capabilities.
-    -   **Performance analysis:** see [README.md](benchmark/README.md) for detailed results.
-
 -   **Documentation:**
 
     -   Complete API documentation using Doxygen.
     -   Performance characteristics documentation.
 
--   **Core Implementation:**
+## Testing Infrastructure
 
-    -   Implement MQTT-specific aspects for `LocalId` (parsing from topics, builder methods, topic validation).
+Comprehensive test coverage using GoogleTest:
+
+-   **Unit Tests:** Complete coverage of core functionality.
+-   **Integration Tests:** End-to-end testing of complex scenarios.
+-   **Performance Tests:** Validation of performance characteristics.
+-   **Parameterized Tests:** Extensive test matrices for edge cases.
+
+Test suites include:
+
+-   `Codebook`
+-   `Codebooks`
+-   `Gmod`
+-   `GmodPath`
+-   `GmodVersioning`
+-   `GmodVersioningSmoke`
+-   `ImoNumber`
+-   `ISOString`
+-   `LocalId`
+-   `Locations`
+-   `UniversalId`
 
 ## Benchmarking
 
 Comprehensive performance benchmarking suite implemented comparing C++ and C# implementations across key operations.
 See [README.md](benchmark/README.md) for detailed results.
 
+Benchmark suites include:
+
+-   `CodebooksLookup`
+-   `GmodLoad`
+-   `GmodLookup`
+-   `GmodPathParse`
+-   `GmodTraversal`
+-   `GmodVersioningConvertPath`
+-   `ShortStringHash`
+
 ## Build Requirements
 
 -   **C++20 compliant compiler** (MSVC 2019+, GCC 10+, Clang 12+)
 -   **CMake 3.20+**
 -   **Dependencies automatically fetched via FetchContent:**
-    -   nlohmann/json v3.12.0
-    -   spdlog (latest)
-    -   zlib (latest)
-    -   fmt v11.0.2
-    -   GoogleTest v1.16.0
-    -   libcpuid (latest)
+
+    -   nlohmann/json
+    -   spdlog
+    -   zlib
+    -   fmt
+    -   fmt
+    -   GoogleTest
+    -   GoogleBenchmark
+
+### Building with CMake
+
+To build the C++ SDK, ensure you have a C++20 compliant compiler (e.g., MSVC, GCC, Clang) and CMake (version 3.20 or newer) installed.
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/dnv-opensource/vista-sdk.git
+    cd vista-sdk
+    ```
+
+2.  **Configure CMake:**
+    Run CMake from the root of the repository to configure the build. The C++ build artifacts will typically be placed in `vista-sdk/build`.
+    You can specify various options using `-D<OPTION>=<VALUE>`:
+
+    -   `VISTA_SDK_CPP_BUILD_TESTS=ON` (Build unit tests, default is `ON`)
+    -   `VISTA_SDK_CPP_BUILD_SMOKE_TESTS=OFF` (Build smoke tests, default is `OFF`)
+    -   `VISTA_SDK_CPP_RUN_TESTS=ON` (Run tests automatically after build, default is `OFF`)
+    -   `VISTA_SDK_CPP_BUILD_BENCHMARKS=ON` (Build performance benchmarks, default is `ON`)
+    -   `VISTA_SDK_CPP_RUN_BENCHMARKS=ON` (Run benchmarks automatically after build, default is `OFF`)
+    -   `VISTA_SDK_CPP_BUILD_SAMPLES=OFF` (Build sample applications, default is `OFF`)
+    -   `VISTA_SDK_CPP_BUILD_DOCUMENTATION=OFF` (Build Doxygen documentation, default is `OFF`. Requires Doxygen and Graphviz.)
+    -   `VISTA_SDK_CPP_COPY_RESOURCES=ON` (Copy resources to build directory, default is `ON`)
+    -   `CMAKE_BUILD_TYPE=Release` (Or `Debug`, `RelWithDebInfo`, etc.)
+
+    Example configuration for Visual Studio (Windows):
+
+    ```bash
+    cmake -B build -S . -G "Visual Studio 17 2022" -A x64 -DVISTA_SDK_CPP_BUILD_TESTS=ON -DVISTA_SDK_CPP_BUILD_BENCHMARKS=ON
+    ```
+
+    Example configuration for Ninja (cross-platform):
+
+    ```bash
+    cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release -DVISTA_SDK_CPP_BUILD_TESTS=ON -DVISTA_SDK_CPP_BUILD_BENCHMARKS=ON
+    ```
+
+3.  **Build the SDK:**
+    Use CMake's build tool mode to compile the C++ library and any enabled components.
+
+    ```bash
+    cmake --build build --config Release
+    ```
+
+4.  **Run Tests (Automatic):**
+    If `VISTA_SDK_CPP_RUN_TESTS=ON` (default), tests will run automatically after building.
+    Test results are saved to `build/bin/Release/test_results/` with timestamps.
+
+    To run tests manually:
+
+    ```bash
+    cmake --build build --config Release --target tests
+    ```
+
+5.  **Run Benchmarks (Automatic):**
+    If `VISTA_SDK_CPP_RUN_BENCHMARKS=ON` (default), benchmarks will run automatically after building.
+    Benchmark results are saved to `build/bin/Release/benchmark_results/` with timestamps.
+
+    To run benchmarks manually:
+
+    ```bash
+    # Windows
+    .\build\bin\Release\BM_CodebooksLookup.exe
+    .\build\bin\Release\BM_GmodLoad.exe
+    .\build\bin\Release\BM_GmodLookup.exe
+    ...
+
+    # Linux/macOS
+    ./build/bin/Release/BM_CodebooksLookup
+    ./build/bin/Release/BM_GmodLoad
+    ./build/bin/Release/BM_GmodLookup
+    ...
+    ```
 
 ## C++ Coding Conventions
 
@@ -289,7 +383,6 @@ The C++ Vista SDK follows a consistent coding style throughout the codebase.
 -   **String Views:** Extensive use of `std::string_view` to avoid unnecessary copies
 -   **Move Semantics:** Proper use of move constructors and assignment operators
 -   **Thread Safety:** Thread-local storage for performance-critical caching
--   **Template Usage:** C++20 templates and concepts for type safety and performance
 
 ### **Code Formatting**
 
@@ -297,3 +390,7 @@ The C++ Vista SDK follows a consistent coding style throughout the codebase.
 -   **Indentation:** Tabs for indentation, consistent throughout
 -   **Line Length:** Reasonable line lengths with proper wrapping
 -   **Spacing:** Consistent spacing around operators and function parameters
+
+---
+
+_Last updated: June 5, 2025_
