@@ -73,17 +73,17 @@ Performance comparison between C++ and C# implementations for codebook access op
 
 | C++ Method            | C++ Time | C++ Implementation                    | C# Method     | C# Time | C# Implementation             | Performance Ratio   |
 | :-------------------- | :------- | :------------------------------------ | :------------ | :------ | :---------------------------- | :------------------ |
-| **HashTableLookup**   | 2.04 ns  | `std::unordered_map::find()`          | **Dict**      | 4.90 ns | `Dictionary.TryGetValue()`    | ✅ **2.40x faster** |
-| **SdkApiCodebooks**   | 2.82 ns  | `codebooks_ref[enum_key]` + try/catch | **Codebooks** | 0.69 ns | `array[index]` + bounds check | ❌ **4.09x slower** |
-| **SdkApiArrayLookup** | 0.930 ns | `std::array[index] != nullptr`        | _No equiv_    | _N/A_   | _N/A_                         | _N/A_               |
+| **hashTableLookup**   | 2.04 ns  | `std::unordered_map::find()`          | **Dict**      | 4.90 ns | `Dictionary.TryGetValue()`    | ✅ **2.40x faster** |
+| **sdkApiCodebooks**   | 2.82 ns  | `codebooks_ref[enum_key]` + try/catch | **Codebooks** | 0.69 ns | `array[index]` + bounds check | ❌ **4.09x slower** |
+| **sdkApiArrayLookup** | 0.930 ns | `std::array[index] != nullptr`        | _No equiv_    | _N/A_   | _N/A_                         | _N/A_               |
 
 #### Detailed C++ Results (Windows)
 
 | Benchmark             | Time     | CPU      | Iterations | Memory Usage |
 | :-------------------- | :------- | :------- | :--------- | :----------- |
-| **HashTableLookup**   | 2.04 ns  | 2.04 ns  | 6.9B       | 0 KB         |
-| **SdkApiCodebooks**   | 2.82 ns  | 2.82 ns  | 5.0B       | 0 KB         |
-| **SdkApiArrayLookup** | 0.930 ns | 0.930 ns | 15.1B      | 0 KB         |
+| **hashTableLookup**   | 2.04 ns  | 2.04 ns  | 6.9B       | 0 KB         |
+| **sdkApiCodebooks**   | 2.82 ns  | 2.82 ns  | 5.0B       | 0 KB         |
+| **sdkApiArrayLookup** | 0.930 ns | 0.930 ns | 15.1B      | 0 KB         |
 
 #### Detailed C# Results (Windows)
 
@@ -107,13 +107,13 @@ Performance comparison between C++ and C# implementations for codebook access op
 
 | C++ Method   | C++ Time | C++ Implementation                  | C# Method | C# Time | C# Implementation               | Performance Ratio   |
 | :----------- | :------- | :---------------------------------- | :-------- | :------ | :------------------------------ | :------------------ |
-| **GmodLoad** | 26.5 ms  | `VIS::loadGmodDto()` + construction | **Load**  | 30.4 ms | `Gmod.Load()` with full parsing | ✅ **1.15x faster** |
+| **gmodLoad** | 26.5 ms  | `VIS::loadGmodDto()` + construction | **Load**  | 30.4 ms | `Gmod.Load()` with full parsing | ✅ **1.15x faster** |
 
 #### Detailed C++ Results (Windows)
 
 | Benchmark    | Time    | CPU     | Iterations | Memory Usage |
 | :----------- | :------ | :------ | :--------- | :----------- |
-| **GmodLoad** | 26.5 ms | 26.4 ms | 484        | 224 KB       |
+| **gmodLoad** | 26.5 ms | 26.4 ms | 484        | 224 KB       |
 
 #### Detailed C# Results (Windows)
 
@@ -137,9 +137,9 @@ Performance comparison between C++ and C# implementations for codebook access op
 
 | C++ Method     | C++ Time | C++ Implementation            | C# Method      | C# Time  | C# Implementation                | Performance Ratio   |
 | :------------- | :------- | :---------------------------- | :------------- | :------- | :------------------------------- | :------------------ |
-| **FrozenDict** | 13.3 ns  | `std::unordered_map` (frozen) | **FrozenDict** | 15.21 ns | `FrozenDictionary.TryGetValue()` | ✅ **1.14x faster** |
-| **Dict**       | 14.7 ns  | `std::unordered_map::find()`  | **Dict**       | 38.34 ns | `Dictionary.TryGetValue()`       | ✅ **2.61x faster** |
-| **Gmod**       | 173 ns   | CHD implementation lookup     | **Gmod**       | 15.62 ns | Native GMOD API access           | ❌ **11.1x slower** |
+| **frozenDict** | 13.3 ns  | `std::unordered_map` (frozen) | **FrozenDict** | 15.21 ns | `FrozenDictionary.TryGetValue()` | ✅ **1.14x faster** |
+| **dict**       | 14.7 ns  | `std::unordered_map::find()`  | **Dict**       | 38.34 ns | `Dictionary.TryGetValue()`       | ✅ **2.61x faster** |
+| **gmod**       | 173 ns   | CHD implementation lookup     | **Gmod**       | 15.62 ns | Native GMOD API access           | ❌ **11.1x slower** |
 
 #### Detailed C++ Results (Windows)
 
@@ -185,10 +185,10 @@ Performance comparison between C++ and C# implementations for GMOD path parsing 
 
 | Benchmark                          | Time    | CPU     | Iterations | Memory Usage |
 | :--------------------------------- | :------ | :------ | :--------- | :----------- |
-| **TryParse**                       | 6.75 μs | 6.75 μs | 2,103K     | 0 KB         |
-| **TryParseFullPath**               | 19.8 μs | 19.8 μs | 711K       | 0 KB         |
-| **TryParseIndividualized**         | 4.21 μs | 4.21 μs | 3,343K     | 0 KB         |
-| **TryParseFullPathIndividualized** | 20.2 μs | 20.2 μs | 695K       | 0 KB         |
+| **tryParse**                       | 6.75 μs | 6.75 μs | 2,103K     | 0 KB         |
+| **tryParseFullPath**               | 19.8 μs | 19.8 μs | 711K       | 0 KB         |
+| **tryParseIndividualized**         | 4.21 μs | 4.21 μs | 3,343K     | 0 KB         |
+| **tryParseFullPathIndividualized** | 20.2 μs | 20.2 μs | 695K       | 0 KB         |
 
 #### Detailed C# Results (Windows)
 
@@ -251,7 +251,7 @@ Performance comparison between C++ and C# implementations for GMOD version path 
 
 | Benchmark       | Time   | CPU    | Iterations | Memory Usage |
 | :-------------- | :----- | :----- | :--------- | :----------- |
-| **ConvertPath** | 436 μs | 435 μs | 32,464     | 0 KB         |
+| **convertPath** | 436 μs | 435 μs | 32,464     | 0 KB         |
 
 #### Detailed C# Results (Windows)
 
@@ -267,16 +267,16 @@ Performance comparison between C++ and C# implementations for GMOD version path 
 
 | Operation          | Windows C++ | Linux C++ | Status | Notes |
 | :----------------- | :---------- | :-------- | :----: | :---- |
-| **Bcl (400)**      | 1.21 ns     | _TBD_     |        |       |
-| **Bcl (H346)**     | 3.33 ns     | _TBD_     |        |       |
-| **BclOrd (400)**   | 1.76 ns     | _TBD_     |        |       |
-| **BclOrd (H346)**  | 3.07 ns     | _TBD_     |        |       |
-| **Larsson (400)**  | 2.37 ns     | _TBD_     |        |       |
-| **Larsson (H346)** | 17.6 ns     | _TBD_     |        |       |
-| **CRC32 (400)**    | 2.13 ns     | _TBD_     |        |       |
-| **CRC32 (H346)**   | 19.8 ns     | _TBD_     |        |       |
-| **FNV (400)**      | 2.37 ns     | _TBD_     |        |       |
-| **FNV (H346)**     | 17.7 ns     | _TBD_     |        |       |
+| **bcl (400)**      | 1.21 ns     | _TBD_     |        |       |
+| **bcl (H346)**     | 3.33 ns     | _TBD_     |        |       |
+| **bclOrd (400)**   | 1.76 ns     | _TBD_     |        |       |
+| **bclOrd (H346)**  | 3.07 ns     | _TBD_     |        |       |
+| **larsson (400)**  | 2.37 ns     | _TBD_     |        |       |
+| **larsson (H346)** | 17.6 ns     | _TBD_     |        |       |
+| **crc32 (400)**    | 2.13 ns     | _TBD_     |        |       |
+| **crc32 (H346)**   | 19.8 ns     | _TBD_     |        |       |
+| **fnv (400)**      | 2.37 ns     | _TBD_     |        |       |
+| **fnv (H346)**     | 17.7 ns     | _TBD_     |        |       |
 
 ### Short String Hashing Performance (Windows)
 
@@ -306,18 +306,18 @@ Performance comparison between C++ and C# implementations for hash function oper
 
 | Benchmark                       | Time    | CPU     | Iterations | Memory Usage |
 | :------------------------------ | :------ | :------ | :--------- | :----------- |
-| **Short Strings (400)**         |         |         |            |              |
-| **Bcl_400**                     | 1.21 ns | 1.21 ns | 11.6B      | 0 KB         |
-| **BclOrd_400**                  | 1.76 ns | 1.76 ns | 8.0B       | 0 KB         |
-| **Larsson_400**                 | 2.37 ns | 2.36 ns | 5.9B       | 0 KB         |
-| **Crc32Intrinsic_400**          | 2.13 ns | 2.13 ns | 6.5B       | 0 KB         |
-| **Fnv_400**                     | 2.37 ns | 2.37 ns | 5.8B       | 0 KB         |
-| **Longer Strings (H346.11112)** |         |         |            |              |
-| **Bcl_H346_11112**              | 3.33 ns | 3.33 ns | 4.2B       | 18.0KB       |
-| **BclOrd_H346_11112**           | 3.07 ns | 3.07 ns | 4.5B       | 0 KB         |
-| **Larsson_H346_11112**          | 17.6 ns | 17.6 ns | 800M       | 0 KB         |
-| **Crc32Intrinsic_H346_11112**   | 19.8 ns | 19.8 ns | 716M       | 0 KB         |
-| **Fnv_H346_11112**              | 17.7 ns | 17.7 ns | 792M       | 0 KB         |
+| **short strings (400)**         |         |         |            |              |
+| **bcl_400**                     | 1.21 ns | 1.21 ns | 11.6B      | 0 KB         |
+| **bclOrd_400**                  | 1.76 ns | 1.76 ns | 8.0B       | 0 KB         |
+| **larsson_400**                 | 2.37 ns | 2.36 ns | 5.9B       | 0 KB         |
+| **crc32Intrinsic_400**          | 2.13 ns | 2.13 ns | 6.5B       | 0 KB         |
+| **fnv_400**                     | 2.37 ns | 2.37 ns | 5.8B       | 0 KB         |
+| **longer strings (H346.11112)** |         |         |            |              |
+| **bcl_H346_11112**              | 3.33 ns | 3.33 ns | 4.2B       | 18.0KB       |
+| **bclOrd_H346_11112**           | 3.07 ns | 3.07 ns | 4.5B       | 0 KB         |
+| **larsson_H346_11112**          | 17.6 ns | 17.6 ns | 800M       | 0 KB         |
+| **crc32Intrinsic_H346_11112**   | 19.8 ns | 19.8 ns | 716M       | 0 KB         |
+| **fnv_H346_11112**              | 17.7 ns | 17.7 ns | 792M       | 0 KB         |
 
 #### Detailed C# Results (Windows)
 
@@ -335,3 +335,7 @@ Performance comparison between C++ and C# implementations for hash function oper
 | **Larsson**                     | H346.11112 | 3.405 ns | 0.0126 ns | 0.0118 ns | 1.33x faster | -         |
 | **Crc32Intrinsic**              | H346.11112 | 3.274 ns | 0.0083 ns | 0.0073 ns | 1.38x faster | -         |
 | **Fnv**                         | H346.11112 | 3.276 ns | 0.0165 ns | 0.0146 ns | 1.38x faster | -         |
+
+---
+
+_Last updated: May 31, 2025_
