@@ -7,20 +7,15 @@
 
 #include "TestDataLoader.h"
 
+#include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/Gmod.h"
-#include "dnv/vista/sdk/Locations.h"
-
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/LocalIdParsingErrorBuilder.h"
+#include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
-
-namespace dnv::vista::sdk
-{
-	const ParsingErrors ParsingErrors::Empty = ParsingErrors();
-}
 
 namespace dnv::vista::sdk::tests
 {
@@ -52,7 +47,7 @@ namespace dnv::vista::sdk::tests
 		builder3.addError( LocalIdParsingState::VisVersion, "M1" );
 		ParsingErrors e3 = builder3.build();
 
-		ParsingErrors e4 = ParsingErrors::Empty;
+		ParsingErrors e4 = ParsingErrors::empty();
 
 		EXPECT_EQ( e1, e2 );
 		EXPECT_TRUE( e1 == e2 );
@@ -62,12 +57,12 @@ namespace dnv::vista::sdk::tests
 
 		EXPECT_NE( e1, e3 );
 		EXPECT_FALSE( e1 == e3 );
-		EXPECT_TRUE( e4 == ParsingErrors::Empty );
-		EXPECT_EQ( e4, ParsingErrors::Empty );
-		EXPECT_TRUE( e4.equals( ParsingErrors::Empty ) );
+		EXPECT_TRUE( e4 == ParsingErrors::empty() );
+		EXPECT_EQ( e4, ParsingErrors::empty() );
+		EXPECT_TRUE( e4.equals( ParsingErrors::empty() ) );
 
-		ParsingErrors empty = ParsingErrors::Empty;
-		EXPECT_TRUE( e4.equals( static_cast<const void*>( &empty ) ) );
+		ParsingErrors empty = ParsingErrors::empty();
+		EXPECT_TRUE( e4.equals( empty ) );
 	}
 
 	//----------------------------------------------
@@ -85,7 +80,7 @@ namespace dnv::vista::sdk::tests
 		builder2.addError( LocalIdParsingState::VisVersion, "M1" );
 		ParsingErrors e2 = builder2.build();
 
-		ParsingErrors e3 = ParsingErrors::Empty;
+		ParsingErrors e3 = ParsingErrors::empty();
 
 		EXPECT_EQ( 1, e1.count() );
 		EXPECT_EQ( 2, e2.count() );
@@ -342,7 +337,7 @@ namespace dnv::vista::sdk::tests
 			{
 				if ( std::string( ex.what() ).find( "location" ) != std::string::npos )
 					continue;
-				errored.push_back( ErrorInfo{ localIdStr, std::nullopt, std::string( ex.what() ), ParsingErrors::Empty } );
+				errored.push_back( ErrorInfo{ localIdStr, std::nullopt, std::string( ex.what() ), ParsingErrors::empty() } );
 			}
 		}
 
@@ -427,8 +422,8 @@ namespace dnv::vista::sdk::tests
 		auto enumerator = errorBuilder.enumerator();
 		while ( enumerator.next() )
 		{
-			const auto& [errorType, errorMsg] = enumerator.current();
-			actualErrorMessages.push_back( errorMsg );
+			const auto& [type, message] = enumerator.current();
+			actualErrorMessages.push_back( message );
 		}
 
 		EXPECT_EQ( expectedErrorMessages, actualErrorMessages );

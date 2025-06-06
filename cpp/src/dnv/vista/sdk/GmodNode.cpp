@@ -7,9 +7,10 @@
 
 #include "dnv/vista/sdk/GmodNode.h"
 
+#include "dnv/vista/sdk/Gmod.h"
+#include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
-#include "dnv/vista/sdk/ParsingErrors.h"
 
 namespace dnv::vista::sdk
 {
@@ -19,21 +20,21 @@ namespace dnv::vista::sdk
 		// Constants
 		//=====================================================================
 
-		static constexpr const char* NODE_CATEGORY_PRODUCT = "PRODUCT";
-		static constexpr const char* NODE_CATEGORY_VALUE_FUNCTION = "FUNCTION";
-		static constexpr const char* NODE_CATEGORY_ASSET = "ASSET";
-		static constexpr const char* NODE_CATEGORY_PRODUCT_FUNCTION = "PRODUCT FUNCTION";
-		static constexpr const char* NODE_CATEGORY_ASSET_FUNCTION = "ASSET FUNCTION";
+		static constexpr std::string_view NODE_CATEGORY_PRODUCT = "PRODUCT";
+		static constexpr std::string_view NODE_CATEGORY_VALUE_FUNCTION = "FUNCTION";
+		static constexpr std::string_view NODE_CATEGORY_ASSET = "ASSET";
+		static constexpr std::string_view NODE_CATEGORY_PRODUCT_FUNCTION = "PRODUCT FUNCTION";
+		static constexpr std::string_view NODE_CATEGORY_ASSET_FUNCTION = "ASSET FUNCTION";
 
-		static constexpr const char* NODE_TYPE_GROUP = "GROUP";
-		static constexpr const char* NODE_TYPE_COMPOSITION = "COMPOSITION";
+		static constexpr std::string_view NODE_TYPE_GROUP = "GROUP";
+		static constexpr std::string_view NODE_TYPE_COMPOSITION = "COMPOSITION";
 
-		static constexpr const char* NODE_TYPE_VALUE_TYPE = "TYPE";
-		static constexpr const char* NODE_TYPE_VALUE_SELECTION = "SELECTION";
+		static constexpr std::string_view NODE_TYPE_VALUE_TYPE = "TYPE";
+		static constexpr std::string_view NODE_TYPE_VALUE_SELECTION = "SELECTION";
 	}
 
 	//=====================================================================
-	// GmodNodeMetadata Class
+	// GmodNodeMetadata class
 	//=====================================================================
 
 	//----------------------------------------------
@@ -165,7 +166,7 @@ namespace dnv::vista::sdk
 	}
 
 	//=====================================================================
-	// GmodNode Class
+	// GmodNode class
 	//=====================================================================
 
 	//----------------------------------------------
@@ -189,6 +190,9 @@ namespace dnv::vista::sdk
 		  m_parents{},
 		  m_childrenSet{}
 	{
+		m_children.reserve( 8 );
+		m_parents.reserve( 4 );
+		m_childrenSet.reserve( 8 );
 	}
 
 	GmodNode::GmodNode( const GmodNode& other )
@@ -198,7 +202,9 @@ namespace dnv::vista::sdk
 		  m_metadata{ other.m_metadata },
 		  m_children{ other.m_children },
 		  m_parents{ other.m_parents },
-		  m_childrenSet{ other.m_childrenSet }
+		  m_childrenSet{ other.m_childrenSet },
+		  m_cachedProductType{ other.m_cachedProductType },
+		  m_cachedProductSelection{ other.m_cachedProductSelection }
 	{
 	}
 
@@ -220,6 +226,8 @@ namespace dnv::vista::sdk
 		m_children = other.m_children;
 		m_parents = other.m_parents;
 		m_childrenSet = other.m_childrenSet;
+		m_cachedProductType = other.m_cachedProductType;
+		m_cachedProductSelection = other.m_cachedProductSelection;
 
 		return *this;
 	}
@@ -304,7 +312,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Relationship Accessors
+	// Relationship accessors
 	//----------------------------------------------
 
 	const std::vector<GmodNode*>& GmodNode::children() const
@@ -389,7 +397,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Node Location Methods
+	// Node location methods
 	//----------------------------------------------
 
 	GmodNode GmodNode::withoutLocation() const
@@ -458,7 +466,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Node Type Checking Methods
+	// Node type checking methods
 	//----------------------------------------------
 
 	bool GmodNode::isIndividualizable( bool isTargetNode, bool isInSet ) const
@@ -502,19 +510,68 @@ namespace dnv::vista::sdk
 
 	bool GmodNode::isMappable() const noexcept
 	{
-		if ( productType() != nullptr )
+		if ( !m_cachedProductType.has_value() )
+		{
+			if ( m_children.size() == 1 &&
+				 m_metadata.category().find( NODE_CATEGORY_VALUE_FUNCTION ) != std::string::npos )
+			{
+				const GmodNode* child = m_children[0];
+				if ( child &&
+					 child->m_metadata.category() == NODE_CATEGORY_PRODUCT &&
+					 child->m_metadata.type() == NODE_TYPE_VALUE_TYPE )
+				{
+					m_cachedProductType = child;
+				}
+				else
+				{
+					m_cachedProductType = nullptr;
+				}
+			}
+			else
+			{
+				m_cachedProductType = nullptr;
+			}
+		}
+
+		if ( m_cachedProductType.value() != nullptr )
 		{
 			return false;
 		}
-		if ( productSelection() != nullptr )
+
+		if ( !m_cachedProductSelection.has_value() )
+		{
+			if ( m_children.size() == 1 &&
+				 m_metadata.category().find( NODE_CATEGORY_VALUE_FUNCTION ) != std::string::npos )
+			{
+				const GmodNode* child = m_children[0];
+				if ( child &&
+					 child->m_metadata.category().find( NODE_CATEGORY_PRODUCT ) != std::string::npos &&
+					 child->m_metadata.type() == NODE_TYPE_VALUE_SELECTION )
+				{
+					m_cachedProductSelection = child;
+				}
+				else
+				{
+					m_cachedProductSelection = nullptr;
+				}
+			}
+			else
+			{
+				m_cachedProductSelection = nullptr;
+			}
+		}
+
+		if ( m_cachedProductSelection.value() != nullptr )
 		{
 			return false;
 		}
-		if ( isProductSelection() )
+
+		if ( m_metadata.category().find( NODE_CATEGORY_PRODUCT ) != std::string::npos && m_metadata.type() == NODE_TYPE_VALUE_SELECTION )
 		{
 			return false;
 		}
-		if ( isAsset() )
+
+		if ( m_metadata.category() == NODE_CATEGORY_ASSET )
 		{
 			return false;
 		}
@@ -525,10 +582,7 @@ namespace dnv::vista::sdk
 		}
 
 		char lastChar = m_code.back();
-
-		bool result = ( lastChar != 'a' && lastChar != 's' );
-
-		return result;
+		return lastChar != 'a' && lastChar != 's';
 	}
 
 	bool GmodNode::isProductSelection() const
@@ -567,7 +621,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Node Relationship Query Methods
+	// Node relationship query methods
 	//----------------------------------------------
 
 	bool GmodNode::isChild( const GmodNode& node ) const
@@ -577,26 +631,29 @@ namespace dnv::vista::sdk
 
 	bool GmodNode::isChild( const std::string& code ) const
 	{
-		return m_childrenSet.find( code ) != m_childrenSet.end();
+		if ( m_children.size() <= 8 )
+		{
+			for ( const auto* child : m_children )
+			{
+				if ( child->code() == code )
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		return m_childrenSet.contains( code );
 	}
 
 	//----------------------------------------------
-	// Utility Methods
+	// Utility methods
 	//----------------------------------------------
 
 	std::string GmodNode::toString() const
 	{
-		if ( m_location.has_value() )
-		{
-			std::string result = m_code;
-			result.reserve( m_code.length() + 1 + m_location->toString().length() );
-			result += '-';
-			result += m_location->toString();
-
-			return result;
-		}
-
-		return m_code;
+		return m_location.has_value() ? fmt::format( "{}-{}", m_code, m_location->toString() ) : m_code;
 	}
 
 	void GmodNode::toString( std::stringstream& builder ) const
@@ -610,56 +667,53 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Relationship Management Methods
+	// Relationship management methods
 	//----------------------------------------------
 
 	void GmodNode::addChild( GmodNode* child )
 	{
 		if ( !child )
 		{
-			SPDLOG_WARN( "Attempt to add null child to node: {}", m_code );
 			return;
 		}
 
-		if ( m_childrenSet.find( child->code() ) != m_childrenSet.end() )
+		const std::string& childCode = child->code();
+		if ( m_childrenSet.contains( childCode ) )
 		{
 			return;
 		}
 
-		m_children.push_back( std::move( child ) );
-		m_childrenSet.insert( child->code() );
+		m_children.push_back( child );
+		m_childrenSet.emplace( childCode );
+
+		m_cachedProductType.reset();
+		m_cachedProductSelection.reset();
 	}
 
 	void GmodNode::addParent( GmodNode* parent )
 	{
 		if ( !parent )
 		{
-			SPDLOG_WARN( "Attempt to add null parent to node: {}", m_code );
 			return;
 		}
 
-		m_parents.push_back( std::move( parent ) );
+		m_parents.push_back( parent );
 	}
 
 	void GmodNode::trim()
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-
 		m_children.shrink_to_fit();
 		m_parents.shrink_to_fit();
 
-		m_childrenSet.clear();
-		m_childrenSet.reserve( m_children.size() );
-
-		for ( const auto* child : m_children )
+		if ( m_childrenSet.size() != m_children.size() )
 		{
-			m_childrenSet.insert( child->code() );
+			m_childrenSet.clear();
+			m_childrenSet.reserve( m_children.size() );
+
+			for ( const auto* child : m_children )
+			{
+				m_childrenSet.emplace( child->code() );
+			}
 		}
-
-		auto end = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>( end - start );
-
-		SPDLOG_DEBUG( "GmodNode::trim completed in {} μs for {} children",
-			duration.count(), m_children.size() );
 	}
 }

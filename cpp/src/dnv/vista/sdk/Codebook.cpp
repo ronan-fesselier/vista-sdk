@@ -7,6 +7,7 @@
 
 #include "dnv/vista/sdk/Codebook.h"
 
+#include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/MetadataTag.h"
 #include "dnv/vista/sdk/VIS.h"
 
@@ -109,7 +110,7 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		static constexpr std::array<bool, 256> s_digitLookup = []() constexpr {
+		alignas( 64 ) static constexpr std::array<bool, 256> s_digitLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
 			for ( unsigned char i = '0'; i <= '9'; ++i )
 			{
@@ -119,7 +120,7 @@ namespace dnv::vista::sdk
 			return lookup;
 		}();
 
-		static constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
+		alignas( 64 ) static constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
 			constexpr std::string_view whitespace = WHITESPACE;
 			for ( char c : whitespace )
@@ -138,6 +139,33 @@ namespace dnv::vista::sdk
 		constexpr bool isWhitespace( char c ) noexcept
 		{
 			return s_whitespaceLookup[static_cast<unsigned char>( c )];
+		}
+	}
+
+	//=====================================================================
+	// PositionValidationResult string conversion
+	//=====================================================================
+
+	namespace
+	{
+		static constexpr std::array<std::pair<std::string_view, PositionValidationResult>, 5> s_validationResultMap =
+			{ { { "invalid", PositionValidationResult::Invalid },
+				{ "invalidorder", PositionValidationResult::InvalidOrder },
+				{ "invalidgrouping", PositionValidationResult::InvalidGrouping },
+				{ "valid", PositionValidationResult::Valid },
+				{ "custom", PositionValidationResult::Custom } } };
+
+		[[nodiscard]] static std::string toLower( std::string_view input ) noexcept
+		{
+			std::string result;
+			result.reserve( input.size() );
+
+			for ( char c : input )
+			{
+				result.push_back( ( c >= 'A' && c <= 'Z' ) ? ( c + 32 ) : c );
+			}
+
+			return result;
 		}
 	}
 
@@ -187,6 +215,33 @@ namespace dnv::vista::sdk
 	// PositionValidationResults class
 	//=====================================================================
 
+	//----------------------------------------------
+	// Static utility methods
+	//----------------------------------------------
+
+	PositionValidationResult PositionValidationResults::fromString( std::string_view name )
+	{
+		if ( name.empty() )
+		{
+			throw std::invalid_argument( "PositionValidationResult name cannot be empty" );
+		}
+
+		const std::string lowerName = toLower( name );
+
+		for ( const auto& [key, value] : s_validationResultMap )
+		{
+			if ( key == lowerName )
+			{
+				SPDLOG_TRACE( "Converted PositionValidationResult: '{}' -> {}",
+					name, static_cast<int>( value ) );
+				return value;
+			}
+		}
+
+		throw std::invalid_argument( "Unknown PositionValidationResult name: '" + std::string( name ) +
+									 "'. Valid values are: Invalid, InvalidOrder, InvalidGrouping, Valid, Custom" );
+	}
+
 	//=====================================================================
 	// CodebookStandardValues class
 	//=====================================================================
@@ -212,15 +267,17 @@ namespace dnv::vista::sdk
 
 	bool CodebookStandardValues::contains( std::string_view tagValue ) const noexcept
 	{
-		if ( m_name == CodebookName::Position ) [[unlikely]]
+		if ( m_standardValues.contains( tagValue ) )
 		{
-			if ( !tagValue.empty() && std::all_of( tagValue.begin(), tagValue.end(), isDigit ) ) [[likely]]
-			{
-				return true;
-			}
+			return true;
 		}
 
-		return m_standardValues.contains( tagValue );
+		if ( m_name == CodebookName::Position )
+		{
+			return !tagValue.empty() && std::all_of( tagValue.begin(), tagValue.end(), isDigit );
+		}
+
+		return false;
 	}
 
 	//----------------------------------------------
@@ -295,18 +352,29 @@ namespace dnv::vista::sdk
 	{
 		auto trimString = []( std::string_view str ) -> std::string_view {
 			if ( str.empty() )
+			{
 				return {};
+			}
+
+			const char* data = str.data();
+			const size_t size = str.size();
 
 			size_t first = 0;
-			while ( first < str.size() && isWhitespace( str[first] ) )
+			while ( first < size && isWhitespace( data[first] ) )
+			{
 				++first;
+			}
 
-			if ( first == str.size() )
+			if ( first == size )
+			{
 				return {};
+			}
 
-			size_t last = str.size() - 1;
-			while ( last > first && isWhitespace( str[last] ) )
+			size_t last = size - 1;
+			while ( last > first && isWhitespace( data[last] ) )
+			{
 				--last;
+			}
 
 			return str.substr( first, last - first + 1 );
 		};
@@ -361,11 +429,6 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 	// Accessors
 	//----------------------------------------------
-
-	CodebookName Codebook::name() const noexcept
-	{
-		return m_name;
-	}
 
 	const CodebookGroups& Codebook::groups() const noexcept
 	{
@@ -457,33 +520,33 @@ namespace dnv::vista::sdk
 
 	PositionValidationResult Codebook::validatePosition( std::string_view position ) const
 	{
-		if ( position.empty() ) [[unlikely]]
+		if ( position.empty() )
 		{
 			return PositionValidationResult::Invalid;
 		}
 
-		if ( position.find_first_of( WHITESPACE ) != std::string_view::npos ) [[unlikely]]
+		if ( position.find_first_of( WHITESPACE ) != std::string_view::npos )
 		{
 			return PositionValidationResult::Invalid;
 		}
 
-		if ( !VIS::isISOString( position ) ) [[unlikely]]
+		if ( !VIS::isISOString( position ) )
 		{
 			return PositionValidationResult::Invalid;
 		}
 
-		if ( m_standardValues.contains( position ) ) [[likely]]
+		if ( m_standardValues.contains( position ) )
 		{
 			return PositionValidationResult::Valid;
 		}
 
-		if ( !position.empty() && std::all_of( position.begin(), position.end(), isDigit ) ) [[likely]]
+		if ( !position.empty() && std::all_of( position.begin(), position.end(), isDigit ) )
 		{
 			return PositionValidationResult::Valid;
 		}
 
 		const auto hyphenPos = position.find( '-' );
-		if ( hyphenPos == std::string_view::npos ) [[likely]]
+		if ( hyphenPos == std::string_view::npos )
 		{
 			return PositionValidationResult::Custom;
 		}
@@ -494,28 +557,28 @@ namespace dnv::vista::sdk
 
 		size_t start = 0;
 		size_t pos = 0;
-		while ( ( pos = position.find( '-', start ) ) != std::string_view::npos && positionCount < MAX_POSITIONS ) [[likely]]
+		while ( ( pos = position.find( '-', start ) ) != std::string_view::npos && positionCount < MAX_POSITIONS )
 		{
 			positions[positionCount] = position.substr( start, pos - start );
 			start = pos + 1;
 			++positionCount;
 		}
 
-		if ( positionCount < MAX_POSITIONS ) [[likely]]
+		if ( positionCount < MAX_POSITIONS )
 		{
 			positions[positionCount] = position.substr( start );
 			++positionCount;
 		}
-		else [[unlikely]]
+		else
 		{
 			return PositionValidationResult::Invalid;
 		}
 
 		auto validateSinglePosition = [this]( std::string_view pos ) noexcept -> PositionValidationResult {
-			if ( m_standardValues.contains( pos ) ) [[likely]]
+			if ( m_standardValues.contains( pos ) )
 				return PositionValidationResult::Valid;
 
-			if ( !pos.empty() && std::all_of( pos.begin(), pos.end(), isDigit ) ) [[likely]]
+			if ( !pos.empty() && std::all_of( pos.begin(), pos.end(), isDigit ) )
 				return PositionValidationResult::Valid;
 
 			return PositionValidationResult::Custom;
@@ -523,11 +586,11 @@ namespace dnv::vista::sdk
 
 		PositionValidationResult worstResult = PositionValidationResult::Valid;
 
-		for ( size_t i = 0; i < positionCount; ++i ) [[likely]]
+		for ( size_t i = 0; i < positionCount; ++i )
 		{
 			results[i] = validateSinglePosition( positions[i] );
 
-			if ( results[i] < PositionValidationResult::Valid ) [[unlikely]]
+			if ( results[i] < PositionValidationResult::Valid )
 			{
 				return results[i];
 			}
@@ -540,20 +603,20 @@ namespace dnv::vista::sdk
 		size_t nonNumericCount = 0;
 		bool hasNumberNotAtEnd = false;
 
-		for ( size_t i = 0; i < positionCount; ++i ) [[likely]]
+		for ( size_t i = 0; i < positionCount; ++i )
 		{
 			const bool isNumber = !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit );
 
-			if ( isNumber ) [[likely]]
+			if ( isNumber )
 			{
-				if ( i < positionCount - 1 ) [[unlikely]]
+				if ( i < positionCount - 1 )
 				{
 					hasNumberNotAtEnd = true;
 				}
 			}
 			else
 			{
-				if ( nonNumericCount < MAX_NON_NUMERIC ) [[likely]]
+				if ( nonNumericCount < MAX_NON_NUMERIC )
 				{
 					nonNumericPositions[nonNumericCount] = positions[i];
 					++nonNumericCount;
@@ -562,7 +625,7 @@ namespace dnv::vista::sdk
 		}
 
 		bool isNotSorted = false;
-		if ( nonNumericCount > 1 ) [[unlikely]]
+		if ( nonNumericCount > 1 )
 		{
 			for ( size_t i = 1; i < nonNumericCount; ++i )
 			{
@@ -574,12 +637,12 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		if ( hasNumberNotAtEnd || isNotSorted ) [[unlikely]]
+		if ( hasNumberNotAtEnd || isNotSorted )
 		{
 			return PositionValidationResult::InvalidOrder;
 		}
 
-		if ( worstResult == PositionValidationResult::Valid ) [[likely]]
+		if ( worstResult == PositionValidationResult::Valid )
 		{
 			std::array<std::string_view, MAX_GROUPS> groups;
 			std::array<bool, MAX_GROUPS> groupSeen;
@@ -589,11 +652,11 @@ namespace dnv::vista::sdk
 			size_t uniqueGroupCount = 0;
 			bool hasDefaultGroup = false;
 
-			for ( size_t i = 0; i < positionCount; ++i ) [[likely]]
+			for ( size_t i = 0; i < positionCount; ++i )
 			{
 				std::string_view group;
 
-				if ( !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit ) ) [[likely]]
+				if ( !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit ) )
 				{
 					group = NUMBER_GROUP;
 				}
@@ -603,7 +666,7 @@ namespace dnv::vista::sdk
 					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : UNKNOWN_GROUP;
 				}
 
-				if ( groupCount < MAX_GROUPS ) [[likely]]
+				if ( groupCount < MAX_GROUPS )
 				{
 					groups[groupCount] = group;
 					++groupCount;
@@ -619,19 +682,19 @@ namespace dnv::vista::sdk
 					}
 				}
 
-				if ( !alreadySeen && uniqueGroupCount < MAX_GROUPS ) [[likely]]
+				if ( !alreadySeen && uniqueGroupCount < MAX_GROUPS )
 				{
 					groups[uniqueGroupCount] = group;
 					++uniqueGroupCount;
 				}
 
-				if ( group == DEFAULT_GROUP_NAME ) [[unlikely]]
+				if ( group == DEFAULT_GROUP_NAME )
 				{
 					hasDefaultGroup = true;
 				}
 			}
 
-			if ( !hasDefaultGroup && uniqueGroupCount != groupCount ) [[unlikely]]
+			if ( !hasDefaultGroup && uniqueGroupCount != groupCount )
 			{
 				return PositionValidationResult::InvalidGrouping;
 			}

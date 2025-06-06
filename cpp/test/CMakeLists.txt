@@ -9,25 +9,27 @@ project(vista-sdk-cpp-tests
 	DESCRIPTION "DNV VISTA SDK C++ Tests"
 	LANGUAGES CXX)
 
+# --- Test condition check ---
+if(NOT VISTA_SDK_CPP_BUILD_TESTS)
+	return()
+endif()
+
 # --- GoogleTest integration ---
 include(GoogleTest)
 
-# --- Test source files ---
+# --- Tests source files ---
 set(TEST_SOURCES
-	Codebook.cpp
-	Codebooks.cpp
-	Gmod.cpp
-	GmodPath.cpp
-	GmodVersioning.cpp
-	ImoNumber.cpp
-	ISOString.cpp
-	LocalId.cpp
-	Locations.cpp
-	UniversalId.cpp
+	TEST_Codebook.cpp
+	TEST_Codebooks.cpp
+	TEST_Gmod.cpp
+	TEST_GmodPath.cpp
+	TEST_GmodVersioning.cpp
+	TEST_ImoNumber.cpp
+	TEST_ISOString.cpp
+	TEST_LocalId.cpp
+	TEST_Locations.cpp
+	TEST_UniversalId.cpp
 )
-
-# --- Set executables prefix ---
-set(TEST_PREFIX "TEST_")
 
 if(VISTA_SDK_CPP_BUILD_SMOKE_TESTS)
 	list(APPEND TEST_SOURCES GmodVersioningSmoke.cpp)
@@ -55,11 +57,8 @@ endif()
 foreach(test_source ${TEST_SOURCES})
 	get_filename_component(test_target_name ${test_source} NAME_WE)
 
-	set(test_target_name ${TEST_PREFIX}${test_target_name})
-
-
 	if(NOT TARGET ${test_target_name})
-		add_executable(${test_target_name} TestDataLoader.h ${test_source})
+		add_executable(${test_target_name} TestDataLoader.h TestDataLoader.cpp ${test_source})
 
 		target_precompile_headers(${test_target_name} PRIVATE pch.h)
 
@@ -94,21 +93,62 @@ foreach(test_source ${TEST_SOURCES})
 				OUTPUT_ON_FAILURE TRUE
 		)
 
-		set_target_properties(${benchmark_target_name} PROPERTIES
+		# --- Properties with LTO disabled ---
+		set_target_properties(${test_target_name} PROPERTIES
 			CXX_STANDARD 20
 			CXX_STANDARD_REQUIRED ON
 			RUNTIME_OUTPUT_DIRECTORY "${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>"
 			EXCLUDE_FROM_ALL FALSE
+			INTERPROCEDURAL_OPTIMIZATION FALSE
 		)
 
+		# --- Target-specific MSVC optimisation ---
 		if(MSVC)
 			target_compile_options(${test_target_name} PRIVATE
-				/wd4625 # copy constructor was implicitly defined as deleted
-				/wd4626 # assignement operator was implicitly defined as deleted
-				/wd4702 # unreachable code
-				/wd4834 # discarding return value of function with [[nodiscard]] attribute
-				/wd5026 # move constructor was implicitly defined as deleted
-				/wd5027 # move assignment operator was implicitly defined as deleted
+				/std:c++20                             # C++20 standard
+				/MP                                    # Multi-processor compilation
+				/W4                                    # High warning level
+				/Wall                                  # All warnings
+				/WX-                                   # Warnings not as errors
+				/permissive-                           # Strict conformance mode
+				/fp:fast                               # Fast floating point
+				/Zc:__cplusplus                        # Correct __cplusplus macro
+				/Zc:inline                             # Remove unreferenced COMDAT
+				/Zc:preprocessor                       # Conforming preprocessor
+				/external:anglebrackets                # Treat angle bracket includes as external
+				/external:W0                           # No warnings for external headers
+				/arch:AVX2                             # Enable AVX2 (covers AVX, SSE4.2, etc.)
+
+				# Optimization settings
+				$<$<CONFIG:Release>:/O2>               # Maximum speed optimization
+				$<$<CONFIG:Release>:/Oi>               # Enable intrinsic functions
+				$<$<CONFIG:Release>:/Ot>               # Favor fast code over small code
+				$<$<CONFIG:Release>:/Ob3>              # Aggressive inlining
+				$<$<CONFIG:Release>:/Gy>               # Function-Level Linking
+				$<$<CONFIG:Release>:/Qpar>             # Auto-parallelization
+				$<$<CONFIG:Release>:/DNDEBUG>          # Disable debug assertions
+				$<$<CONFIG:Release>:/GS->              # Disable buffer security checks
+				$<$<CONFIG:Release>:/Gw>               # Optimize global data
+				$<$<CONFIG:Release>:/GT>               # Support fiber-safe TLS
+				$<$<CONFIG:Release>:/fp:except-> # Disable floating point exceptions
+
+				# Warning suppressions
+				/wd4505                                # unreferenced local function has been removed
+				/wd4514                                # unreferenced inline function has been removed
+				/wd4625                                # copy constructor was implicitly defined as deleted
+				/wd4626                                # assignment operator was implicitly defined as deleted
+				/wd4834                                # discarding return value of function with 'nodiscard' attribute
+				/wd5026                                # move constructor was implicitly defined as deleted
+				/wd5027                                # move assignment operator was implicitly defined as deleted
+				/wd6031                                # return value ignored: 'called-function' could return unexpected value
+				/wd6326                                # potential comparison of a constant with another constant
+			)
+
+			target_link_options(${test_target_name} PRIVATE
+				$<$<CONFIG:Release>:/OPT:REF>          # Remove unreferenced functions
+				$<$<CONFIG:Release>:/OPT:ICF>          # Identical COMDAT folding
+				$<$<CONFIG:Release>:/LTCG>             # Link Time Code Generation
+				$<$<CONFIG:Release>:/INCREMENTAL:NO>   # Disable incremental linking
 			)
 		endif()
 	endif()

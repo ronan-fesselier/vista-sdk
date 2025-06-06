@@ -6,7 +6,9 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebooks.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebooks.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebookName.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebooksDto.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/EmbeddedResource.h
@@ -17,12 +19,6 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodTraversal.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodVersioning.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodVersioningDto.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ILocalId.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ILocalId.inl
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ILocalIdBuilder.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ILocalIdBuilder.inl
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/IUniversalIdBuilder.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/IUniversalId.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ImoNumber.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ISO19848Dtos.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/LocalId.h
@@ -38,8 +34,10 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/UniversalIdBuilder.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/UniversalId.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VIS.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VIS.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VISVersion.h
+)
+
+set(PRIVATE_HEADERS
 )
 
 set(PRIVATE_SOURCES

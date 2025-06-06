@@ -8,9 +8,13 @@
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 
 #include "dnv/vista/sdk/CodebookName.h"
+#include "dnv/vista/sdk/Codebooks.h"
+#include "dnv/vista/sdk/Gmod.h"
+#include "dnv/vista/sdk/LocalId.h"
+#include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/LocalIdParsingErrorBuilder.h"
+#include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/VISVersion.h"
 
 namespace dnv::vista::sdk
 {
@@ -164,26 +168,43 @@ namespace dnv::vista::sdk
 		return !equals( other );
 	}
 
+	bool LocalIdBuilder::equals( const LocalIdBuilder& other ) const
+	{
+		if ( m_visVersion != other.m_visVersion )
+			throw std::invalid_argument( "Cant compare local IDs from different VIS versions" );
+
+		return m_items.primaryItem() == other.m_items.primaryItem() &&
+			   m_items.secondaryItem() == other.m_items.secondaryItem() &&
+			   m_quantity == other.m_quantity &&
+			   m_calculation == other.m_calculation &&
+			   m_content == other.m_content &&
+			   m_position == other.m_position &&
+			   m_state == other.m_state &&
+			   m_command == other.m_command &&
+			   m_type == other.m_type &&
+			   m_detail == other.m_detail;
+	}
+
 	//----------------------------------------------
 	// Accessors
 	//----------------------------------------------
 
-	std::optional<VisVersion> LocalIdBuilder::visVersion() const
+	std::optional<VisVersion> LocalIdBuilder::visVersion() const noexcept
 	{
 		return m_visVersion;
 	}
 
-	const std::optional<GmodPath>& LocalIdBuilder::primaryItem() const
+	const std::optional<GmodPath>& LocalIdBuilder::primaryItem() const noexcept
 	{
 		return m_items.primaryItem();
 	}
 
-	const std::optional<GmodPath>& LocalIdBuilder::secondaryItem() const
+	const std::optional<GmodPath>& LocalIdBuilder::secondaryItem() const noexcept
 	{
 		return m_items.secondaryItem();
 	}
 
-	std::vector<MetadataTag> LocalIdBuilder::metadataTags() const
+	std::vector<MetadataTag> LocalIdBuilder::metadataTags() const noexcept
 	{
 		std::vector<MetadataTag> tags;
 		tags.reserve( 8 );
@@ -314,7 +335,7 @@ namespace dnv::vista::sdk
 			   ( m_detail.has_value() && m_detail->isCustom() );
 	}
 
-	bool LocalIdBuilder::isEmptyMetadata() const
+	bool LocalIdBuilder::isEmptyMetadata() const noexcept
 	{
 		return !m_quantity.has_value() &&
 			   !m_content.has_value() &&
@@ -326,53 +347,53 @@ namespace dnv::vista::sdk
 			   !m_detail.has_value();
 	}
 
-	const LocalIdItems& LocalIdBuilder::items() const
+	const LocalIdItems& LocalIdBuilder::items() const noexcept
 	{
 		return m_items;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::quantity() const
+	const std::optional<MetadataTag>& LocalIdBuilder::quantity() const noexcept
 	{
 		return m_quantity;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::content() const
+	const std::optional<MetadataTag>& LocalIdBuilder::content() const noexcept
 	{
 		return m_content;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::calculation() const
+	const std::optional<MetadataTag>& LocalIdBuilder::calculation() const noexcept
 	{
 		return m_calculation;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::state() const
+	const std::optional<MetadataTag>& LocalIdBuilder::state() const noexcept
 	{
 		return m_state;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::command() const
+	const std::optional<MetadataTag>& LocalIdBuilder::command() const noexcept
 	{
 		return m_command;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::type() const
+	const std::optional<MetadataTag>& LocalIdBuilder::type() const noexcept
 	{
 		return m_type;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::position() const
+	const std::optional<MetadataTag>& LocalIdBuilder::position() const noexcept
 	{
 		return m_position;
 	}
 
-	const std::optional<MetadataTag>& LocalIdBuilder::detail() const
+	const std::optional<MetadataTag>& LocalIdBuilder::detail() const noexcept
 	{
 		return m_detail;
 	}
 
 	//----------------------------------------------
-	// Conversion and comparison
+	// String conversion
 	//----------------------------------------------
 
 	std::string LocalIdBuilder::toString() const
@@ -424,23 +445,6 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool LocalIdBuilder::equals( const LocalIdBuilder& other ) const
-	{
-		if ( m_visVersion != other.m_visVersion )
-			throw std::invalid_argument( "Cant compare local IDs from different VIS versions" );
-
-		return m_items.primaryItem() == other.m_items.primaryItem() &&
-			   m_items.secondaryItem() == other.m_items.secondaryItem() &&
-			   m_quantity == other.m_quantity &&
-			   m_calculation == other.m_calculation &&
-			   m_content == other.m_content &&
-			   m_position == other.m_position &&
-			   m_state == other.m_state &&
-			   m_command == other.m_command &&
-			   m_type == other.m_type &&
-			   m_detail == other.m_detail;
-	}
-
 	//----------------------------------------------
 	// Static factory methods
 	//----------------------------------------------
@@ -458,7 +462,7 @@ namespace dnv::vista::sdk
 	// Build
 	//----------------------------
 
-	LocalId LocalIdBuilder::build()
+	LocalId LocalIdBuilder::build() const
 	{
 		if ( isEmpty() )
 		{
@@ -473,7 +477,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Verbose Mode
+	// Verbose mode
 	//----------------------------------------------
 
 	LocalIdBuilder LocalIdBuilder::withVerboseMode( bool verboseMode )
@@ -485,7 +489,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// VIS Version
+	// VIS version
 	//----------------------------------------------
 
 	LocalIdBuilder LocalIdBuilder::withVisVersion( const std::string& visVersionStr )
@@ -554,7 +558,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Primary Item
+	// Primary item
 	//----------------------------------------------
 
 	LocalIdBuilder LocalIdBuilder::withPrimaryItem( GmodPath&& item )
@@ -621,7 +625,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Secondary Item
+	// Secondary item
 	//----------------------------------------------
 
 	LocalIdBuilder LocalIdBuilder::withSecondaryItem( GmodPath&& item )
@@ -688,7 +692,7 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Metadata Tags
+	// Metadata tags
 	//----------------------------------------------
 
 	LocalIdBuilder LocalIdBuilder::withMetadataTag( const MetadataTag& metadataTag )
@@ -933,27 +937,27 @@ namespace dnv::vista::sdk
 	// Static parsing methods
 	//----------------------------------------------
 
-	LocalIdBuilder LocalIdBuilder::parse( const std::string& localIdStr )
+	LocalIdBuilder LocalIdBuilder::parse( std::string_view localIdStr )
 	{
 		std::optional<LocalIdBuilder> localId;
 		ParsingErrors errors;
 
 		if ( !tryParse( localIdStr, errors, localId ) )
 		{
-			throw std::invalid_argument( "Couldn't parse local ID from: '" + localIdStr + "'. " + errors.toString() );
+			throw std::invalid_argument( "Couldn't parse local ID from: '" + std::string( localIdStr ) + "'. " + errors.toString() );
 		}
 
 		return std::move( *localId );
 	}
 
-	bool LocalIdBuilder::tryParse( const std::string& localIdStr, std::optional<LocalIdBuilder>& localId )
+	bool LocalIdBuilder::tryParse( std::string_view localIdStr, std::optional<LocalIdBuilder>& localId )
 	{
 		ParsingErrors dummyErrors;
 
 		return tryParse( localIdStr, dummyErrors, localId );
 	}
 
-	bool LocalIdBuilder::tryParse( const std::string& localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId )
+	bool LocalIdBuilder::tryParse( std::string_view localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId )
 	{
 		localId = std::nullopt;
 
@@ -974,7 +978,7 @@ namespace dnv::vista::sdk
 	// Private static helper parsing methods
 	//----------------------------------------------
 
-	bool LocalIdBuilder::tryParseInternal( const std::string& localIdStr,
+	bool LocalIdBuilder::tryParseInternal( std::string_view localIdStr,
 		LocalIdParsingErrorBuilder& errorBuilder,
 		std::optional<LocalIdBuilder>& localIdBuilder )
 	{
@@ -1109,7 +1113,7 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							errorBuilder.addError( LocalIdParsingState::PrimaryItem, predefinedMessage );
+							errorBuilder.addError( LocalIdParsingState::PrimaryItem );
 						}
 						errorBuilder.addError( LocalIdParsingState::PrimaryItem,
 							"Invalid or missing '/meta' prefix after Primary item" );

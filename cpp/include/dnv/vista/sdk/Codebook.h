@@ -95,6 +95,25 @@ namespace dnv::vista::sdk
 
 		/** @brief Move assignment operator */
 		PositionValidationResults& operator=( PositionValidationResults&& ) noexcept = delete;
+
+		//----------------------------------------------
+		// Static utility methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Converts a string representation to a PositionValidationResult.
+		 * @param[in] name The string name of the validation result (case-insensitive).
+		 * @return The corresponding PositionValidationResult enum value.
+		 * @throws std::invalid_argument If the name doesn't match any known validation result.
+		 *
+		 * @details Supported string values:
+		 * - "Invalid" -> PositionValidationResult::Invalid
+		 * - "InvalidOrder" -> PositionValidationResult::InvalidOrder
+		 * - "InvalidGrouping" -> PositionValidationResult::InvalidGrouping
+		 * - "Valid" -> PositionValidationResult::Valid
+		 * - "Custom" -> PositionValidationResult::Custom
+		 */
+		[[nodiscard]] static PositionValidationResult fromString( std::string_view name );
 	};
 
 	//=====================================================================
@@ -344,7 +363,10 @@ namespace dnv::vista::sdk
 		 * @brief Get the codebook name
 		 * @return The codebook name
 		 */
-		[[nodiscard]] CodebookName name() const noexcept;
+		[[nodiscard]] inline CodebookName name() const noexcept
+		{
+			return m_name;
+		}
 
 		/**
 		 * @brief Get the groups
@@ -438,3 +460,5 @@ namespace dnv::vista::sdk
 		std::unordered_map<std::string, std::vector<std::string>> m_rawData;
 	};
 }
+
+#include "Codebook.inl"

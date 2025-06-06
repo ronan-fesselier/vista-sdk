@@ -5,8 +5,9 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/MetadataTag.h"
+
+#include "dnv/vista/sdk/CodebookName.h"
 
 namespace dnv::vista::sdk
 {
@@ -31,12 +32,12 @@ namespace dnv::vista::sdk
 
 	bool MetadataTag::operator==( const MetadataTag& other ) const
 	{
-		if ( m_value != other.m_value ) [[likely]]
+		if ( m_value != other.m_value )
 		{
 			return false;
 		}
 
-		if ( m_name != other.m_name ) [[unlikely]]
+		if ( m_name != other.m_name )
 		{
 			static constexpr std::string_view errorPrefix = "Can't compare tags with different names";
 			throw std::invalid_argument( std::string( errorPrefix ) );
@@ -89,7 +90,7 @@ namespace dnv::vista::sdk
 	}
 
 	//-------------------------------------------------------------------------
-	// String Conversion Methods
+	// String conversion methods
 	//-------------------------------------------------------------------------
 
 	std::string MetadataTag::toString() const noexcept

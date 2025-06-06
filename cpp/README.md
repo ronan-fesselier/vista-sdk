@@ -56,7 +56,6 @@ The C++ SDK currently implements:
     -   Internal Data Transfer Objects (DTOs) for robust resource deserialization.
     -   Embedded resource handling, including decompression of gzipped JSON data.
     -   `ChdDictionary` (Perfect Hashing utility) - Includes input validation for empty/duplicate keys.
-        _Note: The binary format of the dictionary is incompatible with the C# version due to differences in hash inputs and internal caching._
     -   `ParsingErrors` mechanism for collecting and reporting issues during parsing operations.
     -   `ImoNumber` with full validation and parsing capabilities.
     -   Complete `VisVersion` enumeration and extension methods.
@@ -89,7 +88,7 @@ The C++ SDK currently implements:
 -   **Gmod Versioning:** Complete conversion logic between different Gmod versions (`dnv::vista::sdk::GmodVersioning`) with path transformation support.
 -   **Data Transfer Objects (DTOs):** Comprehensive internal structures for loading data from resources (`dnv::vista::sdk::GmodDto`, `dnv::vista::sdk::CodebooksDto`, `dnv::vista::sdk::LocationsDto`, etc.).
 -   **Resource Loading:** Complete loading system for gzipped JSON resources embedded in the library (`dnv::vista::sdk::EmbeddedResource`).
--   **Perfect Hashing:** Utility for efficient string lookups (`dnv::vista::sdk::ChdDictionary`) with thread-local caching.
+-   **Perfect Hashing:** Utility for efficient string lookups (`dnv::vista::sdk::ChdDictionary`).
 -   **Error Handling:** Comprehensive mechanism for accumulating parsing errors (`dnv::vista::sdk::ParsingErrors`, `dnv::vista::sdk::LocalIdParsingErrorBuilder`, `dnv::vista::sdk::LocationParsingErrorBuilder`).
 -   **Version Management:** Complete VIS version enumeration and utilities (`dnv::vista::sdk::VisVersion`, `dnv::vista::sdk::VisVersionExtensions`).
 
@@ -97,12 +96,9 @@ The C++ SDK currently implements:
 
 ### Core Interfaces
 
-The C++ SDK follows a clear interface-based architecture:
-
--   **`ILocalId`:** Abstract interface for LocalId implementations with template-based design for type safety.
--   **`ILocalIdBuilder`:** Abstract interface for LocalIdBuilder implementations with fluent API design.
--   **`IUniversalId`:** Abstract interface for UniversalId implementations with immutable design patterns.
--   **`IUniversalIdBuilder`:** Complete interface for UniversalId builders with comprehensive validation.
+-   **Concrete implementations:** `LocalId`, `LocalIdBuilder`, `UniversalId`, `UniversalIdBuilder` with complete functionality.
+-   **Immutable fluent pattern:** Builder methods return new instances maintaining immutability.
+-   **Direct value storage:** Optimized memory layout for performance-critical operations.
 
 ### Template-Based Design
 
@@ -115,10 +111,7 @@ The SDK leverages C++ templates extensively:
 
 Memory management patterns:
 
--   RAII principles throughout the codebase.
--   Smart pointers (`std::unique_ptr`, `std::shared_ptr`) for automatic memory management.
--   Careful ownership tracking in complex objects like `GmodPath`.
--   Thread-local storage for performance-critical caching in `ChdDictionary`.
+-   RAII principles with value semantics for optimal performance.
 
 ## Comparison with C# SDK
 
@@ -132,7 +125,7 @@ This C++ implementation follows the same core design principles (Immutability, B
 | **Collections**     | `std::vector`, `std::unordered_map`, `std::deque`, `std::array`                           | `List<T>`, `Dictionary<K,V>`, `T[]`, `FrozenDictionary`    | Uses STL containers with performance optimizations.            |
 | **String Handling** | `std::string`, `std::string_view`, `std::stringstream`, extensive view usage              | `string`, `ReadOnlySpan<char>`, `StringBuilder`            | C++ version uses string_view extensively for performance.      |
 | **Error Handling**  | `std::exception` hierarchy, comprehensive `ParsingErrors` system, `std::invalid_argument` | `.NET` exceptions, `ParsingErrors` struct                  |
-| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), thread-local cache, comprehensive input validation                  | FNV1a/CRC32 (SSE4.2)                                       | **Incompatible binary formats** due to different hash inputs.  |
+| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), comprehensive input validation                                      | FNV1a/CRC32 (SSE4.2)                                       |                                                                |
 | **Logging**         | `spdlog` with extensive diagnostic logging throughout                                     | Minimal built-in logging                                   |
 | **Build System**    | CMake (`FetchContent`) with comprehensive dependency management                           | .NET SDK (MSBuild/NuGet)                                   | CMake configuration with cross-platform support.               |
 | **Dependencies**    | `nlohmann/json`, `spdlog`, `zlib`, `fmt`, `gtest`, `libcpuid`                             | NuGet packages                                             | Managed via `FetchContent` with version pinning.               |
@@ -144,10 +137,8 @@ This C++ implementation follows the same core design principles (Immutability, B
 
 The C++ implementation includes a perfect hashing system (as well as c# version):
 
--   Thread-local caching for performance optimization.
 -   Comprehensive input validation (empty keys, duplicates).
 -   SSE4.2 accelerated hashing when available.
--   **Note:** Binary format incompatible with C# version due to different hash inputs and caching strategy.
 
 ### Path Parsing and Validation
 
@@ -162,20 +153,18 @@ The C++ implementation includes a perfect hashing system (as well as c# version)
 
 -   Extensive use of `std::string_view` to avoid unnecessary string copies.
 -   Smart pointer usage for automatic memory management.
--   Thread-local storage for performance-critical components.
 
 ## API Patterns
 
 -   **Immutability:** Core domain objects (`LocalId`, `GmodPath`, `MetadataTag`, etc.) are immutable once created.
 -   **Builder Pattern:** Objects like `LocalId` are constructed using an immutable builder (`LocalIdBuilder`) where modification methods return new builder instances.
--   **Interface-Based Design:** Clear separation of concerns through abstract interfaces (`ILocalId`, `ILocalIdBuilder`).
+-   **Concrete Implementation Design:** Direct concrete implementations (`LocalId`, `LocalIdBuilder`, `UniversalId`, UniversalIdBuilder`) with optimized direct value storage for performance.
 
 ## Performance Characteristics
 
--   **Memory Efficiency:** Careful memory management with RAII and smart pointers.
--   **CPU Optimization:** SSE4.2 accelerated operations where available.
--   **Caching Strategy:** Thread-local caching in performance-critical paths.
--   **String Optimization:** Extensive use of `string_view` to minimize allocations.
+-   **Memory Efficiency:** Direct value storage with RAII principles for optimal cache locality.
+-   **CPU Optimization:** SSE4.2 accelerated hashing, optimized hash combining algorithms.
+-   **String Optimization:** Extensive `string_view` usage to minimize allocations.
 
 ## TODO List
 
@@ -195,10 +184,6 @@ The C++ implementation includes a perfect hashing system (as well as c# version)
     -   Implement `LocalIdQuery` for querying and filtering LocalId collections.
     -   Implement `LocalIdQueryBuilder` with fluent interface for building complex LocalId queries.
     -   Implement `MetadataTagsQuery` for advanced metadata tag searching and filtering.
-
--   **Cross-Platform Alignment:**
-
-    -   Evaluate hash algorithm alignment between C++ and C# implementations for scenarios requiring cross-platform hash consistency.
 
 -   **Testing:**
 
@@ -239,6 +224,7 @@ See [README.md](benchmark/README.md) for detailed results.
 
 Benchmark suites include:
 
+-   `ChdDictionary`
 -   `CodebooksLookup`
 -   `GmodLoad`
 -   `GmodLookup`
@@ -255,9 +241,9 @@ Benchmark suites include:
 
     -   nlohmann/json
     -   spdlog
+    -   {fmt}
     -   zlib
-    -   fmt
-    -   fmt
+    -   cpuid
     -   GoogleTest
     -   GoogleBenchmark
 
@@ -278,9 +264,9 @@ To build the C++ SDK, ensure you have a C++20 compliant compiler (e.g., MSVC, GC
 
     -   `VISTA_SDK_CPP_BUILD_TESTS=ON` (Build unit tests, default is `ON`)
     -   `VISTA_SDK_CPP_BUILD_SMOKE_TESTS=OFF` (Build smoke tests, default is `OFF`)
-    -   `VISTA_SDK_CPP_RUN_TESTS=ON` (Run tests automatically after build, default is `OFF`)
+    -   `VISTA_SDK_CPP_RUN_TESTS=OFF` (Run tests automatically after build, default is `OFF`)
     -   `VISTA_SDK_CPP_BUILD_BENCHMARKS=ON` (Build performance benchmarks, default is `ON`)
-    -   `VISTA_SDK_CPP_RUN_BENCHMARKS=ON` (Run benchmarks automatically after build, default is `OFF`)
+    -   `VISTA_SDK_CPP_RUN_BENCHMARKS=OFF` (Run benchmarks automatically after build, default is `OFF`)
     -   `VISTA_SDK_CPP_BUILD_SAMPLES=OFF` (Build sample applications, default is `OFF`)
     -   `VISTA_SDK_CPP_BUILD_DOCUMENTATION=OFF` (Build Doxygen documentation, default is `OFF`. Requires Doxygen and Graphviz.)
     -   `VISTA_SDK_CPP_COPY_RESOURCES=ON` (Copy resources to build directory, default is `ON`)
@@ -382,7 +368,6 @@ The C++ Vista SDK follows a consistent coding style throughout the codebase.
 
 -   **String Views:** Extensive use of `std::string_view` to avoid unnecessary copies
 -   **Move Semantics:** Proper use of move constructors and assignment operators
--   **Thread Safety:** Thread-local storage for performance-critical caching
 
 ### **Code Formatting**
 
@@ -393,4 +378,4 @@ The C++ Vista SDK follows a consistent coding style throughout the codebase.
 
 ---
 
-_Last updated: June 5, 2025_
+_Last updated: June 7, 2025_

@@ -8,10 +8,13 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # --- Dependencies ---
 include(Dependencies.cmake)
+
+# --- Compiler settings ---
+include(CompilersSettings.cmake)
 
 # --- Build options ---
 option(VISTA_SDK_CPP_BUILD_TESTS           "Build tests"                                               ON     )
@@ -26,6 +29,7 @@ option(CI_FORCE_DEBUG_SPDLOG_WARN          "For CI Debug builds, force SPDLOG_AC
 
 # --- Platform specific settings ---
 if(MSVC)
+	set(WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	set(BUILD_SHARED_LIBS TRUE)
 endif()
@@ -53,9 +57,6 @@ set(VISTA_SDK_CPP_DOC_DIR ${CMAKE_BINARY_DIR}/doc)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VISTA_SDK_CPP_BIN_DIR}/$<CONFIG>)
-
-# --- Compiler settings ---
-include(CompilersSettings.cmake)
 
 # --- Copy resources at build time ---
 if(VISTA_SDK_CPP_COPY_RESOURCES)
@@ -86,8 +87,10 @@ target_sources(${PROJECT_NAME}
 	PUBLIC
 		${PUBLIC_HEADERS}
 	PRIVATE
+		${PRIVATE_HEADERS}
 		${PRIVATE_SOURCES}
 )
+
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/pch.h)
 target_include_directories(${PROJECT_NAME}
 	PUBLIC
