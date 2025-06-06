@@ -7,6 +7,7 @@
 
 #include "TestDataLoader.h"
 
+#include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/LocationBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
@@ -261,7 +262,7 @@ namespace dnv::vista::sdk::tests
 					while ( enumerator.next() )
 					{
 						const auto& errorEntry = enumerator.current();
-						actualErrors.push_back( errorEntry.second );
+						actualErrors.push_back( errorEntry.message );
 					}
 
 					ASSERT_EQ( expectedErrorMessages, actualErrors );

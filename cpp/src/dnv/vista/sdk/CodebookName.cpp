@@ -58,13 +58,13 @@ namespace dnv::vista::sdk
 
 	CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
 	{
-		if ( prefix.empty() ) [[unlikely]]
+		if ( prefix.empty() )
 		{
 			throw std::invalid_argument( "Prefix cannot be empty." );
 		}
 
 		const auto it = s_prefixMap.find( prefix );
-		if ( it != s_prefixMap.end() ) [[likely]]
+		if ( it != s_prefixMap.end() )
 		{
 			return it->second;
 		}

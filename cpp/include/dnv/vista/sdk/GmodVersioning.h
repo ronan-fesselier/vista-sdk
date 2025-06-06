@@ -25,7 +25,7 @@ namespace dnv::vista::sdk
 	enum class VisVersion;
 
 	//=====================================================================
-	// GmodVersioning Class
+	// GmodVersioning class
 	//=====================================================================
 
 	/**
@@ -130,7 +130,7 @@ namespace dnv::vista::sdk
 		};
 
 		//----------------------------------------------
-		// GmodVersioningNode Class
+		// GmodVersioningNode class
 		//----------------------------------------------
 
 		/**
@@ -188,6 +188,7 @@ namespace dnv::vista::sdk
 			//----------------------------------------------
 			// Private member variables
 			//----------------------------------------------
+
 			VisVersion m_visVersion;
 			std::unordered_map<std::string, GmodNodeConversion> m_versioningNodeChanges;
 		};
@@ -212,9 +213,9 @@ namespace dnv::vista::sdk
 		 * @brief Try to get a versioning node for a specific VIS version
 		 */
 		[[nodiscard]] bool tryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const;
-		[[nodiscard]] const GmodVersioning::GmodVersioningNode* tryGetVersioningNode( VisVersion visVersion ) const noexcept;
+
 		//----------------------------------------------
-		// Private Validation Methods
+		// Private validation methods
 		//----------------------------------------------
 
 		/**
@@ -228,7 +229,7 @@ namespace dnv::vista::sdk
 		void validateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const;
 
 		//----------------------------------------------
-		// Private Static Utility Methods
+		// Private static utility methods
 		//----------------------------------------------
 
 		/**
