@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 		Codebooks() = default;
 
 		/** @brief Copy constructor */
-		Codebooks( const Codebooks& ) = delete;
+		Codebooks( const Codebooks& ) = default;
 
 		/** @brief Move constructor */
 		Codebooks( Codebooks&& ) noexcept = default;
@@ -77,7 +77,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		Codebooks& operator=( const Codebooks& ) = delete;
+		Codebooks& operator=( const Codebooks& ) = default;
 
 		/** @brief Move assignment operator */
 		Codebooks& operator=( Codebooks&& ) noexcept = default;
@@ -94,7 +94,7 @@ namespace dnv::vista::sdk
 		 *       Use codebook() if you need bounds checking.
 		 * @warning Undefined behavior if name is invalid
 		 */
-		[[nodiscard]] const Codebook& operator[]( CodebookName name ) const noexcept;
+		[[nodiscard]] inline const Codebook& operator[]( CodebookName name ) const noexcept;
 
 		//----------------------------------------------
 		// Range-based iterator
@@ -135,7 +135,7 @@ namespace dnv::vista::sdk
 		 * @note This method always validates the input. Use operator[] for maximum performance
 		 *       when you know the input is valid.
 		 */
-		[[nodiscard]] const Codebook& codebook( CodebookName name ) const;
+		[[nodiscard]] inline const Codebook& codebook( CodebookName name ) const;
 
 		//----------------------------------------------
 		// Tag creation
@@ -178,3 +178,5 @@ namespace dnv::vista::sdk
 		std::array<Codebook, NUM_CODEBOOKS> m_codebooks{};
 	};
 }
+
+#include "Codebooks.inl"

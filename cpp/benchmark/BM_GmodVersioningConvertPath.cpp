@@ -1,11 +1,12 @@
 /**
- * @file GmodTraversal.cpp
- * @brief GMOD tree traversal performance benchmark testing full tree iteration
+ * @file GmodVersioningConvertPath.cpp
+ * @brief GMOD version conversion performance benchmark testing path conversion between VIS versions
  */
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
+#include "dnv/vista/sdk/Gmod.h"
+#include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
 
 using namespace dnv::vista::sdk;
@@ -13,6 +14,7 @@ using namespace dnv::vista::sdk;
 namespace dnv::vista::sdk::benchmarks
 {
 	static const Gmod* g_gmod = nullptr;
+	static GmodPath g_gmodPath;
 	static bool g_initialized = false;
 
 	static void initializeData()
@@ -21,11 +23,19 @@ namespace dnv::vista::sdk::benchmarks
 		{
 			auto& vis = VIS::instance();
 			g_gmod = &vis.gmod( VisVersion::v3_4a );
+
+			std::optional<GmodPath> parsedPath;
+			if ( !g_gmod->tryParsePath( "411.1/C101.72/I101", parsedPath ) || !parsedPath.has_value() )
+			{
+				throw std::runtime_error( "Failed to parse test path" );
+			}
+
+			g_gmodPath = std::move( parsedPath.value() );
 			g_initialized = true;
 		}
 	}
 
-	static void BM_fullTraversal( benchmark::State& state )
+	static void BM_convertPath( benchmark::State& state )
 	{
 		initializeData();
 
@@ -35,14 +45,11 @@ namespace dnv::vista::sdk::benchmarks
 		size_t initialMemory = pmc_start.WorkingSetSize;
 #endif
 
+		auto& vis = VIS::instance();
+
 		for ( auto _ : state )
 		{
-			bool result = dnv::vista::sdk::GmodTraversal::traverse(
-				*g_gmod,
-				[]( const std::vector<const GmodNode*>&, const GmodNode& ) -> TraversalHandlerResult {
-					return TraversalHandlerResult::Continue;
-				} );
-
+			auto result = vis.convertPath( VisVersion::v3_4a, g_gmodPath, VisVersion::v3_5a );
 			benchmark::DoNotOptimize( result );
 		}
 
@@ -54,9 +61,9 @@ namespace dnv::vista::sdk::benchmarks
 #endif
 	}
 
-	BENCHMARK( BM_fullTraversal )
+	BENCHMARK( BM_convertPath )
 		->MinTime( 10.0 )
-		->Unit( benchmark::kMillisecond );
+		->Unit( benchmark::kMicrosecond );
 }
 
 BENCHMARK_MAIN();

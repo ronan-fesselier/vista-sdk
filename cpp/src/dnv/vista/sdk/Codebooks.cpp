@@ -45,10 +45,7 @@ namespace dnv::vista::sdk
 	// Lookup operators
 	//----------------------------------------------
 
-	const Codebook& Codebooks::operator[]( CodebookName name ) const noexcept
-	{
-		return m_codebooks[static_cast<size_t>( name ) - 1];
-	}
+	//	const Codebook& Codebooks::operator[]( CodebookName name ) const noexcept
 
 	//----------------------------------------------
 	// Range-based iterator
@@ -71,19 +68,6 @@ namespace dnv::vista::sdk
 	VisVersion Codebooks::visVersion() const noexcept
 	{
 		return m_visVersion;
-	}
-
-	const Codebook& Codebooks::codebook( CodebookName name ) const
-	{
-		const auto rawValue = static_cast<size_t>( name );
-		if ( rawValue == 0 || rawValue > NUM_CODEBOOKS ) [[unlikely]]
-		{
-			throw std::invalid_argument( "Invalid codebook name: " + std::to_string( rawValue ) );
-		}
-
-		const auto index = rawValue - 1;
-
-		return m_codebooks[index];
 	}
 
 	//----------------------------------------------

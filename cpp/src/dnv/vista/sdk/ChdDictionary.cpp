@@ -9,6 +9,25 @@
 
 namespace dnv::vista::sdk
 {
+	//======================================================================
+	// Exception class implementations
+	//======================================================================
+
+	key_not_found_exception::key_not_found_exception( std::string_view key )
+		: std::runtime_error{ fmt::format( "No value associated to key: {}", key ) }
+	{
+	}
+
+	invalid_operation_exception::invalid_operation_exception()
+		: std::runtime_error{ "Operation is not valid due to the current state of the object." }
+	{
+	}
+
+	invalid_operation_exception::invalid_operation_exception( std::string_view message )
+		: std::runtime_error{ std::string{ message } }
+	{
+	}
+
 	namespace internal
 	{
 		//=====================================================================
@@ -16,68 +35,21 @@ namespace dnv::vista::sdk
 		//=====================================================================
 
 		//----------------------------------------------
-		// CPU feature detection
-		//----------------------------------------------
-
-		bool hasSSE42Support()
-		{
-			static const bool s_hasSSE42{ []() {
-				bool hasSupport{ false };
-
-#if defined( _MSC_VER )
-				std::array<int, 4> cpuInfo{};
-				::__cpuid( cpuInfo.data(), 1 );
-				hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
-#elif defined( __GNUC__ )
-				unsigned int eax{}, ebx{}, ecx{}, edx{};
-				if ( ::__get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
-				{
-					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
-				}
-#else
-				hasSupport = false;
-#endif
-				SPDLOG_INFO( "SSE4.2 support: {}", hasSupport ? "available" : "not available" );
-
-				return hasSupport;
-			}() };
-
-			return s_hasSSE42;
-		}
-
-		//----------------------------------------------
-		// Hashing class
+		// ThrowHelper class
 		//----------------------------------------------
 
 		//----------------------------
 		// Public static methods
 		//----------------------------
 
-		uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch )
+		void ThrowHelper::throwKeyNotFoundException( std::string_view key )
 		{
-			auto result{ ( ch ^ hash ) * FNV_PRIME };
-
-			return result;
+			throw key_not_found_exception( key );
 		}
 
-		uint32_t Hashing::crc32( uint32_t hash, uint8_t ch )
+		void ThrowHelper::throwInvalidOperationException()
 		{
-			auto result{ _mm_crc32_u8( hash, ch ) };
-
-			return result;
-		}
-
-		uint32_t Hashing::seed( uint32_t seed, uint32_t hash, uint64_t size )
-		{
-			/* Mixes the primary hash with the seed to find the final table slot */
-			uint32_t x{ seed + hash };
-			x ^= x >> 12;
-			x ^= x << 25;
-			x ^= x >> 27;
-
-			auto result{ static_cast<uint32_t>( ( static_cast<uint64_t>( x ) * 0x2545F4914F6CDD1DUL ) & ( size - 1 ) ) };
-
-			return result;
+			throw invalid_operation_exception();
 		}
 	}
 }
