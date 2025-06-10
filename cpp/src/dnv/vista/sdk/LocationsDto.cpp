@@ -15,47 +15,29 @@ namespace dnv::vista::sdk
 		// Constants
 		//=====================================================================
 
-		static constexpr const char* CODE_KEY = "code";
-		static constexpr const char* NAME_KEY = "name";
-		static constexpr const char* DEFINITION_KEY = "definition";
-		static constexpr const char* VIS_RELEASE_KEY = "visRelease";
-		static constexpr const char* ITEMS_KEY = "items";
+		static constexpr std::string_view CODE_KEY = "code";
+		static constexpr std::string_view NAME_KEY = "name";
+		static constexpr std::string_view DEFINITION_KEY = "definition";
+		static constexpr std::string_view VIS_RELEASE_KEY = "visRelease";
+		static constexpr std::string_view ITEMS_KEY = "items";
 
 		//=====================================================================
-		// Helper Functions
+		// Helper functions
 		//=====================================================================
 
 		static const std::string& internString( const std::string& value )
 		{
-			static std::unordered_map<std::string, std::string> cache;
-			static size_t hits = 0, misses = 0, calls = 0;
-			calls++;
-
-			if ( value.size() > 22 ) // Common SSO threshold
+			if ( value.size() <= 22 )
 			{
-				auto it = cache.find( value );
-				if ( it != cache.end() )
-				{
-					hits++;
-					if ( calls % 10000 == 0 )
-					{
-						SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings",
-							hits * 100.0 / calls, hits, calls, cache.size() );
-					}
-					return it->second;
-				}
+				static std::unordered_map<std::string, std::string> cache;
+				static std::mutex cacheMutex;
 
-				misses++;
-				return cache.emplace( value, value ).first->first;
+				std::lock_guard<std::mutex> lock( cacheMutex );
+				auto [it, inserted] = cache.try_emplace( value, value );
+				return it->second;
 			}
 
 			return value;
-		}
-
-		template <typename T>
-		size_t estimateMemoryUsage( const std::vector<T>& collection )
-		{
-			return sizeof( std::vector<T> ) + collection.capacity() * sizeof( T );
 		}
 	}
 
@@ -75,57 +57,21 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	char RelativeLocationsDto::code() const
-	{
-		return m_code;
-	}
-
-	const std::string& RelativeLocationsDto::name() const
-	{
-		return m_name;
-	}
-
-	const std::optional<std::string>& RelativeLocationsDto::definition() const
-	{
-		return m_definition;
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<RelativeLocationsDto> RelativeLocationsDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-
 		try
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for RelativeLocationsDto is not an object" );
-
 				return std::nullopt;
 			}
-
-			RelativeLocationsDto dto = json.get<RelativeLocationsDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-
-			return std::optional<RelativeLocationsDto>{ std::move( dto ) };
+			return std::optional<RelativeLocationsDto>{ json.get<RelativeLocationsDto>() };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( ... )
 		{
-			SPDLOG_ERROR( "nlohmann::json exception during RelativeLocationsDto parsing: {}", ex.what() );
-
-			return std::nullopt;
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			SPDLOG_ERROR( "Standard exception during RelativeLocationsDto parsing: {}", ex.what() );
-
 			return std::nullopt;
 		}
 	}
@@ -136,11 +82,11 @@ namespace dnv::vista::sdk
 		{
 			return json.get<RelativeLocationsDto>();
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
 			throw std::invalid_argument( fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() ) );
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
 			throw std::invalid_argument( fmt::format( "Failed to deserialize RelativeLocationsDto from JSON: {}", ex.what() ) );
 		}
@@ -169,40 +115,36 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, RelativeLocationsDto& dto )
 	{
-		if ( !j.contains( CODE_KEY ) || !j.at( CODE_KEY ).is_string() || j.at( CODE_KEY ).get<std::string>().empty() )
+		if ( !j.contains( CODE_KEY ) )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "RelativeLocationsDto JSON missing required '{}' field, not a string, or empty", CODE_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u, "Missing 'code' field", nullptr );
 		}
-		if ( !j.contains( NAME_KEY ) || !j.at( NAME_KEY ).is_string() )
+		if ( !j.at( CODE_KEY ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "RelativeLocationsDto JSON missing required '{}' field or not a string", NAME_KEY ), nullptr );
-		}
-		if ( j.contains( DEFINITION_KEY ) && !j.at( DEFINITION_KEY ).is_string() )
-		{
-			throw nlohmann::json::type_error::create( 302, fmt::format( "RelativeLocationsDto JSON field '{}' is not a string", DEFINITION_KEY ), nullptr );
+			throw nlohmann::json::type_error::create( 302, "'code' field must be string", nullptr );
 		}
 
 		std::string codeStr = j.at( CODE_KEY ).get<std::string>();
-		if ( codeStr.length() != 1 )
+		if ( codeStr.empty() || codeStr.length() != 1 )
 		{
-			throw nlohmann::json::type_error::create( 302, fmt::format( "RelativeLocationsDto JSON field '{}' must be a single character string", CODE_KEY ), nullptr );
+			throw nlohmann::json::type_error::create( 302, "'code' field must be single character", nullptr );
 		}
-		dto.m_code = codeStr[0];
 
+		if ( !j.contains( NAME_KEY ) || !j.at( NAME_KEY ).is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 101, 0u, "Missing or invalid 'name' field", nullptr );
+		}
+
+		dto.m_code = codeStr[0];
 		dto.m_name = internString( j.at( NAME_KEY ).get<std::string>() );
 
-		if ( j.contains( DEFINITION_KEY ) )
+		if ( j.contains( DEFINITION_KEY ) && j.at( DEFINITION_KEY ).is_string() )
 		{
 			dto.m_definition = internString( j.at( DEFINITION_KEY ).get<std::string>() );
 		}
 		else
 		{
 			dto.m_definition.reset();
-		}
-
-		if ( dto.m_name.empty() )
-		{
-			SPDLOG_WARN( "Parsed RelativeLocationsDto has empty name field for code '{}'", dto.m_code );
 		}
 	}
 
@@ -221,53 +163,21 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& LocationsDto::visVersion() const
-	{
-		return m_visVersion;
-	}
-
-	const std::vector<RelativeLocationsDto>& LocationsDto::items() const
-	{
-		return m_items;
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<LocationsDto> LocationsDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-
 		try
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for LocationsDto is not an object" );
-
 				return std::nullopt;
 			}
-
-			LocationsDto dto = json.get<LocationsDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed LocationsDto for VIS {} with {} items in {} ms", dto.visVersion(), dto.items().size(), duration.count() );
-
-			return std::optional<LocationsDto>{ std::move( dto ) };
+			return std::optional<LocationsDto>{ json.get<LocationsDto>() };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( ... )
 		{
-			SPDLOG_ERROR( "nlohmann::json exception during LocationsDto parsing: {}", ex.what() );
-
-			return std::nullopt;
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			SPDLOG_ERROR( "Standard exception during LocationsDto parsing: {}", ex.what() );
-
 			return std::nullopt;
 		}
 	}
@@ -278,11 +188,11 @@ namespace dnv::vista::sdk
 		{
 			return json.get<LocationsDto>();
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
 			throw std::invalid_argument( fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() ) );
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
 			throw std::invalid_argument( fmt::format( "Failed to deserialize LocationsDto from JSON: {}", ex.what() ) );
 		}
@@ -290,11 +200,7 @@ namespace dnv::vista::sdk
 
 	nlohmann::json LocationsDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized {} locations in {}ms", m_items.size(), duration.count() );
-		return j;
+		return *this;
 	}
 
 	//----------------------------------------------
@@ -314,63 +220,28 @@ namespace dnv::vista::sdk
 
 		if ( !j.contains( VIS_RELEASE_KEY ) || !j.at( VIS_RELEASE_KEY ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "LocationsDto JSON missing required '{}' field or not a string", VIS_RELEASE_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "LocationsDto JSON missing required '{}' field", VIS_RELEASE_KEY ), nullptr );
 		}
 		if ( !j.contains( ITEMS_KEY ) || !j.at( ITEMS_KEY ).is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "LocationsDto JSON missing required '{}' field or not an array", ITEMS_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "LocationsDto JSON missing required '{}' field", ITEMS_KEY ), nullptr );
 		}
 
 		dto.m_visVersion = internString( j.at( VIS_RELEASE_KEY ).get<std::string>() );
 
 		const auto& jsonArray = j.at( ITEMS_KEY );
-		size_t itemCount = jsonArray.size();
-
-		dto.m_items.reserve( itemCount );
-		size_t successCount = 0;
-		auto parseStartTime = std::chrono::steady_clock::now();
+		dto.m_items.reserve( jsonArray.size() );
 
 		for ( const auto& itemJson : jsonArray )
 		{
 			try
 			{
 				dto.m_items.emplace_back( itemJson.get<RelativeLocationsDto>() );
-				successCount++;
 			}
-			catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+			catch ( ... )
 			{
-				SPDLOG_ERROR( "Skipping malformed location item at index {}: {}", successCount, ex.what() );
-			}
-			catch ( [[maybe_unused]] const std::exception& ex )
-			{
-				SPDLOG_ERROR( "Standard exception parsing location item at index {}: {}", successCount, ex.what() );
-			}
-		}
-
-		auto parseDuration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - parseStartTime );
-
-		if ( itemCount > 0 && parseDuration.count() > 0 )
-		{
-			[[maybe_unused]] double rate = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-			SPDLOG_DEBUG( "Successfully parsed {}/{} locations in {}ms ({:.1f} items/sec)",
-				successCount, itemCount, parseDuration.count(), rate );
-		}
-
-		if ( dto.m_items.size() > 1000 )
-		{
-			[[maybe_unused]] size_t approxBytes = estimateMemoryUsage( dto.m_items );
-			SPDLOG_DEBUG( "Large location collection loaded: {} items, ~{} KB estimated memory", dto.m_items.size(), approxBytes / 1024 );
-		}
-
-		if ( successCount < itemCount )
-		{
-			double errorRate = static_cast<double>( itemCount - successCount ) * 100.0 / static_cast<double>( itemCount );
-			SPDLOG_WARN( "Location parsing had {:.1f}% error rate ({} failed items)",
-				errorRate, itemCount - successCount );
-
-			if ( errorRate > 20.0 )
-			{
-				SPDLOG_WARN( "High error rate in location data suggests possible format issue" );
 			}
 		}
 	}

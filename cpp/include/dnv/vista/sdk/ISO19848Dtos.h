@@ -67,13 +67,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the type name
 		 * @return Type name
 		 */
-		[[nodiscard]] const std::string& type() const;
+		[[nodiscard]] inline const std::string& type() const;
 
 		/**
 		 * @brief Get the description
 		 * @return Description of the type
 		 */
-		[[nodiscard]] const std::string& description() const;
+		[[nodiscard]] inline const std::string& description() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -181,7 +181,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the collection of data channel type names
 		 * @return Collection of data channel type names
 		 */
-		[[nodiscard]] const std::vector<DataChannelTypeNameDto>& values() const;
+		[[nodiscard]] inline const std::vector<DataChannelTypeNameDto>& values() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -286,13 +286,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the type name
 		 * @return Type name
 		 */
-		[[nodiscard]] const std::string& type() const;
+		[[nodiscard]] inline const std::string& type() const;
 
 		/**
 		 * @brief Get the description
 		 * @return Description of the type
 		 */
-		[[nodiscard]] const std::string& description() const;
+		[[nodiscard]] inline const std::string& description() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -400,7 +400,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the collection of format data types
 		 * @return Collection of format data types
 		 */
-		[[nodiscard]] const std::vector<FormatDataTypeDto>& values() const;
+		[[nodiscard]] inline const std::vector<FormatDataTypeDto>& values() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -450,3 +450,5 @@ namespace dnv::vista::sdk
 		std::vector<FormatDataTypeDto> m_values;
 	};
 }
+
+#include "ISO19848Dtos.inl"

@@ -32,42 +32,20 @@ namespace dnv::vista::sdk::benchmarks
 		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
 	}
 
-	static void BM_hash_Detail( benchmark::State& state )
-	{
-		const std::string_view key = "Detail";
-		for ( auto _ : state )
-		{
-			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
-			benchmark::DoNotOptimize( hash );
-		}
-		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
-	}
-
-	static void BM_hash_Quantity( benchmark::State& state )
-	{
-		const std::string_view key = "Quantity";
-		for ( auto _ : state )
-		{
-			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
-			benchmark::DoNotOptimize( hash );
-		}
-		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
-	}
-
-	static void BM_hash_Position( benchmark::State& state )
-	{
-		const std::string_view key = "Position";
-		for ( auto _ : state )
-		{
-			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
-			benchmark::DoNotOptimize( hash );
-		}
-		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
-	}
-
 	static void BM_hash_State( benchmark::State& state )
 	{
 		const std::string_view key = "State";
+		for ( auto _ : state )
+		{
+			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
+			benchmark::DoNotOptimize( hash );
+		}
+		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
+	}
+
+	static void BM_hash_Detail( benchmark::State& state )
+	{
+		const std::string_view key = "Detail";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -90,6 +68,28 @@ namespace dnv::vista::sdk::benchmarks
 	static void BM_hash_Command( benchmark::State& state )
 	{
 		const std::string_view key = "Command";
+		for ( auto _ : state )
+		{
+			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
+			benchmark::DoNotOptimize( hash );
+		}
+		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
+	}
+
+	static void BM_hash_Quantity( benchmark::State& state )
+	{
+		const std::string_view key = "Quantity";
+		for ( auto _ : state )
+		{
+			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
+			benchmark::DoNotOptimize( hash );
+		}
+		state.counters["HashRate"] = benchmark::Counter( state.iterations(), benchmark::Counter::kIsRate );
+	}
+
+	static void BM_hash_Position( benchmark::State& state )
+	{
+		const std::string_view key = "Position";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -219,12 +219,12 @@ namespace dnv::vista::sdk::benchmarks
 
 	/* Individual codebook string benchmarks */
 	BENCHMARK( BM_hash_Type )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
-	BENCHMARK( BM_hash_Detail )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
-	BENCHMARK( BM_hash_Quantity )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
-	BENCHMARK( BM_hash_Position )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_State )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_hash_Detail )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_Content )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_Command )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_hash_Quantity )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_hash_Position )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_Calculation )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_ActivityType )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );
 	BENCHMARK( BM_hash_FunctionalServices )->MinTime( 5.0 )->Unit( benchmark::kNanosecond );

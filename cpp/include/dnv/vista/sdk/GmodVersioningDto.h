@@ -16,7 +16,7 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// GMOD Versioning Data Transfer Objects
+	// GMOD Versioning Assignement Data Transfer Objects
 	//=====================================================================
 
 	/**
@@ -71,13 +71,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the old assignment value.
 		 * @return The previous assignment value.
 		 */
-		[[nodiscard]] const std::string& oldAssignment() const;
+		[[nodiscard]] inline const std::string& oldAssignment() const;
 
 		/**
 		 * @brief Get the current assignment value.
 		 * @return The current (new) assignment value.
 		 */
-		[[nodiscard]] const std::string& currentAssignment() const;
+		[[nodiscard]] inline const std::string& currentAssignment() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -203,37 +203,37 @@ namespace dnv::vista::sdk
 		 * @brief Get the set of operations to apply.
 		 * @return The set of operation names.
 		 */
-		[[nodiscard]] const OperationSet& operations() const;
+		[[nodiscard]] inline const OperationSet& operations() const;
 
 		/**
 		 * @brief Get the source GMOD node code.
 		 * @return The source node code.
 		 */
-		[[nodiscard]] const std::string& source() const;
+		[[nodiscard]] inline const std::string& source() const;
 
 		/**
 		 * @brief Get the target GMOD node code.
 		 * @return The target node code.
 		 */
-		[[nodiscard]] const std::string& target() const;
+		[[nodiscard]] inline const std::string& target() const;
 
 		/**
 		 * @brief Get the old assignment code.
 		 * @return The old assignment code.
 		 */
-		[[nodiscard]] const std::string& oldAssignment() const;
+		[[nodiscard]] inline const std::string& oldAssignment() const;
 
 		/**
 		 * @brief Get the new assignment code.
 		 * @return The new assignment code.
 		 */
-		[[nodiscard]] const std::string& newAssignment() const;
+		[[nodiscard]] inline const std::string& newAssignment() const;
 
 		/**
 		 * @brief Check if the assignment should be deleted.
 		 * @return True if the assignment should be deleted, false otherwise.
 		 */
-		[[nodiscard]] bool deleteAssignment() const;
+		[[nodiscard]] inline bool deleteAssignment() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -361,13 +361,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the target VIS version string.
 		 * @return The VIS version string.
 		 */
-		[[nodiscard]] const std::string& visVersion() const;
+		[[nodiscard]] inline const std::string& visVersion() const;
 
 		/**
 		 * @brief Get the map of GMOD node codes to their conversion rules.
 		 * @return The map of node codes to their conversion DTOs.
 		 */
-		[[nodiscard]] const ItemsMap& items() const;
+		[[nodiscard]] inline const ItemsMap& items() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -420,3 +420,5 @@ namespace dnv::vista::sdk
 		ItemsMap m_items;
 	};
 }
+
+#include "GmodVersioningDto.inl"

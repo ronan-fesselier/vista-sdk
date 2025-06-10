@@ -567,15 +567,6 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	VisVersion GmodVersioning::GmodVersioningNode::visVersion() const
-	{
-		return m_visVersion;
-	}
-
 	bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
 		const std::string& code, GmodNodeConversion& nodeChanges ) const
 	{

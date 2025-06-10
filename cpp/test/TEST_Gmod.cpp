@@ -26,7 +26,7 @@ namespace dnv::vista::sdk::tests
 		};
 
 		//=====================================================================
-		// Helper Functions
+		// Helper functions
 		//=====================================================================
 
 		static std::size_t occurrences( const std::vector<const GmodNode*>& parents, const GmodNode& node )

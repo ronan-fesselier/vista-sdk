@@ -28,38 +28,37 @@ namespace dnv::vista::sdk
 		static constexpr const char* TARGET_KEY = "target";
 
 		//=====================================================================
-		// Helper Functions
+		// Helper functions
 		//=====================================================================
 
 		static const std::string& internString( const std::string& value )
 		{
-			static std::unordered_map<std::string, std::string> cache;
-			static size_t hits = 0, misses = 0, calls = 0;
-			calls++;
+			if ( value.length() <= 4 )
+			{
+				static std::unordered_map<std::string, std::string> shortCache;
+				static std::mutex shortMutex;
 
-			if ( value.size() > 30 )
+				std::lock_guard<std::mutex> lock( shortMutex );
+				auto [it, inserted] = shortCache.try_emplace( value, value );
+				return it->second;
+			}
+
+			if ( value.length() > 30 )
 			{
 				return value;
 			}
 
-			auto it = cache.find( value );
-			if ( it != cache.end() )
-			{
-				hits++;
-				if ( calls % 10000 == 0 )
-				{
-					SPDLOG_DEBUG( "String interning stats: {:.1f}% hit rate ({}/{}), {} unique strings", hits * 100.0 / calls, hits, calls, cache.size() );
-				}
-				return it->second;
-			}
+			static std::unordered_map<std::string, std::string> cache;
+			static std::mutex cacheMutex;
 
-			misses++;
-			return cache.emplace( value, value ).first->first;
+			std::lock_guard<std::mutex> lock( cacheMutex );
+			auto [it, inserted] = cache.try_emplace( value, value );
+			return it->second;
 		}
 	}
 
 	//=====================================================================
-	// GMOD Versioning Data Transfer Objects
+	// GMOD Versioning Assignement Data Transfer Objects
 	//=====================================================================
 
 	//----------------------------------------------
@@ -70,20 +69,6 @@ namespace dnv::vista::sdk
 		: m_oldAssignment{ std::move( oldAssignment ) },
 		  m_currentAssignment{ std::move( currentAssignment ) }
 	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& GmodVersioningAssignmentChangeDto::oldAssignment() const
-	{
-		return m_oldAssignment;
-	}
-
-	const std::string& GmodVersioningAssignmentChangeDto::currentAssignment() const
-	{
-		return m_currentAssignment;
 	}
 
 	//----------------------------------------------
@@ -199,40 +184,6 @@ namespace dnv::vista::sdk
 		  m_newAssignment{ std::move( newAssignment ) },
 		  m_deleteAssignment{ deleteAssignment }
 	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const GmodNodeConversionDto::OperationSet& GmodNodeConversionDto::operations() const
-	{
-		return m_operations;
-	}
-
-	const std::string& GmodNodeConversionDto::source() const
-	{
-		return m_source;
-	}
-
-	const std::string& GmodNodeConversionDto::target() const
-	{
-		return m_target;
-	}
-
-	const std::string& GmodNodeConversionDto::oldAssignment() const
-	{
-		return m_oldAssignment;
-	}
-
-	const std::string& GmodNodeConversionDto::newAssignment() const
-	{
-		return m_newAssignment;
-	}
-
-	bool GmodNodeConversionDto::deleteAssignment() const
-	{
-		return m_deleteAssignment;
 	}
 
 	//----------------------------------------------
@@ -432,20 +383,6 @@ namespace dnv::vista::sdk
 		: m_visVersion{ std::move( visVersion ) },
 		  m_items{ std::move( items ) }
 	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& GmodVersioningDto::visVersion() const
-	{
-		return m_visVersion;
-	}
-
-	const GmodVersioningDto::ItemsMap& GmodVersioningDto::items() const
-	{
-		return m_items;
 	}
 
 	//----------------------------------------------
