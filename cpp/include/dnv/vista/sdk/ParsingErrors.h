@@ -82,28 +82,28 @@ namespace dnv::vista::sdk
 		 * @param other The other ParsingErrors object to compare.
 		 * @return True if the two ParsingErrors objects are equal, false otherwise.
 		 */
-		[[nodiscard]] bool operator==( const ParsingErrors& other ) const noexcept;
+		[[nodiscard]] inline bool operator==( const ParsingErrors& other ) const noexcept;
 
 		/**
 		 * @brief Inequality operator.
 		 * @param other The other ParsingErrors object to compare.
 		 * @return True if the two ParsingErrors objects are not equal, false otherwise.
 		 */
-		[[nodiscard]] bool operator!=( const ParsingErrors& other ) const noexcept;
+		[[nodiscard]] inline bool operator!=( const ParsingErrors& other ) const noexcept;
 
 		/**
 		 * @brief Checks if this ParsingErrors object is equal to another.
 		 * @param other The other ParsingErrors object to compare.
 		 * @return True if the two ParsingErrors objects are equal, false otherwise.
 		 */
-		[[nodiscard]] bool equals( const ParsingErrors& other ) const noexcept;
+		[[nodiscard]] inline bool equals( const ParsingErrors& other ) const noexcept;
 
 		//----------------------------------------------
 		// Public static members
 		//----------------------------------------------
 
 		/** @brief Gets an empty set of parsing errors. */
-		static const ParsingErrors& empty();
+		static inline const ParsingErrors& empty();
 
 		//----------------------------------------------
 		// Accessors
@@ -113,13 +113,13 @@ namespace dnv::vista::sdk
 		 * @brief Gets the number of error entries.
 		 * @return The count of error entries.
 		 */
-		[[nodiscard]] size_t count() const noexcept;
+		[[nodiscard]] inline size_t count() const noexcept;
 
 		/**
 		 * @brief Gets the hash code for this ParsingErrors object.
 		 * @return The hash code as an unsigned integer.
 		 */
-		[[nodiscard]] size_t hashCode() const noexcept;
+		[[nodiscard]] inline size_t hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods
@@ -129,14 +129,14 @@ namespace dnv::vista::sdk
 		 * @brief Checks if there are any errors.
 		 * @return True if there are errors, false otherwise.
 		 */
-		[[nodiscard]] bool hasErrors() const noexcept;
+		[[nodiscard]] inline bool hasErrors() const noexcept;
 
 		/**
 		 * @brief Checks if there is an error of a specific type.
 		 * @param type The type of error to check for.
 		 * @return True if an error of the specified type exists, false otherwise.
 		 */
-		[[nodiscard]] bool hasErrorType( std::string_view type ) const noexcept;
+		[[nodiscard]] inline bool hasErrorType( std::string_view type ) const noexcept;
 
 		//----------------------------------------------
 		// String conversion methods
@@ -212,7 +212,7 @@ namespace dnv::vista::sdk
 			 * @return True if the enumerator successfully moved to the next element;
 			 *         false if the enumerator has passed the end of the collection.
 			 */
-			[[nodiscard]] bool next() noexcept;
+			[[nodiscard]] inline bool next() noexcept;
 
 			/**
 			 * @brief Gets the current element.
@@ -222,7 +222,7 @@ namespace dnv::vista::sdk
 			[[nodiscard]] const ErrorEntry& current() const;
 
 			/** @brief Resets the enumerator to its initial position. */
-			void reset() noexcept;
+			void inline reset() noexcept;
 
 		private:
 			//----------------------------
@@ -254,8 +254,14 @@ namespace dnv::vista::sdk
 			ErrorEntry( std::string_view type, std::string_view message );
 			ErrorEntry( std::string&& type, std::string&& message );
 
-			[[nodiscard]] bool operator==( const ErrorEntry& other ) const noexcept;
-			[[nodiscard]] bool operator!=( const ErrorEntry& other ) const noexcept;
+			//----------------------------
+			// Operators
+			//----------------------------
+
+			[[nodiscard]] inline bool operator==( const ErrorEntry& other ) const noexcept;
+			[[nodiscard]] inline bool operator!=( const ErrorEntry& other ) const noexcept;
 		};
 	};
 }
+
+#include "ParsingErrors.inl"

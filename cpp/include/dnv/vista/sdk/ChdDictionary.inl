@@ -299,12 +299,12 @@ namespace dnv::vista::sdk
 	{
 		outValue = nullptr;
 
-		if ( key.empty() ) [[unlikely]]
+		if ( key.empty() )
 		{
 			return false;
 		}
 
-		if ( m_table.empty() ) [[unlikely]]
+		if ( m_table.empty() )
 		{
 			return false;
 		}
@@ -315,11 +315,11 @@ namespace dnv::vista::sdk
 		const int seed = m_seeds[index];
 
 		size_t finalIndex;
-		if ( seed < 0 ) [[likely]]
+		if ( seed < 0 )
 		{
 			finalIndex = static_cast<size_t>( -seed - 1 );
 		}
-		else [[unlikely]]
+		else
 		{
 			const uint32_t finalHash = internal::Hashing::seed(
 				static_cast<uint32_t>( seed ),
@@ -331,7 +331,7 @@ namespace dnv::vista::sdk
 
 		const auto& kvp = m_table[finalIndex];
 
-		if ( key.size() == kvp.first.size() && std::memcmp( key.data(), kvp.first.data(), key.size() ) == 0 ) [[likely]]
+		if ( key.size() == kvp.first.size() && std::memcmp( key.data(), kvp.first.data(), key.size() ) == 0 )
 		{
 			outValue = &kvp.second;
 

@@ -92,14 +92,14 @@ namespace dnv::vista::sdk
 		 * @param other The metadata object to compare with.
 		 * @return True if all properties of this metadata object are equal to the other, false otherwise.
 		 */
-		bool operator==( const GmodNodeMetadata& other ) const;
+		inline bool operator==( const GmodNodeMetadata& other ) const;
 
 		/**
 		 * @brief Inequality comparison operator.
 		 * @param other The metadata object to compare with.
 		 * @return True if any property of this metadata object differs from the other, false otherwise.
 		 */
-		bool operator!=( const GmodNodeMetadata& other ) const;
+		inline bool operator!=( const GmodNodeMetadata& other ) const;
 
 		//----------------------------------------------
 		// Accessors
@@ -109,55 +109,55 @@ namespace dnv::vista::sdk
 		 * @brief Get the category of the node
 		 * @return Reference to the category string
 		 */
-		[[nodiscard]] const std::string& category() const;
+		[[nodiscard]] inline const std::string& category() const;
 
 		/**
 		 * @brief Get the type of the node
 		 * @return Reference to the type string
 		 */
-		[[nodiscard]] const std::string& type() const;
+		[[nodiscard]] inline const std::string& type() const;
 
 		/**
 		 * @brief Get the full type string (category + type)
 		 * @return Reference to the full type string
 		 */
-		[[nodiscard]] const std::string& fullType() const;
+		[[nodiscard]] inline const std::string& fullType() const;
 
 		/**
 		 * @brief Get the name of the node
 		 * @return Reference to the name string
 		 */
-		[[nodiscard]] const std::string& name() const;
+		[[nodiscard]] inline const std::string& name() const;
 
 		/**
 		 * @brief Get the common name of the node
 		 * @return Optional reference to the common name
 		 */
-		[[nodiscard]] const std::optional<std::string>& commonName() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonName() const;
 
 		/**
 		 * @brief Get the definition of the node
 		 * @return Optional reference to the definition
 		 */
-		[[nodiscard]] const std::optional<std::string>& definition() const;
+		[[nodiscard]] inline const std::optional<std::string>& definition() const;
 
 		/**
 		 * @brief Get the common definition of the node
 		 * @return Optional reference to the common definition
 		 */
-		[[nodiscard]] const std::optional<std::string>& commonDefinition() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonDefinition() const;
 
 		/**
 		 * @brief Get the install substructure flag
 		 * @return Optional reference to the install substructure flag
 		 */
-		[[nodiscard]] const std::optional<bool>& installSubstructure() const;
+		[[nodiscard]] inline const std::optional<bool>& installSubstructure() const;
 
 		/**
 		 * @brief Get the normal assignment names mapping
 		 * @return Reference to the map of normal assignment names
 		 */
-		[[nodiscard]] const std::unordered_map<std::string, std::string>& normalAssignmentNames() const;
+		[[nodiscard]] inline const std::unordered_map<std::string, std::string>& normalAssignmentNames() const;
 
 	private:
 		//----------------------------------------------
@@ -247,28 +247,28 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/**
-		 * @brief Explicit equality comparison method.
-		 * @details Nodes are considered equal if they have the same code and location.
-		 *          This method provides an explicit way to check equality, complementing `operator==`.
-		 * @param other The node to compare with.
-		 * @return True if this node is equal to the other node, false otherwise.
-		 */
-		[[nodiscard]] bool equals( const GmodNode& other ) const;
-
-		/**
 		 * @brief Equality comparison operator.
 		 * @details Nodes are considered equal if they have the same code and location.
 		 * @param other The node to compare with.
 		 * @return True if this node is equal to the other node, false otherwise.
 		 */
-		bool operator==( const GmodNode& other ) const;
+		inline bool operator==( const GmodNode& other ) const;
 
 		/**
 		 * @brief Inequality comparison operator.
 		 * @param other The node to compare with.
 		 * @return True if this node is not equal to the other node, false otherwise.
 		 */
-		bool operator!=( const GmodNode& other ) const;
+		inline bool operator!=( const GmodNode& other ) const;
+
+		/**
+		 * @brief Explicit equality comparison method.
+		 * @details Nodes are considered equal if they have the same code and location.
+		 *          This method provides an explicit way to check equality, complementing `operator==`.
+		 * @param other The node to compare with.
+		 * @return True if this node is equal to the other node, false otherwise.
+		 */
+		[[nodiscard]] inline bool equals( const GmodNode& other ) const;
 
 		//----------------------------------------------
 		// Accessors
@@ -278,25 +278,25 @@ namespace dnv::vista::sdk
 		 * @brief Get the unique code identifier
 		 * @return Reference to the code string
 		 */
-		[[nodiscard]] const std::string& code() const;
+		[[nodiscard]] inline const std::string& code() const;
 
 		/**
 		 * @brief Get the location information
 		 * @return Optional reference to the location
 		 */
-		[[nodiscard]] const std::optional<Location>& location() const;
+		[[nodiscard]] inline const std::optional<Location>& location() const;
 
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version enum value
 		 */
-		[[nodiscard]] VisVersion visVersion() const;
+		[[nodiscard]] inline VisVersion visVersion() const;
 
 		/**
 		 * @brief Get the node metadata
 		 * @return Reference to the metadata
 		 */
-		[[nodiscard]] const GmodNodeMetadata& metadata() const;
+		[[nodiscard]] inline const GmodNodeMetadata& metadata() const;
 
 		/**
 		 * @brief Calculates a hash code for this GmodNode.
@@ -304,7 +304,7 @@ namespace dnv::vista::sdk
 		 *          Nodes that are equal according to `operator==` must produce the same hash code.
 		 * @return A `size_t` hash code value.
 		 */
-		[[nodiscard]] size_t hashCode() const noexcept;
+		[[nodiscard]] inline size_t hashCode() const noexcept;
 
 		//----------------------------------------------
 		// Relationship accessors
@@ -314,27 +314,27 @@ namespace dnv::vista::sdk
 		 * @brief Get the child nodes
 		 * @return Reference to the vector of child node pointers
 		 */
-		[[nodiscard]] const std::vector<GmodNode*>& children() const;
+		[[nodiscard]] inline const std::vector<GmodNode*>& children() const;
 
 		/**
 		 * @brief Get the parent nodes
 		 * @return Reference to the vector of parent node pointers
 		 */
-		[[nodiscard]] const std::vector<GmodNode*>& parents() const;
+		[[nodiscard]] inline const std::vector<GmodNode*>& parents() const;
 
 		/**
 		 * @brief Gets the product type node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product type.
 		 * @return A const non-owning pointer to the product type node, or `nullptr` if not applicable or not found.
 		 */
-		[[nodiscard]] const GmodNode* productType() const;
+		[[nodiscard]] inline const GmodNode* productType() const;
 
 		/**
 		 * @brief Gets the product selection node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product selection.
 		 * @return A const non-owning pointer to the product selection node, or `nullptr` if not applicable or not found.
 		 */
-		[[nodiscard]] const GmodNode* productSelection() const;
+		[[nodiscard]] inline const GmodNode* productSelection() const;
 
 		//----------------------------------------------
 		// Node location methods
@@ -391,6 +391,10 @@ namespace dnv::vista::sdk
 		 */
 		[[nodiscard]] GmodNode tryWithLocation( const std::optional<Location>& location ) const;
 
+		//----------------------------------------------
+		// Node type checking methods
+		//----------------------------------------------
+
 		/**
 		 * @brief Checks if the node is individualizable.
 		 * @details A node is individualizable if it can be assigned a unique instance identifier
@@ -399,14 +403,14 @@ namespace dnv::vista::sdk
 		 * @param isInSet Flag indicating if this node is part of a set. Defaults to false.
 		 * @return True if the node is individualizable under the given conditions, false otherwise.
 		 */
-		[[nodiscard]] bool isIndividualizable( bool isTargetNode = false, bool isInSet = false ) const;
+		[[nodiscard]] inline bool isIndividualizable( bool isTargetNode = false, bool isInSet = false ) const;
 
 		/**
 		 * @brief Checks if the node represents a function composition.
 		 * @details A function composition node typically groups other function or product nodes.
 		 * @return True if the node's metadata indicates it's an asset or product function composition, false otherwise.
 		 */
-		[[nodiscard]] bool isFunctionComposition() const;
+		[[nodiscard]] inline bool isFunctionComposition() const;
 
 		/**
 		 * @brief Checks if the node is mappable.
@@ -414,7 +418,7 @@ namespace dnv::vista::sdk
 		 *          often used in creating Local IDs or other semantic links.
 		 * @return True if the node is considered mappable based on its type and properties, false otherwise.
 		 */
-		[[nodiscard]] bool isMappable() const noexcept;
+		[[nodiscard]] inline bool isMappable() const noexcept;
 
 		/**
 		 * @brief Checks if the node is a product selection.
@@ -457,7 +461,7 @@ namespace dnv::vista::sdk
 		 * @details The root node is conventionally identified by the code "VE".
 		 * @return True if the node's code is "VE", false otherwise.
 		 */
-		[[nodiscard]] bool isRoot() const noexcept;
+		[[nodiscard]] inline bool isRoot() const noexcept;
 
 		//----------------------------------------------
 		// Node relationship query methods
@@ -468,7 +472,7 @@ namespace dnv::vista::sdk
 		 * @param node The potential child node to check for.
 		 * @return True if the provided `node` is a direct child of this node (checked by code), false otherwise.
 		 */
-		[[nodiscard]] bool isChild( const GmodNode& node ) const;
+		[[nodiscard]] inline bool isChild( const GmodNode& node ) const;
 
 		/**
 		 * @brief Checks if this node has a direct child with a specific code.
@@ -476,7 +480,7 @@ namespace dnv::vista::sdk
 		 * @param code The code of the potential child node.
 		 * @return True if a direct child with the specified `code` exists, false otherwise.
 		 */
-		[[nodiscard]] bool isChild( const std::string& code ) const;
+		[[nodiscard]] inline bool isChild( const std::string& code ) const;
 
 		//----------------------------------------------
 		// Utility methods
@@ -552,3 +556,5 @@ namespace dnv::vista::sdk
 		mutable std::optional<const GmodNode*> m_cachedProductSelection;
 	};
 }
+
+#include "GmodNode.inl"

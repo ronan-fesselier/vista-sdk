@@ -1,20 +1,16 @@
 /**
- * @file CodebookName.cpp
- * @brief Implementation of codebook name conversion functions
+ * @file CodebookName.inl
+ * @brief Inline implementations for performance-critical CodebookName operations
  */
-
-#include "pch.h"
-
-#include "dnv/vista/sdk/CodebookName.h"
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Constants
-	//=====================================================================
-
 	namespace
 	{
+		//=====================================================================
+		// Constants
+		//=====================================================================
+
 		static constexpr std::string_view POSITION_PREFIX = "pos";
 		static constexpr std::string_view QUANTITY_PREFIX = "qty";
 		static constexpr std::string_view CALCULATION_PREFIX = "calc";
@@ -26,14 +22,11 @@ namespace dnv::vista::sdk
 		static constexpr std::string_view MAINTENANCE_CATEGORY_PREFIX = "maint.cat";
 		static constexpr std::string_view ACTIVITY_TYPE_PREFIX = "act.type";
 		static constexpr std::string_view DETAIL_PREFIX = "detail";
-	}
 
-	//=====================================================================
-	// Enum mapping tables
-	//=====================================================================
+		//=====================================================================
+		// Enum mapping tables
+		//=====================================================================
 
-	namespace
-	{
 		static const std::unordered_map<std::string_view, CodebookName> s_prefixMap{
 			{ POSITION_PREFIX, CodebookName::Position },
 			{ QUANTITY_PREFIX, CodebookName::Quantity },
@@ -56,7 +49,7 @@ namespace dnv::vista::sdk
 	// Public static methods
 	//----------------------------------------------
 
-	CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
+	inline CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
 	{
 		if ( prefix.empty() )
 		{

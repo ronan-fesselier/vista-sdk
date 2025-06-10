@@ -38,87 +38,6 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Operators
-	//----------------------------------------------
-
-	bool ParsingErrors::operator==( const ParsingErrors& other ) const noexcept
-	{
-		if ( this == &other )
-		{
-			return true;
-		}
-
-		if ( m_errors.size() != other.m_errors.size() )
-		{
-			return false;
-		}
-
-		return m_errors == other.m_errors;
-	}
-
-	bool ParsingErrors::operator!=( const ParsingErrors& other ) const noexcept
-	{
-		return !( *this == other );
-	}
-
-	bool ParsingErrors::equals( const ParsingErrors& other ) const noexcept
-	{
-		return *this == other;
-	}
-
-	//----------------------------------------------
-	// Public static members
-	//----------------------------------------------
-
-	const ParsingErrors& ParsingErrors::empty()
-	{
-		static const ParsingErrors instance{};
-
-		return instance;
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	size_t ParsingErrors::count() const noexcept
-	{
-		return m_errors.size();
-	}
-
-	size_t ParsingErrors::hashCode() const noexcept
-	{
-		size_t hash = 0;
-		std::hash<std::string> stringHasher;
-
-		for ( const auto& error : m_errors )
-		{
-			size_t typeHash = stringHasher( error.type );
-			size_t messageHash = stringHasher( error.message );
-
-			hash ^= typeHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
-			hash ^= messageHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
-		}
-
-		return hash;
-	}
-
-	//----------------------------------------------
-	// State inspection methods
-	//----------------------------------------------
-
-	bool ParsingErrors::hasErrors() const noexcept
-	{
-		return !m_errors.empty();
-	}
-
-	bool ParsingErrors::hasErrorType( std::string_view type ) const noexcept
-	{
-		return std::any_of( m_errors.begin(), m_errors.end(),
-			[type]( const ErrorEntry& error ) { return error.type == type; } );
-	}
-
-	//----------------------------------------------
 	// String conversion methods
 	//----------------------------------------------
 
@@ -129,26 +48,28 @@ namespace dnv::vista::sdk
 			return "Success";
 		}
 
+		constexpr std::string_view header = "Parsing errors:\n";
+
 		/* Pre-calculate exact capacity */
-		size_t capacity = 15;
+		size_t capacity = header.size();
 		for ( const auto& error : m_errors )
 		{
 			capacity += 1 + error.type.size() + 3 + error.message.size() + 1;
-			/*          ↑                       ↑                          ↑ */
+			/*          ↑                       ↑                          ↑  */
 			/*        '\t'                    " - "                      '\n' */
 		}
 
 		std::string result;
 		result.reserve( capacity );
-		result = "Parsing errors:\n";
+		result = header;
 
 		for ( const auto& error : m_errors )
 		{
-			result.append( 1, '\t' );
-			result.append( error.type );
-			result.append( " - " );
-			result.append( error.message );
-			result.append( 1, '\n' );
+			result += '\t';
+			result += error.type;
+			result += " - ";
+			result += error.message;
+			result += '\n';
 		}
 
 		return result;
@@ -181,18 +102,6 @@ namespace dnv::vista::sdk
 	// Enumeration methods
 	//----------------------------
 
-	bool ParsingErrors::Enumerator::next() noexcept
-	{
-		if ( m_index < m_data->size() )
-		{
-			++m_index;
-
-			return true;
-		}
-
-		return false;
-	}
-
 	const ParsingErrors::ErrorEntry& ParsingErrors::Enumerator::current() const
 	{
 		if ( m_index == 0 || m_index > m_data->size() )
@@ -201,11 +110,6 @@ namespace dnv::vista::sdk
 		}
 
 		return ( *m_data )[m_index - 1];
-	}
-
-	void ParsingErrors::Enumerator::reset() noexcept
-	{
-		m_index = 0;
 	}
 
 	//----------------------------------------------
@@ -221,15 +125,5 @@ namespace dnv::vista::sdk
 		: type{ std::move( type ) },
 		  message{ std::move( message ) }
 	{
-	}
-
-	bool ParsingErrors::ErrorEntry::operator==( const ErrorEntry& other ) const noexcept
-	{
-		return type == other.type && message == other.message;
-	}
-
-	bool ParsingErrors::ErrorEntry::operator!=( const ErrorEntry& other ) const noexcept
-	{
-		return !( *this == other );
 	}
 }
