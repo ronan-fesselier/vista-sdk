@@ -4,50 +4,9 @@
 
 namespace dnv::vista::sdk
 {
-	bool VisVersionExtensions::isValid( VisVersion version )
-	{
-		switch ( version )
-		{
-			case VisVersion::v3_4a:
-			case VisVersion::v3_5a:
-			case VisVersion::v3_6a:
-			case VisVersion::v3_7a:
-			case VisVersion::v3_8a:
-				return true;
-			case VisVersion::Unknown:
-			case VisVersion::COUNT_VALID:
-			default:
-				return false;
-		}
-	}
-
-	std::string VisVersionExtensions::toVersionString( VisVersion version )
-	{
-		switch ( version )
-		{
-			case VisVersion::v3_4a:
-				return "vis-3-4a";
-			case VisVersion::v3_5a:
-				return "vis-3-5a";
-			case VisVersion::v3_6a:
-				return "vis-3-6a";
-			case VisVersion::v3_7a:
-				return "vis-3-7a";
-			case VisVersion::v3_8a:
-				return "vis-3-8a";
-			case VisVersion::Unknown:
-				return "Unknown";
-			case VisVersion::COUNT_VALID:
-			default:
-			{
-				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
-			}
-		}
-	}
-
 	bool VisVersionExtensions::tryParse( const std::string& versionString, VisVersion& version )
 	{
-		static const std::unordered_map<std::string, VisVersion> versionMap = {
+		static const std::unordered_map<std::string_view, VisVersion> versionMap = {
 			{ "3.4a", VisVersion::v3_4a },
 			{ "3.5a", VisVersion::v3_5a },
 			{ "3.6a", VisVersion::v3_6a },
@@ -58,26 +17,25 @@ namespace dnv::vista::sdk
 			{ "3-5a", VisVersion::v3_5a },
 			{ "3-6a", VisVersion::v3_6a },
 			{ "3-7a", VisVersion::v3_7a },
-			{ "3-8a", VisVersion::v3_8a } };
+			{ "3-8a", VisVersion::v3_8a },
 
-		std::string normalizedVersion = versionString;
+			{ "vis-3-4a", VisVersion::v3_4a },
+			{ "vis-3-5a", VisVersion::v3_5a },
+			{ "vis-3-6a", VisVersion::v3_6a },
+			{ "vis-3-7a", VisVersion::v3_7a },
+			{ "vis-3-8a", VisVersion::v3_8a },
 
-		if ( normalizedVersion.rfind( "vis-", 0 ) == 0 )
-		{
-			normalizedVersion = normalizedVersion.substr( 4 );
-		}
+			{ "vis-3.4a", VisVersion::v3_4a },
+			{ "vis-3.5a", VisVersion::v3_5a },
+			{ "vis-3.6a", VisVersion::v3_6a },
+			{ "vis-3.7a", VisVersion::v3_7a },
+			{ "vis-3.8a", VisVersion::v3_8a } };
 
-		auto it = versionMap.find( normalizedVersion );
+		auto it = versionMap.find( versionString );
 		if ( it != versionMap.end() )
 		{
 			version = it->second;
 			return true;
-		}
-
-		std::replace( normalizedVersion.begin(), normalizedVersion.end(), '-', '.' );
-		if ( normalizedVersion != versionString )
-		{
-			return tryParse( normalizedVersion, version );
 		}
 
 		return false;
@@ -95,18 +53,13 @@ namespace dnv::vista::sdk
 
 	std::vector<VisVersion> VisVersionExtensions::allVersions()
 	{
-		static const std::array<VisVersion, 5> allVersions = {
+		static constexpr std::array<VisVersion, static_cast<size_t>( VisVersion::COUNT_VALID )> versions = {
 			VisVersion::v3_4a,
 			VisVersion::v3_5a,
 			VisVersion::v3_6a,
 			VisVersion::v3_7a,
 			VisVersion::v3_8a };
 
-		return std::vector<VisVersion>( allVersions.begin(), allVersions.end() );
-	}
-
-	VisVersion VisVersionExtensions::latestVersion()
-	{
-		return VisVersion::LATEST;
+		return std::vector<VisVersion>( versions.begin(), versions.end() );
 	}
 }

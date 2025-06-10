@@ -177,7 +177,7 @@ namespace dnv::vista::sdk
 			/**
 			 * @brief Get the VIS version of this versioning node
 			 */
-			VisVersion visVersion() const;
+			inline VisVersion visVersion() const;
 
 			/**
 			 * @brief Try to get code changes for a specific node code
@@ -238,3 +238,5 @@ namespace dnv::vista::sdk
 		static ConversionType parseConversionType( const std::string& type );
 	};
 }
+
+#include "GmodVersioning.inl"

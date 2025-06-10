@@ -30,7 +30,7 @@ namespace dnv::vista::sdk
 		static constexpr const char* RELATIONS_KEY = "relations";
 
 		//=====================================================================
-		// Helper Functions
+		// Helper functions
 		//=====================================================================
 
 		/**
@@ -84,55 +84,6 @@ namespace dnv::vista::sdk
 		  m_installSubstructure{ installSubstructure },
 		  m_normalAssignmentNames{ std::move( normalAssignmentNames ) }
 	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& GmodNodeDto::category() const
-	{
-		return m_category;
-	}
-
-	const std::string& GmodNodeDto::type() const
-	{
-		return m_type;
-	}
-
-	const std::string& GmodNodeDto::code() const
-	{
-		return m_code;
-	}
-
-	const std::string& GmodNodeDto::name() const
-	{
-		return m_name;
-	}
-
-	const std::optional<std::string>& GmodNodeDto::commonName() const
-	{
-		return m_commonName;
-	}
-
-	const std::optional<std::string>& GmodNodeDto::definition() const
-	{
-		return m_definition;
-	}
-
-	const std::optional<std::string>& GmodNodeDto::commonDefinition() const
-	{
-		return m_commonDefinition;
-	}
-
-	const std::optional<bool>& GmodNodeDto::installSubstructure() const
-	{
-		return m_installSubstructure;
-	}
-
-	const std::optional<GmodNodeDto::NormalAssignmentNamesMap>& GmodNodeDto::normalAssignmentNames() const
-	{
-		return m_normalAssignmentNames;
 	}
 
 	//----------------------------------------------
@@ -476,25 +427,6 @@ namespace dnv::vista::sdk
 		  m_items{ std::move( items ) },
 		  m_relations{ std::move( relations ) }
 	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& GmodDto::visVersion() const
-	{
-		return m_visVersion;
-	}
-
-	const GmodDto::Items& GmodDto::items() const
-	{
-		return m_items;
-	}
-
-	const GmodDto::Relations& GmodDto::relations() const
-	{
-		return m_relations;
 	}
 
 	//----------------------------------------------

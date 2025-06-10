@@ -30,14 +30,20 @@ namespace dnv::vista::sdk
 		 * @param version The version to check
 		 * @return true if valid, false otherwise
 		 */
-		static bool isValid( VisVersion version );
+		inline static bool isValid( VisVersion version );
+
+		/**
+		 * @brief Get the latest available VIS version
+		 * @return The latest VIS version
+		 */
+		inline static VisVersion latestVersion();
 
 		/**
 		 * @brief Convert a VisVersion to its string representation
 		 * @param version The version to convert
 		 * @return String representation of the version
 		 */
-		static std::string toVersionString( VisVersion version );
+		inline static std::string toVersionString( VisVersion version );
 
 		/**
 		 * @brief Try to parse a string to a VisVersion
@@ -60,11 +66,7 @@ namespace dnv::vista::sdk
 		 * @return Vector containing all valid VisVersion values
 		 */
 		static std::vector<VisVersion> allVersions();
-
-		/**
-		 * @brief Get the latest available VIS version
-		 * @return The latest VIS version
-		 */
-		static VisVersion latestVersion();
 	};
 }
+
+#include "VISVersion.inl"

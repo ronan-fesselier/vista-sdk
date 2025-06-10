@@ -1,18 +1,10 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/GmodTraversal.h"
+#include "dnv/vista/sdk/GmodConstants.h"
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Constants
-	//=====================================================================
-
-	namespace
-	{
-		static constexpr std::string_view NODE_CATEGORY_ASSET_FUNCTION = "ASSET FUNCTION";
-	}
-
 	//=====================================================================
 	// Traversal algorithms
 	//=====================================================================

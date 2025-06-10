@@ -63,19 +63,19 @@ namespace dnv::vista::sdk
 		 * @brief Get the location code
 		 * @return The character code representing the location
 		 */
-		[[nodiscard]] char code() const;
+		[[nodiscard]] inline char code() const;
 
 		/**
 		 * @brief Get the location name
 		 * @return The name of the location
 		 */
-		[[nodiscard]] const std::string& name() const;
+		[[nodiscard]] inline const std::string& name() const;
 
 		/**
 		 * @brief Get the location definition
 		 * @return The optional definition of the location
 		 */
-		[[nodiscard]] const std::optional<std::string>& definition() const;
+		[[nodiscard]] inline const std::optional<std::string>& definition() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -184,13 +184,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version string
 		 * @return The VIS version string
 		 */
-		[[nodiscard]] const std::string& visVersion() const;
+		[[nodiscard]] inline const std::string& visVersion() const;
 
 		/**
 		 * @brief Get the collection of relative locations
 		 * @return A vector of relative locations
 		 */
-		[[nodiscard]] const std::vector<RelativeLocationsDto>& items() const;
+		[[nodiscard]] inline const std::vector<RelativeLocationsDto>& items() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -240,3 +240,5 @@ namespace dnv::vista::sdk
 		std::vector<RelativeLocationsDto> m_items;
 	};
 }
+
+#include "LocationsDto.inl"

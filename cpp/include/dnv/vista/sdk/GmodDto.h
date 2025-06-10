@@ -90,55 +90,55 @@ namespace dnv::vista::sdk
 		 * @brief Get the category classification
 		 * @return The node's category
 		 */
-		[[nodiscard]] const std::string& category() const;
+		[[nodiscard]] inline const std::string& category() const;
 
 		/**
 		 * @brief Get the type classification
 		 * @return The node's type
 		 */
-		[[nodiscard]] const std::string& type() const;
+		[[nodiscard]] inline const std::string& type() const;
 
 		/**
 		 * @brief Get the unique code identifier
 		 * @return The node's unique code
 		 */
-		[[nodiscard]] const std::string& code() const;
+		[[nodiscard]] inline const std::string& code() const;
 
 		/**
 		 * @brief Get the human-readable name
 		 * @return The node's name
 		 */
-		[[nodiscard]] const std::string& name() const;
+		[[nodiscard]] inline const std::string& name() const;
 
 		/**
 		 * @brief Get the optional common name/alias
 		 * @return The common name if available, empty optional otherwise
 		 */
-		[[nodiscard]] const std::optional<std::string>& commonName() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonName() const;
 
 		/**
 		 * @brief Get the optional detailed definition
 		 * @return The detailed definition if available, empty optional otherwise
 		 */
-		[[nodiscard]] const std::optional<std::string>& definition() const;
+		[[nodiscard]] inline const std::optional<std::string>& definition() const;
 
 		/**
 		 * @brief Get the optional common definition
 		 * @return The common definition if available, empty optional otherwise
 		 */
-		[[nodiscard]] const std::optional<std::string>& commonDefinition() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonDefinition() const;
 
 		/**
 		 * @brief Get the optional installation flag
 		 * @return The installation flag if available, empty optional otherwise
 		 */
-		[[nodiscard]] const std::optional<bool>& installSubstructure() const;
+		[[nodiscard]] inline const std::optional<bool>& installSubstructure() const;
 
 		/**
 		 * @brief Get the optional assignment name mapping
 		 * @return The assignment name mapping if available, empty optional otherwise
 		 */
-		[[nodiscard]] const std::optional<NormalAssignmentNamesMap>& normalAssignmentNames() const;
+		[[nodiscard]] inline const std::optional<NormalAssignmentNamesMap>& normalAssignmentNames() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -284,19 +284,19 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version string
 		 * @return The VIS version
 		 */
-		[[nodiscard]] const std::string& visVersion() const;
+		[[nodiscard]] inline const std::string& visVersion() const;
 
 		/**
 		 * @brief Get the collection of GMOD node DTOs
 		 * @return The vector of node DTOs
 		 */
-		[[nodiscard]] const Items& items() const;
+		[[nodiscard]] inline const Items& items() const;
 
 		/**
 		 * @brief Get the collection of relationships between nodes
 		 * @return The vector of relation arrays
 		 */
-		[[nodiscard]] const Relations& relations() const;
+		[[nodiscard]] inline const Relations& relations() const;
 
 		//----------------------------------------------
 		// Serialization
@@ -352,3 +352,5 @@ namespace dnv::vista::sdk
 		Relations m_relations;
 	};
 }
+
+#include "GmodDto.inl"

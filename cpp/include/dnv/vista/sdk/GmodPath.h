@@ -76,32 +76,29 @@ namespace dnv::vista::sdk
 		// Equality operators
 		//----------------------------------------------
 
-		[[nodiscard]] bool operator==( const GmodPath& other ) const noexcept;
-		[[nodiscard]] bool operator!=( const GmodPath& other ) const noexcept;
+		[[nodiscard]] inline bool operator==( const GmodPath& other ) const noexcept;
+		[[nodiscard]] inline bool operator!=( const GmodPath& other ) const noexcept;
 
 		//----------------------------------------------
 		// Lookup operators
 		//----------------------------------------------
 
-		[[nodiscard]] GmodNode* operator[]( size_t index ) const;
-		[[nodiscard]] GmodNode*& operator[]( size_t index );
+		[[nodiscard]] inline GmodNode* operator[]( size_t index ) const;
+		[[nodiscard]] inline GmodNode*& operator[]( size_t index );
 
 		//----------------------------------------------
 		// Accessors
 		//----------------------------------------------
 
-		[[nodiscard]] VisVersion visVersion() const noexcept;
-		[[nodiscard]] size_t hashCode() const noexcept;
-
-		[[nodiscard]] const Gmod* gmod() const noexcept;
-		[[nodiscard]] GmodNode* node() const noexcept;
-		[[nodiscard]] const std::vector<GmodNode*>& parents() const noexcept;
-
-		[[nodiscard]] size_t length() const noexcept;
+		[[nodiscard]] inline VisVersion visVersion() const noexcept;
+		[[nodiscard]] inline const Gmod* gmod() const noexcept;
+		[[nodiscard]] inline GmodNode* node() const noexcept;
+		[[nodiscard]] inline const std::vector<GmodNode*>& parents() const noexcept;
+		[[nodiscard]] inline size_t length() const noexcept;
 		[[nodiscard]] std::vector<GmodIndividualizableSet> individualizableSets() const;
-
 		[[nodiscard]] std::optional<std::string> normalAssignmentName( size_t nodeDepth ) const;
 		[[nodiscard]] std::vector<std::pair<size_t, std::string>> commonNames() const;
+		[[nodiscard]] inline size_t hashCode() const noexcept;
 
 		//----------------------------------------------
 		// Utility methods
@@ -224,18 +221,18 @@ namespace dnv::vista::sdk
 			 * @return True if the enumerator successfully moved to the next element;
 			 *         false if the enumerator has passed the end of the collection.
 			 */
-			bool next();
+			inline bool next();
 
 			/**
 			 * @brief Gets the current element.
 			 * @return The current path element (depth, node).
 			 */
-			const PathElement& current() const;
+			inline const PathElement& current() const;
 
 			/**
 			 * @brief Resets the enumerator to its initial position.
 			 */
-			void reset();
+			inline void reset();
 
 		private:
 			//----------------------------
@@ -285,8 +282,8 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		[[nodiscard]] std::vector<GmodNode*> nodes() const;
-		[[nodiscard]] const std::vector<int>& nodeIndices() const noexcept;
-		[[nodiscard]] std::optional<Location> location() const;
+		[[nodiscard]] inline const std::vector<int>& nodeIndices() const noexcept;
+		[[nodiscard]] inline std::optional<Location> location() const;
 
 		//----------------------------------------------
 		// Utility methods
@@ -368,3 +365,5 @@ namespace dnv::vista::sdk
 		std::string error;
 	};
 }
+
+#include "GmodPath.inl"
