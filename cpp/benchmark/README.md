@@ -52,9 +52,9 @@ cmake --build build --target BM_CodebooksLookup
 | **String Hashing (Long)**    | **1.07x faster to 1.74x faster** |   ✅   | C++ shows performance advantage     |
 | **GMOD Loading**             | **1.29x faster**                 |   ✅   | Good performance with less memory   |
 | **GMOD Lookup**              | **1.06-2.35x faster**            |   ✅   | C++ shows performance advantage     |
-| **GMOD Traversal**           | **1.63x slower**                 |   ❌   | **Optimization opportunity**        |
-| **Path Parsing**             | **1.88-32.2x slower**            |  ❌❌  | **Significant optimization needed** |
-| **Version Path Conversion**  | **147x slower**                  | ❌❌❌ | **Critical performance gap**        |
+| **GMOD Traversal**           | **1.52x slower**                 |   ❌   | **Optimization opportunity**        |
+| **Path Parsing**             | **1.32-31.7x slower**            |  ❌❌  | **Significant optimization needed** |
+| **Version Path Conversion**  | **142x slower**                  | ❌❌❌ | **Critical performance gap**        |
 
 ---
 
@@ -140,16 +140,16 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark                 | Time           | CPU            | Iterations | Memory Usage | Performance Category       |
-| :------------------------ | :------------- | :------------- | :--------- | :----------- | :------------------------- |
-| **BM_CodebooksInstance**  | **0.688 ns**   | **0.688 ns**   | 20.7B      | 0 KB         | 🚀 **Ultra-fast**          |
-| **BM_CodebooksReference** | **0.838 ns**   | **0.833 ns**   | 16.7B      | 0 KB         | 🚀 **Ultra-fast**          |
-| **BM_Array**              | **1.62 ns**    | **1.62 ns**    | 8.4B       | 0 KB         | ⚡ **Fast**                |
-| **BM_Vector**             | **1.80 ns**    | **1.80 ns**    | 7.6B       | 0 KB         | ⚡ **Fast**                |
-| **BM_UnorderedMap**       | **2.11 ns**    | **2.11 ns**    | 6.7B       | 0 KB         | ⚡ **Fast**                |
-| **BM_Map**                | **3.44 ns**    | **3.44 ns**    | 4.0B       | 0 KB         | ⚠️ **Slow**                |
-| **BM_CodebooksAPI**       | **826 ns**     | **826 ns**     | 16.9M      | 0 KB         | ❌ **Expected: slow**      |
-| **BM_CodebooksVISCall**   | **125,614 ns** | **125,558 ns** | 112K       | 0 KB         | ❌ **Expected: very slow** |
+| Benchmark                 | Time           | CPU            | Iterations | Performance Category       |
+| :------------------------ | :------------- | :------------- | :--------- | :------------------------- |
+| **BM_CodebooksInstance**  | **0.688 ns**   | **0.688 ns**   | 20.7B      | 🚀 **Ultra-fast**          |
+| **BM_CodebooksReference** | **0.838 ns**   | **0.833 ns**   | 16.7B      | 🚀 **Ultra-fast**          |
+| **BM_Array**              | **1.62 ns**    | **1.62 ns**    | 8.4B       | ⚡ **Fast**                |
+| **BM_Vector**             | **1.80 ns**    | **1.80 ns**    | 7.6B       | ⚡ **Fast**                |
+| **BM_UnorderedMap**       | **2.11 ns**    | **2.11 ns**    | 6.7B       | ⚡ **Fast**                |
+| **BM_Map**                | **3.44 ns**    | **3.44 ns**    | 4.0B       | ⚠️ **Slow**                |
+| **BM_CodebooksAPI**       | **826 ns**     | **826 ns**     | 16.9M      | ❌ **Expected: slow**      |
+| **BM_CodebooksVISCall**   | **125,614 ns** | **125,558 ns** | 112K       | ❌ **Expected: very slow** |
 
 #### Detailed C# Results (Windows)
 
@@ -177,9 +177,9 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark    | Time    | CPU     | Iterations | Memory Usage |
-| :----------- | :------ | :------ | :--------- | :----------- |
-| **gmodLoad** | 23.5 ms | 23.5 ms | 490        | 1.316 KB     |
+| Benchmark    | Time    | CPU     | Iterations |
+| :----------- | :------ | :------ | :--------- |
+| **gmodLoad** | 23.5 ms | 23.5 ms | 490        |
 
 #### Detailed C# Results (Windows)
 
@@ -207,11 +207,11 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark      | Time    | CPU     | Iterations | Memory Usage |
-| :------------- | :------ | :------ | :--------- | :----------- |
-| **Dict**       | 16.3 ns | 16.3 ns | 887M       | 0 KB         |
-| **FrozenDict** | 14.3 ns | 14.3 ns | 974M       | 18.0 KB      |
-| **Gmod**       | 61.0 ns | 60.3 ns | 235M       | 0 KB         |
+| Benchmark      | Time    | CPU     | Iterations |
+| :------------- | :------ | :------ | :--------- |
+| **Dict**       | 16.3 ns | 16.3 ns | 887M       |
+| **FrozenDict** | 14.3 ns | 14.3 ns | 974M       |
+| **Gmod**       | 61.0 ns | 60.3 ns | 235M       |
 
 #### Detailed C# Results (Windows)
 
@@ -229,10 +229,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation                          | Windows C++ | Linux C++ | Status | Notes |
 | :--------------------------------- | :---------- | :-------- | :----: | :---- |
-| **TryParse**                       | 6.32 μs     | _TBD_     |        |       |
-| **TryParseFullPath**               | 18.4 μs     | _TBD_     |        |       |
-| **TryParseIndividualized**         | 4.03 μs     | _TBD_     |        |       |
-| **TryParseFullPathIndividualized** | 18.8 μs     | _TBD_     |        |       |
+| **TryParse**                       | 4.45 μs     | _TBD_     |        |       |
+| **TryParseFullPath**               | 18.1 μs     | _TBD_     |        |       |
+| **TryParseIndividualized**         | 3.48 μs     | _TBD_     |        |       |
+| **TryParseFullPathIndividualized** | 18.9 μs     | _TBD_     |        |       |
 
 ### GMOD Path Parsing Performance (Windows)
 
@@ -240,19 +240,19 @@ Performance comparison between C++ and C# implementations for GMOD path parsing 
 
 | Operation                          | C++ (Google Benchmark) | C# (BenchmarkDotNet) | Performance Ratio | Status | Notes                         |
 | :--------------------------------- | :--------------------- | :------------------- | :---------------- | :----: | :---------------------------- |
-| **TryParse**                       | 6.32 μs                | 3.36 μs              | **1.88x slower**  |   ❌   | C++ path parsing overhead     |
-| **TryParseFullPath**               | 18.4 μs                | 571 ns               | **32.2x slower**  | ❌❌❌ | Critical performance issue    |
-| **TryParseIndividualized**         | 4.03 μs                | 1.49 μs              | **2.70x slower**  |   ❌   | C++ location parsing overhead |
-| **TryParseFullPathIndividualized** | 18.8 μs                | 694 ns               | **27.1x slower**  | ❌❌❌ | Critical performance issue    |
+| **TryParse**                       | 4.45 μs                | 3.36 μs              | **1.32x slower**  |   ⚠️   | C++ path parsing overhead     |
+| **TryParseFullPath**               | 18.1 μs                | 571 ns               | **31.7x slower**  | ❌❌❌ | Critical performance issue    |
+| **TryParseIndividualized**         | 3.48 μs                | 1.49 μs              | **2.34x slower**  |   ❌   | C++ location parsing overhead |
+| **TryParseFullPathIndividualized** | 18.9 μs                | 694 ns               | **27.2x slower**  | ❌❌❌ | Critical performance issue    |
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark                          | Time    | CPU     | Iterations | Memory Usage |
-| :--------------------------------- | :------ | :------ | :--------- | :----------- |
-| **tryParse**                       | 6.32 μs | 6.31 μs | 2.3M       | 0 KB         |
-| **tryParseFullPath**               | 18.4 μs | 18.4 μs | 759K       | 18.0 KB      |
-| **tryParseIndividualized**         | 4.03 μs | 4.03 μs | 3.5M       | 0 KB         |
-| **tryParseFullPathIndividualized** | 18.8 μs | 18.8 μs | 740K       | 0 KB         |
+| Benchmark                          | Time    | CPU     | Iterations |
+| :--------------------------------- | :------ | :------ | :--------- |
+| **tryParse**                       | 4.45 μs | 4.45 μs | 3.2M       |
+| **tryParseFullPath**               | 18.1 μs | 18.1 μs | 772K       |
+| **tryParseIndividualized**         | 3.48 μs | 3.48 μs | 4.0M       |
+| **tryParseFullPathIndividualized** | 18.9 μs | 18.9 μs | 747K       |
 
 #### Detailed C# Results (Windows)
 
@@ -279,13 +279,13 @@ Performance comparison between C++ and C# implementations for GMOD node lookup o
 
 | Operation          | C++ (Google Benchmark) | C# (BenchmarkDotNet) | Performance Ratio | Status | Notes                                |
 | :----------------- | :--------------------- | :------------------- | :---------------- | :----: | :----------------------------------- |
-| **Full Traversal** | 266 ms                 | 162.9 ms             | **1.63x slower**  |   ❌   | Significant optimization opportunity |
+| **Full Traversal** | 248 ms                 | 162.9 ms             | **1.52x slower**  |   ❌   | Significant optimization opportunity |
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark         | Time   | CPU    | Iterations | Memory Usage |
-| :---------------- | :----- | :----- | :--------- | :----------- |
-| **FullTraversal** | 266 ms | 266 ms | 50-51      | 0 KB         |
+| Benchmark         | Time   | CPU    | Iterations |
+| :---------------- | :----- | :----- | :--------- |
+| **FullTraversal** | 248 ms | 266 ms | 50-51      |
 
 #### Detailed C# Results (Windows)
 
@@ -301,7 +301,7 @@ Performance comparison between C++ and C# implementations for GMOD node lookup o
 
 | Operation        | Windows C++ | Linux C++ | Status | Notes |
 | :--------------- | :---------- | :-------- | :----: | :---- |
-| **Convert Path** | 219 μs      | _TBD_     |        |       |
+| **Convert Path** | 212 μs      | _TBD_     |        |       |
 
 ### GMOD Versioning Path Conversion Performance (Windows)
 
@@ -309,13 +309,13 @@ Performance comparison between C++ and C# implementations for GMOD version path 
 
 | Operation        | C++ (Google Benchmark) | C# (BenchmarkDotNet) | Performance Ratio | Status | Notes            |
 | :--------------- | :--------------------- | :------------------- | :---------------- | :----: | :--------------- |
-| **Convert Path** | 219 μs                 | 1.489 μs             | **147x slower**   | ❌❌❌ | **CATASTROPHIC** |
+| **Convert Path** | 212 μs                 | 1.489 μs             | **142x slower**   | ❌❌❌ | **CATASTROPHIC** |
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark       | Time   | CPU    | Iterations | Memory Usage |
-| :-------------- | :----- | :----- | :--------- | :----------- |
-| **convertPath** | 219 μs | 219 μs | 64,000     | 0 KB         |
+| Benchmark       | Time   | CPU    | Iterations |
+| :-------------- | :----- | :----- | :--------- |
+| **convertPath** | 212 μs | 219 μs | 64,000     |
 
 #### Detailed C# Results (Windows)
 
@@ -368,37 +368,37 @@ Performance comparison between C++ and C# implementations for hash function oper
 
 #### Detailed C++ Results (Windows)
 
-| Benchmark                       | Input      | Time    | CPU     | Iterations | Memory Usage |
-| :------------------------------ | :--------- | :------ | :------ | :--------- | :----------- |
-| **short strings (400)**         |            |         |         |            |              |
-| bcl_400                         | 400        | 1.55 ns | 1.55 ns | 8.6B       | 0 KB         |
-| bclOrd_400                      | 400        | 1.79 ns | 1.79 ns | 7.8B       | 0 KB         |
-| Larson_400                      | 400        | 1.70 ns | 1.70 ns | 8.4B       | 0 KB         |
-| crc32Intrinsic_400              | 400        | 1.51 ns | 1.51 ns | 9.4B       | 0 KB         |
-| fnv_400                         | 400        | 1.65 ns | 1.66 ns | 8.4B       | 0 KB         |
-| **longer strings (H346.11112)** |            |         |         |            |              |
-| bcl_H346_11112                  | H346.11112 | 3.76 ns | 3.75 ns | 4.5B       | 0 KB         |
-| bclOrd_H346_11112               | H346.11112 | 3.05 ns | 3.05 ns | 4.6B       | 0 KB         |
-| Larson_H346_11112               | H346.11112 | 4.61 ns | 4.61 ns | 3.0B       | 0 KB         |
-| crc32Intrinsic_H346_11112       | H346.11112 | 4.34 ns | 4.33 ns | 3.2B       | 0 KB         |
-| fnv_H346_11112                  | H346.11112 | 3.26 ns | 3.25 ns | 4.3B       | 0 KB         |
+| Benchmark                       | Input      | Time    | CPU     | Iterations |
+| :------------------------------ | :--------- | :------ | :------ | :--------- |
+| **short strings (400)**         |            |         |         |            |
+| bcl_400                         | 400        | 1.55 ns | 1.55 ns | 8.6B       |
+| bclOrd_400                      | 400        | 1.79 ns | 1.79 ns | 7.8B       |
+| Larson_400                      | 400        | 1.70 ns | 1.70 ns | 8.4B       |
+| crc32Intrinsic_400              | 400        | 1.51 ns | 1.51 ns | 9.4B       |
+| fnv_400                         | 400        | 1.65 ns | 1.66 ns | 8.4B       |
+| **longer strings (H346.11112)** |            |         |         |            |
+| bcl_H346_11112                  | H346.11112 | 3.76 ns | 3.75 ns | 4.5B       |
+| bclOrd_H346_11112               | H346.11112 | 3.05 ns | 3.05 ns | 4.6B       |
+| Larson_H346_11112               | H346.11112 | 4.61 ns | 4.61 ns | 3.0B       |
+| crc32Intrinsic_H346_11112       | H346.11112 | 4.34 ns | 4.33 ns | 3.2B       |
+| fnv_H346_11112                  | H346.11112 | 3.26 ns | 3.25 ns | 4.3B       |
 
 #### Detailed C# Results (Windows)
 
-| Benchmark                 | Input      | Time    | CPU     | Iterations | Memory Usage |
-| :------------------------ | :--------- | :------ | :------ | :--------- | :----------- |
-| **short strings (400)**   |            |         |         |            |              |
-| bcl_400                   | 400        | 1.18 ns | 1.18 ns | 12.1B      | 0 KB         |
-| bclOrd_400                | 400        | 1.77 ns | 1.77 ns | 8.0B       | 0 KB         |
-| Larson_400                | 400        | 1.54 ns | 1.54 ns | 9.1B       | 0 KB         |
-| crc32Intrinsic_400        | 400        | 1.57 ns | 1.56 ns | 8.9B       | 0 KB         |
-| fnv_400                   | 400        | 1.48 ns | 1.48 ns | 9.3B       | 0 KB         |
-| bcl_H346_11112            | H346.11112 | 2.61 ns | 2.61 ns | 5.4B       | 0 KB         |
-| bclOrd_H346_11112         | H346.11112 | 2.92 ns | 2.92 ns | 4.7B       | 0 KB         |
-| Larson_H346_11112         | H346.11112 | 4.85 ns | 4.83 ns | 2.9B       | 0 KB         |
-| crc32Intrinsic_H346_11112 | H346.11112 | 4.51 ns | 4.51 ns | 3.1B       | 0 KB         |
-| fnv_H346_11112            | H346.11112 | 3.39 ns | 3.39 ns | 4.1B       | 0 KB         |
+| Benchmark                 | Input      | Time    | CPU     | Iterations |
+| :------------------------ | :--------- | :------ | :------ | :--------- |
+| **short strings (400)**   |            |         |         |            |
+| bcl_400                   | 400        | 1.18 ns | 1.18 ns | 12.1B      |
+| bclOrd_400                | 400        | 1.77 ns | 1.77 ns | 8.0B       |
+| Larson_400                | 400        | 1.54 ns | 1.54 ns | 9.1B       |
+| crc32Intrinsic_400        | 400        | 1.57 ns | 1.56 ns | 8.9B       |
+| fnv_400                   | 400        | 1.48 ns | 1.48 ns | 9.3B       |
+| bcl_H346_11112            | H346.11112 | 2.61 ns | 2.61 ns | 5.4B       |
+| bclOrd_H346_11112         | H346.11112 | 2.92 ns | 2.92 ns | 4.7B       |
+| Larson_H346_11112         | H346.11112 | 4.85 ns | 4.83 ns | 2.9B       |
+| crc32Intrinsic_H346_11112 | H346.11112 | 4.51 ns | 4.51 ns | 3.1B       |
+| fnv_H346_11112            | H346.11112 | 3.39 ns | 3.39 ns | 4.1B       |
 
 ---
 
-_Last updated: June 9, 2025_
+_Last updated: June 19, 2025_
