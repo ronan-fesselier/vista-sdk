@@ -31,12 +31,6 @@ namespace dnv::vista::sdk::benchmarks
 	{
 		initializeData();
 
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_start;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_start, sizeof( pmc_start ) );
-		size_t initialMemory = pmc_start.WorkingSetSize;
-#endif
-
 		for ( auto _ : state )
 		{
 			std::optional<GmodPath> outPath;
@@ -45,24 +39,11 @@ namespace dnv::vista::sdk::benchmarks
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
 		}
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_end;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_end, sizeof( pmc_end ) );
-		auto memoryDelta = static_cast<double>( pmc_end.WorkingSetSize - initialMemory );
-		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
-#endif
 	}
 
 	static void BM_tryParseFullPath( benchmark::State& state )
 	{
 		initializeData();
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_start;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_start, sizeof( pmc_start ) );
-		size_t initialMemory = pmc_start.WorkingSetSize;
-#endif
 
 		for ( auto _ : state )
 		{
@@ -74,24 +55,11 @@ namespace dnv::vista::sdk::benchmarks
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
 		}
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_end;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_end, sizeof( pmc_end ) );
-		auto memoryDelta = static_cast<double>( pmc_end.WorkingSetSize - initialMemory );
-		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
-#endif
 	}
 
 	static void BM_tryParseIndividualized( benchmark::State& state )
 	{
 		initializeData();
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_start;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_start, sizeof( pmc_start ) );
-		size_t initialMemory = pmc_start.WorkingSetSize;
-#endif
 
 		for ( auto _ : state )
 		{
@@ -101,24 +69,11 @@ namespace dnv::vista::sdk::benchmarks
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
 		}
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_end;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_end, sizeof( pmc_end ) );
-		auto memoryDelta = static_cast<double>( pmc_end.WorkingSetSize - initialMemory );
-		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
-#endif
 	}
 
 	static void BM_tryParseFullPathIndividualized( benchmark::State& state )
 	{
 		initializeData();
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_start;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_start, sizeof( pmc_start ) );
-		size_t initialMemory = pmc_start.WorkingSetSize;
-#endif
 
 		for ( auto _ : state )
 		{
@@ -130,13 +85,6 @@ namespace dnv::vista::sdk::benchmarks
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
 		}
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_end;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_end, sizeof( pmc_end ) );
-		auto memoryDelta = static_cast<double>( pmc_end.WorkingSetSize - initialMemory );
-		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
-#endif
 	}
 
 	BENCHMARK( BM_tryParse )

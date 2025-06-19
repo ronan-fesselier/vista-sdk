@@ -5,6 +5,8 @@
 
 #include "pch.h"
 
+#include "TestDataLoader.h"
+
 #include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodVersioning.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
@@ -176,6 +178,40 @@ namespace dnv::vista::sdk::tests
 	}
 
 	//----------------------------------------------
+	// Test_Valid_GmodPath_To_Latest
+	//----------------------------------------------
+
+	TEST_F( GmodVersioningTest, Test_Valid_GmodPath_To_Latest )
+	{
+		ASSERT_TRUE( m_setupSuccess ) << "Test setup failed";
+
+		const auto& testData = loadTestData( "testdata/GmodPaths.json" );
+		const auto& validPaths = testData["Valid"];
+
+		for ( const auto& item : validPaths )
+		{
+			std::string path = item["path"];
+			std::string visVersionStr = item["visVersion"];
+
+			auto& vis = *m_vis;
+
+			VisVersion sourceVersion;
+			bool parseSuccess = VisVersionExtensions::tryParse( visVersionStr, sourceVersion );
+			ASSERT_TRUE( parseSuccess );
+
+			std::optional<GmodPath> sourcePath;
+			auto sourceGmod = vis.gmod( sourceVersion );
+			bool pathParseSuccess = sourceGmod.tryParsePath( path, sourcePath );
+			ASSERT_TRUE( pathParseSuccess );
+
+			VisVersion latestVersion = VisVersion::v3_9a;
+			auto targetPath = vis.convertPath( sourceVersion, *sourcePath, latestVersion );
+
+			ASSERT_TRUE( targetPath.has_value() );
+		}
+	}
+
+	//----------------------------------------------
 	// ConvertEveryNodeToLatest
 	//----------------------------------------------
 
@@ -256,25 +292,23 @@ namespace dnv::vista::sdk::tests
 			{ "321.38/C906", "321.39/C906" },
 			{ "511.331/C221", "511.31/C121.31/C221" },
 			{ "511.11/C101.663i/C663.5/CS6d", "511.11/C101.663i/C663.6/CS6d" },
+			{ "511.11-1/C101.663i/C663.5/CS6d", "511.11-1/C101.663i/C663.6/CS6d" },
+			{ "1012.21/C1147.221/C1051.7/C101.22", "1012.21/C1147.221/C1051.7/C101.93" },
+			{ "1012.21/C1147.221/C1051.7/C101.61/S203.6", "1012.21/C1147.221/C1051.7/C101.311/C467.5" },
 			{ "001", "001" },
 			{ "038.7/F101.2/F71", "038.7/F101.2/F71" },
+			{ "1012.21/C1147.221/C1051.7/C101.61/S203.6/S61", "1012.21/C1147.221/C1051.7/C101.311/C467.5/S61" },
 			{ "000a", "000a" },
 			{ "1012.21/C1147.221/C1051.7/C101.61/S203.2/S101", "1012.21/C1147.221/C1051.7/C101.61/S203.3/S110.1/S101" },
+			{ "1012.21/C1147.221/C1051.7/C101.661i/C624", "1012.21/C1147.221/C1051.7/C101.661i/C621" },
 			{ "1012.22/S201.1/C151.2/S110.2/C101.64i", "1012.22/S201.1/C151.2/S110.2/C101.64" },
 			{ "632.32i/S110.2/C111.42/G203.31/S90.5/C401", "632.32i/S110.2/C111.42/G203.31/S90.5/C401" },
-			{ "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51",
-				"864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51" },
+			{ "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51", "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51" },
 			{ "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401", "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401" },
 			{ "221.31/C1141.41/C664.2/C471", "221.31/C1141.41/C664.2/C471" },
 			{ "514/E15", "514" },
 			{ "244.1i/H101.111/H401", "244.1i/H101.11/H407.1/H401", VisVersion::v3_7a, VisVersion::v3_8a },
-			{ "1346/S201.1/C151.31/S110.2/C111.1/C109.16/C509", "1346/S201.1/C151.31/S110.2/C111.1/C109.126/C509", VisVersion::v3_7a, VisVersion::v3_8a },
-			{ "1012.21/C1147.221/C1051.7/C101.61/S203.6", "1012.21/C1147.221/C1051.7/C101.311/C467.5" },
-			{ "1012.21/C1147.221/C1051.7/C101.61/S203.6/S61", "1012.21/C1147.221/C1051.7/C101.311/C467.5/S61" },
-			{ "1012.21/C1147.221/C1051.7/C101.22", "1012.21/C1147.221/C1051.7/C101.93" },
-			{ "1012.21/C1147.221/C1051.7/C101.661i/C624", "1012.21/C1147.221/C1051.7/C101.661i/C621" },
-			{ "511.11/C101.663i/C663.5/CS6d", "511.11/C101.663i/C663.6/CS6d" },
-			{ "511.11-1/C101.663i/C663.5/CS6d", "511.11-1/C101.663i/C663.6/CS6d" } };
+			{ "1346/S201.1/C151.31/S110.2/C111.1/C109.16/C509", "1346/S201.1/C151.31/S110.2/C111.1/C109.126/C509", VisVersion::v3_7a, VisVersion::v3_8a } };
 	}
 
 	class PathConversionTest : public ::testing::TestWithParam<PathTestData>
@@ -289,7 +323,6 @@ namespace dnv::vista::sdk::tests
 		const auto& targetGmod = vis.gmod( testData.targetVersion );
 
 		std::optional<GmodPath> sourcePathOpt;
-
 		auto res = sourceGmod.tryParsePath( testData.inputPath, sourcePathOpt );
 
 		ASSERT_TRUE( res );
@@ -299,11 +332,43 @@ namespace dnv::vista::sdk::tests
 		bool parsedExpectedPath = targetGmod.tryParsePath( testData.expectedPath, parsedTargetPathOpt );
 
 		auto targetPath = vis.convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
+		ASSERT_TRUE( targetPath.has_value() );
 
+		std::vector<std::string> nodesWithLocation;
+		auto sourceEnumerator = sourcePathOpt->enumerator();
+		while ( sourceEnumerator.next() )
+		{
+			const auto& [depth, node] = sourceEnumerator.current();
+			if ( node && node->location().has_value() )
+			{
+				nodesWithLocation.push_back( std::string( node->code() ) );
+			}
+		}
+
+		struct LocationValidationState
+		{
+			bool allNodesHaveNullLocation = true;
+		};
+
+		LocationValidationState state;
+		TraverseHandlerWithState<LocationValidationState> handler =
+			[]( LocationValidationState& s, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			if ( node.location().has_value() )
+			{
+				s.allNodesHaveNullLocation = false;
+			}
+			return TraversalHandlerResult::Continue;
+		};
+
+		GmodTraversal::traverse( state, targetGmod, handler );
+		EXPECT_TRUE( state.allNodesHaveNullLocation ) << "Some nodes in target GMOD have non-null location";
+
+		std::cout << sourcePathOpt->toString() << std::endl;
+
+		ASSERT_TRUE( sourcePathOpt.has_value() );
 		EXPECT_EQ( testData.inputPath, sourcePathOpt->toString() );
 
 		EXPECT_TRUE( parsedExpectedPath );
-		ASSERT_TRUE( parsedTargetPathOpt.has_value() );
 		EXPECT_EQ( testData.expectedPath, parsedTargetPathOpt->toString() );
 
 		ASSERT_TRUE( targetPath.has_value() );
