@@ -156,7 +156,7 @@ namespace dnv::vista::sdk::tests
 
 		TEST_F( GmodTests, Test_Full_Traversal )
 		{
-			auto visVersionForPath = VisVersion::v3_4a;
+			auto visVersionForPath = VisVersion::LATEST;
 			auto [vis, gmod] = visAndGmod( visVersionForPath );
 
 			struct FullTraversalState
@@ -360,7 +360,8 @@ namespace dnv::vista::sdk::tests
 			{ VisVersion::v3_5a, { "C1053.3114", 6557 } },
 			{ VisVersion::v3_6a, { "C1053.3114", 6557 } },
 			{ VisVersion::v3_7a, { "H346.11113", 6672 } },
-			{ VisVersion::v3_8a, { "H346.11113", 6335 } } };
+			{ VisVersion::v3_8a, { "H346.11113", 6335 } },
+			{ VisVersion::v3_9a, { "H346.11113", 6553 } } };
 
 		TEST_P( GmodTests, Test_Gmod_Properties )
 		{
@@ -539,7 +540,8 @@ namespace dnv::vista::sdk::tests
 				VisVersion::v3_5a,
 				VisVersion::v3_6a,
 				VisVersion::v3_7a,
-				VisVersion::v3_8a ) );
+				VisVersion::v3_8a,
+				VisVersion::v3_9a ) );
 
 		INSTANTIATE_TEST_SUITE_P(
 			GmodMappabilityTestSuite,

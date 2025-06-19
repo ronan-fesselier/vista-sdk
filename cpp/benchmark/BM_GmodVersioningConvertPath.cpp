@@ -39,12 +39,6 @@ namespace dnv::vista::sdk::benchmarks
 	{
 		initializeData();
 
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_start;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_start, sizeof( pmc_start ) );
-		size_t initialMemory = pmc_start.WorkingSetSize;
-#endif
-
 		auto& vis = VIS::instance();
 
 		for ( auto _ : state )
@@ -52,13 +46,6 @@ namespace dnv::vista::sdk::benchmarks
 			auto result = vis.convertPath( VisVersion::v3_4a, g_gmodPath, VisVersion::v3_5a );
 			benchmark::DoNotOptimize( result );
 		}
-
-#ifdef _WIN32
-		PROCESS_MEMORY_COUNTERS_EX pmc_end;
-		GetProcessMemoryInfo( GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc_end, sizeof( pmc_end ) );
-		auto memoryDelta = static_cast<double>( pmc_end.WorkingSetSize - initialMemory );
-		state.counters["MemoryDeltaKB"] = benchmark::Counter( memoryDelta / 1024.0 );
-#endif
 	}
 
 	BENCHMARK( BM_convertPath )

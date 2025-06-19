@@ -7,7 +7,7 @@ namespace dnv::vista::sdk
 {
 	inline bool VisVersionExtensions::isValid( VisVersion version )
 	{
-		return version >= VisVersion::v3_4a && version <= VisVersion::v3_8a;
+		return version >= VisVersion::v3_4a && version <= VisVersion::LATEST;
 	}
 
 	inline VisVersion VisVersionExtensions::latestVersion()
@@ -29,9 +29,10 @@ namespace dnv::vista::sdk
 				return "vis-3-7a";
 			case VisVersion::v3_8a:
 				return "vis-3-8a";
+			case VisVersion::v3_9a:
+				return "vis-3-9a";
 			case VisVersion::Unknown:
 				return "Unknown";
-			case VisVersion::COUNT_VALID:
 			default:
 			{
 				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );

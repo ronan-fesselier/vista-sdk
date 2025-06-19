@@ -14,9 +14,9 @@ namespace dnv::vista::sdk
 		v3_6a = 3600,
 		v3_7a = 3700,
 		v3_8a = 3800,
+		v3_9a = 3900,
 
-		LATEST = v3_8a,
-		COUNT_VALID = 5
+		LATEST = v3_9a,
 	};
 
 	/**
