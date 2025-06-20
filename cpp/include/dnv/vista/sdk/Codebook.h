@@ -12,6 +12,7 @@
 
 #include "CodebooksDto.h"
 #include "CodebookName.h"
+#include "utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {
@@ -20,28 +21,6 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	class MetadataTag;
-
-	//=====================================================================
-	// Heterogeneous lookup
-	//=====================================================================
-
-	struct StringHash
-	{
-		using is_transparent = void;
-
-		[[nodiscard]] size_t operator()( std::string_view sv ) const noexcept;
-		[[nodiscard]] size_t operator()( const std::string& s ) const noexcept;
-	};
-
-	struct StringEqual
-	{
-		using is_transparent = void;
-
-		[[nodiscard]] bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept;
-		[[nodiscard]] bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
-		[[nodiscard]] bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
-		[[nodiscard]] bool operator()( std::string_view lhs, std::string_view rhs ) const noexcept;
-	};
 
 	//=====================================================================
 	// PositionValidationResults class
@@ -133,7 +112,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Iterator type for traversing standard values
 		 */
-		using Iterator = std::unordered_set<std::string>::const_iterator;
+		using Iterator = std::unordered_set<std::string, StringViewHash, StringViewEqual>::const_iterator;
 
 		//----------------------------------------------
 		// Construction / destruction
@@ -144,7 +123,7 @@ namespace dnv::vista::sdk
 		 * @param name The codebook name
 		 * @param standardValues The set of standard values
 		 */
-		explicit CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringHash, StringEqual>&& standardValues );
+		explicit CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringViewHash, StringViewEqual>&& standardValues );
 
 		/** @brief Default constructor. */
 		CodebookStandardValues() = default;
@@ -210,7 +189,7 @@ namespace dnv::vista::sdk
 		CodebookName m_name;
 
 		/** @brief The set of standard values */
-		std::unordered_set<std::string, StringHash, StringEqual> m_standardValues;
+		std::unordered_set<std::string, StringViewHash, StringViewEqual> m_standardValues;
 	};
 
 	//=====================================================================
@@ -232,7 +211,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Iterator type for traversing groups
 		 */
-		using Iterator = std::unordered_set<std::string>::const_iterator;
+		using Iterator = std::unordered_set<std::string, StringViewHash, StringViewEqual>::const_iterator;
 
 		//----------------------------------------------
 		// Construction / destruction
@@ -242,7 +221,7 @@ namespace dnv::vista::sdk
 		 * @brief Construct with groups
 		 * @param groups The set of groups
 		 */
-		explicit CodebookGroups( std::unordered_set<std::string, StringHash, StringEqual>&& groups );
+		explicit CodebookGroups( std::unordered_set<std::string, StringViewHash, StringViewEqual>&& groups );
 
 		/** @brief Default constructor. */
 		CodebookGroups() = default;
@@ -305,7 +284,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief The set of groups */
-		std::unordered_set<std::string, StringHash, StringEqual> m_groups;
+		std::unordered_set<std::string, StringViewHash, StringViewEqual> m_groups;
 	};
 
 	//=====================================================================
@@ -363,10 +342,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the codebook name
 		 * @return The codebook name
 		 */
-		[[nodiscard]] inline CodebookName name() const noexcept
-		{
-			return m_name;
-		}
+		[[nodiscard]] inline CodebookName name() const noexcept;
 
 		/**
 		 * @brief Get the groups
@@ -448,7 +424,7 @@ namespace dnv::vista::sdk
 		CodebookName m_name;
 
 		/** @brief Mapping from values to their group names */
-		std::unordered_map<std::string, std::string, StringHash, StringEqual> m_groupMap;
+		std::unordered_map<std::string, std::string, StringViewHash, StringViewEqual> m_groupMap;
 
 		/** @brief Container for standard values */
 		CodebookStandardValues m_standardValues;

@@ -27,29 +27,4 @@ namespace dnv::vista::sdk
 		: std::runtime_error{ std::string{ message } }
 	{
 	}
-
-	namespace internal
-	{
-		//=====================================================================
-		// Internal helper components
-		//=====================================================================
-
-		//----------------------------------------------
-		// ThrowHelper class
-		//----------------------------------------------
-
-		//----------------------------
-		// Public static methods
-		//----------------------------
-
-		void ThrowHelper::throwKeyNotFoundException( std::string_view key )
-		{
-			throw key_not_found_exception( key );
-		}
-
-		void ThrowHelper::throwInvalidOperationException()
-		{
-			throw invalid_operation_exception();
-		}
-	}
 }

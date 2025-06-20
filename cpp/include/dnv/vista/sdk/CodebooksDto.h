@@ -36,7 +36,7 @@ namespace dnv::vista::sdk
 		using ValuesMap = std::unordered_map<std::string, ValueGroup>;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -44,7 +44,7 @@ namespace dnv::vista::sdk
 		 * @param name The codebook name
 		 * @param values The map of group names to values
 		 */
-		CodebookDto( std::string name, ValuesMap values );
+		inline explicit CodebookDto( std::string name, ValuesMap values ) noexcept;
 
 		/** @brief Default constructor. */
 		CodebookDto() = default;
@@ -55,6 +55,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		CodebookDto( CodebookDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~CodebookDto() = default;
 
@@ -63,10 +67,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		CodebookDto& operator=( const CodebookDto& ) = delete;
+		CodebookDto& operator=( const CodebookDto& ) = default;
 
 		/** @brief Move assignment operator */
-		CodebookDto& operator=( CodebookDto&& ) noexcept = delete;
+		CodebookDto& operator=( CodebookDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -76,13 +80,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the name of this codebook
 		 * @return The codebook name
 		 */
-		[[nodiscard]] std::string_view name() const;
+		[[nodiscard]] inline std::string_view name() const noexcept;
 
 		/**
 		 * @brief Get the values map of this codebook
 		 * @return The map of group names to their corresponding values
 		 */
-		[[nodiscard]] const ValuesMap& values() const;
+		[[nodiscard]] inline const ValuesMap& values() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -115,13 +119,28 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//-------------------------------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to CodebookDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The CodebookDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
+		friend void from_json( const nlohmann::json& j, CodebookDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert CodebookDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The CodebookDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void to_json( nlohmann::json& j, const CodebookDto& dto );
-		friend void from_json( const nlohmann::json& j, CodebookDto& dto );
 
 	private:
 		//----------------------------------------------
@@ -157,7 +176,7 @@ namespace dnv::vista::sdk
 		using Items = std::vector<CodebookDto>;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -165,7 +184,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion The VIS version
 		 * @param items The collection of codebook DTOs
 		 */
-		explicit CodebooksDto( std::string visVersion, Items items );
+		inline explicit CodebooksDto( std::string visVersion, Items items ) noexcept;
 
 		/** @brief Default constructor. */
 		CodebooksDto() = default;
@@ -176,6 +195,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		CodebooksDto( CodebooksDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~CodebooksDto() = default;
 
@@ -184,10 +207,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		CodebooksDto& operator=( const CodebooksDto& ) = delete;
+		CodebooksDto& operator=( const CodebooksDto& ) = default;
 
 		/** @brief Move assignment operator */
-		CodebooksDto& operator=( CodebooksDto&& ) noexcept = delete;
+		CodebooksDto& operator=( CodebooksDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -197,13 +220,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version string
 		 * @return The VIS version string
 		 */
-		[[nodiscard]] const std::string& visVersion() const;
+		[[nodiscard]] inline std::string_view visVersion() const noexcept;
 
 		/**
 		 * @brief Get the collection of codebooks
 		 * @return The vector of codebook DTOs
 		 */
-		[[nodiscard]] const Items& items() const;
+		[[nodiscard]] inline const Items& items() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -232,6 +255,34 @@ namespace dnv::vista::sdk
 		[[nodiscard]] nlohmann::json toJson() const;
 
 	private:
+		//-------------------------------------------------------------------
+		// Private serialization methods
+		//-------------------------------------------------------------------
+
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to CodebooksDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The CodebooksDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
+		friend void from_json( const nlohmann::json& j, CodebooksDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert CodebooksDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The CodebooksDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
+		friend void to_json( nlohmann::json& j, const CodebooksDto& dto );
+
+	private:
 		//----------------------------------------------
 		// Private member variables
 		//----------------------------------------------
@@ -243,3 +294,5 @@ namespace dnv::vista::sdk
 		Items m_items;
 	};
 }
+
+#include "CodebooksDto.inl"

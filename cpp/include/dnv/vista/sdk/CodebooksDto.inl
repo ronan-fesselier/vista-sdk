@@ -1,53 +1,47 @@
 /**
- * @file LocationsDto.inl
- * @brief Inline implementations for performance-critical LocationsDto operations
+ * @file CodebooksDto.inl
+ * @brief Inline implementations for performance-critical CodebooksDto operations
  */
 
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Relative Location data transfer objects
+	// Codebook Data Transfer Object
 	//=====================================================================
 
 	//----------------------------------------------
 	// Construction
 	//----------------------------------------------
 
-	inline RelativeLocationsDto::RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition ) noexcept
-		: m_code{ code },
-		  m_name{ std::move( name ) },
-		  m_definition{ std::move( definition ) }
+	inline CodebookDto::CodebookDto( std::string name, ValuesMap values ) noexcept
+		: m_name{ std::move( name ) },
+		  m_values{ std::move( values ) }
 	{
 	}
 
 	//----------------------------------------------
-	// Accessors
+	// Accessor
 	//----------------------------------------------
 
-	inline char RelativeLocationsDto::code() const noexcept
-	{
-		return m_code;
-	}
-
-	inline std::string_view RelativeLocationsDto::name() const noexcept
+	inline std::string_view CodebookDto::name() const noexcept
 	{
 		return m_name;
 	}
 
-	inline const std::optional<std::string>& RelativeLocationsDto::definition() const noexcept
+	inline const CodebookDto::ValuesMap& CodebookDto::values() const noexcept
 	{
-		return m_definition;
+		return m_values;
 	}
 
 	//=====================================================================
-	// Location data transfer objects
+	// Codebooks Data Transfer Object
 	//=====================================================================
 
 	//----------------------------------------------
 	// Construction
 	//----------------------------------------------
 
-	inline LocationsDto::LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items ) noexcept
+	inline CodebooksDto::CodebooksDto( std::string visVersion, Items items ) noexcept
 		: m_visVersion{ std::move( visVersion ) },
 		  m_items{ std::move( items ) }
 	{
@@ -57,12 +51,12 @@ namespace dnv::vista::sdk
 	// Accessors
 	//----------------------------------------------
 
-	inline std::string_view LocationsDto::visVersion() const noexcept
+	inline std::string_view CodebooksDto::visVersion() const noexcept
 	{
 		return m_visVersion;
 	}
 
-	inline const std::vector<RelativeLocationsDto>& LocationsDto::items() const noexcept
+	inline const CodebooksDto::Items& CodebooksDto::items() const noexcept
 	{
 		return m_items;
 	}

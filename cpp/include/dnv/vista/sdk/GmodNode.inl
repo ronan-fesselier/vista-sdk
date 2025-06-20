@@ -3,7 +3,7 @@
  * @brief Inline implementations for performance-critical GmodNode operations
  */
 
-#include "GmodConstants.h"
+#include "Config.h"
 
 namespace dnv::vista::sdk
 {
@@ -171,7 +171,7 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		if ( m_metadata.category().find( NODE_CATEGORY_FUNCTION ) == std::string::npos )
+		if ( m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) == std::string::npos )
 		{
 			return nullptr;
 		}
@@ -182,12 +182,12 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		if ( child->m_metadata.category() != NODE_CATEGORY_PRODUCT )
+		if ( child->m_metadata.category() != GMODNODE_CATEGORY_PRODUCT )
 		{
 			return nullptr;
 		}
 
-		if ( child->m_metadata.type() != NODE_TYPE_TYPE )
+		if ( child->m_metadata.type() != GMODNODE_TYPE_TYPE )
 		{
 			return nullptr;
 		}
@@ -202,7 +202,7 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		if ( m_metadata.category().find( NODE_CATEGORY_FUNCTION ) == std::string::npos )
+		if ( m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) == std::string::npos )
 		{
 			return nullptr;
 		}
@@ -213,12 +213,12 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		if ( child->m_metadata.category().find( NODE_CATEGORY_PRODUCT ) == std::string::npos )
+		if ( child->m_metadata.category().find( GMODNODE_CATEGORY_PRODUCT ) == std::string::npos )
 		{
 			return nullptr;
 		}
 
-		if ( child->m_metadata.type() != NODE_TYPE_SELECTION )
+		if ( child->m_metadata.type() != GMODNODE_TYPE_SELECTION )
 		{
 			return nullptr;
 		}
@@ -232,11 +232,11 @@ namespace dnv::vista::sdk
 
 	inline bool GmodNode::isIndividualizable( bool isTargetNode, bool isInSet ) const
 	{
-		if ( m_metadata.type() == NODE_TYPE_GROUP )
+		if ( m_metadata.type() == GMODNODE_TYPE_GROUP )
 		{
 			return false;
 		}
-		if ( m_metadata.type() == NODE_TYPE_SELECTION )
+		if ( m_metadata.type() == GMODNODE_TYPE_SELECTION )
 		{
 			return false;
 		}
@@ -244,7 +244,7 @@ namespace dnv::vista::sdk
 		{
 			return false;
 		}
-		if ( m_metadata.category() == NODE_CATEGORY_ASSET && m_metadata.type() == NODE_TYPE_TYPE )
+		if ( m_metadata.category() == GMODNODE_CATEGORY_ASSET && m_metadata.type() == GMODNODE_TYPE_TYPE )
 		{
 			return false;
 		}
@@ -263,9 +263,9 @@ namespace dnv::vista::sdk
 
 	inline bool GmodNode::isFunctionComposition() const
 	{
-		return ( m_metadata.category() == NODE_CATEGORY_ASSET_FUNCTION ||
-				   m_metadata.category() == NODE_CATEGORY_PRODUCT_FUNCTION ) &&
-			   m_metadata.type() == NODE_TYPE_COMPOSITION;
+		return ( m_metadata.category() == GMODNODE_CATEGORY_ASSET_FUNCTION ||
+				   m_metadata.category() == GMODNODE_CATEGORY_PRODUCT_FUNCTION ) &&
+			   m_metadata.type() == GMODNODE_TYPE_COMPOSITION;
 	}
 
 	inline bool GmodNode::isMappable() const noexcept
@@ -273,12 +273,12 @@ namespace dnv::vista::sdk
 		if ( !m_cachedProductType.has_value() )
 		{
 			if ( m_children.size() == 1 &&
-				 m_metadata.category().find( NODE_CATEGORY_FUNCTION ) != std::string::npos )
+				 m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) != std::string::npos )
 			{
 				const GmodNode* child = m_children[0];
 				if ( child &&
-					 child->m_metadata.category() == NODE_CATEGORY_PRODUCT &&
-					 child->m_metadata.type() == NODE_TYPE_TYPE )
+					 child->m_metadata.category() == GMODNODE_CATEGORY_PRODUCT &&
+					 child->m_metadata.type() == GMODNODE_TYPE_TYPE )
 				{
 					m_cachedProductType = child;
 				}
@@ -301,12 +301,12 @@ namespace dnv::vista::sdk
 		if ( !m_cachedProductSelection.has_value() )
 		{
 			if ( m_children.size() == 1 &&
-				 m_metadata.category().find( NODE_CATEGORY_FUNCTION ) != std::string::npos )
+				 m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) != std::string::npos )
 			{
 				const GmodNode* child = m_children[0];
 				if ( child &&
-					 child->m_metadata.category().find( NODE_CATEGORY_PRODUCT ) != std::string::npos &&
-					 child->m_metadata.type() == NODE_TYPE_SELECTION )
+					 child->m_metadata.category().find( GMODNODE_CATEGORY_PRODUCT ) != std::string::npos &&
+					 child->m_metadata.type() == GMODNODE_TYPE_SELECTION )
 				{
 					m_cachedProductSelection = child;
 				}
@@ -326,12 +326,12 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		if ( m_metadata.category().find( NODE_CATEGORY_PRODUCT ) != std::string::npos && m_metadata.type() == NODE_TYPE_SELECTION )
+		if ( m_metadata.category().find( GMODNODE_CATEGORY_PRODUCT ) != std::string::npos && m_metadata.type() == GMODNODE_TYPE_SELECTION )
 		{
 			return false;
 		}
 
-		if ( m_metadata.category() == NODE_CATEGORY_ASSET )
+		if ( m_metadata.category() == GMODNODE_CATEGORY_ASSET )
 		{
 			return false;
 		}
@@ -375,5 +375,29 @@ namespace dnv::vista::sdk
 		}
 
 		return m_childrenSet.contains( code );
+	}
+
+	//----------------------------------------------
+	// String conversion methods
+	//----------------------------------------------
+
+	inline std::string GmodNode::toString() const
+	{
+		fmt::memory_buffer builder;
+		toString( std::back_inserter( builder ) );
+
+		return fmt::to_string( builder );
+	}
+
+	template <typename OutputIt>
+	inline OutputIt GmodNode::toString( OutputIt out ) const
+	{
+		out = fmt::format_to( out, "{}", m_code );
+		if ( m_location.has_value() )
+		{
+			out = fmt::format_to( out, "-{}", m_location->toString() );
+		}
+
+		return out;
 	}
 }

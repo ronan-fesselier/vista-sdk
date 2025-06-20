@@ -7,69 +7,75 @@
 
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 
+#include "dnv/vista/sdk/Config.h"
+
 namespace dnv::vista::sdk
 {
 	namespace
 	{
 		//=====================================================================
-		// Constants
+		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr const char* VIS_RELEASE_KEY = "visRelease";
-		static constexpr const char* ITEMS_KEY = "items";
+		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
+		static constexpr std::string_view UNKNOWN_OLD_ASSIGNMENT = "[unknown oldAssignment]";
+		static constexpr std::string_view UNKNOWN_SOURCE = "[unknown source]";
 
-		static constexpr const char* OLD_ASSIGNMENT_KEY = "oldAssignment";
-		static constexpr const char* CURRENT_ASSIGNMENT_KEY = "currentAssignment";
-		static constexpr const char* NEW_ASSIGNMENT_KEY = "newAssignment";
-		static constexpr const char* DELETE_ASSIGNMENT_KEY = "deleteAssignment";
-
-		static constexpr const char* OPERATIONS_KEY = "operations";
-		static constexpr const char* SOURCE_KEY = "source";
-		static constexpr const char* TARGET_KEY = "target";
-
-		//=====================================================================
-		// Helper functions
-		//=====================================================================
-
-		static const std::string& internString( const std::string& value )
+		std::string_view extractVisHint( const nlohmann::json& json ) noexcept
 		{
-			if ( value.length() <= 4 )
+			try
 			{
-				static std::unordered_map<std::string, std::string> shortCache;
-				static std::mutex shortMutex;
-
-				std::lock_guard<std::mutex> lock( shortMutex );
-				auto [it, inserted] = shortCache.try_emplace( value, value );
-				return it->second;
+				if ( json.contains( GMODVERSIONING_DTO_KEY_VIS_RELEASE ) && json.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+				{
+					const auto& str = json.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_VERSION;
 			}
-
-			if ( value.length() > 30 )
+			catch ( ... )
 			{
-				return value;
+				return UNKNOWN_VERSION;
 			}
+		}
 
-			static std::unordered_map<std::string, std::string> cache;
-			static std::mutex cacheMutex;
+		std::string_view extractOldAssignmentHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) && json.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+				{
+					const auto& str = json.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_OLD_ASSIGNMENT;
+			}
+			catch ( ... )
+			{
+				return UNKNOWN_OLD_ASSIGNMENT;
+			}
+		}
 
-			std::lock_guard<std::mutex> lock( cacheMutex );
-			auto [it, inserted] = cache.try_emplace( value, value );
-			return it->second;
+		std::string_view extractSourceHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( GMODVERSIONING_DTO_KEY_SOURCE ) && json.at( GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
+				{
+					const auto& str = json.at( GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_SOURCE;
+			}
+			catch ( ... )
+			{
+				return UNKNOWN_SOURCE;
+			}
 		}
 	}
 
 	//=====================================================================
-	// GMOD Versioning Assignement Data Transfer Objects
+	// GMOD versioning assignement data transfer objects
 	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	GmodVersioningAssignmentChangeDto::GmodVersioningAssignmentChangeDto( std::string oldAssignment, std::string currentAssignment )
-		: m_oldAssignment{ std::move( oldAssignment ) },
-		  m_currentAssignment{ std::move( currentAssignment ) }
-	{
-	}
 
 	//----------------------------------------------
 	// Serialization
@@ -77,83 +83,69 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto oldAssignmentHint = extractOldAssignmentHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
 				SPDLOG_ERROR( "JSON value for GmodVersioningAssignmentChangeDto is not an object" );
-
 				return std::nullopt;
 			}
 
 			GmodVersioningAssignmentChangeDto dto = json.get<GmodVersioningAssignmentChangeDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed assignment change: {} → {} in {} µs", dto.oldAssignment(), dto.currentAssignment(), duration.count() );
-
 			return std::optional<GmodVersioningAssignmentChangeDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "nlohmann::json exception during GmodVersioningAssignmentChangeDto parsing: {}", ex.what() );
-
+			SPDLOG_ERROR( "JSON exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}",
+				oldAssignmentHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodVersioningAssignmentChangeDto parsing: {}", ex.what() );
-
+			SPDLOG_ERROR( "Standard exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}",
+				oldAssignmentHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	GmodVersioningAssignmentChangeDto GmodVersioningAssignmentChangeDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		const auto oldAssignmentHint = extractOldAssignmentHint( json );
+		auto dtoOpt = GmodVersioningAssignmentChangeDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<GmodVersioningAssignmentChangeDto>();
+			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningAssignmentChangeDto from JSON (hint: oldAssignment='{}')",
+				oldAssignmentHint ) );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningAssignmentChangeDto from JSON: {}", ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningAssignmentChangeDto from JSON: {}", ex.what() ) );
-		}
+		return dtoOpt.value();
 	}
 
 	nlohmann::json GmodVersioningAssignmentChangeDto::toJson() const
 	{
-		return *this;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
-	void to_json( nlohmann::json& j, const GmodVersioningAssignmentChangeDto& dto )
-	{
-		j = nlohmann::json{
-			{ OLD_ASSIGNMENT_KEY, dto.m_oldAssignment },
-			{ CURRENT_ASSIGNMENT_KEY, dto.m_currentAssignment } };
-	}
-
 	void from_json( const nlohmann::json& j, GmodVersioningAssignmentChangeDto& dto )
 	{
-		if ( !j.contains( OLD_ASSIGNMENT_KEY ) || !j.at( OLD_ASSIGNMENT_KEY ).is_string() )
+		if ( !j.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) || !j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", OLD_ASSIGNMENT_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ), nullptr );
 		}
-		if ( !j.contains( CURRENT_ASSIGNMENT_KEY ) || !j.at( CURRENT_ASSIGNMENT_KEY ).is_string() )
+		if ( !j.contains( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ) || !j.at( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", CURRENT_ASSIGNMENT_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ), nullptr );
 		}
 
-		dto.m_oldAssignment = internString( j.at( OLD_ASSIGNMENT_KEY ).get<std::string>() );
-		dto.m_currentAssignment = internString( j.at( CURRENT_ASSIGNMENT_KEY ).get<std::string>() );
+		dto.m_oldAssignment = j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
+		dto.m_currentAssignment = j.at( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).get<std::string>();
 
 		if ( dto.m_oldAssignment.empty() )
 		{
@@ -165,26 +157,16 @@ namespace dnv::vista::sdk
 		}
 	}
 
+	void to_json( nlohmann::json& j, const GmodVersioningAssignmentChangeDto& dto )
+	{
+		j = nlohmann::json{
+			{ GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
+			{ GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT, dto.m_currentAssignment } };
+	}
+
 	//=====================================================================
 	// GMOD Node Conversion Transfer Object
 	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	GmodNodeConversionDto::GmodNodeConversionDto(
-		OperationSet operations, std::string source,
-		std::string target, std::string oldAssignment,
-		std::string newAssignment, bool deleteAssignment )
-		: m_operations{ std::move( operations ) },
-		  m_source{ std::move( source ) },
-		  m_target{ std::move( target ) },
-		  m_oldAssignment{ std::move( oldAssignment ) },
-		  m_newAssignment{ std::move( newAssignment ) },
-		  m_deleteAssignment{ deleteAssignment }
-	{
-	}
 
 	//----------------------------------------------
 	// Serialization
@@ -192,173 +174,151 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto sourceHint = extractSourceHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
 				SPDLOG_ERROR( "JSON value for GmodNodeConversionDto is not an object" );
-
 				return std::nullopt;
 			}
 
 			GmodNodeConversionDto dto = json.get<GmodNodeConversionDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed node conversion: source={}, target={}, operations={} in {} µs", dto.source(), dto.target(), dto.operations().size(), duration.count() );
-
 			return std::optional<GmodNodeConversionDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "nlohmann::json exception during GmodNodeConversionDto parsing: {}", ex.what() );
-
+			SPDLOG_ERROR( "JSON exception during GmodNodeConversionDto parsing (hint: source='{}'): {}",
+				sourceHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodNodeConversionDto parsing: {}", ex.what() );
-
+			SPDLOG_ERROR( "Standard exception during GmodNodeConversionDto parsing (hint: source='{}'): {}",
+				sourceHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	GmodNodeConversionDto GmodNodeConversionDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		const auto sourceHint = extractSourceHint( json );
+		auto dtoOpt = GmodNodeConversionDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<GmodNodeConversionDto>();
+			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodNodeConversionDto from JSON (hint: source='{}')",
+				sourceHint ) );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodNodeConversionDto from JSON: {}", ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodNodeConversionDto from JSON: {}", ex.what() ) );
-		}
+		return dtoOpt.value();
 	}
 
 	nlohmann::json GmodNodeConversionDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-
-		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized node conversion in {} µs", duration.count() );
-		return j;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
-	void to_json( nlohmann::json& j, const GmodNodeConversionDto& dto )
-	{
-		j = nlohmann::json{
-			{ OPERATIONS_KEY, dto.m_operations },
-			{ SOURCE_KEY, dto.m_source },
-			{ TARGET_KEY, dto.m_target },
-			{ OLD_ASSIGNMENT_KEY, dto.m_oldAssignment },
-			{ NEW_ASSIGNMENT_KEY, dto.m_newAssignment },
-			{ DELETE_ASSIGNMENT_KEY, dto.m_deleteAssignment } };
-	}
-
 	void from_json( const nlohmann::json& j, GmodNodeConversionDto& dto )
 	{
-		if ( j.contains( OPERATIONS_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_OPERATIONS ) )
 		{
-			if ( !j.at( OPERATIONS_KEY ).is_array() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_OPERATIONS ).is_array() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not an array", OPERATIONS_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not an array", GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
 			}
 			dto.m_operations.clear();
-			const auto& opsArray = j.at( OPERATIONS_KEY );
-			dto.m_operations.reserve( opsArray.size() );
+			const auto& opsArray = j.at( GMODVERSIONING_DTO_KEY_OPERATIONS );
+
+			dto.m_operations.reserve( opsArray.size() + opsArray.size() / 8 );
 			for ( const auto& op : opsArray )
 			{
 				if ( !op.is_string() )
 				{
-					throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' contains non-string element", OPERATIONS_KEY ), nullptr );
+					throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' contains non-string element", GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
 				}
-				dto.m_operations.insert( internString( op.get<std::string>() ) );
+				dto.m_operations.insert( op.get<std::string>() );
 			}
 		}
 		else
 		{
 			dto.m_operations.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", OPERATIONS_KEY );
+			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_OPERATIONS );
 		}
 
-		if ( j.contains( SOURCE_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_SOURCE ) )
 		{
-			if ( !j.at( SOURCE_KEY ).is_string() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", SOURCE_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_SOURCE ), nullptr );
 			}
-			dto.m_source = internString( j.at( SOURCE_KEY ).get<std::string>() );
+			dto.m_source = j.at( GMODVERSIONING_DTO_KEY_SOURCE ).get<std::string>();
 		}
 		else
 		{
 			dto.m_source.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", SOURCE_KEY );
+			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_SOURCE );
 		}
 
-		if ( j.contains( TARGET_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_TARGET ) )
 		{
-			if ( !j.at( TARGET_KEY ).is_string() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_TARGET ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", TARGET_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_TARGET ), nullptr );
 			}
-			dto.m_target = internString( j.at( TARGET_KEY ).get<std::string>() );
+			dto.m_target = j.at( GMODVERSIONING_DTO_KEY_TARGET ).get<std::string>();
 		}
 		else
 		{
 			dto.m_target.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", TARGET_KEY );
+			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_TARGET );
 		}
 
-		if ( j.contains( OLD_ASSIGNMENT_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) )
 		{
-			if ( !j.at( OLD_ASSIGNMENT_KEY ).is_string() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", OLD_ASSIGNMENT_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ), nullptr );
 			}
-			dto.m_oldAssignment = internString( j.at( OLD_ASSIGNMENT_KEY ).get<std::string>() );
+			dto.m_oldAssignment = j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
 		}
 		else
 		{
 			dto.m_oldAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", OLD_ASSIGNMENT_KEY );
+			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT );
 		}
 
-		if ( j.contains( NEW_ASSIGNMENT_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ) )
 		{
-			if ( !j.at( NEW_ASSIGNMENT_KEY ).is_string() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", NEW_ASSIGNMENT_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ), nullptr );
 			}
-			dto.m_newAssignment = internString( j.at( NEW_ASSIGNMENT_KEY ).get<std::string>() );
+			dto.m_newAssignment = j.at( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).get<std::string>();
 		}
 		else
 		{
 			dto.m_newAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", NEW_ASSIGNMENT_KEY );
+			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT );
 		}
 
-		if ( j.contains( DELETE_ASSIGNMENT_KEY ) )
+		if ( j.contains( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ) )
 		{
-			if ( !j.at( DELETE_ASSIGNMENT_KEY ).is_boolean() )
+			if ( !j.at( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).is_boolean() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a boolean", DELETE_ASSIGNMENT_KEY ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a boolean", GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ), nullptr );
 			}
-			dto.m_deleteAssignment = j.at( DELETE_ASSIGNMENT_KEY ).get<bool>();
+			dto.m_deleteAssignment = j.at( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).get<bool>();
 		}
 		else
 		{
 			dto.m_deleteAssignment = false;
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", DELETE_ASSIGNMENT_KEY );
+			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT );
 		}
 
 		if ( dto.m_operations.empty() )
@@ -371,19 +331,20 @@ namespace dnv::vista::sdk
 		}
 	}
 
+	void to_json( nlohmann::json& j, const GmodNodeConversionDto& dto )
+	{
+		j = nlohmann::json{
+			{ GMODVERSIONING_DTO_KEY_OPERATIONS, dto.m_operations },
+			{ GMODVERSIONING_DTO_KEY_SOURCE, dto.m_source },
+			{ GMODVERSIONING_DTO_KEY_TARGET, dto.m_target },
+			{ GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
+			{ GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT, dto.m_newAssignment },
+			{ GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT, dto.m_deleteAssignment } };
+	}
+
 	//=====================================================================
 	// GMOD Versioning Data Transfer Object
 	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	GmodVersioningDto::GmodVersioningDto( std::string visVersion, ItemsMap items )
-		: m_visVersion{ std::move( visVersion ) },
-		  m_items{ std::move( items ) }
-	{
-	}
 
 	//----------------------------------------------
 	// Serialization
@@ -391,132 +352,131 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningDto> GmodVersioningDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
-
+		const auto visHint = extractVisHint( json );
 		try
 		{
 			if ( !json.is_object() )
 			{
 				SPDLOG_ERROR( "JSON value for GmodVersioningDto is not an object" );
-
 				return std::nullopt;
 			}
 
 			GmodVersioningDto dto = json.get<GmodVersioningDto>();
-
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "GMOD versioning parsing completed in {} ms ({} items)", duration.count(), dto.items().size() );
-
 			return std::optional<GmodVersioningDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			SPDLOG_ERROR( "nlohmann::json exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
-
+			SPDLOG_ERROR( "JSON exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			SPDLOG_ERROR( "Standard exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
-
+			SPDLOG_ERROR( "Standard exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	GmodVersioningDto GmodVersioningDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		const auto visHint = extractVisHint( json );
+		auto dtoOpt = GmodVersioningDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<GmodVersioningDto>();
+			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningDto from JSON (hint: visRelease='{}')",
+				visHint ) );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.is_object() && json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningDto from JSON (hint: visRelease='{}'): {}", visHint, ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.is_object() && json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningDto from JSON (hint: visRelease='{}'): {}", visHint, ex.what() ) );
-		}
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json GmodVersioningDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
-		nlohmann::json j = *this;
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Successfully serialized GMOD versioning data for VIS {} in {} ms", m_visVersion, duration.count() );
-		return j;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
+	void from_json( const nlohmann::json& j, GmodVersioningDto& dto )
+	{
+		if ( !j.contains( GMODVERSIONING_DTO_KEY_VIS_RELEASE ) || !j.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_VIS_RELEASE ), nullptr );
+		}
+		dto.m_visVersion = j.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get<std::string>();
+
+		dto.m_items.clear();
+		if ( j.contains( GMODVERSIONING_DTO_KEY_ITEMS ) )
+		{
+			if ( !j.at( GMODVERSIONING_DTO_KEY_ITEMS ).is_object() )
+			{
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodVersioningDto JSON field '{}' is not an object", GMODVERSIONING_DTO_KEY_ITEMS ), nullptr );
+			}
+
+			const auto& itemsObj = j.at( GMODVERSIONING_DTO_KEY_ITEMS );
+			size_t itemCount = itemsObj.size();
+
+			if ( itemCount > 10000 )
+			{
+				[[maybe_unused]] const size_t approxMemoryUsage = ( itemCount * sizeof( GmodNodeConversionDto ) ) / ( 1024 * 1024 );
+				SPDLOG_DEBUG( "Large GMOD versioning model loaded: ~{} MB estimated memory usage", approxMemoryUsage );
+			}
+
+			size_t successCount = 0;
+
+			dto.m_items.reserve( itemCount + itemCount / 8 );
+
+			for ( const auto& [key, value] : itemsObj.items() )
+			{
+				try
+				{
+					GmodNodeConversionDto nodeDto = value.get<GmodNodeConversionDto>();
+
+					dto.m_items.emplace( key, std::move( nodeDto ) );
+					successCount++;
+				}
+				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+				{
+					SPDLOG_ERROR( "Error parsing conversion item '{}': {}", key, ex.what() );
+				}
+				catch ( [[maybe_unused]] const std::exception& ex )
+				{
+					SPDLOG_ERROR( "Standard exception parsing conversion item '{}': {}", key, ex.what() );
+				}
+			}
+
+			SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD versioning nodes", successCount, itemCount );
+
+			/* If parsing failed for more than 10% of items, rebuild the map to potentially save memory */
+			if ( itemCount > 0 && successCount < itemCount * 9 / 10 )
+			{
+				if ( dto.m_items.bucket_count() > dto.m_items.size() * 4 / 3 )
+				{
+					GmodVersioningDto::ItemsMap optimizedMap;
+					optimizedMap.reserve( dto.m_items.size() );
+					optimizedMap = std::move( dto.m_items );
+					dto.m_items = std::move( optimizedMap );
+				}
+			}
+		}
+		else
+		{
+			SPDLOG_WARN( "No '{}' object found in GMOD versioning data for VIS version {}",
+				GMODVERSIONING_DTO_KEY_ITEMS, dto.m_visVersion );
+		}
+	}
+
 	void to_json( nlohmann::json& j, const GmodVersioningDto& dto )
 	{
-		j = nlohmann::json{
-			{ VIS_RELEASE_KEY, dto.m_visVersion } };
+		j = nlohmann::json{ { GMODVERSIONING_DTO_KEY_VIS_RELEASE, dto.m_visVersion } };
 
 		if ( !dto.m_items.empty() )
 		{
-			[[maybe_unused]] auto serializationStartTime = std::chrono::steady_clock::now();
-
-			j[ITEMS_KEY] = dto.m_items;
-
-			auto serializationEndTime = std::chrono::steady_clock::now();
-			auto serializationDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
-				serializationEndTime - serializationStartTime );
-
-			if ( !dto.m_items.empty() && serializationDuration.count() > 0 )
-			{
-				[[maybe_unused]] double serializationRatePerSecond = static_cast<double>( dto.m_items.size() ) * 1000.0 / static_cast<double>( serializationDuration.count() );
-				SPDLOG_DEBUG( "Node serialization rate: {:.1f} items/sec", serializationRatePerSecond );
-			}
+			j[GMODVERSIONING_DTO_KEY_ITEMS] = dto.m_items;
 
 			size_t emptyOperationsCount = 0;
 			for ( const auto& [key, value] : dto.m_items )
@@ -533,92 +493,7 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			j[ITEMS_KEY] = nlohmann::json::object();
-		}
-	}
-
-	void from_json( const nlohmann::json& j, GmodVersioningDto& dto )
-	{
-		if ( !j.contains( VIS_RELEASE_KEY ) || !j.at( VIS_RELEASE_KEY ).is_string() )
-		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningDto JSON missing required '{}' field or not a string", VIS_RELEASE_KEY ), nullptr );
-		}
-		dto.m_visVersion = j.at( VIS_RELEASE_KEY ).get<std::string>();
-
-		dto.m_items.clear();
-		if ( j.contains( ITEMS_KEY ) )
-		{
-			if ( !j.at( ITEMS_KEY ).is_object() )
-			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodVersioningDto JSON field '{}' is not an object", ITEMS_KEY ), nullptr );
-			}
-
-			const auto& itemsObj = j.at( ITEMS_KEY );
-			size_t itemCount = itemsObj.size();
-
-			if ( itemCount > 10000 )
-			{
-				SPDLOG_WARN( "Large versioning dataset detected ({}), consider performance implications", itemCount );
-			}
-
-			dto.m_items.reserve( itemCount );
-			size_t successCount = 0;
-			size_t emptyOperationsCount = 0;
-			auto parseStartTime = std::chrono::steady_clock::now();
-
-			for ( const auto& [key, value] : itemsObj.items() )
-			{
-				try
-				{
-					GmodNodeConversionDto nodeDto = value.get<GmodNodeConversionDto>();
-					auto& emplaced = dto.m_items.emplace( key, std::move( nodeDto ) ).first->second;
-					successCount++;
-
-					if ( emplaced.operations().empty() )
-					{
-						emptyOperationsCount++;
-					}
-				}
-				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-				{
-					SPDLOG_ERROR( "Error parsing conversion item '{}': {}", key, ex.what() );
-				}
-				catch ( [[maybe_unused]] const std::exception& ex )
-				{
-					SPDLOG_ERROR( "Standard exception parsing conversion item '{}': {}", key, ex.what() );
-				}
-			}
-
-			auto parseEndTime = std::chrono::steady_clock::now();
-			auto parseDuration = std::chrono::duration_cast<std::chrono::milliseconds>( parseEndTime - parseStartTime );
-
-			if ( parseDuration.count() > 0 )
-			{
-				[[maybe_unused]] double parseRatePerSecond = static_cast<double>( successCount ) * 1000.0 / static_cast<double>( parseDuration.count() );
-				SPDLOG_DEBUG( "Successfully parsed {}/{} node conversion items ({} with empty operations), rate: {:.1f} items/sec",
-					successCount, itemCount, emptyOperationsCount, parseRatePerSecond );
-			}
-			else if ( itemCount > 0 )
-			{
-				SPDLOG_DEBUG( "Successfully parsed {}/{} node conversion items ({} with empty operations) very quickly.",
-					successCount, itemCount, emptyOperationsCount );
-			}
-
-			if ( successCount > 0 && static_cast<double>( successCount ) < static_cast<double>( itemCount ) * 0.9 )
-			{
-				SPDLOG_DEBUG( "Optimizing memory usage after parsing {} of {} items", successCount, itemCount );
-				dto.m_items.rehash( static_cast<size_t>( static_cast<double>( successCount ) * 1.25 ) );
-			}
-		}
-		else
-		{
-			SPDLOG_WARN( "No '{}' object found in GMOD versioning data for VIS version {}", ITEMS_KEY, dto.m_visVersion );
-		}
-
-		if ( dto.m_items.size() > 1000 )
-		{
-			[[maybe_unused]] size_t approxMemoryBytes = dto.m_items.size() * ( sizeof( GmodNodeConversionDto ) + sizeof( std::string ) * 4 + 32 );
-			SPDLOG_DEBUG( "Large versioning dataset loaded: {} items, ~{} MB estimated memory", dto.m_items.size(), approxMemoryBytes / ( 1024 * 1024 ) );
+			j[GMODVERSIONING_DTO_KEY_ITEMS] = nlohmann::json::object();
 		}
 	}
 }

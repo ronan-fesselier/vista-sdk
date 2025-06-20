@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/GmodNode.h"
 
-#include "dnv/vista/sdk/GmodConstants.h"
+#include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
@@ -24,9 +24,9 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	GmodNodeMetadata::GmodNodeMetadata(
-		const std::string& category,
-		const std::string& type,
-		const std::string& name,
+		std::string_view category,
+		std::string_view type,
+		std::string_view name,
 		const std::optional<std::string>& commonName,
 		const std::optional<std::string>& definition,
 		const std::optional<std::string>& commonDefinition,
@@ -40,7 +40,7 @@ namespace dnv::vista::sdk
 		  m_commonDefinition{ commonDefinition },
 		  m_installSubstructure{ installSubstructure },
 		  m_normalAssignmentNames{ normalAssignmentNames },
-		  m_fullType{ category + " " + type }
+		  m_fullType{ std::string{ category } + " " + std::string{ type } }
 	{
 	}
 
@@ -82,7 +82,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	GmodNode::GmodNode( VisVersion version, const GmodNodeDto& dto )
@@ -248,25 +248,6 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Utility methods
-	//----------------------------------------------
-
-	std::string GmodNode::toString() const
-	{
-		return m_location.has_value() ? fmt::format( "{}-{}", m_code, m_location->toString() ) : m_code;
-	}
-
-	void GmodNode::toString( std::stringstream& builder ) const
-	{
-		builder << m_code;
-
-		if ( m_location.has_value() )
-		{
-			builder << "-" << m_location->toString();
-		}
-	}
-
-	//----------------------------------------------
 	// Relationship management methods
 	//----------------------------------------------
 
@@ -300,7 +281,7 @@ namespace dnv::vista::sdk
 		m_parents.push_back( parent );
 	}
 
-	void GmodNode::trim()
+	void GmodNode::trim() noexcept
 	{
 		m_children.shrink_to_fit();
 		m_parents.shrink_to_fit();

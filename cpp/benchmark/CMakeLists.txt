@@ -71,7 +71,7 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 				/WX-                                   # Warnings not as errors
 				/permissive-                           # Strict conformance mode
 				/fp:fast                               # Fast floating point
-				/Zc:__cplusplus                        # Correct __cplusplus macro
+				/Zc:__cplusplus                        # __cplusplus macro
 				/Zc:inline                             # Remove unreferenced COMDAT
 				/Zc:preprocessor                       # Conforming preprocessor
 				/external:anglebrackets                # Treat angle bracket includes as external
@@ -93,6 +93,7 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 
 				# Warning suppressions
 				/wd4244                                # conversion from 'type1' to 'type2', possible loss of data
+				/wd4266                                # no override available for virtual member function from base 'type'; function is hidden
 				/wd4505                                # unreferenced local function has been removed
 				/wd4514                                # unreferenced inline function has been removed
 				/wd4625                                # copy constructor was implicitly defined as deleted
@@ -105,7 +106,6 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			target_link_options(${benchmark_target_name} PRIVATE
 				$<$<CONFIG:Release>:/OPT:REF>          # Remove unreferenced functions
 				$<$<CONFIG:Release>:/OPT:ICF>          # Identical COMDAT folding
-				$<$<CONFIG:Release>:/LTCG>             # Link Time Code Generation
 				$<$<CONFIG:Release>:/INCREMENTAL:NO>   # Disable incremental linking
 			)
 		endif()

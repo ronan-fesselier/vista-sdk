@@ -16,7 +16,7 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// GMOD Versioning Assignement Data Transfer Objects
+	// GMOD versioning assignement data transfer objects
 	//=====================================================================
 
 	/**
@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -39,7 +39,7 @@ namespace dnv::vista::sdk
 		 * @param oldAssignment The previous assignment value
 		 * @param currentAssignment The current assignment value
 		 */
-		explicit GmodVersioningAssignmentChangeDto( std::string oldAssignment, std::string currentAssignment );
+		inline explicit GmodVersioningAssignmentChangeDto( std::string oldAssignment, std::string currentAssignment ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodVersioningAssignmentChangeDto() = default;
@@ -50,6 +50,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		GmodVersioningAssignmentChangeDto( GmodVersioningAssignmentChangeDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~GmodVersioningAssignmentChangeDto() = default;
 
@@ -58,10 +62,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodVersioningAssignmentChangeDto& operator=( const GmodVersioningAssignmentChangeDto& ) = delete;
+		GmodVersioningAssignmentChangeDto& operator=( const GmodVersioningAssignmentChangeDto& ) = default;
 
 		/** @brief Move assignment operator */
-		GmodVersioningAssignmentChangeDto& operator=( GmodVersioningAssignmentChangeDto&& ) noexcept = delete;
+		GmodVersioningAssignmentChangeDto& operator=( GmodVersioningAssignmentChangeDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -71,13 +75,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the old assignment value.
 		 * @return The previous assignment value.
 		 */
-		[[nodiscard]] inline const std::string& oldAssignment() const;
+		[[nodiscard]] inline std::string_view oldAssignment() const noexcept;
 
 		/**
 		 * @brief Get the current assignment value.
 		 * @return The current (new) assignment value.
 		 */
-		[[nodiscard]] inline const std::string& currentAssignment() const;
+		[[nodiscard]] inline std::string_view currentAssignment() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -110,12 +114,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to GmodVersioningAssignmentChangeDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The GmodVersioningAssignmentChangeDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, GmodVersioningAssignmentChangeDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert GmodVersioningAssignmentChangeDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The GmodVersioningAssignmentChangeDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const GmodVersioningAssignmentChangeDto& dto );
 
 	private:
@@ -153,7 +172,7 @@ namespace dnv::vista::sdk
 		using OperationSet = std::unordered_set<std::string>;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -165,13 +184,13 @@ namespace dnv::vista::sdk
 		 * @param newAssignment The new assignment code after conversion.
 		 * @param deleteAssignment Flag indicating if the assignment should be deleted.
 		 */
-		explicit GmodNodeConversionDto(
+		inline explicit GmodNodeConversionDto(
 			OperationSet operations,
 			std::string source,
 			std::string target,
 			std::string oldAssignment,
 			std::string newAssignment,
-			bool deleteAssignment );
+			bool deleteAssignment ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodNodeConversionDto() = default;
@@ -182,6 +201,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		GmodNodeConversionDto( GmodNodeConversionDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~GmodNodeConversionDto() = default;
 
@@ -190,10 +213,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodNodeConversionDto& operator=( const GmodNodeConversionDto& ) = delete;
+		GmodNodeConversionDto& operator=( const GmodNodeConversionDto& ) = default;
 
 		/** @brief Move assignment operator */
-		GmodNodeConversionDto& operator=( GmodNodeConversionDto&& ) noexcept = delete;
+		GmodNodeConversionDto& operator=( GmodNodeConversionDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -203,37 +226,37 @@ namespace dnv::vista::sdk
 		 * @brief Get the set of operations to apply.
 		 * @return The set of operation names.
 		 */
-		[[nodiscard]] inline const OperationSet& operations() const;
+		[[nodiscard]] inline const OperationSet& operations() const noexcept;
 
 		/**
 		 * @brief Get the source GMOD node code.
 		 * @return The source node code.
 		 */
-		[[nodiscard]] inline const std::string& source() const;
+		[[nodiscard]] inline std::string_view source() const noexcept;
 
 		/**
 		 * @brief Get the target GMOD node code.
 		 * @return The target node code.
 		 */
-		[[nodiscard]] inline const std::string& target() const;
+		[[nodiscard]] inline std::string_view target() const noexcept;
 
 		/**
 		 * @brief Get the old assignment code.
 		 * @return The old assignment code.
 		 */
-		[[nodiscard]] inline const std::string& oldAssignment() const;
+		[[nodiscard]] inline std::string_view oldAssignment() const noexcept;
 
 		/**
 		 * @brief Get the new assignment code.
 		 * @return The new assignment code.
 		 */
-		[[nodiscard]] inline const std::string& newAssignment() const;
+		[[nodiscard]] inline std::string_view newAssignment() const noexcept;
 
 		/**
 		 * @brief Check if the assignment should be deleted.
 		 * @return True if the assignment should be deleted, false otherwise.
 		 */
-		[[nodiscard]] inline bool deleteAssignment() const;
+		[[nodiscard]] inline bool deleteAssignment() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -266,12 +289,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to GmodNodeConversionDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The GmodNodeConversionDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, GmodNodeConversionDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert GmodNodeConversionDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The GmodNodeConversionDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const GmodNodeConversionDto& dto );
 
 	private:
@@ -321,7 +359,7 @@ namespace dnv::vista::sdk
 		using ItemsMap = std::unordered_map<std::string, GmodNodeConversionDto>;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -329,7 +367,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion The target VIS version string for these conversion rules.
 		 * @param items A map of GMOD node codes to their conversion DTOs.
 		 */
-		explicit GmodVersioningDto( std::string visVersion, ItemsMap items );
+		inline explicit GmodVersioningDto( std::string visVersion, ItemsMap items ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodVersioningDto() = default;
@@ -340,6 +378,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		GmodVersioningDto( GmodVersioningDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~GmodVersioningDto() = default;
 
@@ -348,10 +390,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodVersioningDto& operator=( const GmodVersioningDto& ) = delete;
+		GmodVersioningDto& operator=( const GmodVersioningDto& ) = default;
 
 		/** @brief Move assignment operator */
-		GmodVersioningDto& operator=( GmodVersioningDto&& ) noexcept = delete;
+		GmodVersioningDto& operator=( GmodVersioningDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -361,13 +403,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the target VIS version string.
 		 * @return The VIS version string.
 		 */
-		[[nodiscard]] inline const std::string& visVersion() const;
+		[[nodiscard]] inline std::string_view visVersion() const noexcept;
 
 		/**
 		 * @brief Get the map of GMOD node codes to their conversion rules.
 		 * @return The map of node codes to their conversion DTOs.
 		 */
-		[[nodiscard]] inline const ItemsMap& items() const;
+		[[nodiscard]] inline const ItemsMap& items() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -400,12 +442,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to GmodVersioningDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The GmodVersioningDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, GmodVersioningDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert GmodVersioningDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The GmodVersioningDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const GmodVersioningDto& dto );
 
 	private:
