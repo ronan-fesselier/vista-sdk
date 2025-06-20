@@ -32,14 +32,13 @@ namespace dnv::vista::sdk
 	inline const Codebook& Codebooks::codebook( CodebookName name ) const
 	{
 		const auto rawValue = static_cast<size_t>( name );
-		if ( rawValue == 0 || rawValue > NUM_CODEBOOKS )
+
+		if ( rawValue >= 1 && rawValue <= NUM_CODEBOOKS )
 		{
-			throw std::invalid_argument( "Invalid codebook name: " + std::to_string( rawValue ) );
+			return m_codebooks[rawValue - 1];
 		}
 
-		const auto index = rawValue - 1;
-
-		return m_codebooks[index];
+		throw std::invalid_argument( "Invalid codebook name: " + std::to_string( rawValue ) );
 	}
 
 	//----------------------------------------------
@@ -60,7 +59,7 @@ namespace dnv::vista::sdk
 	// Tag creation
 	//----------------------------------------------
 
-	inline std::optional<MetadataTag> Codebooks::tryCreateTag( CodebookName name, const std::string_view value ) const
+	inline std::optional<MetadataTag> Codebooks::tryCreateTag( CodebookName name, std::string_view value ) const
 	{
 		return m_codebooks[static_cast<size_t>( name ) - 1].tryCreateTag( value );
 	}

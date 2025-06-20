@@ -7,11 +7,13 @@
 
 #pragma once
 
+#include "utils/StringUtils.h"
+
 namespace dnv::vista::sdk
 {
-	//--------------------------------------------------------------------------
+	//=====================================================================
 	// Forward declarations
-	//--------------------------------------------------------------------------
+	//=====================================================================
 
 	class GmodDto;
 	class GmodVersioningDto;
@@ -20,9 +22,9 @@ namespace dnv::vista::sdk
 	class LocationsDto;
 	class FormatDataTypesDto;
 
-	//--------------------------------------------------------------------------
-	// Resource utilities
-	//--------------------------------------------------------------------------
+	//=====================================================================
+	// EmbeddedResource class
+	//=====================================================================
 
 	/**
 	 * @brief Utility class for accessing and managing embedded resources
@@ -34,9 +36,15 @@ namespace dnv::vista::sdk
 	class EmbeddedResource final
 	{
 	public:
-		//----------------------------------------------------------------------
+		//----------------------------------------------
+		// Type aliases for heterogeneous containers
+		//----------------------------------------------
+
+		using PathCache = std::unordered_map<std::string, std::filesystem::path, StringViewHash, StringViewEqual>;
+
+		//----------------------------------------------
 		// Public interface
-		//----------------------------------------------------------------------
+		//----------------------------------------------
 
 		/**
 		 * @brief Get all available VIS versions
@@ -49,16 +57,6 @@ namespace dnv::vista::sdk
 		static std::vector<std::string> visVersions();
 
 		/**
-		 * @brief Get GMOD for specific VIS version
-		 *
-		 * Loads and caches the Global Model DTO for the specified VIS version.
-		 *
-		 * @param visVersion VIS version string
-		 * @return GMOD DTO if found, std::nullopt otherwise
-		 */
-		static std::optional<GmodDto> gmod( const std::string& visVersion );
-
-		/**
 		 * @brief Get all GMOD versioning data
 		 *
 		 * Loads and caches all Global Model versioning information.
@@ -68,6 +66,16 @@ namespace dnv::vista::sdk
 		static const std::optional<std::unordered_map<std::string, GmodVersioningDto>>& gmodVersioning();
 
 		/**
+		 * @brief Get GMOD for specific VIS version
+		 *
+		 * Loads and caches the Global Model DTO for the specified VIS version.
+		 *
+		 * @param visVersion VIS version string
+		 * @return GMOD DTO if found, std::nullopt otherwise
+		 */
+		static std::optional<GmodDto> gmod( std::string_view visVersion );
+
+		/**
 		 * @brief Get codebooks for specific VIS version
 		 *
 		 * Loads and caches the codebook collection for the specified VIS version.
@@ -75,7 +83,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion VIS version string
 		 * @return Codebooks DTO if found, std::nullopt otherwise
 		 */
-		static std::optional<CodebooksDto> codebooks( const std::string& visVersion );
+		static std::optional<CodebooksDto> codebooks( std::string_view visVersion );
 
 		/**
 		 * @brief Get locations for specific VIS version
@@ -85,7 +93,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion VIS version string
 		 * @return Locations DTO if found, std::nullopt otherwise
 		 */
-		static std::optional<LocationsDto> locations( const std::string& visVersion );
+		static std::optional<LocationsDto> locations( std::string_view visVersion );
 
 		/**
 		 * @brief Get data channel type names for specific version
@@ -95,7 +103,7 @@ namespace dnv::vista::sdk
 		 * @param version ISO 19848 version string
 		 * @return DataChannelTypeNamesDto if found, std::nullopt otherwise
 		 */
-		static std::optional<DataChannelTypeNamesDto> dataChannelTypeNames( const std::string& version );
+		static std::optional<DataChannelTypeNamesDto> dataChannelTypeNames( std::string_view version );
 
 		/**
 		 * @brief Get format data types for specific version
@@ -105,12 +113,12 @@ namespace dnv::vista::sdk
 		 * @param version ISO 19848 version string
 		 * @return FormatDataTypesDto if found, std::nullopt otherwise
 		 */
-		static std::optional<FormatDataTypesDto> formatDataTypes( const std::string& version );
+		static std::optional<FormatDataTypesDto> formatDataTypes( std::string_view version );
 
 	private:
-		//----------------------------------------------------------------------
-		// Resource access implementation
-		//----------------------------------------------------------------------
+		//----------------------------------------------
+		// Resource access
+		//----------------------------------------------
 
 		/**
 		 * @brief Get all embedded resource names
@@ -123,6 +131,17 @@ namespace dnv::vista::sdk
 		static std::vector<std::string> resourceNames();
 
 		/**
+		 * @brief Get decompressed stream for gzipped resource
+		 *
+		 * Loads a gzipped resource and decompresses it using zlib.
+		 *
+		 * @param resourceName Compressed resource name
+		 * @return Shared pointer to input stream containing the decompressed data
+		 * @throws std::runtime_error if decompression fails
+		 */
+		static std::shared_ptr<std::istream> decompressedStream( std::string_view resourceName );
+
+		/**
 		 * @brief Get resource stream for specific resource name
 		 *
 		 * Searches for the resource file in multiple possible directories and
@@ -132,17 +151,8 @@ namespace dnv::vista::sdk
 		 * @return Shared pointer to input stream containing the resource data
 		 * @throws std::runtime_error if resource cannot be found
 		 */
-		static std::shared_ptr<std::istream> stream( const std::string& resourceName );
-
-		/**
-		 * @brief Get decompressed stream for gzipped resource
-		 *
-		 * Loads a gzipped resource and decompresses it using zlib.
-		 *
-		 * @param resourceName Compressed resource name
-		 * @return Shared pointer to input stream containing the decompressed data
-		 * @throws std::runtime_error if decompression fails
-		 */
-		static std::shared_ptr<std::istream> decompressedStream( const std::string& resourceName );
+		static std::shared_ptr<std::istream> stream( std::string_view resourceName );
 	};
 }
+
+#include "EmbeddedResource.inl"

@@ -13,42 +13,47 @@ using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
-	static const Gmod* g_gmod = nullptr;
-	static GmodPath g_gmodPath;
-	static bool g_initialized = false;
-
-	static void initializeData()
+	class GmodVersioningFixture : public benchmark::Fixture
 	{
-		if ( !g_initialized )
+	public:
+		void SetUp( const benchmark::State& state ) override
 		{
-			auto& vis = VIS::instance();
-			g_gmod = &vis.gmod( VisVersion::v3_4a );
+			(void)state;
+
+			m_vis = &VIS::instance();
+			m_gmod = &m_vis->gmod( VisVersion::v3_4a );
 
 			std::optional<GmodPath> parsedPath;
-			if ( !g_gmod->tryParsePath( "411.1/C101.72/I101", parsedPath ) || !parsedPath.has_value() )
+			if ( !m_gmod->tryParsePath( "411.1/C101.72/I101", parsedPath ) || !parsedPath.has_value() )
 			{
 				throw std::runtime_error( "Failed to parse test path" );
 			}
 
-			g_gmodPath = std::move( parsedPath.value() );
-			g_initialized = true;
+			m_gmodPath = std::move( parsedPath.value() );
 		}
-	}
 
-	static void BM_convertPath( benchmark::State& state )
+		void TearDown( const benchmark::State& state ) override
+		{
+			(void)state;
+		}
+
+	protected:
+		const Gmod* m_gmod = nullptr;
+		GmodPath m_gmodPath;
+		VIS* m_vis = nullptr;
+	};
+
+	BENCHMARK_F( GmodVersioningFixture, ConvertPath )( benchmark::State& state )
 	{
-		initializeData();
-
-		auto& vis = VIS::instance();
 
 		for ( auto _ : state )
 		{
-			auto result = vis.convertPath( VisVersion::v3_4a, g_gmodPath, VisVersion::v3_5a );
+			auto result = m_vis->convertPath( VisVersion::v3_4a, m_gmodPath, VisVersion::v3_5a );
 			benchmark::DoNotOptimize( result );
 		}
 	}
 
-	BENCHMARK( BM_convertPath )
+	BENCHMARK_REGISTER_F( GmodVersioningFixture, ConvertPath )
 		->MinTime( 10.0 )
 		->Unit( benchmark::kMicrosecond );
 }

@@ -140,7 +140,7 @@ namespace dnv::vista::sdk
 		return *result;
 	}
 
-	std::optional<ImoNumber> ImoNumber::tryParse( const std::string_view value )
+	std::optional<ImoNumber> ImoNumber::tryParse( std::string_view value )
 	{
 		if ( value.empty() )
 		{

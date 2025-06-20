@@ -7,51 +7,39 @@
 
 #include "dnv/vista/sdk/ISO19848Dtos.h"
 
+#include "dnv/vista/sdk/Config.h"
+
 namespace dnv::vista::sdk
 {
 	namespace
 	{
 		//=====================================================================
-		// Constants
+		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr const char* VALUES_KEY = "values";
-		static constexpr const char* TYPE_KEY = "type";
-		static constexpr const char* DESCRIPTION_KEY = "description";
+		static constexpr std::string_view UNKNOWN_TYPE = "[unknown type]";
 
-		//=====================================================================
-		// Helper functions
-		//=====================================================================
-
-		static const std::string& internString( const std::string& value )
+		std::string_view extractTypeHint( const nlohmann::json& json ) noexcept
 		{
-			if ( value.size() <= 22 )
+			try
 			{
-				static std::unordered_map<std::string, std::string> cache;
-				static std::mutex cacheMutex;
-
-				std::lock_guard<std::mutex> lock( cacheMutex );
-				auto [it, inserted] = cache.try_emplace( value, value );
-				return it->second;
+				if ( json.contains( ISO19848_DTO_KEY_TYPE ) && json.at( ISO19848_DTO_KEY_TYPE ).is_string() )
+				{
+					const auto& str = json.at( ISO19848_DTO_KEY_TYPE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_TYPE;
 			}
-
-			return value;
+			catch ( ... )
+			{
+				return UNKNOWN_TYPE;
+			}
 		}
 	}
 
 	//=====================================================================
-	// Single Data Channel Type Data Transfer Objects
+	// Single Data Channel Type data transfer objects
 	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	DataChannelTypeNameDto::DataChannelTypeNameDto( std::string type, std::string description )
-		: m_type{ std::move( type ) },
-		  m_description{ std::move( description ) }
-	{
-	}
 
 	//----------------------------------------------
 	// Serialization
@@ -59,48 +47,52 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
+		const auto typeHint = extractTypeHint( json );
+
 		try
 		{
 			if ( !json.is_object() )
 			{
+				SPDLOG_ERROR( "JSON value for DataChannelTypeNameDto is not an object" );
 				return std::nullopt;
 			}
-			return std::optional<DataChannelTypeNameDto>{ json.get<DataChannelTypeNameDto>() };
+
+			DataChannelTypeNameDto dto = json.get<DataChannelTypeNameDto>();
+			return std::optional<DataChannelTypeNameDto>{ std::move( dto ) };
 		}
-		catch ( ... )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
+			SPDLOG_ERROR( "JSON exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}",
+				typeHint, ex.what() );
+			return std::nullopt;
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Standard exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}",
+				typeHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	DataChannelTypeNameDto DataChannelTypeNameDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		const auto typeHint = extractTypeHint( json );
+		auto dtoOpt = DataChannelTypeNameDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<DataChannelTypeNameDto>();
+			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNameDto from JSON (hint: type='{}')",
+				typeHint ) );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNameDto from JSON: {}", ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNameDto from JSON: {}", ex.what() ) );
-		}
+
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json DataChannelTypeNameDto::toJson() const
 	{
-		nlohmann::json j = *this;
+		nlohmann::json result;
+		to_json( result, *this );
 
-		return j;
-	}
-
-	void to_json( nlohmann::json& j, const DataChannelTypeNameDto& dto )
-	{
-		j = nlohmann::json{
-			{ TYPE_KEY, dto.m_type },
-			{ DESCRIPTION_KEY, dto.m_description } };
+		return result;
 	}
 
 	//----------------------------------------------
@@ -109,40 +101,43 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, DataChannelTypeNameDto& dto )
 	{
-		if ( !j.contains( TYPE_KEY ) || !j.at( TYPE_KEY ).is_string() )
+		const auto typeIt = j.find( ISO19848_DTO_KEY_TYPE );
+		const auto descIt = j.find( ISO19848_DTO_KEY_DESCRIPTION );
+
+		if ( typeIt == j.end() || !typeIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, "Missing or invalid 'type' field", nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "DataChannelTypeNameDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_TYPE ), nullptr );
+		}
+		if ( descIt == j.end() || !descIt->is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "DataChannelTypeNameDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_DESCRIPTION ), nullptr );
 		}
 
-		if ( j.contains( DESCRIPTION_KEY ) && !j.at( DESCRIPTION_KEY ).is_string() )
-		{
-			throw nlohmann::json::type_error::create( 302, "'description' field must be string", nullptr );
-		}
+		dto.m_type = typeIt->get<std::string>();
+		dto.m_description = descIt->get<std::string>();
 
-		dto.m_type = internString( j.at( TYPE_KEY ).get<std::string>() );
-
-		if ( j.contains( DESCRIPTION_KEY ) )
+		if ( dto.m_type.empty() )
 		{
-			dto.m_description = internString( j.at( DESCRIPTION_KEY ).get<std::string>() );
+			SPDLOG_WARN( "Empty 'type' field found in DataChannelTypeNameDto" );
 		}
-		else
+		if ( dto.m_description.empty() )
 		{
-			dto.m_description.clear();
+			SPDLOG_WARN( "Empty 'description' field found in DataChannelTypeNameDto" );
 		}
 	}
 
-	//=====================================================================
-	// Collection of Data Channel Type Data Transfer Objects
-	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	DataChannelTypeNamesDto::DataChannelTypeNamesDto( std::vector<DataChannelTypeNameDto> values )
-		: m_values{ std::move( values ) }
+	void to_json( nlohmann::json& j, const DataChannelTypeNameDto& dto )
 	{
+		j = nlohmann::json{
+			{ ISO19848_DTO_KEY_TYPE, dto.m_type },
+			{ ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
 	}
+
+	//=====================================================================
+	// Collection of Data Channel Type data transfer objects
+	//=====================================================================
 
 	//----------------------------------------------
 	// Serialization
@@ -154,84 +149,111 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
+				SPDLOG_ERROR( "JSON value for DataChannelTypeNamesDto is not an object" );
 				return std::nullopt;
 			}
-			return std::optional<DataChannelTypeNamesDto>{ json.get<DataChannelTypeNamesDto>() };
+
+			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+			{
+				SPDLOG_ERROR( "DataChannelTypeNamesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES );
+				return std::nullopt;
+			}
+
+			const auto& valuesArray = json.at( ISO19848_DTO_KEY_VALUES );
+			size_t totalItems = valuesArray.size();
+			size_t successCount = 0;
+
+			if ( totalItems > 10000 )
+			{
+				[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( DataChannelTypeNameDto ) ) / ( 1024 * 1024 );
+				SPDLOG_DEBUG( "Large ISO19848 data channel types loaded: ~{} MB estimated memory usage", approxMemoryUsage );
+			}
+
+			std::vector<DataChannelTypeNameDto> tempValues;
+			const size_t reserveSize = totalItems < 1000
+										   ? totalItems + totalItems / 4
+										   : totalItems + totalItems / 16;
+			tempValues.reserve( reserveSize );
+
+			for ( const auto& itemJson : valuesArray )
+			{
+				auto itemOpt = DataChannelTypeNameDto::tryFromJson( itemJson );
+				if ( itemOpt.has_value() )
+				{
+					tempValues.emplace_back( std::move( *itemOpt ) );
+					successCount++;
+				}
+				else
+				{
+					SPDLOG_WARN( "Skipping invalid DataChannelTypeNameDto item during parsing" );
+				}
+			}
+
+			SPDLOG_DEBUG( "Successfully parsed {}/{} data channel type names", successCount, totalItems );
+
+			/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
+			if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
+			{
+				if ( tempValues.capacity() > tempValues.size() * 4 / 3 )
+				{
+					tempValues.shrink_to_fit();
+				}
+			}
+
+			DataChannelTypeNamesDto resultDto( std::move( tempValues ) );
+			return std::optional<DataChannelTypeNamesDto>{ std::move( resultDto ) };
 		}
-		catch ( ... )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
+			SPDLOG_ERROR( "JSON exception during DataChannelTypeNamesDto parsing: {}", ex.what() );
+			return std::nullopt;
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Standard exception during DataChannelTypeNamesDto parsing: {}", ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	DataChannelTypeNamesDto DataChannelTypeNamesDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		auto dtoOpt = DataChannelTypeNamesDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<DataChannelTypeNamesDto>();
+			throw std::invalid_argument( "Failed to deserialize DataChannelTypeNamesDto from JSON" );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNamesDto from JSON: {}", ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNamesDto from JSON: {}", ex.what() ) );
-		}
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json DataChannelTypeNamesDto::toJson() const
 	{
-		return *this;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
-	void to_json( nlohmann::json& j, const DataChannelTypeNamesDto& dto )
-	{
-		j = nlohmann::json{ { VALUES_KEY, dto.m_values } };
-	}
-
 	void from_json( const nlohmann::json& j, DataChannelTypeNamesDto& dto )
 	{
-		dto.m_values.clear();
-
-		if ( !j.contains( VALUES_KEY ) || !j.at( VALUES_KEY ).is_array() )
+		if ( !j.contains( ISO19848_DTO_KEY_VALUES ) || !j.at( ISO19848_DTO_KEY_VALUES ).is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "DataChannelTypeNamesDto JSON missing required '{}' field", VALUES_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "DataChannelTypeNamesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES ), nullptr );
 		}
 
-		const auto& jsonArray = j.at( VALUES_KEY );
-		dto.m_values.reserve( jsonArray.size() );
-
-		for ( const auto& itemJson : jsonArray )
-		{
-			try
-			{
-				dto.m_values.emplace_back( itemJson.get<DataChannelTypeNameDto>() );
-			}
-			catch ( ... )
-			{
-			}
-		}
+		dto.m_values = j.at( ISO19848_DTO_KEY_VALUES ).get<std::vector<DataChannelTypeNameDto>>();
 	}
 
-	//=====================================================================
-	// Single Format Data Type Data Transfer Objects
-	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	FormatDataTypeDto::FormatDataTypeDto( std::string type, std::string description )
-		: m_type{ std::move( type ) },
-		  m_description{ std::move( description ) }
+	void to_json( nlohmann::json& j, const DataChannelTypeNamesDto& dto )
 	{
+		j = nlohmann::json{ { ISO19848_DTO_KEY_VALUES, dto.m_values } };
 	}
+
+	//=====================================================================
+	// Single Format Data Type data transfer objects
+	//=====================================================================
 
 	//----------------------------------------------
 	// Serialization
@@ -239,90 +261,95 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
+		const auto typeHint = extractTypeHint( json );
+
 		try
 		{
 			if ( !json.is_object() )
 			{
+				SPDLOG_ERROR( "JSON value for FormatDataTypeDto is not an object" );
 				return std::nullopt;
 			}
-			return std::optional<FormatDataTypeDto>{ json.get<FormatDataTypeDto>() };
+
+			FormatDataTypeDto dto = json.get<FormatDataTypeDto>();
+			return std::optional<FormatDataTypeDto>{ std::move( dto ) };
 		}
-		catch ( ... )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
+			SPDLOG_ERROR( "JSON exception during FormatDataTypeDto parsing (hint: type='{}'): {}",
+				typeHint, ex.what() );
+			return std::nullopt;
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Standard exception during FormatDataTypeDto parsing (hint: type='{}'): {}",
+				typeHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	FormatDataTypeDto FormatDataTypeDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		const auto typeHint = extractTypeHint( json );
+		auto dtoOpt = FormatDataTypeDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<FormatDataTypeDto>();
+			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypeDto from JSON (hint: type='{}')",
+				typeHint ) );
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypeDto from JSON: {}", ex.what() ) );
-		}
-		catch ( [[maybe_unused]] const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypeDto from JSON: {}", ex.what() ) );
-		}
+
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json FormatDataTypeDto::toJson() const
 	{
-		nlohmann::json j = *this;
-		return j;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
+	void from_json( const nlohmann::json& j, FormatDataTypeDto& dto )
+	{
+		const auto typeIt = j.find( ISO19848_DTO_KEY_TYPE );
+		const auto descIt = j.find( ISO19848_DTO_KEY_DESCRIPTION );
+
+		if ( typeIt == j.end() || !typeIt->is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "FormatDataTypeDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_TYPE ), nullptr );
+		}
+		if ( descIt == j.end() || !descIt->is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "FormatDataTypeDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_DESCRIPTION ), nullptr );
+		}
+
+		dto.m_type = typeIt->get<std::string>();
+		dto.m_description = descIt->get<std::string>();
+
+		if ( dto.m_type.empty() )
+		{
+			SPDLOG_WARN( "Empty 'type' field found in FormatDataTypeDto" );
+		}
+		if ( dto.m_description.empty() )
+		{
+			SPDLOG_WARN( "Empty 'description' field found in FormatDataTypeDto" );
+		}
+	}
 	void to_json( nlohmann::json& j, const FormatDataTypeDto& dto )
 	{
 		j = nlohmann::json{
-			{ TYPE_KEY, dto.m_type },
-			{ DESCRIPTION_KEY, dto.m_description } };
-	}
-
-	void from_json( const nlohmann::json& j, FormatDataTypeDto& dto )
-	{
-		if ( !j.contains( TYPE_KEY ) || !j.at( TYPE_KEY ).is_string() )
-		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "FormatDataTypeDto JSON missing required '{}' field or not a string", TYPE_KEY ), nullptr );
-		}
-		if ( j.contains( DESCRIPTION_KEY ) && !j.at( DESCRIPTION_KEY ).is_string() )
-		{
-			throw nlohmann::json::type_error::create( 302,
-				fmt::format( "FormatDataTypeDto JSON field '{}' is not a string", DESCRIPTION_KEY ), nullptr );
-		}
-
-		dto.m_type = internString( j.at( TYPE_KEY ).get<std::string>() );
-
-		if ( j.contains( DESCRIPTION_KEY ) )
-		{
-			dto.m_description = internString( j.at( DESCRIPTION_KEY ).get<std::string>() );
-		}
-		else
-		{
-			dto.m_description.clear();
-		}
+			{ ISO19848_DTO_KEY_TYPE, dto.m_type },
+			{ ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
 	}
 
 	//=====================================================================
-	// Collection of Format Data Type Data Transfer Objects
+	// Collection of Format Data Type data transfer objects
 	//=====================================================================
-
-	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	FormatDataTypesDto::FormatDataTypesDto( std::vector<FormatDataTypeDto> values )
-		: m_values{ std::move( values ) }
-	{
-	}
 
 	//----------------------------------------------
 	// Serialization
@@ -334,68 +361,105 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
+				SPDLOG_ERROR( "JSON value for FormatDataTypesDto is not an object" );
 				return std::nullopt;
 			}
-			return std::optional<FormatDataTypesDto>{ json.get<FormatDataTypesDto>() };
+
+			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+			{
+				SPDLOG_ERROR( "FormatDataTypesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES );
+				return std::nullopt;
+			}
+
+			const auto& valuesArray = json.at( ISO19848_DTO_KEY_VALUES );
+			size_t totalItems = valuesArray.size();
+			size_t successCount = 0;
+
+			if ( totalItems > 10000 )
+			{
+				[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( FormatDataTypeDto ) ) / ( 1024 * 1024 );
+				SPDLOG_DEBUG( "Large ISO19848 format data types loaded: ~{} MB estimated memory usage", approxMemoryUsage );
+			}
+
+			std::vector<FormatDataTypeDto> tempValues;
+			const size_t reserveSize = totalItems < 1000
+										   ? totalItems + totalItems / 4
+										   : totalItems + totalItems / 16;
+			tempValues.reserve( reserveSize );
+
+			for ( const auto& itemJson : valuesArray )
+			{
+				auto itemOpt = FormatDataTypeDto::tryFromJson( itemJson );
+				if ( itemOpt.has_value() )
+				{
+					tempValues.emplace_back( std::move( *itemOpt ) );
+					successCount++;
+				}
+				else
+				{
+					SPDLOG_WARN( "Skipping invalid FormatDataTypeDto item during parsing" );
+				}
+			}
+
+			SPDLOG_DEBUG( "Successfully parsed {}/{} format data types", successCount, totalItems );
+
+			/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
+			if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
+			{
+				if ( tempValues.capacity() > tempValues.size() * 4 / 3 )
+				{
+					tempValues.shrink_to_fit();
+				}
+			}
+
+			FormatDataTypesDto resultDto( std::move( tempValues ) );
+			return std::optional<FormatDataTypesDto>{ std::move( resultDto ) };
 		}
-		catch ( ... )
+		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
+			SPDLOG_ERROR( "JSON exception during FormatDataTypesDto parsing: {}", ex.what() );
+			return std::nullopt;
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			SPDLOG_ERROR( "Standard exception during FormatDataTypesDto parsing: {}", ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	FormatDataTypesDto FormatDataTypesDto::fromJson( const nlohmann::json& json )
 	{
-		try
+		auto dtoOpt = FormatDataTypesDto::tryFromJson( json );
+		if ( !dtoOpt.has_value() )
 		{
-			return json.get<FormatDataTypesDto>();
+			throw std::invalid_argument( "Failed to deserialize FormatDataTypesDto from JSON" );
 		}
-		catch ( const nlohmann::json::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypesDto from JSON: {}", ex.what() ) );
-		}
-		catch ( const std::exception& ex )
-		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypesDto from JSON: {}", ex.what() ) );
-		}
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json FormatDataTypesDto::toJson() const
 	{
-		return *this;
+		nlohmann::json result;
+		to_json( result, *this );
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
-	void to_json( nlohmann::json& j, const FormatDataTypesDto& dto )
-	{
-		j = nlohmann::json{ { VALUES_KEY, dto.m_values } };
-	}
-
 	void from_json( const nlohmann::json& j, FormatDataTypesDto& dto )
 	{
-		dto.m_values.clear();
-
-		if ( !j.contains( VALUES_KEY ) || !j.at( VALUES_KEY ).is_array() )
+		if ( !j.contains( ISO19848_DTO_KEY_VALUES ) || !j.at( ISO19848_DTO_KEY_VALUES ).is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "FormatDataTypesDto JSON missing required '{}' field", VALUES_KEY ), nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "FormatDataTypesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES ), nullptr );
 		}
 
-		const auto& jsonArray = j.at( VALUES_KEY );
-		dto.m_values.reserve( jsonArray.size() );
+		dto.m_values = j.at( ISO19848_DTO_KEY_VALUES ).get<std::vector<FormatDataTypeDto>>();
+	}
 
-		for ( const auto& itemJson : jsonArray )
-		{
-			try
-			{
-				dto.m_values.emplace_back( itemJson.get<FormatDataTypeDto>() );
-			}
-			catch ( ... )
-			{
-			}
-		}
+	void to_json( nlohmann::json& j, const FormatDataTypesDto& dto )
+	{
+		j = nlohmann::json{ { ISO19848_DTO_KEY_VALUES, dto.m_values } };
 	}
 }

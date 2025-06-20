@@ -131,7 +131,7 @@ namespace dnv::vista::sdk
 		 * @param[out] node Output parameter; set to a pointer to the GmodNode if found, otherwise nullptr.
 		 * @return True if the node was found, false otherwise.
 		 */
-		bool tryGetNode( std::string_view code, const GmodNode*& node ) const;
+		inline bool tryGetNode( std::string_view code, const GmodNode*& node ) const noexcept;
 
 		//----------------------------------------------
 		// Path parsing & navigation
@@ -151,7 +151,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter; set to the parsed GmodPath if successful.
 		 * @return True if parsing was successful, false otherwise.
 		 */
-		bool tryParsePath( std::string_view item, std::optional<GmodPath>& path ) const;
+		bool tryParsePath( std::string_view item, std::optional<GmodPath>& path ) const noexcept;
 
 		/**
 		 * @brief Parses a full GMOD path string, which must start from the root "VE".
@@ -159,7 +159,7 @@ namespace dnv::vista::sdk
 		 * @return A GmodPath object representing the parsed path.
 		 * @throws std::invalid_argument If the path string is invalid, not a full path, or cannot be parsed.
 		 */
-		GmodPath parseFromFullPath( const std::string& item ) const;
+		GmodPath parseFromFullPath( std::string_view item ) const;
 
 		/**
 		 * @brief Tries to parse a full GMOD path string.
@@ -167,7 +167,7 @@ namespace dnv::vista::sdk
 		 * @param[out] path Output parameter; set to the parsed GmodPath if successful.
 		 * @return True if parsing was successful, false otherwise.
 		 */
-		bool tryParseFromFullPath( const std::string& item, std::optional<GmodPath>& path ) const;
+		bool tryParseFromFullPath( std::string_view item, std::optional<GmodPath>& path ) const noexcept;
 
 		//----------------------------------------------
 		// Static state inspection methods
@@ -178,49 +178,49 @@ namespace dnv::vista::sdk
 		 * @param type The node type string (e.g., "SYS", "E", "VE").
 		 * @return True if the type suggests it can be a parent, false otherwise.
 		 */
-		inline static bool isPotentialParent( const std::string& type );
+		inline static bool isPotentialParent( std::string_view type ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, is a leaf node.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is considered a leaf node, false otherwise.
 		 */
-		inline static bool isLeafNode( const GmodNodeMetadata& metadata );
+		inline static bool isLeafNode( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, is a function node.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is a function node, false otherwise.
 		 */
-		inline static bool isFunctionNode( const GmodNodeMetadata& metadata );
+		inline static bool isFunctionNode( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, represents a product selection.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is a product selection, false otherwise.
 		 */
-		inline static bool isProductSelection( const GmodNodeMetadata& metadata );
+		inline static bool isProductSelection( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, represents a product type.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is a product type, false otherwise.
 		 */
-		inline static bool isProductType( const GmodNodeMetadata& metadata );
+		inline static bool isProductType( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, represents an asset.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is an asset, false otherwise.
 		 */
-		inline static bool isAsset( const GmodNodeMetadata& metadata );
+		inline static bool isAsset( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, is an asset function node.
 		 * @param metadata The metadata of the GmodNode.
 		 * @return True if the node is an asset function node, false otherwise.
 		 */
-		inline static bool isAssetFunctionNode( const GmodNodeMetadata& metadata );
+		inline static bool isAssetFunctionNode( const GmodNodeMetadata& metadata ) noexcept;
 
 		/**
 		 * @brief Checks if the relationship between a parent and child node constitutes a product type assignment.
@@ -236,7 +236,7 @@ namespace dnv::vista::sdk
 		 * @param child Pointer to the child GmodNode. Can be nullptr.
 		 * @return True if it's a product selection assignment, false otherwise or if inputs are invalid.
 		 */
-		inline static bool isProductSelectionAssignment( const GmodNode* parent, const GmodNode* child );
+		inline static bool isProductSelectionAssignment( const GmodNode* parent, const GmodNode* child ) noexcept;
 
 		//----------------------------------------------
 		// Enumeration
@@ -246,7 +246,7 @@ namespace dnv::vista::sdk
 		 * @brief Gets an enumerator for iterating over all nodes within this Gmod instance.
 		 * @return An Enumerator object.
 		 */
-		Enumerator enumerator() const;
+		inline Enumerator enumerator() const;
 
 		//----------------------------------------------
 		// Gmod::Enumerator class
@@ -302,20 +302,20 @@ namespace dnv::vista::sdk
 			 * @throws std::runtime_error If called when the enumerator is in an invalid state
 			 *                            (e.g., before the first moveNext() or after iteration has ended).
 			 */
-			[[nodiscard]] const GmodNode& current() const;
+			[[nodiscard]] inline const GmodNode& current() const;
 
 			/**
 			 * @brief Advances the enumerator to the next GmodNode in the collection.
 			 * @return True if the enumerator was successfully advanced to the next node;
 			 *         false if the end of the collection has been passed.
 			 */
-			bool next() noexcept;
+			bool inline next() noexcept;
 
 			/**
 			 * @brief Resets the enumerator to its initial state, positioned before the first node.
 			 * @details After calling reset, next() must be called to access the first node.
 			 */
-			void reset() noexcept;
+			void inline reset() noexcept;
 
 			//-----------------------------
 			// Private member variables

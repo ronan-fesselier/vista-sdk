@@ -10,25 +10,51 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
+	// Construction
+	//----------------------------------------------
+
+	inline GmodNodeDto::GmodNodeDto(
+		std::string category,
+		std::string type,
+		std::string code,
+		std::string name,
+		std::optional<std::string> commonName,
+		std::optional<std::string> definition,
+		std::optional<std::string> commonDefinition,
+		std::optional<bool> installSubstructure,
+		std::optional<NormalAssignmentNamesMap> normalAssignmentNames ) noexcept
+		: m_category{ std::move( category ) },
+		  m_type{ std::move( type ) },
+		  m_code{ std::move( code ) },
+		  m_name{ std::move( name ) },
+		  m_commonName{ std::move( commonName ) },
+		  m_definition{ std::move( definition ) },
+		  m_commonDefinition{ std::move( commonDefinition ) },
+		  m_installSubstructure{ installSubstructure },
+		  m_normalAssignmentNames{ std::move( normalAssignmentNames ) }
+	{
+	}
+
+	//----------------------------------------------
 	// Accessors
 	//----------------------------------------------
 
-	inline const std::string& GmodNodeDto::category() const
+	inline std::string_view GmodNodeDto::category() const noexcept
 	{
 		return m_category;
 	}
 
-	inline const std::string& GmodNodeDto::type() const
+	inline std::string_view GmodNodeDto::type() const noexcept
 	{
 		return m_type;
 	}
 
-	inline const std::string& GmodNodeDto::code() const
+	inline std::string_view GmodNodeDto::code() const noexcept
 	{
 		return m_code;
 	}
 
-	inline const std::string& GmodNodeDto::name() const
+	inline std::string_view GmodNodeDto::name() const noexcept
 	{
 		return m_name;
 	}
@@ -63,20 +89,31 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
+	// Construction
+	//----------------------------------------------
+
+	inline GmodDto::GmodDto( std::string visVersion, Items items, Relations relations ) noexcept
+		: m_visVersion{ std::move( visVersion ) },
+		  m_items{ std::move( items ) },
+		  m_relations{ std::move( relations ) }
+	{
+	}
+
+	//----------------------------------------------
 	// Accessors
 	//----------------------------------------------
 
-	inline const std::string& GmodDto::visVersion() const
+	inline std::string_view GmodDto::visVersion() const noexcept
 	{
 		return m_visVersion;
 	}
 
-	inline const GmodDto::Items& GmodDto::items() const
+	inline const GmodDto::Items& GmodDto::items() const noexcept
 	{
 		return m_items;
 	}
 
-	inline const GmodDto::Relations& GmodDto::relations() const
+	inline const GmodDto::Relations& GmodDto::relations() const noexcept
 	{
 		return m_relations;
 	}

@@ -7,18 +7,52 @@
 
 #include "dnv/vista/sdk/CodebooksDto.h"
 
+#include "dnv/vista/sdk/Config.h"
+
 namespace dnv::vista::sdk
 {
 	namespace
 	{
 		//=====================================================================
-		// Constants
+		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr const char* NAME_KEY = "name";
-		static constexpr const char* VALUES_KEY = "values";
-		static constexpr const char* ITEMS_KEY = "items";
-		static constexpr const char* VIS_RELEASE_KEY = "visRelease";
+		static constexpr std::string_view UNKNOWN_NAME = "[unknown name]";
+		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
+
+		std::string_view extractNameHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( CODEBOOK_DTO_KEY_NAME ) && json.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
+				{
+					const auto& str = json.at( CODEBOOK_DTO_KEY_NAME ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_NAME;
+			}
+			catch ( ... )
+			{
+				return UNKNOWN_NAME;
+			}
+		}
+
+		std::string_view extractVisHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) && json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
+				{
+					const auto& str = json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_VERSION;
+			}
+			catch ( ... )
+			{
+				return UNKNOWN_VERSION;
+			}
+		}
 	}
 
 	//=====================================================================
@@ -26,120 +60,88 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	CodebookDto::CodebookDto( std::string name, ValuesMap values )
-		: m_name{ std::move( name ) },
-		  m_values{ std::move( values ) }
-	{
-	}
-
-	//----------------------------------------------
-	// Accessor
-	//----------------------------------------------
-
-	std::string_view CodebookDto::name() const
-	{
-		return m_name;
-	}
-
-	const CodebookDto::ValuesMap& CodebookDto::values() const
-	{
-		return m_values;
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<CodebookDto> CodebookDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto nameHint = extractNameHint( json );
+
 		try
 		{
-			if ( !json.contains( NAME_KEY ) || !json.at( NAME_KEY ).is_string() )
+			if ( !json.contains( CODEBOOK_DTO_KEY_NAME ) || !json.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
 			{
-				SPDLOG_ERROR( "Codebook JSON missing required '{}' field or field is not a string", NAME_KEY );
+				SPDLOG_ERROR( "Codebook JSON missing required '{}' field or field is not a string",
+					CODEBOOK_DTO_KEY_NAME );
 
 				return std::nullopt;
 			}
 
-			std::string tempName = json.at( NAME_KEY ).get<std::string>();
+			std::string tempName = json.at( CODEBOOK_DTO_KEY_NAME ).get<std::string>();
 
 			ValuesMap tempValues;
-			size_t totalValuesParsed = 0;
 
-			if ( json.contains( VALUES_KEY ) )
+			if ( json.contains( CODEBOOK_DTO_KEY_VALUES ) )
 			{
-				if ( !json.at( VALUES_KEY ).is_object() )
+				if ( !json.at( CODEBOOK_DTO_KEY_VALUES ).is_object() )
 				{
-					SPDLOG_WARN( "No '{}' object found or not an object for codebook '{}'", VALUES_KEY, tempName );
+					SPDLOG_WARN( "No '{}' object found or not an object for codebook '{}'",
+						CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 				}
 				else
 				{
 					/* Each key is a group name, and its value should be an array of strings. */
-					const auto& valuesObject = json.at( VALUES_KEY );
-					tempValues.reserve( valuesObject.size() );
+					const auto& valuesObject = json.at( CODEBOOK_DTO_KEY_VALUES );
+					tempValues.reserve( valuesObject.size() + valuesObject.size() / 4 );
 
 					for ( const auto& [groupName, groupValueJson] : valuesObject.items() )
 					{
 						if ( !groupValueJson.is_array() )
 						{
-							SPDLOG_WARN( "Group '{}' values are not in array format for codebook '{}', skipping", groupName, tempName );
+							SPDLOG_WARN( "Group '{}' values are not in array format for codebook '{}', skipping",
+								std::string_view{ groupName }, std::string_view{ tempName } );
 
 							continue;
 						}
 
 						ValueGroup groupValues;
+						groupValues.reserve( groupValueJson.size() );
 						try
 						{
 							/* Attempt to parse the array of strings for the current group */
 							groupValues = groupValueJson.get<ValueGroup>();
-							totalValuesParsed += groupValues.size();
 							tempValues.emplace( groupName, std::move( groupValues ) );
 						}
 						catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 						{
-							SPDLOG_WARN( "Error parsing values for group '{}' in codebook '{}': {}. Skipping group.", groupName, tempName, ex.what() );
+							SPDLOG_WARN( "Error parsing values for group '{}' in codebook '{}': {}. Skipping group.",
+								std::string_view{ groupName }, std::string_view{ tempName }, ex.what() );
 						}
 					}
 				}
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' object found for codebook '{}'", VALUES_KEY, tempName );
+				SPDLOG_WARN( "No '{}' object found for codebook '{}'",
+					CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 			}
 
 			/* Construct the final DTO using successfully parsed data */
 			CodebookDto resultDto( std::move( tempName ), std::move( tempValues ) );
 
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Successfully parsed CodebookDto '{}' in {} ms", resultDto.name(), duration.count() );
-
-			return std::optional<CodebookDto>{ std::move( resultDto ) };
+			return resultDto;
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string nameHint = "[unknown name]";
-			if ( json.contains( NAME_KEY ) && json.at( NAME_KEY ).is_string() )
-			{
-				nameHint = json.at( NAME_KEY ).get<std::string>();
-			}
-
-			SPDLOG_ERROR( "JSON exception during CodebookDto parsing (hint: name='{}'): {}", nameHint, ex.what() );
+			SPDLOG_ERROR( "JSON exception during CodebookDto parsing (hint: name='{}'): {}",
+				nameHint, ex.what() );
 
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string nameHint = "[unknown name]";
-			if ( json.contains( NAME_KEY ) && json.at( NAME_KEY ).is_string() )
-			{
-				nameHint = json.at( NAME_KEY ).get<std::string>();
-			}
-
-			SPDLOG_ERROR( "Standard exception during CodebookDto parsing (hint: name='{}'): {}", nameHint, ex.what() );
+			SPDLOG_ERROR( "Standard exception during CodebookDto parsing (hint: name='{}'): {}",
+				nameHint, ex.what() );
 
 			return std::nullopt;
 		}
@@ -147,73 +149,60 @@ namespace dnv::vista::sdk
 
 	CodebookDto CodebookDto::fromJson( const nlohmann::json& json )
 	{
+		const auto nameHint = extractNameHint( json );
 		auto dtoOpt = CodebookDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			std::string nameHint = "[unknown name]";
-			if ( json.is_object() && json.contains( NAME_KEY ) && json.at( NAME_KEY ).is_string() )
-			{
-				nameHint = json.at( NAME_KEY ).get<std::string>();
-			}
-
-			std::string errorMsg = fmt::format( "Failed to deserialize CodebookDto from JSON (hint: name='{}')", nameHint );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize CodebookDto from JSON (hint: name='{}')", nameHint ) );
 		}
 
-		return std::move( dtoOpt.value() );
+		return dtoOpt.value();
 	}
 
 	nlohmann::json CodebookDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		nlohmann::json result;
+		to_json( result, *this );
 
-		/* Directly construct JSON object from members */
-		nlohmann::json obj = { { NAME_KEY, m_name }, { VALUES_KEY, m_values } };
-
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized CodebookDto '{}' with {} groups in {} ms", m_name, m_values.size(), duration.count() );
-
-		return obj;
+		return result;
 	}
 
 	//-------------------------------------------------------------------
 	// Private serialization methods
 	//-------------------------------------------------------------------
 
-	void to_json( nlohmann::json& j, const CodebookDto& dto )
-	{
-		/* ADL hook for nlohmann::json serialization */
-		j = nlohmann::json{ { NAME_KEY, dto.name() }, { VALUES_KEY, dto.values() } };
-	}
-
 	void from_json( const nlohmann::json& j, CodebookDto& dto )
 	{
-		/* ADL hook for nlohmann::json deserialization. Direct member assignment and throws on error, unlike tryFromJson which returns std::optional. */
-		if ( !j.contains( NAME_KEY ) || !j.at( NAME_KEY ).is_string() )
+		/* ADL hook for nlohmann::json deserialization. */
+		if ( !j.contains( CODEBOOK_DTO_KEY_NAME ) || !j.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, "Codebook JSON missing required 'name' field or field is not a string", nullptr );
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "CodebookDto JSON missing required '{}' field or field is not a string",
+					CODEBOOK_DTO_KEY_NAME ),
+				nullptr );
 		}
 
-		std::string tempName = j.at( NAME_KEY ).get<std::string>();
-		CodebookDto::ValuesMap tempValues;
-		if ( j.contains( VALUES_KEY ) )
+		/* Extract required fields */
+		std::string tempName = j.at( CODEBOOK_DTO_KEY_NAME ).get<std::string>();
+		if ( tempName.empty() )
 		{
-			if ( !j.at( VALUES_KEY ).is_object() )
-			{
-				SPDLOG_WARN( "Codebook JSON 'values' field is not an object for name '{}'", tempName );
-			}
-			else
-			{
-				tempValues = j.at( VALUES_KEY ).get<CodebookDto::ValuesMap>();
-			}
+			SPDLOG_WARN( "Empty name field found in CodebookDto" );
 		}
-		else
+
+		CodebookDto::ValuesMap tempValues;
+		if ( j.contains( CODEBOOK_DTO_KEY_VALUES ) && j.at( CODEBOOK_DTO_KEY_VALUES ).is_object() )
 		{
-			SPDLOG_WARN( "Codebook JSON missing 'values' field for name '{}'", tempName );
+			tempValues = j.at( CODEBOOK_DTO_KEY_VALUES ).get<CodebookDto::ValuesMap>();
 		}
 
 		dto.m_name = std::move( tempName );
 		dto.m_values = std::move( tempValues );
+	}
+
+	void to_json( nlohmann::json& j, const CodebookDto& dto )
+	{
+		/* ADL hook for nlohmann::json serialization. */
+		j = nlohmann::json{ { CODEBOOK_DTO_KEY_NAME, dto.name() }, { CODEBOOK_DTO_KEY_VALUES, dto.values() } };
 	}
 
 	//=====================================================================
@@ -221,61 +210,39 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	CodebooksDto::CodebooksDto( std::string visVersion, Items items )
-		: m_visVersion{ std::move( visVersion ) },
-		  m_items{ std::move( items ) }
-	{
-	}
-
-	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	const std::string& CodebooksDto::visVersion() const
-	{
-		return m_visVersion;
-	}
-
-	const CodebooksDto::Items& CodebooksDto::items() const
-	{
-		return m_items;
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<CodebooksDto> CodebooksDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto visHint = extractVisHint( json );
 		try
 		{
-			if ( !json.contains( VIS_RELEASE_KEY ) || !json.at( VIS_RELEASE_KEY ).is_string() )
+			if ( !json.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				SPDLOG_ERROR( "Codebooks JSON missing required '{}' field or field is not a string", VIS_RELEASE_KEY );
+				SPDLOG_ERROR( "Codebooks JSON missing required '{}' field or field is not a string",
+					CODEBOOK_DTO_KEY_VIS_RELEASE );
 
 				return std::nullopt;
 			}
 
-			std::string tempVisVersion = json.at( VIS_RELEASE_KEY ).get<std::string>();
+			std::string tempVisVersion = json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
 
 			Items tempItems;
 			size_t totalItems = 0;
 			size_t successCount = 0;
 
-			if ( json.contains( ITEMS_KEY ) )
+			if ( json.contains( CODEBOOK_DTO_KEY_ITEMS ) )
 			{
-				if ( !json.at( ITEMS_KEY ).is_array() )
+				if ( !json.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
 				{
-					SPDLOG_WARN( "'{}' field is not an array for VIS version {}", ITEMS_KEY, tempVisVersion );
+					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+						CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 				}
 				else
 				{
 					/* The "items" key should contain a JSON array of codebook objects. */
-					const auto& itemsArray = json.at( ITEMS_KEY );
+					const auto& itemsArray = json.at( CODEBOOK_DTO_KEY_ITEMS );
 					totalItems = itemsArray.size();
 					tempItems.reserve( totalItems );
 
@@ -285,57 +252,48 @@ namespace dnv::vista::sdk
 						auto codebookOpt = CodebookDto::tryFromJson( itemJson );
 						if ( codebookOpt.has_value() )
 						{
-							tempItems.emplace_back( std::move( codebookOpt.value() ) );
+							tempItems.emplace_back( std::move( *codebookOpt ) );
 							successCount++;
 						}
 						else
 						{
-							SPDLOG_WARN( "Skipping invalid codebook item during CodebooksDto parsing for VIS version {}.", tempVisVersion );
+							SPDLOG_WARN( "Skipping invalid codebook item during CodebooksDto parsing for VIS version {}.",
+								std::string_view{ tempVisVersion } );
 						}
 					}
 
 					/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory. */
-					if ( totalItems > 0 && static_cast<double>( successCount ) < static_cast<double>( totalItems ) * 0.9 )
+					if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
 					{
-						SPDLOG_WARN( "Shrinking items vector due to high parsing failure rate ({}/{}) for VIS version {}", successCount, totalItems, tempVisVersion );
-						tempItems.shrink_to_fit();
+						if ( tempItems.capacity() > tempItems.size() * 4 / 3 )
+						{
+							tempItems.shrink_to_fit();
+						}
 					}
 				}
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' array found in CodebooksDto for VIS version {}", ITEMS_KEY, tempVisVersion );
+				SPDLOG_WARN( "No '{}' array found in CodebooksDto for VIS version {}",
+					CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 			}
 
 			/* Construct the final DTO using successfully parsed data */
 			CodebooksDto resultDto( std::move( tempVisVersion ), std::move( tempItems ) );
 
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Successfully parsed CodebooksDto with {} items for VIS version {} in {} ms", resultDto.items().size(), resultDto.visVersion(), duration.count() );
-
-			return std::optional<CodebooksDto>{ std::move( resultDto ) };
+			return resultDto;
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-			{
-				visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-			}
-
-			SPDLOG_ERROR( "JSON exception during CodebooksDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
+			SPDLOG_ERROR( "JSON exception during CodebooksDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-			{
-				visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-			}
-
-			SPDLOG_ERROR( "Standard exception during CodebooksDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
+			SPDLOG_ERROR( "Standard exception during CodebooksDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 
 			return std::nullopt;
 		}
@@ -343,32 +301,51 @@ namespace dnv::vista::sdk
 
 	CodebooksDto CodebooksDto::fromJson( const nlohmann::json& json )
 	{
+		const auto visHint = extractVisHint( json );
 		auto dtoOpt = CodebooksDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			std::string visHint = "[unknown version]";
-			if ( json.is_object() && json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-			{
-				visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-			}
-
-			std::string errorMsg = fmt::format( "Failed to deserialize CodebooksDto from JSON (hint: visRelease='{}')", visHint );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize CodebooksDto from JSON (hint: visRelease='{}')", visHint ) );
 		}
 
-		return std::move( dtoOpt.value() );
+		return std::move( dtoOpt ).value();
 	}
 
 	nlohmann::json CodebooksDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		nlohmann::json result;
+		to_json( result, *this );
 
-		/* Directly construct JSON object from members */
-		nlohmann::json obj = { { VIS_RELEASE_KEY, m_visVersion }, { ITEMS_KEY, m_items } };
+		return result;
+	}
 
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized CodebooksDto with {} items for VIS version {} in {} ms", m_items.size(), m_visVersion, duration.count() );
+	//-------------------------------------------------------------------
+	// Private serialization methods
+	//-------------------------------------------------------------------
 
-		return obj;
+	void from_json( const nlohmann::json& j, CodebooksDto& dto )
+	{
+		/* ADL hook for nlohmann::json deserialization. */
+		if ( !j.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !j.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 201, 0u,
+				fmt::format( "Codebooks JSON missing required '{}' field", CODEBOOK_DTO_KEY_VIS_RELEASE ), nullptr );
+		}
+
+		if ( !j.contains( CODEBOOK_DTO_KEY_ITEMS ) || !j.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
+		{
+			throw nlohmann::json::parse_error::create( 202, 0u,
+				fmt::format( "Codebooks JSON missing required '{}' array", CODEBOOK_DTO_KEY_ITEMS ), nullptr );
+		}
+
+		/* Extract required fields */
+		dto.m_visVersion = j.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
+		dto.m_items = j.at( CODEBOOK_DTO_KEY_ITEMS ).get<CodebooksDto::Items>();
+	}
+
+	void to_json( nlohmann::json& j, const CodebooksDto& dto )
+	{
+		/* ADL hook for nlohmann::json serialization. */
+		j = { { CODEBOOK_DTO_KEY_VIS_RELEASE, dto.visVersion() }, { CODEBOOK_DTO_KEY_ITEMS, dto.items() } };
 	}
 }

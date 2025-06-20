@@ -74,6 +74,11 @@ namespace dnv::vista::sdk
 	// Accessors
 	//----------------------------------------------
 
+	inline CodebookName Codebook::name() const noexcept
+	{
+		return m_name;
+	}
+
 	inline const CodebookGroups& Codebook::groups() const noexcept
 	{
 		return m_groups;

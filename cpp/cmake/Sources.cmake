@@ -3,6 +3,9 @@
 # ==============================================================================
 
 set(PUBLIC_HEADERS
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/version.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h
+
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.h
@@ -12,8 +15,10 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebookName.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebookName.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebooksDto.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebooksDto.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/EmbeddedResource.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/EmbeddedResource.inl
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Gmod.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Gmod.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodDto.h

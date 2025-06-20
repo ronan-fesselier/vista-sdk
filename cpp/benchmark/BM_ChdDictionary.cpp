@@ -21,7 +21,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Type( benchmark::State& state )
 	{
-		const std::string_view key = "Type";
+		std::string_view key = "Type";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -34,7 +34,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_State( benchmark::State& state )
 	{
-		const std::string_view key = "State";
+		std::string_view key = "State";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -45,7 +45,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Detail( benchmark::State& state )
 	{
-		const std::string_view key = "Detail";
+		std::string_view key = "Detail";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -56,7 +56,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Content( benchmark::State& state )
 	{
-		const std::string_view key = "Content";
+		std::string_view key = "Content";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -67,7 +67,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Command( benchmark::State& state )
 	{
-		const std::string_view key = "Command";
+		std::string_view key = "Command";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -78,7 +78,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Quantity( benchmark::State& state )
 	{
-		const std::string_view key = "Quantity";
+		std::string_view key = "Quantity";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -89,7 +89,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Position( benchmark::State& state )
 	{
-		const std::string_view key = "Position";
+		std::string_view key = "Position";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -100,7 +100,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_Calculation( benchmark::State& state )
 	{
-		const std::string_view key = "Calculation";
+		std::string_view key = "Calculation";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -111,7 +111,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_ActivityType( benchmark::State& state )
 	{
-		const std::string_view key = "ActivityType";
+		std::string_view key = "ActivityType";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -122,7 +122,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_FunctionalServices( benchmark::State& state )
 	{
-		const std::string_view key = "FunctionalServices";
+		std::string_view key = "FunctionalServices";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );
@@ -134,7 +134,7 @@ namespace dnv::vista::sdk::benchmarks
 
 	static void BM_hash_MaintenanceCategory( benchmark::State& state )
 	{
-		const std::string_view key = "MaintenanceCategory";
+		std::string_view key = "MaintenanceCategory";
 		for ( auto _ : state )
 		{
 			uint32_t hash = ChdDictionary<std::string_view>::hash( key );

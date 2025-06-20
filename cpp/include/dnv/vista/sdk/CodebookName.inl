@@ -3,42 +3,34 @@
  * @brief Inline implementations for performance-critical CodebookName operations
  */
 
+#include "Config.h"
+
 namespace dnv::vista::sdk
 {
 	namespace
 	{
 		//=====================================================================
-		// Constants
+		// Prefix-to-CodebookName mapping table
 		//=====================================================================
 
-		static constexpr std::string_view POSITION_PREFIX = "pos";
-		static constexpr std::string_view QUANTITY_PREFIX = "qty";
-		static constexpr std::string_view CALCULATION_PREFIX = "calc";
-		static constexpr std::string_view STATE_PREFIX = "state";
-		static constexpr std::string_view CONTENT_PREFIX = "cnt";
-		static constexpr std::string_view COMMAND_PREFIX = "cmd";
-		static constexpr std::string_view TYPE_PREFIX = "type";
-		static constexpr std::string_view FUNCTIONAL_SERVICES_PREFIX = "funct.svc";
-		static constexpr std::string_view MAINTENANCE_CATEGORY_PREFIX = "maint.cat";
-		static constexpr std::string_view ACTIVITY_TYPE_PREFIX = "act.type";
-		static constexpr std::string_view DETAIL_PREFIX = "detail";
+		struct PrefixMapping
+		{
+			std::string_view prefix;
+			CodebookName name;
+		};
 
-		//=====================================================================
-		// Enum mapping tables
-		//=====================================================================
-
-		static const std::unordered_map<std::string_view, CodebookName> s_prefixMap{
-			{ POSITION_PREFIX, CodebookName::Position },
-			{ QUANTITY_PREFIX, CodebookName::Quantity },
-			{ CALCULATION_PREFIX, CodebookName::Calculation },
-			{ STATE_PREFIX, CodebookName::State },
-			{ CONTENT_PREFIX, CodebookName::Content },
-			{ COMMAND_PREFIX, CodebookName::Command },
-			{ TYPE_PREFIX, CodebookName::Type },
-			{ FUNCTIONAL_SERVICES_PREFIX, CodebookName::FunctionalServices },
-			{ MAINTENANCE_CATEGORY_PREFIX, CodebookName::MaintenanceCategory },
-			{ ACTIVITY_TYPE_PREFIX, CodebookName::ActivityType },
-			{ DETAIL_PREFIX, CodebookName::Detail } };
+		static constexpr std::array<PrefixMapping, 11> s_prefixMappings{
+			{ { CODEBOOK_PREFIX_POSITION, CodebookName::Position },
+				{ CODEBOOK_PREFIX_QUANTITY, CodebookName::Quantity },
+				{ CODEBOOK_PREFIX_STATE, CodebookName::State },
+				{ CODEBOOK_PREFIX_CONTENT, CodebookName::Content },
+				{ CODEBOOK_PREFIX_COMMAND, CodebookName::Command },
+				{ CODEBOOK_PREFIX_TYPE, CodebookName::Type },
+				{ CODEBOOK_PREFIX_CALCULATION, CodebookName::Calculation },
+				{ CODEBOOK_PREFIX_DETAIL, CodebookName::Detail },
+				{ CODEBOOK_PREFIX_FUNCTIONAL_SERVICES, CodebookName::FunctionalServices },
+				{ CODEBOOK_PREFIX_MAINTENANCE_CATEGORY, CodebookName::MaintenanceCategory },
+				{ CODEBOOK_PREFIX_ACTIVITY_TYPE, CodebookName::ActivityType } } };
 	}
 
 	//=====================================================================
@@ -49,48 +41,72 @@ namespace dnv::vista::sdk
 	// Public static methods
 	//----------------------------------------------
 
-	inline CodebookName CodebookNames::fromPrefix( const std::string_view prefix )
+	inline CodebookName CodebookNames::fromPrefix( std::string_view prefix )
 	{
 		if ( prefix.empty() )
 		{
 			throw std::invalid_argument( "Prefix cannot be empty." );
 		}
 
-		const auto it = s_prefixMap.find( prefix );
-		if ( it != s_prefixMap.end() )
+		for ( const auto& mapping : s_prefixMappings )
 		{
-			return it->second;
+			if ( mapping.prefix == prefix )
+			{
+				return mapping.name;
+			}
 		}
 
 		throw std::invalid_argument( "Unknown prefix: " + std::string( prefix ) );
 	}
 
-	std::string_view CodebookNames::toPrefix( CodebookName name )
+	inline std::string_view CodebookNames::toPrefix( CodebookName name )
 	{
 		switch ( name )
 		{
 			case CodebookName::Position:
-				return POSITION_PREFIX;
+			{
+				return CODEBOOK_PREFIX_POSITION;
+			}
 			case CodebookName::Quantity:
-				return QUANTITY_PREFIX;
+			{
+				return CODEBOOK_PREFIX_QUANTITY;
+			}
 			case CodebookName::Calculation:
-				return CALCULATION_PREFIX;
+			{
+				return CODEBOOK_PREFIX_CALCULATION;
+			}
 			case CodebookName::State:
-				return STATE_PREFIX;
+			{
+				return CODEBOOK_PREFIX_STATE;
+			}
 			case CodebookName::Content:
-				return CONTENT_PREFIX;
+			{
+				return CODEBOOK_PREFIX_CONTENT;
+			}
 			case CodebookName::Command:
-				return COMMAND_PREFIX;
+			{
+				return CODEBOOK_PREFIX_COMMAND;
+			}
 			case CodebookName::Type:
-				return TYPE_PREFIX;
+			{
+				return CODEBOOK_PREFIX_TYPE;
+			}
 			case CodebookName::FunctionalServices:
-				return FUNCTIONAL_SERVICES_PREFIX;
+			{
+				return CODEBOOK_PREFIX_FUNCTIONAL_SERVICES;
+			}
 			case CodebookName::MaintenanceCategory:
-				return MAINTENANCE_CATEGORY_PREFIX;
+			{
+				return CODEBOOK_PREFIX_MAINTENANCE_CATEGORY;
+			}
 			case CodebookName::ActivityType:
-				return ACTIVITY_TYPE_PREFIX;
+			{
+				return CODEBOOK_PREFIX_ACTIVITY_TYPE;
+			}
 			case CodebookName::Detail:
-				return DETAIL_PREFIX;
+			{
+				return CODEBOOK_PREFIX_DETAIL;
+			}
 			default:
 			{
 				throw std::invalid_argument( "Unknown codebook: " + std::to_string( static_cast<int>( name ) ) );

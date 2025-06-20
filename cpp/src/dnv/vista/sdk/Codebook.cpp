@@ -7,6 +7,8 @@
 
 #include "dnv/vista/sdk/Codebook.h"
 
+#include "dnv/vista/sdk/Config.h"
+
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/MetadataTag.h"
 #include "dnv/vista/sdk/VIS.h"
@@ -14,56 +16,11 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Constants
-	//=====================================================================
-
-	//----------------------------------------------
-	// Codebooks names
-	//----------------------------------------------
-
-	namespace
-	{
-		static constexpr std::string_view POSITION_NAME = "positions";
-		static constexpr std::string_view CALCULATION_NAME = "calculations";
-		static constexpr std::string_view QUANTITY_NAME = "quantities";
-		static constexpr std::string_view STATE_NAME = "states";
-		static constexpr std::string_view CONTENT_NAME = "contents";
-		static constexpr std::string_view COMMAND_NAME = "commands";
-		static constexpr std::string_view TYPE_NAME = "types";
-		static constexpr std::string_view FUNCTIONAL_SERVICES_NAME = "functional_services";
-		static constexpr std::string_view MAINTENANCE_CATEGORY_NAME = "maintenance_category";
-		static constexpr std::string_view ACTIVITY_TYPE_NAME = "activity_type";
-		static constexpr std::string_view DETAIL_NAME = "detail";
-	}
-
-	//----------------------------------------------
-	// Position validation constants
-	//----------------------------------------------
-
-	namespace
-	{
-		/** @brief Special group identifier for numeric-only values in VISTA codebooks. */
-		static constexpr std::string_view NUMBER_GROUP = "<number>";
-
-		/** @brief Default group name for ungrouped position components. */
-		static constexpr std::string_view DEFAULT_GROUP_NAME = "DEFAULT_GROUP";
-
-		/** @brief Fallback group identifier for unrecognized position components. */
-		static constexpr std::string_view UNKNOWN_GROUP = "UNKNOWN";
-
-		/** @brief Standard whitespace characters for string trimming operations. */
-		static constexpr std::string_view WHITESPACE = " \t\n\r\f\v";
-	}
-
-	//=====================================================================
 	// Magic numbers
 	//=====================================================================
 
 	namespace
 	{
-		/** @brief Hash table load factor multiplier to minimize rehashing during Codebook construction. */
-		static constexpr size_t LOAD_FACTOR = 2;
-
 		/** @brief Stack allocation limit for position parsing arrays to avoid heap allocation during position validation. */
 		static constexpr size_t MAX_POSITIONS = 16;
 
@@ -80,25 +37,72 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		static constexpr std::array s_codebookNameMap{ std::to_array<std::pair<std::string_view, CodebookName>>(
-			{ { POSITION_NAME, CodebookName::Position },
-				{ CALCULATION_NAME, CodebookName::Calculation },
-				{ QUANTITY_NAME, CodebookName::Quantity },
-				{ STATE_NAME, CodebookName::State },
-				{ CONTENT_NAME, CodebookName::Content },
-				{ COMMAND_NAME, CodebookName::Command },
-				{ TYPE_NAME, CodebookName::Type },
-				{ FUNCTIONAL_SERVICES_NAME, CodebookName::FunctionalServices },
-				{ MAINTENANCE_CATEGORY_NAME, CodebookName::MaintenanceCategory },
-				{ ACTIVITY_TYPE_NAME, CodebookName::ActivityType },
-				{ DETAIL_NAME, CodebookName::Detail } } ) };
-
-		static constexpr CodebookName codebookNameFromString( std::string_view name )
+		constexpr CodebookName codebookNameFromString( std::string_view name )
 		{
-			for ( const auto& [nameStr, enumValue] : s_codebookNameMap )
+			switch ( name.size() )
 			{
-				if ( nameStr == name )
-					return enumValue;
+				case 5:
+					if ( name == CODEBOOK_NAME_TYPE )
+					{
+						return CodebookName::Type;
+					}
+					break;
+				case 6:
+					if ( name == CODEBOOK_NAME_STATE )
+					{
+						return CodebookName::State;
+					}
+					if ( name == CODEBOOK_NAME_DETAIL )
+					{
+						return CodebookName::Detail;
+					}
+					break;
+				case 8:
+					if ( name == CODEBOOK_NAME_CONTENT )
+					{
+						return CodebookName::Content;
+					}
+					if ( name == CODEBOOK_NAME_COMMAND )
+					{
+						return CodebookName::Command;
+					}
+					break;
+				case 9:
+					if ( name == CODEBOOK_NAME_POSITION )
+					{
+						return CodebookName::Position;
+					}
+					break;
+				case 10:
+					if ( name == CODEBOOK_NAME_QUANTITY )
+					{
+						return CodebookName::Quantity;
+					}
+					break;
+				case 12:
+					if ( name == CODEBOOK_NAME_CALCULATION )
+					{
+						return CodebookName::Calculation;
+					}
+					break;
+				case 13:
+					if ( name == CODEBOOK_NAME_ACTIVITY_TYPE )
+					{
+						return CodebookName::ActivityType;
+					}
+					break;
+				case 19:
+					if ( name == CODEBOOK_NAME_FUNCTIONAL_SERVICES )
+					{
+						return CodebookName::FunctionalServices;
+					}
+					break;
+				case 20:
+					if ( name == CODEBOOK_NAME_MAINTENANCE_CATEGORY )
+					{
+						return CodebookName::MaintenanceCategory;
+					}
+					break;
 			}
 			throw std::invalid_argument( "Unknown codebook name: " + std::string( name ) );
 		}
@@ -110,17 +114,10 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		alignas( 64 ) static constexpr std::array<bool, 256> s_digitLookup = []() constexpr {
-			std::array<bool, 256> lookup{};
-			for ( unsigned char i = '0'; i <= '9'; ++i )
-			{
-				lookup[i] = true;
-			}
+		/** @brief Standard whitespace characters for string trimming operations. */
+		static constexpr std::string_view WHITESPACE = " \t\n\r\f\v";
 
-			return lookup;
-		}();
-
-		alignas( 64 ) static constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
+		alignas( 64 ) constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
 			constexpr std::string_view whitespace = WHITESPACE;
 			for ( char c : whitespace )
@@ -131,14 +128,44 @@ namespace dnv::vista::sdk
 			return lookup;
 		}();
 
-		constexpr bool isDigit( char c ) noexcept
-		{
-			return s_digitLookup[static_cast<unsigned char>( c )];
-		}
-
 		constexpr bool isWhitespace( char c ) noexcept
 		{
 			return s_whitespaceLookup[static_cast<unsigned char>( c )];
+		}
+
+		constexpr bool isDigit( char c ) noexcept
+		{
+			return static_cast<unsigned char>( c - '0' ) <= 9u;
+		}
+
+		constexpr std::string_view trimString( std::string_view str ) noexcept
+		{
+			if ( str.empty() )
+			{
+				return {};
+			}
+
+			/* Find first non-whitespace */
+			size_t first = 0;
+			const size_t size = str.size();
+			while ( first < size && isWhitespace( str[first] ) )
+			{
+				++first;
+			}
+
+			if ( first == size )
+			{
+				return {};
+			}
+
+			/* Find last non-whitespace */
+			size_t last = size - 1;
+			while ( last > first && isWhitespace( str[last] ) )
+			{
+				--last;
+			}
+
+			return str.substr( first, last - first + 1 );
 		}
 	}
 
@@ -148,12 +175,12 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		static constexpr std::array<std::pair<std::string_view, PositionValidationResult>, 5> s_validationResultMap =
-			{ { { "invalid", PositionValidationResult::Invalid },
-				{ "invalidorder", PositionValidationResult::InvalidOrder },
-				{ "invalidgrouping", PositionValidationResult::InvalidGrouping },
-				{ "valid", PositionValidationResult::Valid },
-				{ "custom", PositionValidationResult::Custom } } };
+		static constexpr std::array<std::pair<std::string_view, PositionValidationResult>, 5> s_validationResultMap{
+			{ { CODEBOOK_POSITION_VALIDATION_INVALID, PositionValidationResult::Invalid },
+				{ CODEBOOK_POSITION_VALIDATION_INVALID_ORDER, PositionValidationResult::InvalidOrder },
+				{ CODEBOOK_POSITION_VALIDATION_INVALID_GROUPING, PositionValidationResult::InvalidGrouping },
+				{ CODEBOOK_POSITION_VALIDATION_VALID, PositionValidationResult::Valid },
+				{ CODEBOOK_POSITION_VALIDATION_CUSTOM, PositionValidationResult::Custom } } };
 
 		[[nodiscard]] static std::string toLower( std::string_view input ) noexcept
 		{
@@ -167,48 +194,6 @@ namespace dnv::vista::sdk
 
 			return result;
 		}
-	}
-
-	//=====================================================================
-	// Heterogeneous lookup
-	//=====================================================================
-
-	//----------------------------------------------
-	// StringHash
-	//----------------------------------------------
-
-	size_t StringHash::operator()( std::string_view sv ) const noexcept
-	{
-		return std::hash<std::string_view>{}( sv );
-	}
-
-	size_t StringHash::operator()( const std::string& s ) const noexcept
-	{
-		return std::hash<std::string>{}( s );
-	}
-
-	//----------------------------------------------
-	// StringEqual
-	//----------------------------------------------
-
-	bool StringEqual::operator()( const std::string& lhs, const std::string& rhs ) const noexcept
-	{
-		return lhs == rhs;
-	}
-
-	bool StringEqual::operator()( const std::string& lhs, std::string_view rhs ) const noexcept
-	{
-		return lhs == rhs;
-	}
-
-	bool StringEqual::operator()( std::string_view lhs, const std::string& rhs ) const noexcept
-	{
-		return lhs == rhs;
-	}
-
-	bool StringEqual::operator()( std::string_view lhs, std::string_view rhs ) const noexcept
-	{
-		return lhs == rhs;
 	}
 
 	//=====================================================================
@@ -232,8 +217,6 @@ namespace dnv::vista::sdk
 		{
 			if ( key == lowerName )
 			{
-				SPDLOG_TRACE( "Converted PositionValidationResult: '{}' -> {}",
-					name, static_cast<int>( value ) );
 				return value;
 			}
 		}
@@ -250,7 +233,7 @@ namespace dnv::vista::sdk
 	// Construction / destruction
 	//----------------------------------------------
 
-	CodebookStandardValues::CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringHash, StringEqual>&& standardValues )
+	CodebookStandardValues::CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringViewHash, StringViewEqual>&& standardValues )
 		: m_name{ name },
 		  m_standardValues{ std::move( standardValues ) }
 	{
@@ -283,7 +266,7 @@ namespace dnv::vista::sdk
 	// Construction / destruction
 	//----------------------------------------------
 
-	CodebookGroups::CodebookGroups( std::unordered_set<std::string, StringHash, StringEqual>&& groups )
+	CodebookGroups::CodebookGroups( std::unordered_set<std::string, StringViewHash, StringViewEqual>&& groups )
 		: m_groups{ std::move( groups ) }
 	{
 	}
@@ -303,50 +286,28 @@ namespace dnv::vista::sdk
 		  m_groups{},
 		  m_rawData{}
 	{
-		auto trimString = []( std::string_view str ) -> std::string_view {
-			if ( str.empty() )
-			{
-				return {};
-			}
-
-			const char* data = str.data();
-			const size_t size = str.size();
-
-			size_t first = 0;
-			while ( first < size && isWhitespace( data[first] ) )
-			{
-				++first;
-			}
-
-			if ( first == size )
-			{
-				return {};
-			}
-
-			size_t last = size - 1;
-			while ( last > first && isWhitespace( data[last] ) )
-			{
-				--last;
-			}
-
-			return str.substr( first, last - first + 1 );
-		};
-
+		/* Pre-calculate total size for better memory allocation */
 		size_t totalEstimate = 0;
-		for ( const auto& [_, values] : dto.values() )
+		const auto& dtoValues = dto.values();
+		const size_t groupCount = dtoValues.size();
+
+		for ( const auto& [_, values] : dtoValues )
 		{
 			totalEstimate += values.size();
 		}
 
-		m_groupMap.reserve( totalEstimate * LOAD_FACTOR );
-		m_rawData.reserve( dto.values().size() * LOAD_FACTOR );
+		/* Load factor calculation */
+		const size_t capacity = totalEstimate + ( totalEstimate >> 1 ); /* 1.5x */
 
-		std::unordered_set<std::string, StringHash, StringEqual> valueSet;
-		std::unordered_set<std::string, StringHash, StringEqual> groupSet;
-		valueSet.reserve( totalEstimate * LOAD_FACTOR );
-		groupSet.reserve( dto.values().size() * LOAD_FACTOR );
+		m_groupMap.reserve( capacity );
+		m_rawData.reserve( groupCount + ( groupCount >> 2 ) ); /* 1.25x */
 
-		for ( const auto& [groupKey, values] : dto.values() )
+		std::unordered_set<std::string, StringViewHash, StringViewEqual> valueSet;
+		std::unordered_set<std::string, StringViewHash, StringViewEqual> groupSet;
+		valueSet.reserve( capacity );
+		groupSet.reserve( groupCount + ( groupCount >> 2 ) );
+
+		for ( const auto& [groupKey, values] : dtoValues )
 		{
 			std::string_view groupTrimmed = trimString( groupKey );
 			std::string groupStr{ groupTrimmed };
@@ -358,13 +319,13 @@ namespace dnv::vista::sdk
 			{
 				std::string_view valueTrimmed = trimString( value );
 				std::string valueStr{ valueTrimmed };
-				trimmedValues.push_back( valueStr );
+				trimmedValues.emplace_back( std::move( valueStr ) );
 
-				if ( valueStr != NUMBER_GROUP )
+				if ( trimmedValues.back() != CODEBOOK_GROUP_NUMBER )
 				{
-					m_groupMap.try_emplace( valueStr, groupStr );
-					valueSet.insert( valueStr );
-					groupSet.insert( groupStr );
+					m_groupMap.emplace( trimmedValues.back(), groupStr );
+					valueSet.emplace( trimmedValues.back() );
+					groupSet.emplace( groupStr );
 				}
 			}
 
@@ -373,10 +334,6 @@ namespace dnv::vista::sdk
 
 		m_standardValues = CodebookStandardValues{ m_name, std::move( valueSet ) };
 		m_groups = CodebookGroups{ std::move( groupSet ) };
-
-		SPDLOG_DEBUG( "Codebook '{}' constructed: {} groups, {} values, {} raw entries",
-			CodebookNames::toPrefix( m_name ), m_groups.count(),
-			m_standardValues.count(), m_rawData.size() );
 	}
 
 	//----------------------------------------------
@@ -445,9 +402,17 @@ namespace dnv::vista::sdk
 			return PositionValidationResult::Invalid;
 		}
 
-		if ( position.find_first_of( WHITESPACE ) != std::string_view::npos )
+		bool allDigits = true;
+		for ( char c : position )
 		{
-			return PositionValidationResult::Invalid;
+			if ( isWhitespace( c ) )
+			{
+				return PositionValidationResult::Invalid;
+			}
+			if ( allDigits && !isDigit( c ) )
+			{
+				allDigits = false;
+			}
 		}
 
 		if ( !VIS::isISOString( position ) )
@@ -460,74 +425,78 @@ namespace dnv::vista::sdk
 			return PositionValidationResult::Valid;
 		}
 
-		if ( !position.empty() && std::all_of( position.begin(), position.end(), isDigit ) )
+		if ( allDigits )
 		{
 			return PositionValidationResult::Valid;
 		}
 
-		const auto hyphenPos = position.find( '-' );
+		const size_t hyphenPos = position.find( '-' );
 		if ( hyphenPos == std::string_view::npos )
 		{
 			return PositionValidationResult::Custom;
 		}
 
 		std::array<std::string_view, MAX_POSITIONS> positions;
-		std::array<PositionValidationResult, MAX_POSITIONS> results;
 		size_t positionCount = 0;
 
-		size_t start = 0;
-		size_t pos = 0;
-		while ( ( pos = position.find( '-', start ) ) != std::string_view::npos && positionCount < MAX_POSITIONS )
+		const char* data = position.data();
+		const char* end = data + position.size();
+		const char* start = data;
+
+		while ( start < end && positionCount < MAX_POSITIONS )
 		{
-			positions[positionCount] = position.substr( start, pos - start );
-			start = pos + 1;
+			const char* hyphen = std::find( start, end, '-' );
+			positions[positionCount] = std::string_view( start, static_cast<size_t>( hyphen - start ) );
 			++positionCount;
+
+			if ( hyphen == end )
+			{
+				break;
+			}
+
+			start = hyphen + 1;
 		}
 
-		if ( positionCount < MAX_POSITIONS )
-		{
-			positions[positionCount] = position.substr( start );
-			++positionCount;
-		}
-		else
+		if ( positionCount >= MAX_POSITIONS )
 		{
 			return PositionValidationResult::Invalid;
 		}
 
-		auto validateSinglePosition = [this]( std::string_view pos ) noexcept -> PositionValidationResult {
-			if ( m_standardValues.contains( pos ) )
-				return PositionValidationResult::Valid;
-
-			if ( !pos.empty() && std::all_of( pos.begin(), pos.end(), isDigit ) )
-				return PositionValidationResult::Valid;
-
-			return PositionValidationResult::Custom;
-		};
-
-		PositionValidationResult worstResult = PositionValidationResult::Valid;
-
-		for ( size_t i = 0; i < positionCount; ++i )
-		{
-			results[i] = validateSinglePosition( positions[i] );
-
-			if ( results[i] < PositionValidationResult::Valid )
-			{
-				return results[i];
-			}
-
-			if ( results[i] > worstResult )
-				worstResult = results[i];
-		}
-
+		std::array<bool, MAX_POSITIONS> isDigitArray;
 		std::array<std::string_view, MAX_NON_NUMERIC> nonNumericPositions;
 		size_t nonNumericCount = 0;
 		bool hasNumberNotAtEnd = false;
+		PositionValidationResult worstResult = PositionValidationResult::Valid;
+		bool isNotSorted = false;
 
 		for ( size_t i = 0; i < positionCount; ++i )
 		{
-			const bool isNumber = !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit );
+			isDigitArray[i] = !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit );
 
-			if ( isNumber )
+			PositionValidationResult result;
+			if ( m_standardValues.contains( positions[i] ) )
+			{
+				result = PositionValidationResult::Valid;
+			}
+			else if ( isDigitArray[i] )
+			{
+				result = PositionValidationResult::Valid;
+			}
+			else
+			{
+				result = PositionValidationResult::Custom;
+			}
+
+			if ( result < PositionValidationResult::Valid )
+			{
+				return result;
+			}
+			if ( result > worstResult )
+			{
+				worstResult = result;
+			}
+
+			if ( isDigitArray[i] )
 			{
 				if ( i < positionCount - 1 )
 				{
@@ -538,21 +507,12 @@ namespace dnv::vista::sdk
 			{
 				if ( nonNumericCount < MAX_NON_NUMERIC )
 				{
+					if ( nonNumericCount > 0 && positions[i] < nonNumericPositions[nonNumericCount - 1] )
+					{
+						isNotSorted = true;
+					}
 					nonNumericPositions[nonNumericCount] = positions[i];
 					++nonNumericCount;
-				}
-			}
-		}
-
-		bool isNotSorted = false;
-		if ( nonNumericCount > 1 )
-		{
-			for ( size_t i = 1; i < nonNumericCount; ++i )
-			{
-				if ( nonNumericPositions[i] < nonNumericPositions[i - 1] )
-				{
-					isNotSorted = true;
-					break;
 				}
 			}
 		}
@@ -564,57 +524,33 @@ namespace dnv::vista::sdk
 
 		if ( worstResult == PositionValidationResult::Valid )
 		{
-			std::array<std::string_view, MAX_GROUPS> groups;
-			std::array<bool, MAX_GROUPS> groupSeen;
-			groupSeen.fill( false );
-
-			size_t groupCount = 0;
-			size_t uniqueGroupCount = 0;
+			std::unordered_set<std::string_view> uniqueGroups;
+			uniqueGroups.reserve( MAX_GROUPS );
 			bool hasDefaultGroup = false;
 
 			for ( size_t i = 0; i < positionCount; ++i )
 			{
 				std::string_view group;
 
-				if ( !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit ) )
+				if ( isDigitArray[i] )
 				{
-					group = NUMBER_GROUP;
+					group = CODEBOOK_GROUP_NUMBER;
 				}
 				else
 				{
 					auto it = m_groupMap.find( positions[i] );
-					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : UNKNOWN_GROUP;
+					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : CODEBOOK_GROUP_UNKNOWN;
 				}
 
-				if ( groupCount < MAX_GROUPS )
-				{
-					groups[groupCount] = group;
-					++groupCount;
-				}
+				uniqueGroups.insert( group );
 
-				bool alreadySeen = false;
-				for ( size_t j = 0; j < uniqueGroupCount; ++j )
-				{
-					if ( groups[j] == group )
-					{
-						alreadySeen = true;
-						break;
-					}
-				}
-
-				if ( !alreadySeen && uniqueGroupCount < MAX_GROUPS )
-				{
-					groups[uniqueGroupCount] = group;
-					++uniqueGroupCount;
-				}
-
-				if ( group == DEFAULT_GROUP_NAME )
+				if ( group == CODEBOOK_GROUP_DEFAULT )
 				{
 					hasDefaultGroup = true;
 				}
 			}
 
-			if ( !hasDefaultGroup && uniqueGroupCount != groupCount )
+			if ( !hasDefaultGroup && uniqueGroups.size() != positionCount )
 			{
 				return PositionValidationResult::InvalidGrouping;
 			}

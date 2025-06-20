@@ -145,7 +145,7 @@ namespace dnv::vista::sdk::tests
 			vis = &VIS::instance();
 		}
 
-		VIS* vis;
+		VIS* vis{ nullptr };
 	};
 
 	TEST_P( LocationsLoadsTests, Test_Locations_Loads )
@@ -295,8 +295,8 @@ namespace dnv::vista::sdk::tests
 		auto& vis = VIS::instance();
 		const auto& locations = vis.locations( VisVersion::v3_4a );
 
-		ASSERT_THROW( locations.parse( "" ), std::invalid_argument );
-		ASSERT_THROW( locations.parse( std::string_view{} ), std::invalid_argument );
+		ASSERT_THROW( (void)locations.parse( "" ), std::invalid_argument );
+		ASSERT_THROW( (void)locations.parse( std::string_view{} ), std::invalid_argument );
 	}
 
 	//----------------------------------------------

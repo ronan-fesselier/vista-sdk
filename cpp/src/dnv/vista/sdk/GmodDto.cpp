@@ -7,52 +7,51 @@
 
 #include "dnv/vista/sdk/GmodDto.h"
 
+#include "dnv/vista/sdk/Config.h"
+
 namespace dnv::vista::sdk
 {
 	namespace
 	{
 		//=====================================================================
-		// Constants
+		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr const char* CATEGORY_KEY = "category";
-		static constexpr const char* TYPE_KEY = "type";
-		static constexpr const char* CODE_KEY = "code";
-		static constexpr const char* NAME_KEY = "name";
-		static constexpr const char* COMMON_NAME_KEY = "commonName";
-		static constexpr const char* DEFINITION_KEY = "definition";
-		static constexpr const char* COMMON_DEFINITION_KEY = "commonDefinition";
-		static constexpr const char* INSTALL_SUBSTRUCTURE_KEY = "installSubstructure";
-		static constexpr const char* NORMAL_ASSIGNMENT_NAMES_KEY = "normalAssignmentNames";
+		static constexpr std::string_view UNKNOWN_CODE = "[unknown code]";
+		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
 
-		static constexpr const char* VIS_RELEASE_KEY = "visRelease";
-		static constexpr const char* ITEMS_KEY = "items";
-		static constexpr const char* RELATIONS_KEY = "relations";
-
-		//=====================================================================
-		// Helper functions
-		//=====================================================================
-
-		/**
-		 * @brief Interns short strings to reduce memory usage for commonly repeated values
-		 * @param value The string to be interned
-		 * @return A reference to the cached string instance
-		 */
-		static const std::string& internString( const std::string& value )
+		std::string_view extractNameHint( const nlohmann::json& json ) noexcept
 		{
-			static std::unordered_map<std::string, std::string> cache;
-			if ( value.length() > 30 )
+			try
 			{
-				return value;
+				if ( json.contains( GMOD_DTO_KEY_CODE ) && json.at( GMOD_DTO_KEY_CODE ).is_string() )
+				{
+					const auto& str = json.at( GMOD_DTO_KEY_CODE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_CODE;
 			}
-
-			auto it = cache.find( value );
-			if ( it != cache.end() )
+			catch ( ... )
 			{
-				return it->second;
+				return UNKNOWN_CODE;
 			}
+		}
 
-			return cache.emplace( value, value ).first->first;
+		std::string_view extractVisHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( GMOD_DTO_KEY_VIS_RELEASE ) && json.at( GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
+				{
+					const auto& str = json.at( GMOD_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					return std::string_view{ str };
+				}
+				return UNKNOWN_VERSION;
+			}
+			catch ( ... )
+			{
+				return UNKNOWN_VERSION;
+			}
 		}
 	}
 
@@ -61,356 +60,394 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	GmodNodeDto::GmodNodeDto(
-		std::string category,
-		std::string type,
-		std::string code,
-		std::string name,
-		std::optional<std::string> commonName,
-		std::optional<std::string> definition,
-		std::optional<std::string> commonDefinition,
-		std::optional<bool> installSubstructure,
-		std::optional<NormalAssignmentNamesMap> normalAssignmentNames )
-		: m_category{ std::move( category ) },
-		  m_type{ std::move( type ) },
-		  m_code{ std::move( code ) },
-		  m_name{ std::move( name ) },
-		  m_commonName{ std::move( commonName ) },
-		  m_definition{ std::move( definition ) },
-		  m_commonDefinition{ std::move( commonDefinition ) },
-		  m_installSubstructure{ installSubstructure },
-		  m_normalAssignmentNames{ std::move( normalAssignmentNames ) }
-	{
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<GmodNodeDto> GmodNodeDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto codeHint = extractNameHint( json );
 
 		try
 		{
-			if ( !json.contains( CODE_KEY ) || !json.at( CODE_KEY ).is_string() )
+			if ( !json.contains( GMOD_DTO_KEY_CODE ) || !json.at( GMOD_DTO_KEY_CODE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string", CODE_KEY );
-
+				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_CODE );
 				return std::nullopt;
 			}
-			std::string code = json.at( CODE_KEY ).get<std::string>();
-			if ( code.empty() )
+			if ( !json.contains( GMOD_DTO_KEY_CATEGORY ) || !json.at( GMOD_DTO_KEY_CATEGORY ).is_string() )
 			{
-				SPDLOG_WARN( "Empty code field found in GMOD node" );
-			}
-
-			if ( !json.contains( CATEGORY_KEY ) || !json.at( CATEGORY_KEY ).is_string() )
-			{
-				SPDLOG_ERROR( "GMOD Node JSON (code='{}') missing required '{}' field or not a string", code, CATEGORY_KEY );
-
+				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_CATEGORY );
 				return std::nullopt;
 			}
-			if ( !json.contains( TYPE_KEY ) || !json.at( TYPE_KEY ).is_string() )
+			if ( !json.contains( GMOD_DTO_KEY_TYPE ) || !json.at( GMOD_DTO_KEY_TYPE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD Node JSON (code='{}') missing required '{}' field or not a string", code, TYPE_KEY );
-
+				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_TYPE );
 				return std::nullopt;
 			}
 
-			std::string nameValue;
-			if ( json.contains( NAME_KEY ) )
+			std::string tempCode = json.at( GMOD_DTO_KEY_CODE ).get<std::string>();
+			std::string tempCategory = json.at( GMOD_DTO_KEY_CATEGORY ).get<std::string>();
+			std::string tempType = json.at( GMOD_DTO_KEY_TYPE ).get<std::string>();
+
+			std::string tempName;
+			if ( json.contains( GMOD_DTO_KEY_NAME ) )
 			{
-				if ( json.at( NAME_KEY ).is_string() )
+				if ( json.at( GMOD_DTO_KEY_NAME ).is_string() )
 				{
-					nameValue = json.at( NAME_KEY ).get<std::string>();
+					tempName = json.at( GMOD_DTO_KEY_NAME ).get<std::string>();
 				}
 				else
 				{
-					SPDLOG_ERROR( "GMOD Node JSON (code='{}') field '{}' is present but not a string", code, NAME_KEY );
-
+					SPDLOG_ERROR( "GMOD Node JSON (code='{}') field '{}' is present but not a string",
+						tempCode, GMOD_DTO_KEY_NAME );
 					return std::nullopt;
 				}
 			}
 			else
 			{
-				SPDLOG_WARN( "GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.", code, NAME_KEY );
-
-				nameValue = "";
+				SPDLOG_WARN( "GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.",
+					tempCode, GMOD_DTO_KEY_NAME );
+				tempName = "";
 			}
 
-			std::string category = internString( json.at( CATEGORY_KEY ).get<std::string>() );
-			std::string type = internString( json.at( TYPE_KEY ).get<std::string>() );
+			if ( tempCode.empty() )
+			{
+				SPDLOG_WARN( "Empty code field found in GMOD node" );
+			}
+			if ( tempCategory.empty() )
+			{
+				SPDLOG_WARN( "Empty category field found in GMOD node code='{}'", tempCode );
+			}
+			if ( tempType.empty() )
+			{
+				SPDLOG_WARN( "Empty type field found in GMOD node code='{}'", tempCode );
+			}
+			if ( tempName.empty() )
+			{
+				SPDLOG_WARN( "Empty name field used for GMOD node code='{}'", tempCode );
+			}
 
-			if ( category.empty() )
+			std::optional<std::string> tempCommonName = std::nullopt;
+			if ( json.contains( GMOD_DTO_KEY_COMMON_NAME ) )
 			{
-				SPDLOG_WARN( "Empty category field found in GMOD node code='{}'", code );
-			}
-			if ( type.empty() )
-			{
-				SPDLOG_WARN( "Empty type field found in GMOD node code='{}'", code );
-			}
-			if ( nameValue.empty() )
-			{
-				SPDLOG_WARN( "Empty name field used for GMOD node code='{}'", code );
+				if ( json.at( GMOD_DTO_KEY_COMMON_NAME ).is_string() )
+				{
+					tempCommonName = json.at( GMOD_DTO_KEY_COMMON_NAME ).get<std::string>();
+				}
+				else if ( !json.at( GMOD_DTO_KEY_COMMON_NAME ).is_null() )
+				{
+					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+						tempCode, GMOD_DTO_KEY_COMMON_NAME );
+				}
 			}
 
-			std::optional<std::string> commonName = std::nullopt;
-			std::optional<std::string> definition = std::nullopt;
-			std::optional<std::string> commonDefinition = std::nullopt;
-			std::optional<bool> installSubstructure = std::nullopt;
-			std::optional<NormalAssignmentNamesMap> normalAssignmentNames = std::nullopt;
+			std::optional<std::string> tempDefinition = std::nullopt;
+			if ( json.contains( GMOD_DTO_KEY_DEFINITION ) )
+			{
+				if ( json.at( GMOD_DTO_KEY_DEFINITION ).is_string() )
+				{
+					tempDefinition = json.at( GMOD_DTO_KEY_DEFINITION ).get<std::string>();
+				}
+				else if ( !json.at( GMOD_DTO_KEY_DEFINITION ).is_null() )
+				{
+					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+						tempCode, GMOD_DTO_KEY_DEFINITION );
+				}
+			}
 
-			if ( json.contains( COMMON_NAME_KEY ) )
+			std::optional<std::string> tempCommonDefinition = std::nullopt;
+			if ( json.contains( GMOD_DTO_KEY_COMMON_DEFINITION ) )
 			{
-				if ( json.at( COMMON_NAME_KEY ).is_string() )
-					commonName = json.at( COMMON_NAME_KEY ).get<std::string>();
-				else if ( !json.at( COMMON_NAME_KEY ).is_null() )
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'", code, COMMON_NAME_KEY );
+				if ( json.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_string() )
+				{
+					tempCommonDefinition = json.at( GMOD_DTO_KEY_COMMON_DEFINITION ).get<std::string>();
+				}
+				else if ( !json.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
+				{
+					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+						tempCode, GMOD_DTO_KEY_COMMON_DEFINITION );
+				}
 			}
-			if ( json.contains( DEFINITION_KEY ) )
+
+			std::optional<bool> tempInstallSubstructure = std::nullopt;
+			if ( json.contains( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ) )
 			{
-				if ( json.at( DEFINITION_KEY ).is_string() )
-					definition = json.at( DEFINITION_KEY ).get<std::string>();
-				else if ( !json.at( DEFINITION_KEY ).is_null() )
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'", code, DEFINITION_KEY );
+				if ( json.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_boolean() )
+				{
+					tempInstallSubstructure = json.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).get<bool>();
+				}
+				else if ( !json.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
+				{
+					SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}'",
+						tempCode, GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+				}
 			}
-			if ( json.contains( COMMON_DEFINITION_KEY ) )
+
+			std::optional<NormalAssignmentNamesMap> tempNormalAssignmentNames = std::nullopt;
+			if ( json.contains( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ) )
 			{
-				if ( json.at( COMMON_DEFINITION_KEY ).is_string() )
-					commonDefinition = json.at( COMMON_DEFINITION_KEY ).get<std::string>();
-				else if ( !json.at( COMMON_DEFINITION_KEY ).is_null() )
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'", code, COMMON_DEFINITION_KEY );
-			}
-			if ( json.contains( INSTALL_SUBSTRUCTURE_KEY ) )
-			{
-				if ( json.at( INSTALL_SUBSTRUCTURE_KEY ).is_boolean() )
-					installSubstructure = json.at( INSTALL_SUBSTRUCTURE_KEY ).get<bool>();
-				else if ( !json.at( INSTALL_SUBSTRUCTURE_KEY ).is_null() )
-					SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}'", code, INSTALL_SUBSTRUCTURE_KEY );
-			}
-			if ( json.contains( NORMAL_ASSIGNMENT_NAMES_KEY ) )
-			{
-				if ( json.at( NORMAL_ASSIGNMENT_NAMES_KEY ).is_object() )
+				if ( json.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_object() )
 				{
 					try
 					{
-						auto assignments = json.at( NORMAL_ASSIGNMENT_NAMES_KEY ).get<NormalAssignmentNamesMap>();
+						auto assignments = json.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).get<NormalAssignmentNamesMap>();
 						if ( !assignments.empty() )
 						{
-							normalAssignmentNames = std::move( assignments );
+							tempNormalAssignmentNames = std::move( assignments );
 						}
 					}
 					catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 					{
-						SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object: {}", code, NORMAL_ASSIGNMENT_NAMES_KEY, ex.what() );
+						SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object: {}",
+							tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
 					}
 				}
-				else if ( !json.at( NORMAL_ASSIGNMENT_NAMES_KEY ).is_null() )
+				else if ( !json.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}'", code, NORMAL_ASSIGNMENT_NAMES_KEY );
+					SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}'",
+						tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
 				}
 			}
 
-			GmodNodeDto resultDto(
-				std::move( category ),
-				std::move( type ),
-				std::move( code ),
-				std::move( nameValue ),
-				std::move( commonName ),
-				std::move( definition ),
-				std::move( commonDefinition ),
-				installSubstructure,
-				std::move( normalAssignmentNames ) );
+			/* Construct the final DTO using successfully parsed data */
+			GmodNodeDto result(
+				std::move( tempCategory ),
+				std::move( tempType ),
+				std::move( tempCode ),
+				std::move( tempName ),
+				std::move( tempCommonName ),
+				std::move( tempDefinition ),
+				std::move( tempCommonDefinition ),
+				tempInstallSubstructure,
+				std::move( tempNormalAssignmentNames ) );
 
-			auto duration = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - startTime );
-
-			return std::optional<GmodNodeDto>{ std::move( resultDto ) };
+			return result;
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string codeHint = "[unknown code]";
-			try
-			{
-				if ( json.contains( CODE_KEY ) && json.at( CODE_KEY ).is_string() )
-				{
-					codeHint = json.at( CODE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-
-			SPDLOG_ERROR( "nlohmann::json exception during GmodNodeDto parsing (hint: code='{}'): {}", codeHint, ex.what() );
-
+			SPDLOG_ERROR( "JSON exception during GmodNodeDto parsing (hint: code='{}'): {}",
+				codeHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string codeHint = "[unknown code]";
-			try
-			{
-				if ( json.contains( CODE_KEY ) && json.at( CODE_KEY ).is_string() )
-				{
-					codeHint = json.at( CODE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-
-			SPDLOG_ERROR( "Standard exception during GmodNodeDto parsing (hint: code='{}'): {}", codeHint, ex.what() );
-
+			SPDLOG_ERROR( "Standard exception during GmodNodeDto parsing (hint: code='{}'): {}",
+				codeHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	GmodNodeDto GmodNodeDto::fromJson( const nlohmann::json& json )
 	{
+		const auto codeHint = extractNameHint( json );
 		auto dtoOpt = GmodNodeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			std::string codeHint = "[unknown code]";
-			try
-			{
-				if ( json.is_object() && json.contains( CODE_KEY ) && json.at( CODE_KEY ).is_string() )
-				{
-					codeHint = json.at( CODE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			std::string errorMsg = fmt::format( "Failed to deserialize GmodNodeDto from JSON (hint: code='{}')", codeHint );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize GmodNodeDto from JSON (hint: code='{}')",
+					codeHint ) );
 		}
+
 		return std::move( dtoOpt.value() );
 	}
 
 	nlohmann::json GmodNodeDto::toJson() const
 	{
-		nlohmann::json j;
-		to_json( j, *this );
-		return j;
+		nlohmann::json result;
+		to_json( result, *this );
+
+		return result;
 	}
 
 	//----------------------------------------------
 	// Private serialization methods
 	//----------------------------------------------
 
-	void to_json( nlohmann::json& j, const GmodNodeDto& dto )
-	{
-		/* ADL hook for nlohmann::json serialization. */
-		j = nlohmann::json{ { CATEGORY_KEY, dto.category() }, { TYPE_KEY, dto.type() }, { CODE_KEY, dto.code() }, { NAME_KEY, dto.name() } };
-
-		if ( dto.commonName().has_value() )
-		{
-			j[COMMON_NAME_KEY] = dto.commonName().value();
-		}
-		if ( dto.definition().has_value() )
-		{
-			j[DEFINITION_KEY] = dto.definition().value();
-		}
-		if ( dto.commonDefinition().has_value() )
-		{
-			j[COMMON_DEFINITION_KEY] = dto.commonDefinition().value();
-		}
-		if ( dto.installSubstructure().has_value() )
-		{
-			j[INSTALL_SUBSTRUCTURE_KEY] = dto.installSubstructure().value();
-		}
-		if ( dto.normalAssignmentNames().has_value() )
-		{
-			j[NORMAL_ASSIGNMENT_NAMES_KEY] = dto.normalAssignmentNames().value();
-		}
-	}
-
 	void from_json( const nlohmann::json& j, GmodNodeDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		if ( !j.contains( CATEGORY_KEY ) || !j.at( CATEGORY_KEY ).is_string() )
+		if ( !j.contains( GMOD_DTO_KEY_CATEGORY ) || !j.at( GMOD_DTO_KEY_CATEGORY ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GMOD Node JSON missing required '{}' field or not a string", CATEGORY_KEY ), &j );
+			throw nlohmann::json::parse_error::create( 101, 0u,
+				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_CATEGORY ),
+				&j );
 		}
-		if ( !j.contains( TYPE_KEY ) || !j.at( TYPE_KEY ).is_string() )
+		if ( !j.contains( GMOD_DTO_KEY_TYPE ) || !j.at( GMOD_DTO_KEY_TYPE ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GMOD Node JSON missing required '{}' field or not a string", TYPE_KEY ), &j );
+			throw nlohmann::json::parse_error::create( 102, 0u,
+				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_TYPE ),
+				&j );
 		}
-		if ( !j.contains( CODE_KEY ) || !j.at( CODE_KEY ).is_string() )
+		if ( !j.contains( GMOD_DTO_KEY_CODE ) || !j.at( GMOD_DTO_KEY_CODE ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GMOD Node JSON missing required '{}' field or not a string", CODE_KEY ), &j );
-		}
-		if ( !j.contains( NAME_KEY ) || !j.at( NAME_KEY ).is_string() )
-		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GMOD Node JSON missing required '{}' field or not a string", NAME_KEY ), &j );
-		}
-
-		dto.m_category = internString( j.at( CATEGORY_KEY ).get<std::string>() );
-		dto.m_type = internString( j.at( TYPE_KEY ).get<std::string>() );
-		dto.m_code = j.at( CODE_KEY ).get<std::string>();
-		dto.m_name = j.at( NAME_KEY ).get<std::string>();
-
-		dto.m_commonName = std::nullopt;
-		if ( j.contains( COMMON_NAME_KEY ) )
-		{
-			if ( j.at( COMMON_NAME_KEY ).is_string() )
-				dto.m_commonName = j.at( COMMON_NAME_KEY ).get<std::string>();
-			else if ( !j.at( COMMON_NAME_KEY ).is_null() )
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json", dto.m_code, COMMON_NAME_KEY );
+			throw nlohmann::json::parse_error::create( 103, 0u,
+				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_CODE ),
+				&j );
 		}
 
-		dto.m_definition = std::nullopt;
-		if ( j.contains( DEFINITION_KEY ) )
+		/* Extract required fields with temporary variables */
+		std::string tempCategory = j.at( GMOD_DTO_KEY_CATEGORY ).get<std::string>();
+		std::string tempType = j.at( GMOD_DTO_KEY_TYPE ).get<std::string>();
+		std::string tempCode = j.at( GMOD_DTO_KEY_CODE ).get<std::string>();
+
+		/* SPECIAL CASE: Name field handling - matches tryFromJson logic */
+		std::string tempName;
+		if ( j.contains( GMOD_DTO_KEY_NAME ) )
 		{
-			if ( j.at( DEFINITION_KEY ).is_string() )
-				dto.m_definition = j.at( DEFINITION_KEY ).get<std::string>();
-			else if ( !j.at( DEFINITION_KEY ).is_null() )
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json", dto.m_code, DEFINITION_KEY );
+			if ( j.at( GMOD_DTO_KEY_NAME ).is_string() )
+			{
+				tempName = j.at( GMOD_DTO_KEY_NAME ).get<std::string>();
+			}
+			else if ( j.at( GMOD_DTO_KEY_NAME ).is_null() )
+			{
+				SPDLOG_WARN( "GMOD Node JSON (code='{}') has null '{}' field. Defaulting name to empty string.",
+					tempCode, GMOD_DTO_KEY_NAME );
+				tempName = "";
+			}
+			else
+			{
+				SPDLOG_WARN( "GMOD Node JSON (code='{}') has non-string '{}' field. Defaulting name to empty string.",
+					tempCode, GMOD_DTO_KEY_NAME );
+				tempName = "";
+			}
+		}
+		else
+		{
+			SPDLOG_WARN( "GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.",
+				tempCode, GMOD_DTO_KEY_NAME );
+			tempName = "";
 		}
 
-		dto.m_commonDefinition = std::nullopt;
-		if ( j.contains( COMMON_DEFINITION_KEY ) )
+		/* Optional fields with robust validation (matches tryFromJson pattern) */
+		std::optional<std::string> tempCommonName = std::nullopt;
+		if ( j.contains( GMOD_DTO_KEY_COMMON_NAME ) )
 		{
-			if ( j.at( COMMON_DEFINITION_KEY ).is_string() )
-				dto.m_commonDefinition = j.at( COMMON_DEFINITION_KEY ).get<std::string>();
-			else if ( !j.at( COMMON_DEFINITION_KEY ).is_null() )
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json", dto.m_code, COMMON_DEFINITION_KEY );
+			if ( j.at( GMOD_DTO_KEY_COMMON_NAME ).is_string() )
+			{
+				tempCommonName = j.at( GMOD_DTO_KEY_COMMON_NAME ).get<std::string>();
+			}
+			else if ( !j.at( GMOD_DTO_KEY_COMMON_NAME ).is_null() )
+			{
+				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+					tempCode, GMOD_DTO_KEY_COMMON_NAME );
+			}
 		}
 
-		dto.m_installSubstructure = std::nullopt;
-		if ( j.contains( INSTALL_SUBSTRUCTURE_KEY ) )
+		std::optional<std::string> tempDefinition = std::nullopt;
+		if ( j.contains( GMOD_DTO_KEY_DEFINITION ) )
 		{
-			if ( j.at( INSTALL_SUBSTRUCTURE_KEY ).is_boolean() )
-				dto.m_installSubstructure = j.at( INSTALL_SUBSTRUCTURE_KEY ).get<bool>();
-			else if ( !j.at( INSTALL_SUBSTRUCTURE_KEY ).is_null() )
-				SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}' in from_json", dto.m_code, INSTALL_SUBSTRUCTURE_KEY );
+			if ( j.at( GMOD_DTO_KEY_DEFINITION ).is_string() )
+			{
+				tempDefinition = j.at( GMOD_DTO_KEY_DEFINITION ).get<std::string>();
+			}
+			else if ( !j.at( GMOD_DTO_KEY_DEFINITION ).is_null() )
+			{
+				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+					tempCode, GMOD_DTO_KEY_DEFINITION );
+			}
 		}
 
-		dto.m_normalAssignmentNames = std::nullopt;
-		if ( j.contains( NORMAL_ASSIGNMENT_NAMES_KEY ) )
+		std::optional<std::string> tempCommonDefinition = std::nullopt;
+		if ( j.contains( GMOD_DTO_KEY_COMMON_DEFINITION ) )
 		{
-			if ( j.at( NORMAL_ASSIGNMENT_NAMES_KEY ).is_object() )
+			if ( j.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_string() )
+			{
+				tempCommonDefinition = j.at( GMOD_DTO_KEY_COMMON_DEFINITION ).get<std::string>();
+			}
+			else if ( !j.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
+			{
+				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+					tempCode, GMOD_DTO_KEY_COMMON_DEFINITION );
+			}
+		}
+
+		std::optional<bool> tempInstallSubstructure = std::nullopt;
+		if ( j.contains( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ) )
+		{
+			if ( j.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_boolean() )
+			{
+				tempInstallSubstructure = j.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).get<bool>();
+			}
+			else if ( !j.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
+			{
+				SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}' in from_json",
+					tempCode, GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+			}
+		}
+
+		std::optional<GmodNodeDto::NormalAssignmentNamesMap> tempNormalAssignmentNames = std::nullopt;
+		if ( j.contains( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ) )
+		{
+			if ( j.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_object() )
 			{
 				try
 				{
-					auto assignments = j.at( NORMAL_ASSIGNMENT_NAMES_KEY ).get<GmodNodeDto::NormalAssignmentNamesMap>();
+					auto assignments = j.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).get<GmodNodeDto::NormalAssignmentNamesMap>();
 					if ( !assignments.empty() )
 					{
-						dto.m_normalAssignmentNames = std::move( assignments );
+						tempNormalAssignmentNames = std::move( assignments );
 					}
 				}
 				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object in from_json: {}", dto.m_code, NORMAL_ASSIGNMENT_NAMES_KEY, ex.what() );
+					SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object in from_json: {}",
+						tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
 				}
 			}
-			else if ( !j.at( NORMAL_ASSIGNMENT_NAMES_KEY ).is_null() )
+			else if ( !j.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}' in from_json", dto.m_code, NORMAL_ASSIGNMENT_NAMES_KEY );
+				SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}' in from_json",
+					tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
 			}
+		}
+
+		/* Assign all fields to DTO using successfully parsed data */
+		dto.m_category = std::move( tempCategory );
+		dto.m_type = std::move( tempType );
+		dto.m_code = std::move( tempCode );
+		dto.m_name = std::move( tempName );
+		dto.m_commonName = std::move( tempCommonName );
+		dto.m_definition = std::move( tempDefinition );
+		dto.m_commonDefinition = std::move( tempCommonDefinition );
+		dto.m_installSubstructure = tempInstallSubstructure;
+		dto.m_normalAssignmentNames = std::move( tempNormalAssignmentNames );
+	}
+
+	void to_json( nlohmann::json& j, const GmodNodeDto& dto )
+	{
+		/* ADL hook for nlohmann::json serialization. */
+		j = {
+			{ GMOD_DTO_KEY_CATEGORY, dto.category() },
+			{ GMOD_DTO_KEY_TYPE, dto.type() },
+			{ GMOD_DTO_KEY_CODE, dto.code() },
+			{ GMOD_DTO_KEY_NAME, dto.name() } };
+
+		if ( dto.commonName().has_value() )
+		{
+			j[GMOD_DTO_KEY_COMMON_NAME] = dto.commonName().value();
+		}
+		if ( dto.definition().has_value() )
+		{
+			j[GMOD_DTO_KEY_DEFINITION] = dto.definition().value();
+		}
+		if ( dto.commonDefinition().has_value() )
+		{
+			j[GMOD_DTO_KEY_COMMON_DEFINITION] = dto.commonDefinition().value();
+		}
+		if ( dto.installSubstructure().has_value() )
+		{
+			j[GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE] = dto.installSubstructure().value();
+		}
+		if ( dto.normalAssignmentNames().has_value() )
+		{
+			j[GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES] = dto.normalAssignmentNames().value();
 		}
 	}
 
@@ -419,95 +456,99 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
-	//----------------------------------------------
-
-	GmodDto::GmodDto( std::string visVersion, Items items, Relations relations )
-		: m_visVersion{ std::move( visVersion ) },
-		  m_items{ std::move( items ) },
-		  m_relations{ std::move( relations ) }
-	{
-	}
-
-	//----------------------------------------------
 	// Serialization
 	//----------------------------------------------
 
 	std::optional<GmodDto> GmodDto::tryFromJson( const nlohmann::json& json )
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		const auto visHint = extractVisHint( json );
 
 		try
 		{
-			if ( !json.contains( VIS_RELEASE_KEY ) || !json.at( VIS_RELEASE_KEY ).is_string() )
+			if ( !json.contains( GMOD_DTO_KEY_VIS_RELEASE ) || !json.at( GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD JSON missing required '{}' field or not a string", VIS_RELEASE_KEY );
-
+				SPDLOG_ERROR( "GMOD JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_VIS_RELEASE );
 				return std::nullopt;
 			}
-			std::string visVersion = json.at( VIS_RELEASE_KEY ).get<std::string>();
 
-			Items items;
-			if ( json.contains( ITEMS_KEY ) )
+			std::string tempVisVersion = json.at( GMOD_DTO_KEY_VIS_RELEASE ).get<std::string>();
+
+			Items tempItems;
+			size_t totalItems = 0;
+			size_t successCount = 0;
+
+			if ( json.contains( GMOD_DTO_KEY_ITEMS ) )
 			{
-				if ( !json.at( ITEMS_KEY ).is_array() )
+				if ( !json.at( GMOD_DTO_KEY_ITEMS ).is_array() )
 				{
-					SPDLOG_WARN( "GMOD 'items' field is not an array for VIS version {}", visVersion );
+					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+						GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 				}
 				else
 				{
-					const auto& itemsArray = json.at( ITEMS_KEY );
-					size_t totalItems = itemsArray.size();
-					items.reserve( totalItems );
-					size_t successCount = 0;
+					const auto& itemsArray = json.at( GMOD_DTO_KEY_ITEMS );
+					totalItems = itemsArray.size();
+					tempItems.reserve( totalItems + totalItems / 8 );
 
-					for ( size_t i = 0; i < itemsArray.size(); ++i )
+					for ( const auto& itemJson : itemsArray )
 					{
-						auto nodeOpt = GmodNodeDto::tryFromJson( itemsArray[i] );
+						auto nodeOpt = GmodNodeDto::tryFromJson( itemJson );
 						if ( nodeOpt.has_value() )
 						{
-							items.emplace_back( std::move( nodeOpt.value() ) );
+							tempItems.emplace_back( std::move( *nodeOpt ) );
 							successCount++;
 						}
 						else
 						{
-							SPDLOG_WARN( "Skipping malformed GMOD node at index {} during GmodDto parsing for VIS version {}", i, visVersion );
+							SPDLOG_WARN( "Skipping malformed GMOD node during GmodDto parsing for VIS version {}",
+								std::string_view{ tempVisVersion } );
 						}
 					}
+
 					SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD nodes", successCount, totalItems );
-					if ( totalItems > 0 && static_cast<double>( successCount ) < static_cast<double>( totalItems ) * 0.9 )
+
+					/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
+					if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
 					{
-						SPDLOG_WARN( "Shrinking items vector due to high parsing failure rate ({}/{}) for VIS version {}", successCount, totalItems, visVersion );
-						items.shrink_to_fit();
+						if ( tempItems.capacity() > tempItems.size() * 4 / 3 )
+						{
+							tempItems.shrink_to_fit();
+						}
 					}
 				}
 			}
 			else
 			{
-				SPDLOG_WARN( "GMOD missing 'items' array for VIS version {}", visVersion );
+				SPDLOG_WARN( "No '{}' array found in GmodDto for VIS version {}",
+					GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 			}
 
-			Relations relations;
-			if ( json.contains( RELATIONS_KEY ) )
+			Relations tempRelations;
+			size_t relationCount = 0;
+			size_t validRelationCount = 0;
+
+			if ( json.contains( GMOD_DTO_KEY_RELATIONS ) )
 			{
-				if ( !json.at( RELATIONS_KEY ).is_array() )
+				if ( !json.at( GMOD_DTO_KEY_RELATIONS ).is_array() )
 				{
-					SPDLOG_WARN( "GMOD 'relations' field is not an array for VIS version {}", visVersion );
+					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+						GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
 				}
 				else
 				{
-					const auto& relationsArray = json.at( RELATIONS_KEY );
-					size_t relationCount = relationsArray.size();
-					relations.reserve( relationCount );
-					size_t validRelationCount = 0;
+					const auto& relationsArray = json.at( GMOD_DTO_KEY_RELATIONS );
+					relationCount = relationsArray.size();
+					tempRelations.reserve( relationCount + relationCount / 8 );
 
 					for ( const auto& relationJson : relationsArray )
 					{
 						if ( relationJson.is_array() )
 						{
 							Relation relationPair;
-							relationPair.reserve( relationJson.size() );
+							relationPair.reserve( relationJson.size() + 1 );
 							bool validPair = true;
+
 							for ( const auto& relJson : relationJson )
 							{
 								if ( relJson.is_string() )
@@ -516,7 +557,8 @@ namespace dnv::vista::sdk
 								}
 								else
 								{
-									SPDLOG_WARN( "Non-string value found in relation entry for VIS version {}", visVersion );
+									SPDLOG_WARN( "Non-string value found in relation entry for VIS version {}",
+										std::string_view{ tempVisVersion } );
 									validPair = false;
 									break;
 								}
@@ -524,135 +566,137 @@ namespace dnv::vista::sdk
 
 							if ( validPair && !relationPair.empty() )
 							{
-								relations.emplace_back( std::move( relationPair ) );
+								tempRelations.emplace_back( std::move( relationPair ) );
 								validRelationCount++;
 							}
 						}
 						else
 						{
-							SPDLOG_WARN( "Non-array entry found in 'relations' array for VIS version {}", visVersion );
+							SPDLOG_WARN( "Non-array entry found in '{}' array for VIS version {}",
+								GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
 						}
 					}
-					if ( relationCount > 0 && static_cast<double>( validRelationCount ) < static_cast<double>( relationCount ) * 0.9 )
+
+					SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD relations", validRelationCount, relationCount );
+
+					/* If parsing failed for more than 10% of relations, shrink the vector to potentially save memory */
+					if ( relationCount > 0 && validRelationCount < relationCount * 9 / 10 )
 					{
-						SPDLOG_WARN( "Shrinking relations vector due to high parsing failure rate ({}/{}) for VIS version {}", validRelationCount, relationCount, visVersion );
-						relations.shrink_to_fit();
+						if ( tempRelations.capacity() > tempRelations.size() * 4 / 3 )
+						{
+							tempRelations.shrink_to_fit();
+						}
 					}
 				}
 			}
-
-			if ( items.size() > 10000 )
+			else
 			{
-				[[maybe_unused]] const size_t approxMemoryUsage = ( items.size() * sizeof( GmodNodeDto ) + relations.size() * 24 ) / ( 1024 * 1024 );
+				SPDLOG_WARN( "No '{}' array found in GmodDto for VIS version {}",
+					GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
+			}
+
+			if ( tempItems.size() > 10000 )
+			{
+				[[maybe_unused]] const size_t approxMemoryUsage = ( tempItems.size() * sizeof( GmodNodeDto ) + tempRelations.size() * 24 ) / ( 1024 * 1024 );
 				SPDLOG_DEBUG( "Large GMOD model loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 			}
 
-			GmodDto resultDto( std::move( visVersion ), std::move( items ), std::move( relations ) );
+			/* Construct the final DTO using successfully parsed data */
+			GmodDto resultDto( std::move( tempVisVersion ), std::move( tempItems ), std::move( tempRelations ) );
 
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-			SPDLOG_DEBUG( "Parsed GmodDto with {} nodes, {} relations and VIS version {} in {} ms",
-				resultDto.items().size(), resultDto.relations().size(), resultDto.visVersion(), duration.count() );
-
-			return std::optional<GmodDto>{ std::move( resultDto ) };
+			return resultDto;
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			SPDLOG_ERROR( "nlohmann::json exception during GmodDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
-
+			SPDLOG_ERROR( "JSON exception during GmodDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			SPDLOG_ERROR( "Standard exception during GmodDto parsing (hint: visRelease='{}'): {}", visHint, ex.what() );
-
+			SPDLOG_ERROR( "Standard exception during GmodDto parsing (hint: visRelease='{}'): {}",
+				visHint, ex.what() );
 			return std::nullopt;
 		}
 	}
 
 	GmodDto GmodDto::fromJson( const nlohmann::json& json )
 	{
+		const auto visHint = extractVisHint( json );
 		auto dtoOpt = GmodDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			std::string visHint = "[unknown version]";
-			try
-			{
-				if ( json.is_object() && json.contains( VIS_RELEASE_KEY ) && json.at( VIS_RELEASE_KEY ).is_string() )
-				{
-					visHint = json.at( VIS_RELEASE_KEY ).get<std::string>();
-				}
-			}
-			catch ( ... )
-			{
-			}
-			std::string errorMsg = fmt::format( "Failed to deserialize GmodDto from JSON (hint: visRelease='{}')", visHint );
-			throw std::invalid_argument( errorMsg );
+			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodDto from JSON (hint: visRelease='{}')",
+				visHint ) );
 		}
+
 		return std::move( dtoOpt.value() );
 	}
 
 	nlohmann::json GmodDto::toJson() const
 	{
-		auto startTime = std::chrono::steady_clock::now();
+		nlohmann::json result;
+		to_json( result, *this );
 
-		nlohmann::json j = { { VIS_RELEASE_KEY, m_visVersion }, { ITEMS_KEY, m_items }, { RELATIONS_KEY, m_relations } };
-
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now() - startTime );
-		SPDLOG_DEBUG( "Serialized GmodDto with {} items, {} relations for VIS version {} in {} ms",
-			m_items.size(), m_relations.size(), m_visVersion, duration.count() );
-
-		return j;
+		return result;
 	}
 
 	//-------------------------------------------------------------------
 	// Private serialization methods
 	//-------------------------------------------------------------------
 
+	void from_json( const nlohmann::json& j, GmodDto& dto )
+	{
+		/* ADL hook for nlohmann::json deserialization. */
+		if ( !j.contains( GMOD_DTO_KEY_VIS_RELEASE ) || !j.at( GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
+		{
+			throw nlohmann::json::parse_error::create( 201, 0u,
+				fmt::format( "GMOD JSON missing required '{}' field or not a string",
+					GMOD_DTO_KEY_VIS_RELEASE ),
+				&j );
+		}
+		if ( !j.contains( GMOD_DTO_KEY_ITEMS ) || !j.at( GMOD_DTO_KEY_ITEMS ).is_array() )
+		{
+			throw nlohmann::json::parse_error::create( 202, 0u,
+				fmt::format( "GMOD JSON missing required '{}' field or not an array",
+					GMOD_DTO_KEY_ITEMS ),
+				&j );
+		}
+		if ( !j.contains( GMOD_DTO_KEY_RELATIONS ) || !j.at( GMOD_DTO_KEY_RELATIONS ).is_array() )
+		{
+			throw nlohmann::json::parse_error::create( 203, 0u,
+				fmt::format( "GMOD JSON missing required '{}' field or not an array",
+					GMOD_DTO_KEY_RELATIONS ),
+				&j );
+		}
+
+		/* Extract required fields with temporary variables */
+		std::string tempVisVersion = j.at( GMOD_DTO_KEY_VIS_RELEASE ).get<std::string>();
+
+		GmodDto::Items tempItems;
+		if ( j.contains( GMOD_DTO_KEY_ITEMS ) && j.at( GMOD_DTO_KEY_ITEMS ).is_array() )
+		{
+			tempItems = j.at( GMOD_DTO_KEY_ITEMS ).get<GmodDto::Items>();
+		}
+
+		GmodDto::Relations tempRelations;
+		if ( j.contains( GMOD_DTO_KEY_RELATIONS ) && j.at( GMOD_DTO_KEY_RELATIONS ).is_array() )
+		{
+			tempRelations = j.at( GMOD_DTO_KEY_RELATIONS ).get<GmodDto::Relations>();
+		}
+
+		/* Assign all fields to DTO using successfully parsed data */
+		dto.m_visVersion = std::move( tempVisVersion );
+		dto.m_items = std::move( tempItems );
+		dto.m_relations = std::move( tempRelations );
+	}
+
 	void to_json( nlohmann::json& j, const GmodDto& dto )
 	{
 		/* ADL hook for nlohmann::json serialization. */
-		j = nlohmann::json{ { VIS_RELEASE_KEY, dto.visVersion() }, { ITEMS_KEY, dto.items() }, { RELATIONS_KEY, dto.relations() } };
-	}
-
-	void from_json( const nlohmann::json& j, GmodDto& dto )
-	{
-		if ( !j.contains( VIS_RELEASE_KEY ) || !j.at( VIS_RELEASE_KEY ).is_string() )
-		{
-			throw std::invalid_argument( "Missing or invalid 'visRelease' in GmodDto JSON" );
-		}
-		if ( !j.contains( ITEMS_KEY ) || !j.at( ITEMS_KEY ).is_array() )
-		{
-			throw std::invalid_argument( "Missing or invalid 'items' in GmodDto JSON" );
-		}
-		if ( !j.contains( RELATIONS_KEY ) || !j.at( RELATIONS_KEY ).is_array() )
-		{
-			throw std::invalid_argument( "Missing or invalid 'relations' in GmodDto JSON" );
-		}
-
-		dto.m_visVersion = j.at( VIS_RELEASE_KEY ).get<std::string>();
-		dto.m_items = j.at( ITEMS_KEY ).get<GmodDto::Items>();
-		dto.m_relations = j.at( RELATIONS_KEY ).get<GmodDto::Relations>();
+		j = {
+			{ GMOD_DTO_KEY_VIS_RELEASE, dto.visVersion() },
+			{ GMOD_DTO_KEY_ITEMS, dto.items() },
+			{ GMOD_DTO_KEY_RELATIONS, dto.relations() } };
 	}
 }

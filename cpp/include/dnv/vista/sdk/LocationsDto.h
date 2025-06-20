@@ -1,6 +1,6 @@
 /**
  * @file LocationsDto.h
- * @brief Data Transfer Objects for locations in the VIS standard
+ * @brief Data transfer objects for locations in the VIS standard
  */
 
 #pragma once
@@ -8,11 +8,11 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Relative Location Data Transfer Objects
+	// Relative Location data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a relative location.
+	 * @brief Data transfer object (DTO) for a relative location.
 	 *
 	 * Represents a relative location with a code, name, and optional definition.
 	 * This class is immutable - all properties are set during construction.
@@ -31,7 +31,7 @@ namespace dnv::vista::sdk
 		 * @param name The name of the location
 		 * @param definition An optional definition of the location
 		 */
-		explicit RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition = std::nullopt );
+		inline explicit RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition = std::nullopt ) noexcept;
 
 		/** @brief Default constructor. */
 		RelativeLocationsDto() = default;
@@ -50,10 +50,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		RelativeLocationsDto& operator=( const RelativeLocationsDto& ) = delete;
+		RelativeLocationsDto& operator=( const RelativeLocationsDto& ) = default;
 
 		/** @brief Move assignment operator */
-		RelativeLocationsDto& operator=( RelativeLocationsDto&& ) noexcept = delete;
+		RelativeLocationsDto& operator=( RelativeLocationsDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -63,19 +63,19 @@ namespace dnv::vista::sdk
 		 * @brief Get the location code
 		 * @return The character code representing the location
 		 */
-		[[nodiscard]] inline char code() const;
+		[[nodiscard]] inline char code() const noexcept;
 
 		/**
 		 * @brief Get the location name
 		 * @return The name of the location
 		 */
-		[[nodiscard]] inline const std::string& name() const;
+		[[nodiscard]] inline std::string_view name() const noexcept;
 
 		/**
 		 * @brief Get the location definition
 		 * @return The optional definition of the location
 		 */
-		[[nodiscard]] inline const std::optional<std::string>& definition() const;
+		[[nodiscard]] inline const std::optional<std::string>& definition() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -111,7 +111,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//---------------------------------------------
 
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to RelativeLocationsDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The RelativeLocationsDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void from_json( const nlohmann::json& j, RelativeLocationsDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert RelativeLocationsDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The RelativeLocationsDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const RelativeLocationsDto& dto );
 
 	private:
@@ -130,11 +150,11 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// Location Data Transfer Objects
+	// Location data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a collection of locations.
+	 * @brief Data transfer object (DTO) for a collection of locations.
 	 *
 	 * Represents a collection of relative locations and the VIS version they belong to.
 	 * This class is immutable - all properties are set during construction.
@@ -152,7 +172,7 @@ namespace dnv::vista::sdk
 		 * @param visVersion The VIS version string
 		 * @param items A collection of relative locations
 		 */
-		explicit LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items );
+		inline explicit LocationsDto( std::string visVersion, std::vector<RelativeLocationsDto> items ) noexcept;
 
 		/** @brief Default constructor. */
 		LocationsDto() = default;
@@ -171,10 +191,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		LocationsDto& operator=( const LocationsDto& ) = delete;
+		LocationsDto& operator=( const LocationsDto& ) = default;
 
 		/** @brief Move assignment operator */
-		LocationsDto& operator=( LocationsDto&& ) noexcept = delete;
+		LocationsDto& operator=( LocationsDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -184,13 +204,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the VIS version string
 		 * @return The VIS version string
 		 */
-		[[nodiscard]] inline const std::string& visVersion() const;
+		[[nodiscard]] inline std::string_view visVersion() const noexcept;
 
 		/**
 		 * @brief Get the collection of relative locations
 		 * @return A vector of relative locations
 		 */
-		[[nodiscard]] inline const std::vector<RelativeLocationsDto>& items() const;
+		[[nodiscard]] inline const std::vector<RelativeLocationsDto>& items() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -225,7 +245,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to LocationsDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The LocationsDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void from_json( const nlohmann::json& j, LocationsDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert LocationsDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The LocationsDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const LocationsDto& dto );
 
 	private:

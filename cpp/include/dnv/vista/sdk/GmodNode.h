@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -52,9 +52,9 @@ namespace dnv::vista::sdk
 		 * @param normalAssignmentNames Optional mapping of normal assignment names. Defaults to an empty map.
 		 */
 		GmodNodeMetadata(
-			const std::string& category,
-			const std::string& type,
-			const std::string& name,
+			std::string_view category,
+			std::string_view type,
+			std::string_view name,
 			const std::optional<std::string>& commonName = std::nullopt,
 			const std::optional<std::string>& definition = std::nullopt,
 			const std::optional<std::string>& commonDefinition = std::nullopt,
@@ -62,13 +62,17 @@ namespace dnv::vista::sdk
 			const std::unordered_map<std::string, std::string>& normalAssignmentNames = {} );
 
 		/** @brief Default constructor. */
-		GmodNodeMetadata() = delete;
+		GmodNodeMetadata() = default;
 
 		/** @brief Copy constructor */
 		GmodNodeMetadata( const GmodNodeMetadata& );
 
 		/** @brief Move constructor */
 		GmodNodeMetadata( GmodNodeMetadata&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~GmodNodeMetadata() = default;
@@ -210,7 +214,7 @@ namespace dnv::vista::sdk
 
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -221,13 +225,17 @@ namespace dnv::vista::sdk
 		GmodNode( VisVersion version, const GmodNodeDto& dto );
 
 		/** @brief Default constructor. */
-		GmodNode() = delete;
+		GmodNode() = default;
 
 		/** @brief Copy constructor */
-		GmodNode( const GmodNode& ); //= default;
+		GmodNode( const GmodNode& );
 
 		/** @brief Move constructor */
 		GmodNode( GmodNode&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~GmodNode() = default;
@@ -483,7 +491,7 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline bool isChild( const std::string& code ) const;
 
 		//----------------------------------------------
-		// Utility methods
+		// String conversion methods
 		//----------------------------------------------
 
 		/**
@@ -491,14 +499,16 @@ namespace dnv::vista::sdk
 		 * @details The format is typically "<code>" or "<code>-<location>" if location is present.
 		 * @return A `std::string` representing the node.
 		 */
-		[[nodiscard]] std::string toString() const;
+		[[nodiscard]] inline std::string toString() const;
 
 		/**
-		 * @brief Appends the node's string representation to a `std::stringstream`.
-		 * @details This method is useful for efficiently building larger strings composed of multiple node representations.
-		 * @param builder The `std::stringstream` to append the node's string representation to.
+		 * @brief Appends the node's string representation to a generic output iterator.
+		 * @tparam OutputIt The type of the output iterator.
+		 * @param out The output iterator to write to.
+		 * @return The iterator pointing to the end of the written output.
 		 */
-		void toString( std::stringstream& builder ) const;
+		template <typename OutputIt>
+		inline OutputIt toString( OutputIt out ) const;
 
 	private:
 		//----------------------------------------------
@@ -525,7 +535,7 @@ namespace dnv::vista::sdk
 		 * @details This method is intended for use by the `Gmod` class after the graph structure is finalized.
 		 *          It calls `shrink_to_fit()` on internal vectors and ensures `m_childrenSet` is consistent.
 		 */
-		void trim();
+		void trim() noexcept;
 
 		//----------------------------------------------
 		// Private member variables
