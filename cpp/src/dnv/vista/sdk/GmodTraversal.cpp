@@ -1,7 +1,7 @@
 #include "pch.h"
 
+#include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/GmodTraversal.h"
-#include "dnv/vista/sdk/GmodConstants.h"
 
 namespace dnv::vista::sdk
 {
