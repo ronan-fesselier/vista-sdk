@@ -168,8 +168,9 @@ namespace dnv::vista::sdk
 		 * @param location The `Location` object representing the code (e.g., a `Location` with value "P").
 		 * @param definition An optional detailed description of the relative location.
 		 */
-		RelativeLocation( char code,
-			const std::string& name,
+		RelativeLocation(
+			char code,
+			std::string_view name,
 			const Location& location,
 			const std::optional<std::string> definition = std::nullopt );
 

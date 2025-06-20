@@ -12,7 +12,7 @@ namespace dnv::vista::sdk
 
 	const nlohmann::json& loadTestData( const char* testDataPath )
 	{
-		const std::string_view pathView{ testDataPath };
+		std::string_view pathView{ testDataPath };
 
 		if ( auto it = g_testDataCache.find( std::string{ pathView } ); it != g_testDataCache.end() )
 		{

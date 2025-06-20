@@ -118,96 +118,8 @@ namespace dnv::vista::sdk
 	}
 
 	//=====================================================================
-	// Constants
-	//=====================================================================
-
-	const std::string LocalIdBuilder::namingRule = "dnv-v2";
-
-	const std::vector<CodebookName> LocalIdBuilder::usedCodebooks = {
-		CodebookName::Quantity,
-		CodebookName::Content,
-		CodebookName::State,
-		CodebookName::Command,
-		CodebookName::FunctionalServices,
-		CodebookName::MaintenanceCategory,
-		CodebookName::ActivityType,
-		CodebookName::Position,
-		CodebookName::Detail };
-
-	//=====================================================================
 	// LocalIdBuilder class
 	//=====================================================================
-
-	//----------------------------------------------
-	// String conversion
-	//----------------------------------------------
-
-	std::string LocalIdBuilder::toString() const
-	{
-		/* LocalId format: /dnv-v2/vis-{version}/{primary-item}[/sec/{secondary-item}][~{description}]/meta/{metadata-tags} */
-		std::stringstream ss;
-		toString( ss );
-
-		return ss.str();
-	}
-
-	void LocalIdBuilder::toString( std::stringstream& builder ) const
-	{
-		if ( !m_visVersion.has_value() )
-		{
-			throw std::invalid_argument( "No VisVersion configured on LocalId" );
-		}
-
-		/* Naming rule prefix: "/dnv-v2" */
-		builder << "/" << namingRule << "/";
-
-		/* VIS version: "vis-{major}-{minor}{patch}" */
-		builder << VisVersionExtensions::toVersionString( *m_visVersion ) << '/';
-
-		/* Items section: primary item [+ secondary item] [+ description]
-			Format: {gmod-path}[/sec/{gmod-path}][~{custom-description}]
-			Examples:
-			- "411.1-11" (primary only)
-			- "411.1-11/sec/411.11-12" (primary + secondary)
-			- "411.1-11~engine-temperature" (primary + description)
-		*/
-		m_items.append( builder, m_verboseMode );
-
-		/* Metadata section prefix: "/meta" */
-		builder << "meta/";
-
-		/* Metadata tags: {prefix}{separator}{value}
-			Format: {codebook-prefix}{-|~}{value}/
-			Separator: '-' for standard values, '~' for custom values
-			Order: quantity, content, calculation, state, command, type, position, detail
-		*/
-		auto appendMeta = [&builder]( const std::optional<MetadataTag>& tag ) {
-			if ( !tag.has_value() )
-			{
-				return;
-			}
-
-			builder << CodebookNames::toPrefix( tag->name() ) << tag->prefix() << tag->value() << "/";
-		};
-
-		appendMeta( m_quantity );
-		appendMeta( m_content );
-		appendMeta( m_calculation );
-		appendMeta( m_state );
-		appendMeta( m_command );
-		appendMeta( m_type );
-		appendMeta( m_position );
-		appendMeta( m_detail );
-
-		/* Cleanup trailing slash */
-		std::string result = builder.str();
-		if ( !result.empty() && result.back() == '/' )
-		{
-			result.pop_back();
-			builder.str( result );
-			builder.clear();
-		}
-	}
 
 	//----------------------------------------------
 	// Static factory methods
@@ -237,7 +149,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Cannot build LocalId: builder state is invalid." );
 		}
 
-		return LocalId( std::move( *this ) );
+		return LocalId( *this );
 	}
 
 	//----------------------------------------------

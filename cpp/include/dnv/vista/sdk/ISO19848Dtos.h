@@ -1,6 +1,6 @@
 /**
  * @file ISO19848Dtos.h
- * @brief Data Transfer Objects for ISO 19848 standard data types
+ * @brief Data transfer objects for ISO 19848 standard data types
  * @details Provides data transfer objects used for serializing and deserializing
  *          ISO 19848 data channel type and format data type information.
  *          These DTOs serve as an intermediate representation when loading or
@@ -13,11 +13,11 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
-	// Single Data Channel Type Data Transfer Objects
+	// Single Data Channel Type data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a single ISO 19848 data channel type name.
+	 * @brief Data transfer object (DTO) for a single ISO 19848 data channel type name.
 	 * @details Represents a specific data channel type name and its corresponding description,
 	 *          as defined in the ISO 19848 standard. Used for serialization to and from JSON.
 	 * @todo Consider refactoring for stricter immutability (e.g., const members) if direct modification
@@ -27,7 +27,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -35,7 +35,7 @@ namespace dnv::vista::sdk
 		 * @param type The type name
 		 * @param description The description of the type
 		 */
-		explicit DataChannelTypeNameDto( std::string type, std::string description );
+		inline explicit DataChannelTypeNameDto( std::string type, std::string description ) noexcept;
 
 		/** @brief Default constructor. */
 		DataChannelTypeNameDto() = default;
@@ -46,6 +46,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		DataChannelTypeNameDto( DataChannelTypeNameDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~DataChannelTypeNameDto() = default;
 
@@ -54,10 +58,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		DataChannelTypeNameDto& operator=( const DataChannelTypeNameDto& ) = delete;
+		DataChannelTypeNameDto& operator=( const DataChannelTypeNameDto& ) = default;
 
 		/** @brief Move assignment operator */
-		DataChannelTypeNameDto& operator=( DataChannelTypeNameDto&& ) noexcept = delete;
+		DataChannelTypeNameDto& operator=( DataChannelTypeNameDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -67,13 +71,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the type name
 		 * @return Type name
 		 */
-		[[nodiscard]] inline const std::string& type() const;
+		[[nodiscard]] inline std::string_view type() const noexcept;
 
 		/**
 		 * @brief Get the description
 		 * @return Description of the type
 		 */
-		[[nodiscard]] inline const std::string& description() const;
+		[[nodiscard]] inline std::string_view description() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -106,12 +110,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to DataChannelTypeNameDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The DataChannelTypeNameDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, DataChannelTypeNameDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert DataChannelTypeNameDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The DataChannelTypeNameDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const DataChannelTypeNameDto& dto );
 
 	private:
@@ -127,11 +146,11 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// Collection of Data Channel Type Data Transfer Objects
+	// Collection of Data Channel Type data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a collection of ISO 19848 data channel type names.
+	 * @brief Data transfer object (DTO) for a collection of ISO 19848 data channel type names.
 	 * @details Represents a list of `DataChannelTypeNameDto` objects, effectively serializing
 	 *          a set of data channel types and their descriptions as per ISO 19848.
 	 *          Used for serialization to and from JSON.
@@ -142,14 +161,14 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
 		 * @brief Constructor with parameters
 		 * @param values A collection of data channel type name values
 		 */
-		explicit DataChannelTypeNamesDto( std::vector<DataChannelTypeNameDto> values );
+		inline explicit DataChannelTypeNamesDto( std::vector<DataChannelTypeNameDto> values ) noexcept;
 
 		/** @brief Default constructor. */
 		DataChannelTypeNamesDto() = default;
@@ -160,6 +179,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		DataChannelTypeNamesDto( DataChannelTypeNamesDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~DataChannelTypeNamesDto() = default;
 
@@ -168,10 +191,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		DataChannelTypeNamesDto& operator=( const DataChannelTypeNamesDto& ) = delete;
+		DataChannelTypeNamesDto& operator=( const DataChannelTypeNamesDto& ) = default;
 
 		/** @brief Move assignment operator */
-		DataChannelTypeNamesDto& operator=( DataChannelTypeNamesDto&& ) noexcept = delete;
+		DataChannelTypeNamesDto& operator=( DataChannelTypeNamesDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -181,7 +204,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the collection of data channel type names
 		 * @return Collection of data channel type names
 		 */
-		[[nodiscard]] inline const std::vector<DataChannelTypeNameDto>& values() const;
+		[[nodiscard]] inline const std::vector<DataChannelTypeNameDto>& values() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -214,12 +237,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to DataChannelTypeNamesDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The DataChannelTypeNamesDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, DataChannelTypeNamesDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert DataChannelTypeNamesDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The DataChannelTypeNamesDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const DataChannelTypeNamesDto& dto );
 
 	private:
@@ -232,11 +270,11 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// Single Format Data Type Data Transfer Objects
+	// Single Format Data Type data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a single ISO 19848 format data type.
+	 * @brief Data transfer object (DTO) for a single ISO 19848 format data type.
 	 * @details Represents a specific format data type and its corresponding description,
 	 *          as defined in the ISO 19848 standard. Used for serialization to and from JSON.
 	 * @todo Consider refactoring for stricter immutability (e.g., const members) if direct modification
@@ -246,7 +284,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -254,7 +292,7 @@ namespace dnv::vista::sdk
 		 * @param type The type name
 		 * @param description The description of the type
 		 */
-		explicit FormatDataTypeDto( std::string type, std::string description );
+		inline explicit FormatDataTypeDto( std::string type, std::string description ) noexcept;
 
 		/** @brief Default constructor. */
 		FormatDataTypeDto() = default;
@@ -265,6 +303,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		FormatDataTypeDto( FormatDataTypeDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~FormatDataTypeDto() = default;
 
@@ -273,10 +315,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		FormatDataTypeDto& operator=( const FormatDataTypeDto& ) = delete;
+		FormatDataTypeDto& operator=( const FormatDataTypeDto& ) = default;
 
 		/** @brief Move assignment operator */
-		FormatDataTypeDto& operator=( FormatDataTypeDto&& ) noexcept = delete;
+		FormatDataTypeDto& operator=( FormatDataTypeDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -286,13 +328,13 @@ namespace dnv::vista::sdk
 		 * @brief Get the type name
 		 * @return Type name
 		 */
-		[[nodiscard]] inline const std::string& type() const;
+		[[nodiscard]] inline std::string_view type() const noexcept;
 
 		/**
 		 * @brief Get the description
 		 * @return Description of the type
 		 */
-		[[nodiscard]] inline const std::string& description() const;
+		[[nodiscard]] inline std::string_view description() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -325,12 +367,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to FormatDataTypeDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The FormatDataTypeDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, FormatDataTypeDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert FormatDataTypeDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The FormatDataTypeDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const FormatDataTypeDto& dto );
 
 	private:
@@ -346,11 +403,11 @@ namespace dnv::vista::sdk
 	};
 
 	//=====================================================================
-	// Collection of  Format Data Type Data Transfer Objects
+	// Collection of  Format Data Type data transfer objects
 	//=====================================================================
 
 	/**
-	 * @brief Data Transfer Object (DTO) for a collection of ISO 19848 format data types.
+	 * @brief Data transfer object (DTO) for a collection of ISO 19848 format data types.
 	 * @details Represents a list of `FormatDataTypeDto` objects, effectively serializing
 	 *          a set of format data types and their descriptions as per ISO 19848.
 	 *          Used for serialization to and from JSON.
@@ -361,14 +418,14 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
 		 * @brief Constructor with parameters
 		 * @param values A collection of format data type values
 		 */
-		explicit FormatDataTypesDto( std::vector<FormatDataTypeDto> values );
+		inline explicit FormatDataTypesDto( std::vector<FormatDataTypeDto> values ) noexcept;
 
 		/** @brief Default constructor. */
 		FormatDataTypesDto() = default;
@@ -379,6 +436,10 @@ namespace dnv::vista::sdk
 		/** @brief Move constructor */
 		FormatDataTypesDto( FormatDataTypesDto&& ) noexcept = default;
 
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
+
 		/** @brief Destructor */
 		~FormatDataTypesDto() = default;
 
@@ -387,10 +448,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		FormatDataTypesDto& operator=( const FormatDataTypesDto& ) = delete;
+		FormatDataTypesDto& operator=( const FormatDataTypesDto& ) = default;
 
 		/** @brief Move assignment operator */
-		FormatDataTypesDto& operator=( FormatDataTypesDto&& ) noexcept = delete;
+		FormatDataTypesDto& operator=( FormatDataTypesDto&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Accessors
@@ -400,7 +461,7 @@ namespace dnv::vista::sdk
 		 * @brief Get the collection of format data types
 		 * @return Collection of format data types
 		 */
-		[[nodiscard]] inline const std::vector<FormatDataTypeDto>& values() const;
+		[[nodiscard]] inline const std::vector<FormatDataTypeDto>& values() const noexcept;
 
 		//----------------------------------------------
 		// Serialization
@@ -433,12 +494,27 @@ namespace dnv::vista::sdk
 		// Private serialization methods
 		//----------------------------------------------
 
-		/*
-		 * Friend declarations for nlohmann::json serialization/deserialization.
-		 * These enable Argument-Dependent Lookup (ADL) so nlohmann::json can find
-		 * these functions and allow them to access private members.
+		/**
+		 * @brief ADL hook for nlohmann::json deserialization
+		 * @details Friend function that enables automatic deserialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert JSON to FormatDataTypesDto objects.
+		 * @param j The JSON object to deserialize from
+		 * @param dto The FormatDataTypesDto object to deserialize into
+		 * @throws nlohmann::json::parse_error If required fields are missing or have wrong types
+		 * @note This function accesses private members and is called automatically by nlohmann::json
 		 */
 		friend void from_json( const nlohmann::json& j, FormatDataTypesDto& dto );
+
+		/**
+		 * @brief ADL hook for nlohmann::json serialization
+		 * @details Friend function that enables automatic serialization via nlohmann::json.
+		 *          This function is found through Argument-Dependent Lookup (ADL) and allows
+		 *          nlohmann::json to automatically convert FormatDataTypesDto objects to JSON.
+		 * @param j The JSON object to serialize into
+		 * @param dto The FormatDataTypesDto object to serialize from
+		 * @note This function accesses private members and is called automatically by nlohmann::json
+		 */
 		friend void to_json( nlohmann::json& j, const FormatDataTypesDto& dto );
 
 	private:

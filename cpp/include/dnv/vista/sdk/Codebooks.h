@@ -151,7 +151,7 @@ namespace dnv::vista::sdk
 		 *         (or if the codebook allows any value, like 'detail'), otherwise `std::nullopt`.
 		 * @throws std::invalid_argument If the `name` enum value is invalid (propagated from `operator[]`).
 		 */
-		[[nodiscard]] inline std::optional<MetadataTag> tryCreateTag( CodebookName name, const std::string_view value ) const;
+		[[nodiscard]] inline std::optional<MetadataTag> tryCreateTag( CodebookName name, std::string_view value ) const;
 
 		/**
 		 * @brief Create a metadata tag using the appropriate codebook, throwing on failure.
