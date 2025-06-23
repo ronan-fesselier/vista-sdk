@@ -13,6 +13,8 @@
 #include "GmodDto.h"
 #include "Locations.h"
 
+#include "utils/StringUtils.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -51,7 +53,7 @@ namespace dnv::vista::sdk
 		 * @param installSubstructure Optional flag indicating if substructure should be installed. Defaults to std::nullopt.
 		 * @param normalAssignmentNames Optional mapping of normal assignment names. Defaults to an empty map.
 		 */
-		GmodNodeMetadata(
+		inline GmodNodeMetadata(
 			std::string_view category,
 			std::string_view type,
 			std::string_view name,
@@ -59,13 +61,13 @@ namespace dnv::vista::sdk
 			const std::optional<std::string>& definition = std::nullopt,
 			const std::optional<std::string>& commonDefinition = std::nullopt,
 			const std::optional<bool>& installSubstructure = std::nullopt,
-			const std::unordered_map<std::string, std::string>& normalAssignmentNames = {} );
+			const std::unordered_map<std::string, std::string>& normalAssignmentNames = {} ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodNodeMetadata() = default;
 
 		/** @brief Copy constructor */
-		GmodNodeMetadata( const GmodNodeMetadata& );
+		inline GmodNodeMetadata( const GmodNodeMetadata& ) noexcept;
 
 		/** @brief Move constructor */
 		GmodNodeMetadata( GmodNodeMetadata&& ) noexcept = default;
@@ -82,7 +84,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodNodeMetadata& operator=( const GmodNodeMetadata& );
+		inline GmodNodeMetadata& operator=( const GmodNodeMetadata& ) noexcept;
 
 		/** @brief Move assignment operator */
 		GmodNodeMetadata& operator=( GmodNodeMetadata&& ) noexcept = default;
@@ -113,55 +115,55 @@ namespace dnv::vista::sdk
 		 * @brief Get the category of the node
 		 * @return Reference to the category string
 		 */
-		[[nodiscard]] inline const std::string& category() const;
+		[[nodiscard]] inline std::string_view category() const noexcept;
 
 		/**
 		 * @brief Get the type of the node
 		 * @return Reference to the type string
 		 */
-		[[nodiscard]] inline const std::string& type() const;
+		[[nodiscard]] inline std::string_view type() const noexcept;
 
 		/**
 		 * @brief Get the full type string (category + type)
 		 * @return Reference to the full type string
 		 */
-		[[nodiscard]] inline const std::string& fullType() const;
+		[[nodiscard]] inline std::string_view fullType() const noexcept;
 
 		/**
 		 * @brief Get the name of the node
 		 * @return Reference to the name string
 		 */
-		[[nodiscard]] inline const std::string& name() const;
+		[[nodiscard]] inline std::string_view name() const noexcept;
 
 		/**
 		 * @brief Get the common name of the node
 		 * @return Optional reference to the common name
 		 */
-		[[nodiscard]] inline const std::optional<std::string>& commonName() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonName() const noexcept;
 
 		/**
 		 * @brief Get the definition of the node
 		 * @return Optional reference to the definition
 		 */
-		[[nodiscard]] inline const std::optional<std::string>& definition() const;
+		[[nodiscard]] inline const std::optional<std::string>& definition() const noexcept;
 
 		/**
 		 * @brief Get the common definition of the node
 		 * @return Optional reference to the common definition
 		 */
-		[[nodiscard]] inline const std::optional<std::string>& commonDefinition() const;
+		[[nodiscard]] inline const std::optional<std::string>& commonDefinition() const noexcept;
 
 		/**
 		 * @brief Get the install substructure flag
 		 * @return Optional reference to the install substructure flag
 		 */
-		[[nodiscard]] inline const std::optional<bool>& installSubstructure() const;
+		[[nodiscard]] inline const std::optional<bool>& installSubstructure() const noexcept;
 
 		/**
 		 * @brief Get the normal assignment names mapping
 		 * @return Reference to the map of normal assignment names
 		 */
-		[[nodiscard]] inline const std::unordered_map<std::string, std::string>& normalAssignmentNames() const;
+		[[nodiscard]] inline const std::unordered_map<std::string, std::string>& normalAssignmentNames() const noexcept;
 
 	private:
 		//----------------------------------------------
@@ -222,13 +224,13 @@ namespace dnv::vista::sdk
 		 * @param version The VIS version associated with this node.
 		 * @param dto The DTO containing the node's data.
 		 */
-		GmodNode( VisVersion version, const GmodNodeDto& dto );
+		inline GmodNode( VisVersion version, const GmodNodeDto& dto ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodNode() = default;
 
 		/** @brief Copy constructor */
-		GmodNode( const GmodNode& );
+		inline GmodNode( const GmodNode& ) noexcept;
 
 		/** @brief Move constructor */
 		GmodNode( GmodNode&& ) noexcept = default;
@@ -245,7 +247,7 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodNode& operator=( const GmodNode& );
+		inline GmodNode& operator=( const GmodNode& ) noexcept;
 
 		/** @brief Move assignment operator */
 		GmodNode& operator=( GmodNode&& ) noexcept = default;
@@ -286,25 +288,25 @@ namespace dnv::vista::sdk
 		 * @brief Get the unique code identifier
 		 * @return Reference to the code string
 		 */
-		[[nodiscard]] inline const std::string& code() const;
+		[[nodiscard]] inline std::string_view code() const noexcept;
 
 		/**
 		 * @brief Get the location information
 		 * @return Optional reference to the location
 		 */
-		[[nodiscard]] inline const std::optional<Location>& location() const;
+		[[nodiscard]] inline const std::optional<Location>& location() const noexcept;
 
 		/**
 		 * @brief Get the VIS version
 		 * @return The VIS version enum value
 		 */
-		[[nodiscard]] inline VisVersion visVersion() const;
+		[[nodiscard]] inline VisVersion visVersion() const noexcept;
 
 		/**
 		 * @brief Get the node metadata
 		 * @return Reference to the metadata
 		 */
-		[[nodiscard]] inline const GmodNodeMetadata& metadata() const;
+		[[nodiscard]] inline const GmodNodeMetadata& metadata() const noexcept;
 
 		/**
 		 * @brief Calculates a hash code for this GmodNode.
@@ -322,27 +324,27 @@ namespace dnv::vista::sdk
 		 * @brief Get the child nodes
 		 * @return Reference to the vector of child node pointers
 		 */
-		[[nodiscard]] inline const std::vector<GmodNode*>& children() const;
+		[[nodiscard]] inline const std::vector<GmodNode*>& children() const noexcept;
 
 		/**
 		 * @brief Get the parent nodes
 		 * @return Reference to the vector of parent node pointers
 		 */
-		[[nodiscard]] inline const std::vector<GmodNode*>& parents() const;
+		[[nodiscard]] inline const std::vector<GmodNode*>& parents() const noexcept;
 
 		/**
 		 * @brief Gets the product type node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product type.
 		 * @return A const non-owning pointer to the product type node, or `nullptr` if not applicable or not found.
 		 */
-		[[nodiscard]] inline const GmodNode* productType() const;
+		[[nodiscard]] inline const GmodNode* productType() const noexcept;
 
 		/**
 		 * @brief Gets the product selection node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product selection.
 		 * @return A const non-owning pointer to the product selection node, or `nullptr` if not applicable or not found.
 		 */
-		[[nodiscard]] inline const GmodNode* productSelection() const;
+		[[nodiscard]] inline const GmodNode* productSelection() const noexcept;
 
 		//----------------------------------------------
 		// Node location methods
@@ -411,14 +413,14 @@ namespace dnv::vista::sdk
 		 * @param isInSet Flag indicating if this node is part of a set. Defaults to false.
 		 * @return True if the node is individualizable under the given conditions, false otherwise.
 		 */
-		[[nodiscard]] inline bool isIndividualizable( bool isTargetNode = false, bool isInSet = false ) const;
+		[[nodiscard]] inline bool isIndividualizable( bool isTargetNode = false, bool isInSet = false ) const noexcept;
 
 		/**
 		 * @brief Checks if the node represents a function composition.
 		 * @details A function composition node typically groups other function or product nodes.
 		 * @return True if the node's metadata indicates it's an asset or product function composition, false otherwise.
 		 */
-		[[nodiscard]] inline bool isFunctionComposition() const;
+		[[nodiscard]] inline bool isFunctionComposition() const noexcept;
 
 		/**
 		 * @brief Checks if the node is mappable.
@@ -480,7 +482,7 @@ namespace dnv::vista::sdk
 		 * @param node The potential child node to check for.
 		 * @return True if the provided `node` is a direct child of this node (checked by code), false otherwise.
 		 */
-		[[nodiscard]] inline bool isChild( const GmodNode& node ) const;
+		[[nodiscard]] inline bool isChild( const GmodNode& node ) const noexcept;
 
 		/**
 		 * @brief Checks if this node has a direct child with a specific code.
@@ -488,7 +490,7 @@ namespace dnv::vista::sdk
 		 * @param code The code of the potential child node.
 		 * @return True if a direct child with the specified `code` exists, false otherwise.
 		 */
-		[[nodiscard]] inline bool isChild( const std::string& code ) const;
+		[[nodiscard]] inline bool isChild( std::string_view code ) const noexcept;
 
 		//----------------------------------------------
 		// String conversion methods
@@ -499,7 +501,7 @@ namespace dnv::vista::sdk
 		 * @details The format is typically "<code>" or "<code>-<location>" if location is present.
 		 * @return A `std::string` representing the node.
 		 */
-		[[nodiscard]] inline std::string toString() const;
+		[[nodiscard]] inline std::string toString() const noexcept;
 
 		/**
 		 * @brief Appends the node's string representation to a generic output iterator.
@@ -508,7 +510,7 @@ namespace dnv::vista::sdk
 		 * @return The iterator pointing to the end of the written output.
 		 */
 		template <typename OutputIt>
-		inline OutputIt toString( OutputIt out ) const;
+		inline OutputIt toString( OutputIt out ) const noexcept;
 
 	private:
 		//----------------------------------------------
@@ -521,21 +523,21 @@ namespace dnv::vista::sdk
 		 *          It updates both the children list and the children set for quick lookups.
 		 * @param child A non-owning pointer to the GmodNode to add as a child. Must not be null.
 		 */
-		void addChild( GmodNode* child );
+		inline void addChild( GmodNode* child ) noexcept;
 
 		/**
 		 * @brief Adds a GmodNode instance as a parent to this node.
 		 * @details This method is intended for use by the `Gmod` class during graph construction.
 		 * @param parent A non-owning pointer to the GmodNode to add as a parent. Must not be null.
 		 */
-		void addParent( GmodNode* parent );
+		inline void addParent( GmodNode* parent ) noexcept;
 
 		/**
 		 * @brief Optimizes memory usage for child/parent vectors and rebuilds the child code set.
 		 * @details This method is intended for use by the `Gmod` class after the graph structure is finalized.
 		 *          It calls `shrink_to_fit()` on internal vectors and ensures `m_childrenSet` is consistent.
 		 */
-		void trim() noexcept;
+		inline void trim() noexcept;
 
 		//----------------------------------------------
 		// Private member variables
@@ -559,8 +561,8 @@ namespace dnv::vista::sdk
 		/** @brief Vector of non-owning pointers to direct parent nodes. Managed by Gmod. */
 		std::vector<GmodNode*> m_parents;
 
-		/** @brief Set of child codes for efficient `isChild(const std::string&)` lookups. Maintained by addChild/trim. */
-		std::unordered_set<std::string> m_childrenSet;
+		/** @brief Set of child codes for efficient `isChild(std::string_view)` lookups. Maintained by addChild/trim. */
+		StringSet m_childrenSet;
 
 		mutable std::optional<const GmodNode*> m_cachedProductType;
 		mutable std::optional<const GmodNode*> m_cachedProductSelection;
