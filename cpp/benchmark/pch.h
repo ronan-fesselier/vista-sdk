@@ -20,3 +20,8 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 #include <benchmark/benchmark.h>
+#if defined( _MSC_VER )
+#	include <libcpuid.h>
+#elif defined( __GNUC__ )
+#	include <cpuid.h>
+#endif

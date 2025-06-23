@@ -39,6 +39,7 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			vista-sdk-cpp
 			spdlog::spdlog
 			benchmark::benchmark
+	        cpuid
 			fmt::fmt
 			nlohmann_json::nlohmann_json
 		)

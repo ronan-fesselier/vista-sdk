@@ -65,7 +65,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeDto> GmodNodeDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto codeHint = extractNameHint( json );
+		[[maybe_unused]] const auto codeHint = extractNameHint( json );
 
 		try
 		{
@@ -461,7 +461,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> GmodDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = extractVisHint( json );
 
 		try
 		{

@@ -65,7 +65,7 @@ namespace dnv::vista::sdk
 
 	std::optional<RelativeLocationsDto> RelativeLocationsDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto codeHint = extractCodeHint( json );
+		[[maybe_unused]] const auto codeHint = extractCodeHint( json );
 
 		try
 		{
@@ -222,7 +222,8 @@ namespace dnv::vista::sdk
 
 	std::optional<LocationsDto> LocationsDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = extractVisHint( json );
+		
 		try
 		{
 			if ( !json.is_object() )
