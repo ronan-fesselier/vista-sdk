@@ -8,12 +8,14 @@
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/VIS.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
-	static std::unordered_map<std::string, const GmodNode*> g_dict;
-	static std::unordered_map<std::string, const GmodNode*> g_frozenDict;
+	static StringMap<const GmodNode*> g_dict;
+	static StringMap<const GmodNode*> g_frozenDict;
 	static const Gmod* g_gmod = nullptr;
 	static bool g_initialized = false;
 

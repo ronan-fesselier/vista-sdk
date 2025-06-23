@@ -13,6 +13,8 @@
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 namespace dnv::vista::sdk::tests
 {
 	//=====================================================================
@@ -250,7 +252,7 @@ namespace dnv::vista::sdk::tests
 				auto targetNodeOpt = m_vis->convertNode( sourceVersion, node, latestVisVersion );
 				if ( !targetNodeOpt.has_value() )
 				{
-					currentVersionErrors.push_back( node.code() );
+					currentVersionErrors.emplace_back( node.code() );
 				}
 			}
 		}
@@ -380,8 +382,6 @@ namespace dnv::vista::sdk::tests
 
 		GmodTraversal::traverse( state, targetGmod, handler );
 		EXPECT_TRUE( state.allNodesHaveNullLocation ) << "Some nodes in target GMOD have non-null location";
-
-		std::cout << sourcePathOpt->toString() << std::endl;
 
 		ASSERT_TRUE( sourcePathOpt.has_value() );
 		EXPECT_EQ( testData.inputPath, sourcePathOpt->toString() );

@@ -544,7 +544,7 @@ namespace dnv::vista::sdk
 	}
 
 	bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
-		const std::string& code, GmodNodeConversion& nodeChanges ) const
+		std::string_view code, GmodNodeConversion& nodeChanges ) const
 	{
 		auto it = m_versioningNodeChanges.find( code );
 		if ( it != m_versioningNodeChanges.end() )
@@ -566,7 +566,7 @@ namespace dnv::vista::sdk
 	{
 		validateSourceAndTargetVersionPair( sourceNode.visVersion(), targetVersion );
 
-		std::string nextCode = sourceNode.code();
+		std::string nextCode{ sourceNode.code() };
 
 		auto versioningIt = m_versioningsMap.find( targetVersion );
 		if ( versioningIt != m_versioningsMap.end() )
@@ -574,7 +574,7 @@ namespace dnv::vista::sdk
 			const auto& versioningNode = versioningIt->second;
 
 			GmodNodeConversion change{};
-			if ( versioningNode.tryGetCodeChanges( sourceNode.code(), change ) && change.target.has_value() )
+			if ( versioningNode.tryGetCodeChanges( nextCode, change ) && change.target.has_value() )
 			{
 				nextCode = change.target.value();
 			}
@@ -653,7 +653,7 @@ namespace dnv::vista::sdk
 	// Private static utility methods
 	//----------------------------------------------
 
-	GmodVersioning::ConversionType GmodVersioning::parseConversionType( const std::string& type )
+	GmodVersioning::ConversionType GmodVersioning::parseConversionType( std::string_view type )
 	{
 		if ( type == "changeCode" )
 		{
@@ -676,6 +676,6 @@ namespace dnv::vista::sdk
 			return ConversionType::AssignmentDelete;
 		}
 
-		throw std::invalid_argument( "Invalid conversion type: " + type );
+		throw std::invalid_argument( "Invalid conversion type: " + std::string{ type } );
 	}
 }

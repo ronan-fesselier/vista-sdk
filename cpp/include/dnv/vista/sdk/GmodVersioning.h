@@ -14,6 +14,8 @@
 #include "GmodPath.h"
 #include "LocalId.h"
 
+#include "utils/StringUtils.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -182,7 +184,7 @@ namespace dnv::vista::sdk
 			/**
 			 * @brief Try to get code changes for a specific node code
 			 */
-			bool tryGetCodeChanges( const std::string& code, GmodNodeConversion& nodeChanges ) const;
+			bool tryGetCodeChanges( std::string_view code, GmodNodeConversion& nodeChanges ) const;
 
 		private:
 			//----------------------------------------------
@@ -190,7 +192,7 @@ namespace dnv::vista::sdk
 			//----------------------------------------------
 
 			VisVersion m_visVersion;
-			std::unordered_map<std::string, GmodNodeConversion> m_versioningNodeChanges;
+			StringMap<GmodNodeConversion> m_versioningNodeChanges;
 		};
 
 		//----------------------------------------------
@@ -235,7 +237,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Parse a conversion type from a string
 		 */
-		static ConversionType parseConversionType( const std::string& type );
+		static ConversionType parseConversionType( std::string_view type );
 	};
 }
 
