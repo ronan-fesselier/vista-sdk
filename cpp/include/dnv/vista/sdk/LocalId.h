@@ -39,7 +39,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -54,6 +54,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		LocalId( LocalId&& other ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~LocalId() = default;

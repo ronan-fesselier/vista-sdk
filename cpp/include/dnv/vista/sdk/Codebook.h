@@ -50,7 +50,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -61,6 +61,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		PositionValidationResults( PositionValidationResults&& ) noexcept = delete;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~PositionValidationResults() = default;
@@ -115,7 +119,7 @@ namespace dnv::vista::sdk
 		using Iterator = std::unordered_set<std::string, StringViewHash, StringViewEqual>::const_iterator;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -133,6 +137,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		CodebookStandardValues( CodebookStandardValues&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~CodebookStandardValues() = default;
@@ -214,7 +222,7 @@ namespace dnv::vista::sdk
 		using Iterator = std::unordered_set<std::string, StringViewHash, StringViewEqual>::const_iterator;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -231,6 +239,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		CodebookGroups( CodebookGroups&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~CodebookGroups() = default;
@@ -302,7 +314,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -320,6 +332,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		Codebook( Codebook&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~Codebook() = default;

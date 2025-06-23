@@ -17,7 +17,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	Codebooks::Codebooks( VisVersion version, const CodebooksDto& dto )

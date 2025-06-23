@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -55,6 +55,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		GmodVersioning( GmodVersioning&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~GmodVersioning() = default;
@@ -142,7 +146,7 @@ namespace dnv::vista::sdk
 		{
 		public:
 			//----------------------------------------------
-			// Construction / destruction
+			// Construction
 			//----------------------------------------------
 			/**
 			 * @brief Constructor for GmodVersioningNode
@@ -158,6 +162,10 @@ namespace dnv::vista::sdk
 
 			/** @brief Move constructor */
 			GmodVersioningNode( GmodVersioningNode&& ) noexcept = default;
+
+			//----------------------------------------------
+			// Destruction
+			//----------------------------------------------
 
 			/** @brief Destructor */
 			~GmodVersioningNode() = default;

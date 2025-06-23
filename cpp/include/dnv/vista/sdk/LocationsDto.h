@@ -21,7 +21,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -41,6 +41,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		RelativeLocationsDto( RelativeLocationsDto&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~RelativeLocationsDto() = default;
@@ -163,7 +167,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -182,6 +186,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		LocationsDto( LocationsDto&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~LocationsDto() = default;

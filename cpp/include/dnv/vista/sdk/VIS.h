@@ -44,7 +44,7 @@ namespace dnv::vista::sdk
 	{
 	protected:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -55,6 +55,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor (deleted) */
 		IVIS( IVIS&& ) noexcept = delete;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 	public:
 		/** @brief Virtual destructor */

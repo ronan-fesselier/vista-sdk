@@ -34,7 +34,7 @@ namespace dnv::vista::sdk
 		friend class LocationParsingErrorBuilder;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -59,6 +59,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		ParsingErrors( ParsingErrors&& errors ) noexcept;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~ParsingErrors() = default;
@@ -172,7 +176,7 @@ namespace dnv::vista::sdk
 		{
 		public:
 			//----------------------------
-			// Construction / destruction
+			// Construction
 			//----------------------------
 
 			/**
@@ -189,6 +193,10 @@ namespace dnv::vista::sdk
 
 			/** @brief Move constructor */
 			Enumerator( Enumerator&& ) noexcept = default;
+
+			//----------------------------------------------
+			// Destruction
+			//----------------------------------------------
 
 			/** @brief Destructor */
 			~Enumerator() = default;

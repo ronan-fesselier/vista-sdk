@@ -166,69 +166,6 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	GmodPath::GmodPath()
-		: m_visVersion{ VisVersion::Unknown },
-		  m_gmod{ nullptr },
-		  m_node{ std::nullopt },
-		  m_parents{}
-	{
-	}
-
-	GmodPath::GmodPath( const GmodPath& other )
-		: m_visVersion{ other.m_visVersion },
-		  m_gmod{ other.m_gmod },
-		  m_node{ other.m_node },
-		  m_parents{ other.m_parents }
-	{
-	}
-
-	GmodPath::GmodPath( GmodPath&& other ) noexcept
-		: m_visVersion{ other.m_visVersion },
-		  m_gmod{ other.m_gmod },
-		  m_node{ std::move( other.m_node ) },
-		  m_parents{ std::move( other.m_parents ) }
-	{
-		other.m_gmod = nullptr;
-		other.m_visVersion = VisVersion::Unknown;
-	}
-
-	//----------------------------------------------
-	// Assignment operators
-	//----------------------------------------------
-
-	GmodPath& GmodPath::operator=( const GmodPath& other )
-	{
-		if ( this == &other )
-		{
-			return *this;
-		}
-
-		m_visVersion = other.m_visVersion;
-		m_gmod = other.m_gmod;
-		m_node = other.m_node;
-		m_parents = other.m_parents;
-
-		return *this;
-	}
-
-	GmodPath& GmodPath::operator=( GmodPath&& other ) noexcept
-	{
-		if ( this == &other )
-		{
-			return *this;
-		}
-
-		m_visVersion = other.m_visVersion;
-		m_gmod = other.m_gmod;
-		m_node = std::move( other.m_node );
-		m_parents = std::move( other.m_parents );
-
-		other.m_gmod = nullptr;
-		other.m_visVersion = VisVersion::Unknown;
-
-		return *this;
-	}
-
 	//----------------------------------------------
 	// Accessors
 	//----------------------------------------------
@@ -393,13 +330,6 @@ namespace dnv::vista::sdk
 	// State inspection methods
 	//----------------------------------------------
 
-	bool GmodPath::isValid( const std::vector<GmodNode*>& parents, const GmodNode& node )
-	{
-		int missingLinkAt;
-
-		return isValid( parents, node, missingLinkAt );
-	}
-
 	bool GmodPath::isValid( const std::vector<GmodNode*>& parents, const GmodNode& node, int& missingLinkAt )
 	{
 		missingLinkAt = -1;
@@ -427,11 +357,6 @@ namespace dnv::vista::sdk
 		}
 
 		return true;
-	}
-
-	bool GmodPath::isMappable() const
-	{
-		return m_node.has_value() && m_node->isMappable();
 	}
 
 	bool GmodPath::isIndividualizable() const
@@ -484,20 +409,6 @@ namespace dnv::vista::sdk
 		}
 
 		return GmodPath( *m_gmod, m_node->withoutLocation(), std::move( newParents ) );
-	}
-
-	//----------------------------------------------
-	// Path enumeration methods
-	//----------------------------------------------
-
-	GmodPath::Enumerator GmodPath::fullPath() const
-	{
-		return fullPathFrom( 0 );
-	}
-
-	GmodPath::Enumerator GmodPath::fullPathFrom( size_t fromDepth ) const
-	{
-		return Enumerator( this, fromDepth );
 	}
 
 	//----------------------------------------------
@@ -612,41 +523,41 @@ namespace dnv::vista::sdk
 		return false;
 	}
 
-	//----------------------------
-	// Enumeration
-	//----------------------------
-
-	GmodPath::Enumerator GmodPath::enumerator( size_t fromDepth ) const
-	{
-		return Enumerator( this, fromDepth );
-	}
-
 	//----------------------------------------------
 	// Private static parsing methods
 	//----------------------------------------------
 
-	std::unique_ptr<GmodParsePathResult> GmodPath::parseFullPathInternal( std::string_view item, const Gmod& gmod, const Locations& locations )
+	std::unique_ptr<GmodParsePathResult> GmodPath::parseFullPathInternal(
+		std::string_view item, const Gmod& gmod, const Locations& locations )
 	{
 		constexpr size_t MAX_NODES = 32;
-		std::vector<GmodNode> nodes;
-		nodes.reserve( MAX_NODES );
 
-		const char* current = item.data();
-		const char* end = current + item.size();
-
-		while ( current < end && nodes.size() < MAX_NODES )
-		{
-			const char* slash = static_cast<const char*>( std::memchr( current, '/', static_cast<size_t>( end - current ) ) );
-			const char* segmentEnd = slash ? slash : end;
-
-			std::string_view segment{ current, static_cast<size_t>( segmentEnd - current ) };
-
-			const char* dash = static_cast<const char*>( std::memchr( current, '-', static_cast<size_t>( segmentEnd - current ) ) );
-
-			if ( dash )
+		const size_t estimatedSegments = [item]() -> size_t {
+			size_t count = 1;
+			for ( char c : item )
 			{
-				std::string_view codePart{ current, static_cast<size_t>( dash - current ) };
-				std::string_view locationPart{ dash + 1, static_cast<size_t>( std::distance( dash + 1, segmentEnd ) ) };
+				if ( c == '/' )
+					++count;
+			}
+			return count;
+		}();
+
+		std::vector<GmodNode> nodes;
+		nodes.reserve( std::min( estimatedSegments, MAX_NODES ) );
+
+		std::string_view remaining = item;
+
+		while ( !remaining.empty() && nodes.size() < MAX_NODES )
+		{
+			const auto slashPos = remaining.find( '/' );
+			const std::string_view segment = remaining.substr( 0, slashPos );
+
+			const auto dashPos = segment.find( '-' );
+
+			if ( dashPos != std::string_view::npos )
+			{
+				const std::string_view codePart = segment.substr( 0, dashPos );
+				const std::string_view locationPart = segment.substr( dashPos + 1 );
 
 				const GmodNode* nodePtr;
 				if ( !gmod.tryGetNode( codePart, nodePtr ) )
@@ -673,7 +584,11 @@ namespace dnv::vista::sdk
 				nodes.emplace_back( *nodePtr );
 			}
 
-			current = slash ? slash + 1 : end;
+			if ( slashPos == std::string_view::npos )
+			{
+				break;
+			}
+			remaining = remaining.substr( slashPos + 1 );
 		}
 
 		if ( nodes.empty() )
@@ -684,9 +599,8 @@ namespace dnv::vista::sdk
 		GmodNode endNode = std::move( nodes.back() );
 		nodes.pop_back();
 
-		std::vector<GmodNode> parents = std::move( nodes );
-
-		return std::make_unique<GmodParsePathResult::Ok>( GmodPath( gmod, std::move( endNode ), std::move( parents ) ) );
+		return std::make_unique<GmodParsePathResult::Ok>(
+			GmodPath( gmod, std::move( endNode ), std::move( nodes ) ) );
 	}
 
 	std::unique_ptr<GmodParsePathResult> GmodPath::parseInternal( std::string_view item, const Gmod& gmod, const Locations& locations )

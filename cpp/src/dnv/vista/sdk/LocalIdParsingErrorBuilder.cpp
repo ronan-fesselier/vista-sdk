@@ -161,7 +161,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	LocalIdParsingErrorBuilder::LocalIdParsingErrorBuilder()
