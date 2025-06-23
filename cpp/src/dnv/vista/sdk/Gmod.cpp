@@ -16,7 +16,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	Gmod::Gmod( VisVersion version, const GmodDto& dto )
@@ -103,7 +103,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	//-----------------------------
-	// Construction / destruction
+	// Construction
 	//-----------------------------
 
 	Gmod::Enumerator::Enumerator( const ChdDictionary<GmodNode>* map ) noexcept

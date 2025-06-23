@@ -54,7 +54,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -71,6 +71,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		Location( Location&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~Location() = default;
@@ -158,7 +162,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -182,6 +186,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		RelativeLocation( RelativeLocation&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~RelativeLocation() = default;
@@ -282,7 +290,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/** @brief Default constructor. */
@@ -293,6 +301,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		LocationCharDict( LocationCharDict&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~LocationCharDict() = default;
@@ -359,7 +371,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -377,6 +389,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		Locations( Locations&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~Locations() = default;

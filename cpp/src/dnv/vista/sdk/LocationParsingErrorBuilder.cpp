@@ -65,7 +65,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	LocationParsingErrorBuilder::LocationParsingErrorBuilder()

@@ -20,7 +20,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	LocalId::LocalId( LocalIdBuilder builder ) : m_builder( std::move( builder ) )

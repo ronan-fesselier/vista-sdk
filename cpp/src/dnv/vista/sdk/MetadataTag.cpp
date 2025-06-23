@@ -16,7 +16,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//-------------------------------------------------------------------------
-	// Construction / destruction
+	// Construction
 	//-------------------------------------------------------------------------
 
 	MetadataTag::MetadataTag( CodebookName name, const std::string& value, bool isCustom )

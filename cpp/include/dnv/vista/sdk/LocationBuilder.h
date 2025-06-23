@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 		friend LocationBuilder withValueInternal( const LocationBuilder& builder, LocationGroup group, T value );
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -57,6 +57,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		LocationBuilder( LocationBuilder&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~LocationBuilder() = default;

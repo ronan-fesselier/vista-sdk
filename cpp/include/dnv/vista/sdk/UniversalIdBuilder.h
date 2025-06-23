@@ -47,7 +47,7 @@ namespace dnv::vista::sdk
 		static const std::string namingEntity;
 
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 	protected:
@@ -63,6 +63,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		UniversalIdBuilder( UniversalIdBuilder&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~UniversalIdBuilder() = default;

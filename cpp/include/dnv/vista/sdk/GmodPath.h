@@ -61,13 +61,13 @@ namespace dnv::vista::sdk
 		GmodPath( const Gmod& gmod, GmodNode node, std::vector<GmodNode> parents = {} );
 
 		/** @brief Default constructor. */
-		GmodPath();
+		inline GmodPath();
 
 		/** @brief Copy constructor */
-		GmodPath( const GmodPath& other );
+		inline GmodPath( const GmodPath& other );
 
 		/** @brief Move constructor */
-		GmodPath( GmodPath&& other ) noexcept;
+		inline GmodPath( GmodPath&& other ) noexcept;
 
 		//----------------------------------------------
 		// Destruction
@@ -81,10 +81,10 @@ namespace dnv::vista::sdk
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
-		GmodPath& operator=( const GmodPath& other );
+		inline GmodPath& operator=( const GmodPath& other );
 
 		/** @brief Move assignment operator */
-		GmodPath& operator=( GmodPath&& other ) noexcept;
+		inline GmodPath& operator=( GmodPath&& other ) noexcept;
 
 		//----------------------------------------------
 		// Equality operators
@@ -151,7 +151,7 @@ namespace dnv::vista::sdk
 		 * @param node The target node to validate
 		 * @return True if the path is valid, false otherwise
 		 */
-		[[nodiscard]] static bool isValid( const std::vector<GmodNode*>& parents, const GmodNode& node );
+		[[nodiscard]] inline static bool isValid( const std::vector<GmodNode*>& parents, const GmodNode& node );
 
 		/**
 		 * @brief Validates path and identifies where the hierarchy breaks
@@ -166,7 +166,7 @@ namespace dnv::vista::sdk
 		 * @brief Checks if this path can be mapped to physical locations
 		 * @return True if the target node is mappable, false otherwise
 		 */
-		[[nodiscard]] bool isMappable() const;
+		[[nodiscard]] inline bool isMappable() const;
 
 		/**
 		 * @brief Checks if this path contains individualizable nodes
@@ -242,14 +242,14 @@ namespace dnv::vista::sdk
 		 * @brief Gets the full hierarchical path with all intermediate nodes
 		 * @return Enumerator for the complete path from root to target
 		 */
-		Enumerator fullPath() const;
+		Enumerator inline fullPath() const;
 
 		/**
 		 * @brief Gets the full hierarchical path starting from a specific depth
 		 * @param fromDepth The depth to start enumeration from (0 = root, -1 = from beginning)
 		 * @return Enumerator starting from the specified depth
 		 */
-		Enumerator fullPathFrom( size_t fromDepth ) const;
+		Enumerator inline fullPathFrom( size_t fromDepth ) const;
 
 		//----------------------------------------------
 		// Parsing methods
@@ -283,7 +283,7 @@ namespace dnv::vista::sdk
 		// Enumeration
 		//----------------------------------------------
 
-		[[nodiscard]] Enumerator enumerator( size_t fromDepth = std::numeric_limits<size_t>::max() ) const;
+		[[nodiscard]] inline Enumerator enumerator( size_t fromDepth = std::numeric_limits<size_t>::max() ) const;
 
 	private:
 		//----------------------------------------------
@@ -294,6 +294,7 @@ namespace dnv::vista::sdk
 		const Gmod* m_gmod;
 		std::optional<GmodNode> m_node;
 		std::vector<GmodNode> m_parents;
+		mutable std::optional<size_t> m_cachedHashCode;
 
 	private:
 		//----------------------------------------------
@@ -478,7 +479,7 @@ namespace dnv::vista::sdk
 	class GmodParsePathResult
 	{
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 	protected:
 		GmodParsePathResult() = default;

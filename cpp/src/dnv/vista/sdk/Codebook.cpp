@@ -230,7 +230,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	CodebookStandardValues::CodebookStandardValues( CodebookName name, std::unordered_set<std::string, StringViewHash, StringViewEqual>&& standardValues )
@@ -263,7 +263,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	CodebookGroups::CodebookGroups( std::unordered_set<std::string, StringViewHash, StringViewEqual>&& groups )
@@ -276,7 +276,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	Codebook::Codebook( const CodebookDto& dto )

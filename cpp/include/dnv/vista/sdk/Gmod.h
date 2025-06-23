@@ -42,7 +42,7 @@ namespace dnv::vista::sdk
 
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -76,6 +76,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		Gmod( Gmod&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~Gmod() = default;
@@ -262,7 +266,7 @@ namespace dnv::vista::sdk
 			friend class Gmod;
 
 			//-----------------------------
-			// Construction / destruction
+			// Construction
 			//-----------------------------
 
 		private:

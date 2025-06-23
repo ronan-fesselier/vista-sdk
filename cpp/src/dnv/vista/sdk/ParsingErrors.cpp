@@ -14,7 +14,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	ParsingErrors::ParsingErrors( const std::vector<ErrorEntry>& errors )
@@ -89,7 +89,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	//----------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------
 
 	ParsingErrors::Enumerator::Enumerator( const std::vector<ErrorEntry>* data )

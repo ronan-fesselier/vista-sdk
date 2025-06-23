@@ -99,7 +99,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	LocationBuilder::LocationBuilder( VisVersion visVersion, const std::map<char, LocationGroup>& reversedGroups )
