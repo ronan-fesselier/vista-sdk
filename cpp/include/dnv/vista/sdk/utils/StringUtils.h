@@ -37,6 +37,11 @@ namespace dnv::vista::sdk
 		{
 			return std::hash<std::string_view>{}( s );
 		}
+
+		[[nodiscard]] inline size_t operator()( const char* s ) const noexcept
+		{
+			return std::hash<std::string_view>{}( std::string_view{ s } );
+		}
 	};
 
 	/**
@@ -67,18 +72,79 @@ namespace dnv::vista::sdk
 		{
 			return lhs == rhs;
 		}
+
+		[[nodiscard]] inline bool operator()( const char* lhs, const std::string& rhs ) const noexcept
+		{
+			return std::string_view{ lhs } == rhs;
+		}
+
+		[[nodiscard]] inline bool operator()( const std::string& lhs, const char* rhs ) const noexcept
+		{
+			return lhs == std::string_view{ rhs };
+		}
+
+		[[nodiscard]] inline bool operator()( const char* lhs, std::string_view rhs ) const noexcept
+		{
+			return std::string_view{ lhs } == rhs;
+		}
+
+		[[nodiscard]] inline bool operator()( std::string_view lhs, const char* rhs ) const noexcept
+		{
+			return lhs == std::string_view{ rhs };
+		}
+
+		[[nodiscard]] inline bool operator()( const char* lhs, const char* rhs ) const noexcept
+		{
+			return std::string_view{ lhs } == std::string_view{ rhs };
+		}
+	};
+
+	//=====================================================================
+	// StringMap class
+	//=====================================================================
+
+	/**
+	 * @brief Enhanced unordered map with full heterogeneous support
+	 * @tparam T Value type
+	 */
+	template <typename T>
+	class StringMap : public std::unordered_map<std::string, T, StringViewHash, StringViewEqual>
+	{
+		using Base = std::unordered_map<std::string, T, StringViewHash, StringViewEqual>;
+
+	public:
+		using Base::Base;
+		using Base::operator[];
+
+		/**
+		 * @brief Heterogeneous operator[] for string_view
+		 * @param key String view key
+		 * @return Reference to the mapped value
+		 */
+		T& operator[]( std::string_view key )
+		{
+			auto it = this->find( key );
+			if ( it != this->end() )
+			{
+				return it->second;
+			}
+			return this->emplace( std::string{ key }, T{} ).first->second;
+		}
+
+		/**
+		 * @brief Heterogeneous operator[] for const char*
+		 * @param key C-string key
+		 * @return Reference to the mapped value
+		 */
+		T& operator[]( const char* key )
+		{
+			return operator[]( std::string_view{ key } );
+		}
 	};
 
 	//=====================================================================
 	// Type aliases for heterogeneous containers
 	//=====================================================================
-
-	/**
-	 * @brief Unordered map with heterogeneous lookup support
-	 * @tparam T Value type
-	 */
-	template <typename T>
-	using StringMap = std::unordered_map<std::string, T, StringViewHash, StringViewEqual>;
 
 	/**
 	 * @brief Unordered set with heterogeneous lookup support

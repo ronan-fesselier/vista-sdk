@@ -9,6 +9,8 @@
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 namespace dnv::vista::sdk::tests
 {
 	namespace GmodTestsFixture
@@ -97,7 +99,7 @@ namespace dnv::vista::sdk::tests
 			{
 				const GmodNode& node = enumerator.current();
 				const GmodNodeMetadata& metadata = node.metadata();
-				std::string category_type_string = metadata.category();
+				std::string category_type_string{ metadata.category() };
 				category_type_string += " | ";
 				category_type_string += metadata.type();
 				set.insert( category_type_string );
@@ -386,7 +388,7 @@ namespace dnv::vista::sdk::tests
 			{
 				const GmodNode& node = enumerator.current();
 				nodeCount++;
-				const std::string& code = node.code();
+				const auto code = node.code();
 				size_t len = code.length();
 
 				if ( !minLengthLexiographicallyOrderedNode || len < currentMinLength )
@@ -466,10 +468,10 @@ namespace dnv::vista::sdk::tests
 				while ( enumerator.next() )
 				{
 					const GmodNode& node = enumerator.current();
-					const std::string& gmodNodeCode = node.code();
+					const auto gmodNodeCode = node.code();
 					ASSERT_FALSE( gmodNodeCode.empty() ) << "Gmod iterated node code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
 
-					auto insert_result = seen_codes.insert( gmodNodeCode );
+					auto insert_result = seen_codes.insert( std::string{ gmodNodeCode } );
 					ASSERT_TRUE( insert_result.second ) << "Duplicate Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
 
 					const GmodNode* foundNodePtr = nullptr;
