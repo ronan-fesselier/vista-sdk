@@ -90,26 +90,26 @@ namespace dnv::vista::sdk
 				//----------------------------
 
 				/** @brief Default constructor. */
-				Parents();
+				inline Parents();
 
 				//----------------------------
 				// Stack operations
 				//----------------------------
 
 				/** @brief Push parent and update occurrence count */
-				void push( const GmodNode* parent );
+				inline void push( const GmodNode* parent );
 
 				/** @brief Pop parent and update occurrence count */
-				void pop();
+				inline void pop();
 
 				/** @brief Get occurrence count for node */
-				[[nodiscard]] size_t occurrences( const GmodNode& node ) const noexcept;
+				[[nodiscard]] inline size_t occurrences( const GmodNode& node ) const noexcept;
 
 				/** @brief Get last parent or nullptr */
-				[[nodiscard]] const GmodNode* lastOrDefault() const noexcept;
+				[[nodiscard]] inline const GmodNode* lastOrDefault() const noexcept;
 
 				/** @brief Get complete parent chain */
-				[[nodiscard]] const std::vector<const GmodNode*>& asList() const noexcept;
+				[[nodiscard]] inline const std::vector<const GmodNode*>& asList() const noexcept;
 
 			private:
 				//----------------------------
@@ -301,6 +301,94 @@ namespace dnv::vista::sdk
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
 
 			return detail::traverseNodeRecursive( context, rootNode ) == TraversalHandlerResult::Continue;
+		}
+	}
+}
+
+namespace dnv::vista::sdk
+{
+	//=====================================================================
+	// Traversal algorithms
+	//=====================================================================
+
+	namespace GmodTraversal
+	{
+		namespace detail
+		{
+			//----------------------------------------------
+			// GmodTraversal::Parents class
+			//----------------------------------------------
+
+			inline Parents::Parents()
+			{
+				m_parents.reserve( 64 );
+				m_occurrences.reserve( 4 );
+			}
+
+			//----------------------------
+			// Stack operations
+			//----------------------------
+
+			inline void Parents::push( const GmodNode* parent )
+			{
+				m_parents.push_back( parent );
+
+				std::string_view key = parent->code();
+				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				{
+					++it->second;
+				}
+				else
+				{
+					m_occurrences[key] = 1;
+				}
+			}
+
+			inline void Parents::pop()
+			{
+				if ( m_parents.empty() )
+				{
+					return;
+				}
+
+				const GmodNode* parent = m_parents.back();
+				m_parents.pop_back();
+
+				std::string_view key = parent->code();
+				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				{
+					if ( it->second == 1 )
+					{
+						m_occurrences.erase( it );
+					}
+					else
+					{
+						--it->second;
+					}
+				}
+			}
+
+			inline size_t Parents::occurrences( const GmodNode& node ) const noexcept
+			{
+				std::string_view key = node.code();
+				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				{
+					return it->second;
+				}
+
+				return 0;
+			}
+
+			inline const GmodNode* Parents::lastOrDefault() const noexcept
+			{
+				return m_parents.empty() ? nullptr : m_parents.back();
+			}
+
+			const std::vector<const GmodNode*>& Parents::asList() const noexcept
+			{
+				return m_parents;
+			}
+
 		}
 	}
 }
