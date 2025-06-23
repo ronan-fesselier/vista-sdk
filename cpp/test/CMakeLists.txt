@@ -68,6 +68,7 @@ foreach(test_source ${TEST_SOURCES})
 			GTest::gtest_main
 			spdlog::spdlog
 			fmt::fmt
+	        cpuid
 			nlohmann_json::nlohmann_json
 			zlibstatic
 		)

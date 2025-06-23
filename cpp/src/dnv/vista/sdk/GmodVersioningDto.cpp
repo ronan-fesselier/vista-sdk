@@ -83,7 +83,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto oldAssignmentHint = extractOldAssignmentHint( json );
+		[[maybe_unused]] const auto oldAssignmentHint = extractOldAssignmentHint( json );
 
 		try
 		{
@@ -174,7 +174,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto sourceHint = extractSourceHint( json );
+		[[maybe_unused]] const auto sourceHint = extractSourceHint( json );
 
 		try
 		{
@@ -352,7 +352,8 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningDto> GmodVersioningDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = extractVisHint( json );
+		
 		try
 		{
 			if ( !json.is_object() )

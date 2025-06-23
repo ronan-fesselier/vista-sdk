@@ -47,7 +47,7 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto typeHint = extractTypeHint( json );
+		[[maybe_unused]] const auto typeHint = extractTypeHint( json );
 
 		try
 		{
@@ -261,7 +261,7 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
-		const auto typeHint = extractTypeHint( json );
+		[[maybe_unused]] const auto typeHint = extractTypeHint( json );
 
 		try
 		{
