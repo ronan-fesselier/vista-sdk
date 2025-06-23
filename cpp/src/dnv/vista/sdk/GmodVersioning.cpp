@@ -507,7 +507,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	//----------------------------------------------
-	// Construction / destruction
+	// Construction
 	//----------------------------------------------
 
 	GmodVersioning::GmodVersioningNode::GmodVersioningNode(

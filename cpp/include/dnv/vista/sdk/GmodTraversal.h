@@ -86,7 +86,7 @@ namespace dnv::vista::sdk
 			{
 			public:
 				//----------------------------
-				// Construction / destruction
+				// Construction
 				//----------------------------
 
 				/** @brief Default constructor. */

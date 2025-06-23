@@ -11,7 +11,7 @@
 #define DNV_VISTA_CPP_SDK_VERSION_PATCH @PROJECT_VERSION_PATCH@
 #define DNV_VISTA_CPP_SDK_VERSION "@PROJECT_VERSION@"
 #define DNV_VISTA_CPP_SDK_VERSION_STR "@PROJECT_VERSION@"
-#define DNV_VISTA_CPP_SDK_COPYRIGHT "Copyright © 2025 DNV"
+#define DNV_VISTA_CPP_SDK_COPYRIGHT "Copyright (C) 2025 DNV AS"
 
 namespace dnv::vista::sdk
 {
@@ -19,6 +19,6 @@ namespace dnv::vista::sdk
 	constexpr int VERSION_MINOR = @PROJECT_VERSION_MINOR@;
 	constexpr int VERSION_PATCH = @PROJECT_VERSION_PATCH@;
 	constexpr const char* VERSION = "@PROJECT_VERSION@";
-	constexpr const char* COPYRIGHT = "Copyright © 2025 DNV";
+	constexpr const char* COPYRIGHT = "Copyright (C) 2025 DNV AS";
 }
 // clang-format on

@@ -50,7 +50,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/** @brief Default constructor */
@@ -61,6 +61,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		LocationParsingErrorBuilder( LocationParsingErrorBuilder&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~LocationParsingErrorBuilder() = default;

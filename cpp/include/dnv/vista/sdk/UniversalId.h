@@ -34,7 +34,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -52,6 +52,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		UniversalId( UniversalId&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~UniversalId() = default;

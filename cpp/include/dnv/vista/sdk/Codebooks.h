@@ -48,7 +48,7 @@ namespace dnv::vista::sdk
 	{
 	public:
 		//----------------------------------------------
-		// Construction / destruction
+		// Construction
 		//----------------------------------------------
 
 		/**
@@ -68,6 +68,10 @@ namespace dnv::vista::sdk
 
 		/** @brief Move constructor */
 		Codebooks( Codebooks&& ) noexcept = default;
+
+		//----------------------------------------------
+		// Destruction
+		//----------------------------------------------
 
 		/** @brief Destructor */
 		~Codebooks() = default;
