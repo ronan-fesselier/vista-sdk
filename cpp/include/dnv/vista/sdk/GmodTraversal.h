@@ -90,7 +90,7 @@ namespace dnv::vista::sdk
 				//----------------------------
 
 				/** @brief Default constructor. */
-				inline Parents();
+				inline Parents( size_t maxOccurrence = 1 );
 
 				//----------------------------
 				// Stack operations
@@ -121,6 +121,8 @@ namespace dnv::vista::sdk
 
 				/** @brief Occurrence count per node code */
 				std::unordered_map<std::string_view, size_t> m_occurrences;
+
+				size_t m_maxTraversalOccurrence;
 			};
 
 			//----------------------------------------------
@@ -278,7 +280,7 @@ namespace dnv::vista::sdk
 		template <typename TState>
 		bool traverse( TState& state, const Gmod& gmodInstance, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} )
 		{
-			detail::Parents parentsStack;
+			detail::Parents parentsStack( options.maxTraversalOccurrence );
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
 
 			return detail::traverseNodeRecursive( context, gmodInstance.rootNode() ) == TraversalHandlerResult::Continue;
@@ -297,7 +299,7 @@ namespace dnv::vista::sdk
 		template <typename TState>
 		bool traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} )
 		{
-			detail::Parents parentsStack;
+			detail::Parents parentsStack( options.maxTraversalOccurrence );
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
 
 			return detail::traverseNodeRecursive( context, rootNode ) == TraversalHandlerResult::Continue;
@@ -319,10 +321,15 @@ namespace dnv::vista::sdk
 			// GmodTraversal::Parents class
 			//----------------------------------------------
 
-			inline Parents::Parents()
+			inline Parents::Parents( size_t maxOccurrence )
+				: m_maxTraversalOccurrence( maxOccurrence )
 			{
 				m_parents.reserve( 64 );
-				m_occurrences.reserve( 4 );
+
+				if ( m_maxTraversalOccurrence > 1 )
+				{
+					m_occurrences.reserve( 4 );
+				}
 			}
 
 			//----------------------------
@@ -384,7 +391,7 @@ namespace dnv::vista::sdk
 				return m_parents.empty() ? nullptr : m_parents.back();
 			}
 
-			const std::vector<const GmodNode*>& Parents::asList() const noexcept
+			inline const std::vector<const GmodNode*>& Parents::asList() const noexcept
 			{
 				return m_parents;
 			}

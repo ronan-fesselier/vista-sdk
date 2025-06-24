@@ -115,6 +115,7 @@ namespace dnv::vista::sdk
 	public:
 		using Base::Base;
 		using Base::operator[];
+		using Base::try_emplace;
 
 		/**
 		 * @brief Heterogeneous operator[] for string_view
@@ -139,6 +140,35 @@ namespace dnv::vista::sdk
 		T& operator[]( const char* key )
 		{
 			return operator[]( std::string_view{ key } );
+		}
+
+		/**
+		 * @brief Heterogeneous try_emplace for string_view
+		 * @param key String view key
+		 * @param args Arguments to construct the value
+		 * @return Pair of iterator and bool indicating insertion
+		 */
+		template <typename... Args>
+		std::pair<typename Base::iterator, bool> try_emplace( std::string_view key, Args&&... args )
+		{
+			auto it = this->find( key );
+			if ( it != this->end() )
+			{
+				return { it, false };
+			}
+			return this->emplace( std::string{ key }, std::forward<Args>( args )... );
+		}
+
+		/**
+		 * @brief Heterogeneous try_emplace for const char*
+		 * @param key C-string key
+		 * @param args Arguments to construct the value
+		 * @return Pair of iterator and bool indicating insertion
+		 */
+		template <typename... Args>
+		std::pair<typename Base::iterator, bool> try_emplace( const char* key, Args&&... args )
+		{
+			return try_emplace( std::string_view{ key }, std::forward<Args>( args )... );
 		}
 	};
 
