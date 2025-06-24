@@ -385,7 +385,7 @@ namespace dnv::vista::sdk
 			return nullptr;
 		}
 
-		if ( child->m_metadata.category().find( GMODNODE_CATEGORY_PRODUCT ) == std::string::npos )
+		if ( !contains( child->m_metadata.category(), GMODNODE_CATEGORY_PRODUCT ) )
 		{
 			return nullptr;
 		}
