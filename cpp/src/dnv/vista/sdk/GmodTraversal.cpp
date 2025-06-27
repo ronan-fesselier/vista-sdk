@@ -2,42 +2,12 @@
 
 #include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/GmodTraversal.h"
+#include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Traversal algorithms
-	//=====================================================================
-
 	namespace GmodTraversal
 	{
-		namespace detail
-		{
-			//----------------------------------------------
-			// Path analysis context
-			//----------------------------------------------
-
-			struct PathExistsContext
-			{
-				const GmodNode& to;
-				std::vector<const GmodNode*> remainingParents;
-				std::vector<const GmodNode*> fromPath;
-
-				PathExistsContext( const GmodNode& toNode, const std::vector<const GmodNode*>& fromPathList )
-					: to{ toNode }, fromPath{ fromPathList }
-				{
-					remainingParents.reserve( 32 );
-				}
-
-				PathExistsContext() = delete;
-				PathExistsContext( const PathExistsContext& ) = delete;
-				PathExistsContext( PathExistsContext&& ) noexcept = delete;
-				~PathExistsContext() = default;
-				PathExistsContext& operator=( const PathExistsContext& ) = delete;
-				PathExistsContext& operator=( PathExistsContext&& ) noexcept = delete;
-			};
-		}
-
 		//=====================================================================
 		// Public API
 		//=====================================================================
@@ -46,8 +16,10 @@ namespace dnv::vista::sdk
 		{
 			TraverseHandler capturedHandler = handler;
 			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-				-> TraversalHandlerResult { return h( parents, node ); };
+				[]( TraverseHandler& h, const std::vector<GmodNode>& parents, const GmodNode& node )
+				-> TraversalHandlerResult {
+				return h( parents, node );
+			};
 
 			return traverse( capturedHandler, gmodInstance, wrapperHandler, options );
 		}
@@ -56,66 +28,62 @@ namespace dnv::vista::sdk
 		{
 			TraverseHandler capturedHandler = handler;
 			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-				-> TraversalHandlerResult { return h( parents, node ); };
+				[]( TraverseHandler& h, const std::vector<GmodNode>& parents, const GmodNode& node )
+				-> TraversalHandlerResult {
+				return h( parents, node );
+			};
 
 			return traverse( capturedHandler, rootNode, wrapperHandler, options );
 		}
 
 		bool pathExistsBetween(
 			const Gmod& gmodInstance,
-			const std::vector<const GmodNode*>& fromPath,
+			const std::vector<GmodNode>& fromPath,
 			const GmodNode& to,
-			std::vector<const GmodNode*>& remainingParents )
+			std::vector<GmodNode>& remainingParents )
 		{
-			remainingParents.clear();
-
 			const GmodNode* lastAssetFunction = nullptr;
 			for ( auto it = fromPath.rbegin(); it != fromPath.rend(); ++it )
 			{
-				if ( *it && ( *it )->metadata().category() == GMODNODE_CATEGORY_ASSET_FUNCTION )
+				if ( Gmod::isAssetFunctionNode( it->metadata() ) )
 				{
-					lastAssetFunction = *it;
+					lastAssetFunction = &( *it );
 					break;
 				}
 			}
 
+			remainingParents.clear();
+
 			detail::PathExistsContext context( to, fromPath );
 
 			TraverseHandlerWithState<detail::PathExistsContext> handler =
-				[]( detail::PathExistsContext& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
-				if ( node.code() != state.to.code() )
-					return TraversalHandlerResult::Continue;
-
-				std::vector<const GmodNode*> actualParents;
-				actualParents.reserve( parents.size() + 10 );
-
-				if ( !parents.empty() && !parents[0]->isRoot() )
+				[]( detail::PathExistsContext& state, const std::vector<GmodNode>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+				if ( !equals( node.code(), state.to.code() ) )
 				{
-					std::vector<const GmodNode*> pathToRoot;
-					const GmodNode* current = parents[0];
+					return TraversalHandlerResult::Continue;
+				}
 
-					while ( current && !current->isRoot() )
+				std::vector<GmodNode> actualParents;
+
+				if ( !parents.empty() && !parents[0].isRoot() )
+				{
+					actualParents = parents;
+
+					GmodNode current = parents[0];
+					while ( !current.isRoot() )
 					{
-						if ( current->parents().size() != 1 )
+						if ( current.parents().size() != 1 )
 						{
 							throw std::runtime_error( "Invalid state - expected one parent" );
 						}
 
-						current = current->parents()[0];
-						if ( current )
-						{
-							pathToRoot.push_back( current );
-						}
+						current = *current.parents()[0];
+						actualParents.insert( actualParents.begin(), current );
 					}
-
-					std::reverse( pathToRoot.begin(), pathToRoot.end() );
-					actualParents.insert( actualParents.end(), pathToRoot.begin(), pathToRoot.end() );
-					actualParents.insert( actualParents.end(), parents.begin(), parents.end() );
 				}
 				else
 				{
-					actualParents = parents;
+					actualParents.assign( parents.begin(), parents.end() );
 				}
 
 				if ( actualParents.size() < state.fromPath.size() )
@@ -126,7 +94,7 @@ namespace dnv::vista::sdk
 				bool match = true;
 				for ( size_t i = 0; i < state.fromPath.size(); ++i )
 				{
-					if ( actualParents[i]->code() != state.fromPath[i]->code() )
+					if ( !equals( actualParents[i].code(), state.fromPath[i].code() ) )
 					{
 						match = false;
 						break;
@@ -136,12 +104,12 @@ namespace dnv::vista::sdk
 				if ( match )
 				{
 					state.remainingParents.clear();
-					for ( const auto* p : actualParents )
+					for ( const auto& p : actualParents )
 					{
 						bool found = false;
-						for ( const auto* fp : state.fromPath )
+						for ( const auto& fp : state.fromPath )
 						{
-							if ( fp->code() == p->code() )
+							if ( equals( fp.code(), p.code() ) )
 							{
 								found = true;
 								break;

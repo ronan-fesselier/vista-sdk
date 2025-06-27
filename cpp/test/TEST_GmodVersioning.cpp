@@ -112,23 +112,13 @@ namespace dnv::vista::sdk::tests
 		PathState state( gmod );
 
 		TraverseHandlerWithState<PathState> handler =
-			[]( PathState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			[]( PathState& state, const std::vector<GmodNode>& parents, const GmodNode& node ) -> TraversalHandlerResult {
 			if ( parents.empty() )
 			{
 				return TraversalHandlerResult::Continue;
 			}
 
-			std::vector<GmodNode> parentValues;
-			parentValues.reserve( parents.size() );
-			for ( const GmodNode* p : parents )
-			{
-				if ( p )
-				{
-					parentValues.emplace_back( *p );
-				}
-			}
-
-			GmodPath path( state.gmod, node, std::move( parentValues ) );
+			GmodPath path( state.gmod, node, parents );
 
 			if ( path.toString() == state.targetPath )
 			{
@@ -217,7 +207,7 @@ namespace dnv::vista::sdk::tests
 			bool pathParseSuccess = sourceGmod.tryParsePath( path, sourcePath );
 			ASSERT_TRUE( pathParseSuccess );
 
-			VisVersion latestVersion = VisVersion::v3_9a;
+			VisVersion latestVersion = vis.latestVisVersion();
 			auto targetPath = vis.convertPath( sourceVersion, *sourcePath, latestVersion );
 
 			ASSERT_TRUE( targetPath.has_value() );
@@ -235,7 +225,7 @@ namespace dnv::vista::sdk::tests
 		ASSERT_TRUE( m_setupSuccess ) << "Test setup failed";
 
 		std::vector<VisVersion> visVersionsToTest = { VisVersion::v3_7a };
-		const VisVersion latestVisVersion = VisVersion::v3_8a;
+		const VisVersion latestVisVersion = m_vis->latestVisVersion();
 
 		std::unordered_map<VisVersion, std::vector<std::string>> errored;
 
@@ -368,8 +358,9 @@ namespace dnv::vista::sdk::tests
 		};
 
 		LocationValidationState state;
+
 		TraverseHandlerWithState<LocationValidationState> handler =
-			[]( LocationValidationState& s, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			[]( LocationValidationState& s, const std::vector<GmodNode>& parents, const GmodNode& node ) -> TraversalHandlerResult {
 			(void)parents;
 
 			if ( node.location().has_value() )

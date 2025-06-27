@@ -735,7 +735,7 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		auto handler = []( ParseContext& ctx, const std::vector<const GmodNode*>& parents, const GmodNode& current ) -> TraversalHandlerResult {
+		auto handler = []( ParseContext& ctx, const std::vector<GmodNode>& parents, const GmodNode& current ) -> TraversalHandlerResult {
 			const auto& targetCode = ctx.parts[ctx.currentPartIndex].code;
 			bool found = ( current.code() == targetCode );
 
@@ -762,12 +762,12 @@ namespace dnv::vista::sdk
 				std::vector<GmodNode> pathParents;
 				pathParents.reserve( parents.size() + 1 );
 
-				for ( const GmodNode* parent : parents )
+				for ( const GmodNode& parent : parents )
 				{
-					GmodNode parentWithLocation = *parent;
-					if ( ctx.locationMap.find( parent->code() ) != ctx.locationMap.end() )
+					GmodNode parentWithLocation = parent;
+					if ( ctx.locationMap.find( parent.code() ) != ctx.locationMap.end() )
 					{
-						parentWithLocation = parent->withLocation( ctx.locationMap[parent->code()] );
+						parentWithLocation = parent.withLocation( ctx.locationMap[parent.code()] );
 					}
 					pathParents.push_back( parentWithLocation );
 				}

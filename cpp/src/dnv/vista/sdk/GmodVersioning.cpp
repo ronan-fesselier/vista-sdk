@@ -154,7 +154,7 @@ namespace dnv::vista::sdk
 			qualifyingNodesVec.emplace_back( originalNodeInPath, std::move( *convertedNodeOpt ) );
 		}
 
-		static std::list<GmodNode> nodesWithLocationStorage;
+		std::list<GmodNode> nodesWithLocationStorage;
 
 		if ( !qualifyingNodesVec.empty() )
 		{
@@ -226,49 +226,57 @@ namespace dnv::vista::sdk
 				{
 					for ( int i = static_cast<int>( path.size() ) - 1; i >= 0; --i )
 					{
-						std::vector<const GmodNode*> currentParentsPtrsForCheck;
-						std::vector<GmodNode> currentParentsValuesForCheck;
+						std::vector<GmodNode> currentParentsForCheck;
 						for ( size_t j = 0; j <= static_cast<size_t>( i ); ++j )
 						{
-							currentParentsValuesForCheck.push_back( path[j] );
+							currentParentsForCheck.push_back( path[j] );
 						}
 
-						std::vector<const GmodNode*> remainingIntermediateGmodNodesPtrs;
+						std::vector<GmodNode> remainingIntermediateGmodNodes;
 
-						for ( const auto& val_node : currentParentsValuesForCheck )
-						{
-							const GmodNode* ptr_val_node = nullptr;
-							if ( !targetGmod.tryGetNode( val_node.code(), ptr_val_node ) )
-								throw std::runtime_error( "Failed to get node for pathExistsBetween parent list" );
-							if ( val_node.location().has_value() )
-							{
-								nodesWithLocationStorage.push_back( ptr_val_node->tryWithLocation( *val_node.location() ) );
-								currentParentsPtrsForCheck.push_back( &nodesWithLocationStorage.back() );
-							}
-							else
-							{
-								currentParentsPtrsForCheck.push_back( ptr_val_node );
-							}
-						}
-						const GmodNode* nodeToAddAsGmodPtr = nullptr;
-						if ( !targetGmod.tryGetNode( node.code(), nodeToAddAsGmodPtr ) )
-							throw std::runtime_error( "Failed to get node for pathExistsBetween toNode" );
 						GmodNode locatednodeForPathExists = node;
 						if ( node.location().has_value() )
 						{
-							nodesWithLocationStorage.push_back( nodeToAddAsGmodPtr->tryWithLocation( *node.location() ) );
-							locatednodeForPathExists = nodesWithLocationStorage.back();
-						}
-						else
-						{
-							locatednodeForPathExists = *nodeToAddAsGmodPtr;
+							const GmodNode* baseNodePtr = nullptr;
+							if ( targetGmod.tryGetNode( node.code(), baseNodePtr ) && baseNodePtr )
+							{
+								nodesWithLocationStorage.push_back( baseNodePtr->tryWithLocation( *node.location() ) );
+								locatednodeForPathExists = nodesWithLocationStorage.back();
+							}
 						}
 
 						bool pathFound = GmodTraversal::pathExistsBetween(
-							targetGmod, currentParentsPtrsForCheck,
-							locatednodeForPathExists, remainingIntermediateGmodNodesPtrs );
+							targetGmod, currentParentsForCheck,
+							locatednodeForPathExists, remainingIntermediateGmodNodes );
 
-						if ( !pathFound )
+						if ( pathFound )
+						{
+							std::vector<GmodNode> nodesToInsertInPathValues;
+							if ( node.location().has_value() )
+							{
+								for ( const GmodNode& interGmodNode : remainingIntermediateGmodNodes )
+								{
+									if ( !interGmodNode.isIndividualizable( false, true ) )
+									{
+										nodesToInsertInPathValues.push_back( interGmodNode );
+									}
+									else
+									{
+										nodesToInsertInPathValues.push_back( interGmodNode.tryWithLocation( *node.location() ) );
+									}
+								}
+							}
+							else
+							{
+								for ( const GmodNode& interGmodNode : remainingIntermediateGmodNodes )
+								{
+									nodesToInsertInPathValues.push_back( interGmodNode );
+								}
+							}
+							path.insert( path.end(), nodesToInsertInPathValues.begin(), nodesToInsertInPathValues.end() );
+							break;
+						}
+						else
 						{
 							const GmodNode& currentParentCandidateForRemoval = path[static_cast<size_t>( i )];
 							bool otherAssetFunctionExists = false;
@@ -285,33 +293,6 @@ namespace dnv::vista::sdk
 								throw std::runtime_error( "Tried to remove last asset function node" );
 							}
 							path.erase( path.begin() + i );
-						}
-						else
-						{
-							std::vector<GmodNode> nodesToInsertInPathValues;
-							if ( node.location().has_value() )
-							{
-								for ( const GmodNode* interGmodNodePtr : remainingIntermediateGmodNodesPtrs )
-								{
-									if ( !interGmodNodePtr->isIndividualizable( false, true ) )
-									{
-										nodesToInsertInPathValues.push_back( *interGmodNodePtr );
-									}
-									else
-									{
-										nodesToInsertInPathValues.push_back( interGmodNodePtr->tryWithLocation( *node.location() ) );
-									}
-								}
-							}
-							else
-							{
-								for ( const GmodNode* interGmodNodePtr : remainingIntermediateGmodNodesPtrs )
-								{
-									nodesToInsertInPathValues.push_back( *interGmodNodePtr );
-								}
-							}
-							path.insert( path.end(), nodesToInsertInPathValues.begin(), nodesToInsertInPathValues.end() );
-							break;
 						}
 					}
 				}
@@ -440,8 +421,8 @@ namespace dnv::vista::sdk
 	// Local Id
 	//----------------------------
 
-	std::optional<LocalIdBuilder> GmodVersioning::convertLocalId(
-		const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const
+	std::optional<LocalIdBuilder>
+	GmodVersioning::convertLocalId( const LocalIdBuilder& sourceLocalId, VisVersion targetVersion ) const
 	{
 		if ( !sourceLocalId.visVersion().has_value() )
 		{
