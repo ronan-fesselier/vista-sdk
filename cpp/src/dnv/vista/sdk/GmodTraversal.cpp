@@ -67,19 +67,33 @@ namespace dnv::vista::sdk
 
 				if ( !parents.empty() && !parents[0].isRoot() )
 				{
-					actualParents = parents;
-
-					GmodNode current = parents[0];
-					while ( !current.isRoot() )
+					// Build complete parent chain by traversing up from first parent
+					// Use pointer-based traversal to avoid unnecessary copying
+					std::vector<const GmodNode*> parentChain;
+					
+					const GmodNode* current = &parents[0];
+					while ( !current->isRoot() )
 					{
-						if ( current.parents().size() != 1 )
+						if ( current->parents().size() != 1 )
 						{
 							throw std::runtime_error( "Invalid state - expected one parent" );
 						}
-
-						current = *current.parents()[0];
-						actualParents.insert( actualParents.begin(), current );
+						
+						current = current->parents()[0];
+						parentChain.push_back( current );
 					}
+					
+					// Reserve space and build actualParents from root down
+					actualParents.reserve( parentChain.size() + parents.size() );
+					
+					// Add parents from root down (reverse order of parentChain)
+					for ( auto it = parentChain.rbegin(); it != parentChain.rend(); ++it )
+					{
+						actualParents.emplace_back( **it );
+					}
+					
+					// Add the existing parents
+					actualParents.insert( actualParents.end(), parents.begin(), parents.end() );
 				}
 				else
 				{
@@ -104,22 +118,25 @@ namespace dnv::vista::sdk
 				if ( match )
 				{
 					state.remainingParents.clear();
+					
+					// Optimize path matching using code-based comparison with O(n) performance
+					// Create a set of codes from fromPath for fast lookup
+					StringSet fromPathCodes;
+					fromPathCodes.reserve( state.fromPath.size() );
+					for ( const auto& fp : state.fromPath )
+					{
+						fromPathCodes.insert( std::string( fp.code() ) );
+					}
+					
+					// Find remaining parents not in fromPath
 					for ( const auto& p : actualParents )
 					{
-						bool found = false;
-						for ( const auto& fp : state.fromPath )
-						{
-							if ( equals( fp.code(), p.code() ) )
-							{
-								found = true;
-								break;
-							}
-						}
-						if ( !found )
+						if ( fromPathCodes.find( std::string( p.code() ) ) == fromPathCodes.end() )
 						{
 							state.remainingParents.push_back( p );
 						}
 					}
+					
 					return TraversalHandlerResult::Stop;
 				}
 
