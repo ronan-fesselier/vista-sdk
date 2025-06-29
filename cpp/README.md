@@ -117,6 +117,8 @@ Memory management patterns:
 
 This C++ implementation follows the same core design principles (Immutability, Builder Pattern, VIS entry point) as the C# SDK but utilizes C++ language features and standard libraries.
 
+For a detailed comparison of the C++ and C# implementations, including interface mappings and language-specific differences, see [cpp-csharp_Mapping.md](cpp-csharp_Mapping.md).
+
 | Feature             | C++ Implementation                                                                        | C# Implementation                                          | Notes                                                          |
 | :------------------ | :---------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------- |
 | **Language**        | C++20                                                                                     | C# (.NET)                                                  | Leverages modern C++ features.                                 |

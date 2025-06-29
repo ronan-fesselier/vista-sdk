@@ -62,17 +62,9 @@ namespace dnv::vista::sdk
 
 	inline bool Gmod::isPotentialParent( std::string_view type ) noexcept
 	{
-		switch ( type.length() )
-		{
-			case 4:
-				return equals( type, GMODNODE_TYPE_LEAF );
-			case 5:
-				return equals( type, GMODNODE_TYPE_GROUP );
-			case 9:
-				return equals( type, GMODNODE_TYPE_SELECTION );
-			default:
-				return false;
-		}
+		return equals( type, GMODNODE_TYPE_SELECTION ) ||
+			   equals( type, GMODNODE_TYPE_GROUP ) ||
+			   equals( type, GMODNODE_TYPE_LEAF );
 	}
 
 	inline bool Gmod::isLeafNode( const GmodNodeMetadata& metadata ) noexcept
@@ -148,7 +140,7 @@ namespace dnv::vista::sdk
 		{
 			return false;
 		}
-		if ( !equals( childCategory, GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, GMODNODE_TYPE_SELECTION ) )
+		if ( !contains( childCategory, GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, GMODNODE_TYPE_SELECTION ) )
 		{
 			return false;
 		}

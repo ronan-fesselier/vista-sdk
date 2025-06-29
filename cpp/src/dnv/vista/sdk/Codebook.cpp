@@ -138,7 +138,7 @@ namespace dnv::vista::sdk
 			return static_cast<unsigned char>( c - '0' ) <= 9u;
 		}
 
-		constexpr std::string_view trimString( std::string_view str ) noexcept
+		constexpr std::string_view trim( std::string_view str ) noexcept
 		{
 			if ( str.empty() )
 			{
@@ -309,7 +309,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& [groupKey, values] : dtoValues )
 		{
-			std::string_view groupTrimmed = trimString( groupKey );
+			std::string_view groupTrimmed = trim( groupKey );
 			std::string groupStr{ groupTrimmed };
 
 			std::vector<std::string> trimmedValues;
@@ -317,7 +317,7 @@ namespace dnv::vista::sdk
 
 			for ( const auto& value : values )
 			{
-				std::string_view valueTrimmed = trimString( value );
+				std::string_view valueTrimmed = trim( value );
 				std::string valueStr{ valueTrimmed };
 				trimmedValues.emplace_back( std::move( valueStr ) );
 
