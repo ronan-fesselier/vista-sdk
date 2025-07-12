@@ -774,33 +774,52 @@ namespace dnv::vista::sdk
 
 				GmodNode endNode = nodeWithLocation;
 
-				const GmodNode* startNode = nullptr;
-				if ( pathParents.size() > 0 && pathParents[0].parents().size() == 1 )
+				std::optional<GmodNode> startNodeOpt;
+				if ( pathParents.size() > 0 )
 				{
-					startNode = pathParents[0].parents()[0];
+					const auto& parentsOfFirst = pathParents[0].parents();
+					if ( parentsOfFirst.size() == 1 )
+					{
+						startNodeOpt = *parentsOfFirst[0];
+					}
 				}
-				else if ( endNode.parents().size() == 1 )
+				else
 				{
-					startNode = endNode.parents()[0];
+					const auto& endParents = endNode.parents();
+					if ( endParents.size() == 1 )
+					{
+						startNodeOpt = *endParents[0];
+					}
 				}
 
-				if ( !startNode || startNode->parents().size() > 1 )
+				if ( !startNodeOpt.has_value() )
+				{
+					return TraversalHandlerResult::Stop;
+				}
+
+				const auto& startNodeParents = startNodeOpt->parents();
+				if ( startNodeParents.size() > 1 )
 				{
 					return TraversalHandlerResult::Stop;
 				}
 
 				std::vector<GmodNode> reverseHierarchy;
 
-				while ( startNode && startNode->parents().size() == 1 )
+				GmodNode currentNode = *startNodeOpt;
+				auto currentParents = currentNode.parents();
+				while ( currentParents.size() == 1 )
 				{
-					GmodNode nodeToAdd = *startNode;
-					if ( ctx.locationMap.find( startNode->code() ) != ctx.locationMap.end() )
+					GmodNode nodeToAdd = currentNode;
+					if ( ctx.locationMap.find( currentNode.code() ) != ctx.locationMap.end() )
 					{
-						nodeToAdd = startNode->withLocation( ctx.locationMap[startNode->code()] );
+						nodeToAdd = currentNode.withLocation( ctx.locationMap[currentNode.code()] );
 					}
 					reverseHierarchy.push_back( nodeToAdd );
-					startNode = startNode->parents()[0];
-					if ( startNode->parents().size() > 1 )
+
+					currentNode = *currentParents[0];
+					currentParents = currentNode.parents();
+
+					if ( currentParents.size() > 1 )
 					{
 						return TraversalHandlerResult::Stop;
 					}

@@ -1,5 +1,5 @@
 /**
- * @file GmodVersioningTests.cpp
+ * @file TESTS_GmodVersioning.cpp
  * @brief Unit tests for the GmodVersioning class.
  */
 

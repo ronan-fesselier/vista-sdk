@@ -2,6 +2,7 @@
 
 #include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/GmodTraversal.h"
+#include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {
@@ -73,7 +74,7 @@ namespace dnv::vista::sdk
 			const GmodNode* lastAssetFunction = nullptr;
 			for ( auto it = fromPath.rbegin(); it != fromPath.rend(); ++it )
 			{
-				if ( *it && ( *it )->metadata().category() == GMODNODE_CATEGORY_ASSET_FUNCTION )
+				if ( ( *it )->metadata().category() == GMODNODE_CATEGORY_ASSET_FUNCTION )
 				{
 					lastAssetFunction = *it;
 					break;
@@ -81,37 +82,26 @@ namespace dnv::vista::sdk
 			}
 
 			detail::PathExistsContext context( to, fromPath );
-
 			TraverseHandlerWithState<detail::PathExistsContext> handler =
 				[]( detail::PathExistsContext& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
-				if ( node.code() != state.to.code() )
+				if ( !equals( node.code(), state.to.code() ) )
+				{
 					return TraversalHandlerResult::Continue;
+				}
 
 				std::vector<const GmodNode*> actualParents;
 				actualParents.reserve( parents.size() + 10 );
 
 				if ( !parents.empty() && !parents[0]->isRoot() )
 				{
-					std::vector<const GmodNode*> pathToRoot;
-					const GmodNode* current = parents[0];
+					actualParents = parents;
 
-					while ( current && !current->isRoot() )
+					while ( !actualParents[0]->isRoot() )
 					{
-						if ( current->parents().size() != 1 )
-						{
-							throw std::runtime_error( "Invalid state - expected one parent" );
-						}
-
-						current = current->parents()[0];
-						if ( current )
-						{
-							pathToRoot.push_back( current );
-						}
+						const GmodNode* parent = actualParents[0];
+						const auto& parentOfCurrent = parent->parents();
+						actualParents.insert( actualParents.begin(), parentOfCurrent[0] );
 					}
-
-					std::reverse( pathToRoot.begin(), pathToRoot.end() );
-					actualParents.insert( actualParents.end(), pathToRoot.begin(), pathToRoot.end() );
-					actualParents.insert( actualParents.end(), parents.begin(), parents.end() );
 				}
 				else
 				{
@@ -126,7 +116,7 @@ namespace dnv::vista::sdk
 				bool match = true;
 				for ( size_t i = 0; i < state.fromPath.size(); ++i )
 				{
-					if ( actualParents[i]->code() != state.fromPath[i]->code() )
+					if ( !equals( actualParents[i]->code(), state.fromPath[i]->code() ) )
 					{
 						match = false;
 						break;
@@ -136,20 +126,18 @@ namespace dnv::vista::sdk
 				if ( match )
 				{
 					state.remainingParents.clear();
-					for ( const auto* p : actualParents )
+					std::unordered_set<std::string> fromPathCodes;
+					fromPathCodes.reserve( state.fromPath.size() );
+					for ( const GmodNode* fromPathNode : state.fromPath )
 					{
-						bool found = false;
-						for ( const auto* fp : state.fromPath )
+						fromPathCodes.insert( std::string( fromPathNode->code() ) );
+					}
+
+					for ( const GmodNode* parent : actualParents )
+					{
+						if ( fromPathCodes.find( std::string( parent->code() ) ) == fromPathCodes.end() )
 						{
-							if ( fp->code() == p->code() )
-							{
-								found = true;
-								break;
-							}
-						}
-						if ( !found )
-						{
-							state.remainingParents.push_back( p );
+							state.remainingParents.push_back( parent );
 						}
 					}
 					return TraversalHandlerResult::Stop;

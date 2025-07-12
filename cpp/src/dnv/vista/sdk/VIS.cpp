@@ -57,7 +57,7 @@ namespace dnv::vista::sdk
 		return VisVersionExtensions::allVersions();
 	}
 
-	GmodVersioning VIS::gmodVersioning()
+	const GmodVersioning& VIS::gmodVersioning()
 	{
 		{
 			std::shared_lock lock( m_cacheMutex );

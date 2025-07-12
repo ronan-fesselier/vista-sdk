@@ -235,7 +235,7 @@ namespace dnv::vista::sdk
 		 * @return The GmodVersioning object.
 		 * @throws std::runtime_error If the GMOD versioning data cannot be loaded or processed.
 		 */
-		[[nodiscard]] GmodVersioning gmodVersioning();
+		[[nodiscard]] const GmodVersioning& gmodVersioning();
 
 		/**
 		 * @brief Get the GMOD (Generic Product Model) for a specific VIS version.
