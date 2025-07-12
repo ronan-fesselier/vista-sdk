@@ -3,7 +3,10 @@
  * @brief Template implementation of CHD Dictionary class
  */
 
+#pragma once
+
 #include "Config.h"
+#include "utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {
@@ -17,7 +20,7 @@ namespace dnv::vista::sdk
 		// CPU feature detection
 		//----------------------------------------------
 
-		inline bool hasSSE42Support()
+		inline bool hasSSE42Support() noexcept
 		{
 			static thread_local const bool s_hasSSE42 = []() {
 				bool hasSupport = false;
@@ -140,7 +143,6 @@ namespace dnv::vista::sdk
 			return a.size() > b.size();
 		} );
 
-		/* Process buckets with the most items (highest collision potential) first */
 		auto indices{ std::vector<unsigned int>( size, 0 ) };
 		auto seeds{ std::vector<int>( size, 0 ) };
 
@@ -152,6 +154,7 @@ namespace dnv::vista::sdk
 			entries.reserve( subKeys.size() );
 			uint32_t currentSeedValue{ 0 };
 
+			/* CHD ALGORITHM: Find perfect seed value for this collision bucket */
 			while ( true )
 			{
 				++currentSeedValue;
@@ -196,22 +199,26 @@ namespace dnv::vista::sdk
 			seeds[subKeys[0].second & ( size - 1 )] = static_cast<int>( currentSeedValue );
 		}
 
-		/* Resizes m_table to 'size' elements, initializing new slots with an empty string key and a value copied from the first input item. */
-		m_table.resize( size, { std::string(), items[0].second } );
+		m_table.resize( size );
+		m_seeds.resize( size, 0 );
 
 		std::vector<size_t> freeSlots;
 		freeSlots.reserve( size );
 
-		for ( size_t i{ 0 }; i < indices.size(); ++i )
+		for ( size_t i{ 0 }; i < size; ++i )
 		{
-			if ( indices[i] != 0 )
+			if ( i < indices.size() && indices[i] != 0 )
 			{
 				auto itemIndex = indices[i] - 1;
 				m_table[i] = std::move( items[itemIndex] );
 			}
 			else
 			{
-				freeSlots.push_back( i );
+				m_table[i] = { std::string{}, items.empty() ? TValue{} : items[0].second };
+				if ( i < indices.size() )
+				{
+					freeSlots.push_back( i );
+				}
 			}
 		}
 
@@ -221,6 +228,7 @@ namespace dnv::vista::sdk
 			const auto& k{ hashBuckets[currentBucketIdx][0] };
 			auto slotIndexInMTable{ freeSlots[freeSlotsIndex++] };
 			auto itemIndex = k.first - 1;
+
 			m_table[slotIndexInMTable] = std::move( items[itemIndex] );
 
 			/* Use negative seed to directly encode the final table index for single-item buckets */
@@ -242,10 +250,103 @@ namespace dnv::vista::sdk
 			ThrowHelper::throwKeyNotFoundException( key );
 		}
 
-		const TValue* outValue = nullptr;
-		if ( tryGetValue( key, outValue ) && outValue != nullptr )
+		uint32_t hashValue = FNV_OFFSET_BASIS;
+
+		if ( !key.empty() )
 		{
-			return const_cast<TValue&>( *outValue );
+			const char* data = key.data();
+			size_t length = key.length();
+
+			static const bool hasSSE42 = hasSSE42Support();
+
+			if ( hasSSE42 )
+			{
+				while ( length >= 8 )
+				{
+					uint64_t chunk1 = 0, chunk2 = 0;
+
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
+
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[4] ) ) << 0;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[5] ) ) << 16;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[6] ) ) << 32;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[7] ) ) << 48;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk1 ) );
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk2 ) );
+
+					data += 8;
+					length -= 8;
+				}
+
+				if ( length >= 4 )
+				{
+					uint64_t chunk = 0;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk ) );
+					data += 4;
+					length -= 4;
+				}
+
+				if ( length >= 2 )
+				{
+					uint32_t chunk = 0;
+					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u32( hashValue, chunk ) );
+					data += 2;
+					length -= 2;
+				}
+
+				if ( length > 0 )
+				{
+					uint16_t chunk = static_cast<uint16_t>( static_cast<uint8_t>( data[0] ) );
+					hashValue = static_cast<uint32_t>( _mm_crc32_u16( hashValue, chunk ) );
+				}
+			}
+			else
+			{
+				const char* end = data + length;
+				while ( data < end )
+				{
+					hashValue = ( static_cast<uint8_t>( *data ) ^ hashValue ) * 0x01000193u;
+					++data;
+				}
+			}
+		}
+
+		const size_t tableSize = m_table.size();
+		const uint32_t index = hashValue & ( tableSize - 1 );
+		const int seed = m_seeds[index];
+
+		size_t finalIndex;
+		if ( seed < 0 )
+		{
+			finalIndex = static_cast<size_t>( -seed - 1 );
+		}
+		else
+		{
+			uint32_t x{ static_cast<uint32_t>( seed ) + hashValue };
+			x ^= x >> 12;
+			x ^= x << 25;
+			x ^= x >> 27;
+
+			finalIndex = static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( tableSize - 1 ) );
+		}
+
+		const auto& kvp = m_table[finalIndex];
+
+		if ( equals( key, kvp.first ) )
+		{
+			return const_cast<TValue&>( kvp.second );
 		}
 
 		ThrowHelper::throwKeyNotFoundException( key );
@@ -297,7 +398,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const
+	inline bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const noexcept
 	{
 		outValue = nullptr;
 
@@ -311,7 +412,79 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		const uint32_t hashValue = hash( key );
+		uint32_t hashValue = FNV_OFFSET_BASIS;
+
+		if ( !key.empty() )
+		{
+			const char* data = key.data();
+			size_t length = key.length();
+
+			static const bool hasSSE42 = hasSSE42Support();
+
+			if ( hasSSE42 )
+			{
+				while ( length >= 8 )
+				{
+					uint64_t chunk1 = 0, chunk2 = 0;
+
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
+					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
+
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[4] ) ) << 0;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[5] ) ) << 16;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[6] ) ) << 32;
+					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[7] ) ) << 48;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk1 ) );
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk2 ) );
+
+					data += 8;
+					length -= 8;
+				}
+
+				if ( length >= 4 )
+				{
+					uint64_t chunk = 0;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
+					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk ) );
+					data += 4;
+					length -= 4;
+				}
+
+				if ( length >= 2 )
+				{
+					uint32_t chunk = 0;
+					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[0] ) ) << 0;
+					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[1] ) ) << 16;
+
+					hashValue = static_cast<uint32_t>( _mm_crc32_u32( hashValue, chunk ) );
+					data += 2;
+					length -= 2;
+				}
+
+				if ( length > 0 )
+				{
+					uint16_t chunk = static_cast<uint16_t>( static_cast<uint8_t>( data[0] ) );
+					hashValue = static_cast<uint32_t>( _mm_crc32_u16( hashValue, chunk ) );
+				}
+			}
+			else
+			{
+				const char* end = data + length;
+				while ( data < end )
+				{
+					hashValue = ( static_cast<uint8_t>( *data ) ^ hashValue ) * 0x01000193u;
+					++data;
+				}
+			}
+		}
+
 		const size_t tableSize = m_table.size();
 		const uint32_t index = hashValue & ( tableSize - 1 );
 		const int seed = m_seeds[index];
@@ -323,20 +496,19 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			const uint32_t finalHash = Hashing::seed(
-				static_cast<uint32_t>( seed ),
-				hashValue,
-				tableSize );
+			uint32_t x{ static_cast<uint32_t>( seed ) + hashValue };
+			x ^= x >> 12;
+			x ^= x << 25;
+			x ^= x >> 27;
 
-			finalIndex = finalHash;
+			finalIndex = static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( tableSize - 1 ) );
 		}
 
 		const auto& kvp = m_table[finalIndex];
 
-		if ( key.size() == kvp.first.size() && std::memcmp( key.data(), kvp.first.data(), key.size() ) == 0 )
+		if ( key.size() == kvp.first.size() && key.compare( kvp.first ) == 0 )
 		{
 			outValue = &kvp.second;
-
 			return true;
 		}
 
@@ -348,7 +520,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::begin() const
+	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::begin() const noexcept
 	{
 		for ( size_t i{ 0 }; i < m_table.size(); ++i )
 		{
@@ -362,7 +534,7 @@ namespace dnv::vista::sdk
 	}
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::end() const
+	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::end() const noexcept
 	{
 		return Iterator{ &m_table, m_table.size() };
 	}
@@ -372,7 +544,7 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Enumerator ChdDictionary<TValue>::enumerator() const
+	inline ChdDictionary<TValue>::Enumerator ChdDictionary<TValue>::enumerator() const noexcept
 	{
 		return Enumerator( &m_table );
 	}
@@ -479,7 +651,7 @@ namespace dnv::vista::sdk
 	//---------------------------
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index )
+	inline ChdDictionary<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index ) noexcept
 		: m_table{ table },
 		  m_index{ index }
 	{
@@ -514,7 +686,7 @@ namespace dnv::vista::sdk
 	}
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++()
+	inline ChdDictionary<TValue>::Iterator& ChdDictionary<TValue>::Iterator::operator++() noexcept
 	{
 		if ( m_table == nullptr )
 		{
@@ -536,7 +708,7 @@ namespace dnv::vista::sdk
 	}
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::Iterator::operator++( int )
+	inline ChdDictionary<TValue>::Iterator ChdDictionary<TValue>::Iterator::operator++( int ) noexcept
 	{
 		auto tmp{ Iterator{ *this } };
 		++( *this );
@@ -569,7 +741,7 @@ namespace dnv::vista::sdk
 	//----------------------------
 
 	template <typename TValue>
-	inline ChdDictionary<TValue>::Enumerator::Enumerator( const std::vector<std::pair<std::string, TValue>>* table )
+	inline ChdDictionary<TValue>::Enumerator::Enumerator( const std::vector<std::pair<std::string, TValue>>* table ) noexcept
 		: m_table{ table },
 		  m_index{ std::numeric_limits<size_t>::max() }
 	{
