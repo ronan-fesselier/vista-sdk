@@ -20,6 +20,83 @@
 namespace dnv::vista::sdk
 {
 	//=====================================================================
+	// Static helper functions
+	//=====================================================================
+
+	static void addToPath( const Gmod& gmod, std::vector<GmodNode>& path, const GmodNode& node )
+	{
+		if ( !path.empty() )
+		{
+			const GmodNode& prev = path.back();
+			if ( !prev.isChild( node ) )
+			{
+				for ( int j = static_cast<int>( path.size() ) - 1; j >= 0; --j )
+				{
+					const GmodNode& parent = path[static_cast<size_t>( j )];
+
+					std::vector<const GmodNode*> currentParents;
+					currentParents.reserve( static_cast<size_t>( j + 1 ) );
+					for ( size_t k = 0; k <= static_cast<size_t>( j ); ++k )
+					{
+						currentParents.push_back( &path[k] );
+					}
+
+					std::vector<const GmodNode*> remaining;
+					if ( !GmodTraversal::pathExistsBetween( gmod, currentParents, node, remaining ) )
+					{
+						const std::string_view parentCode = parent.code();
+						const bool hasOtherAssetFunction = std::any_of(
+							currentParents.cbegin(), currentParents.cend(),
+							[parentCode]( const GmodNode* pathNode ) {
+								return pathNode->isAssetFunctionNode() && pathNode->code() != parentCode;
+							} );
+
+						if ( !hasOtherAssetFunction )
+						{
+							throw std::runtime_error( "Tried to remove last asset function node" );
+						}
+						path.erase( path.begin() + static_cast<std::ptrdiff_t>( j ) );
+					}
+					else
+					{
+						std::vector<GmodNode> nodes;
+						nodes.reserve( remaining.size() );
+
+						if ( const auto nodeLocationOpt = node.location(); nodeLocationOpt.has_value() )
+						{
+							const auto& nodeLocation = *nodeLocationOpt;
+							for ( const GmodNode* n : remaining )
+							{
+								if ( !n->isIndividualizable( false, true ) )
+								{
+									nodes.emplace_back( *n );
+								}
+								else
+								{
+									nodes.emplace_back( n->tryWithLocation( nodeLocation ) );
+								}
+							}
+						}
+						else
+						{
+							for ( const GmodNode* n : remaining )
+							{
+								nodes.emplace_back( *n );
+							}
+						}
+
+						path.insert( path.end(), std::make_move_iterator( nodes.begin() ),
+							std::make_move_iterator( nodes.end() ) );
+						break;
+					}
+				}
+			}
+		}
+
+		path.emplace_back( node );
+	}
+
+	//=====================================================================
 	// GmodVersioning class
 	//=====================================================================
 
@@ -60,18 +137,18 @@ namespace dnv::vista::sdk
 		std::optional<GmodNode> node = sourceNode;
 		VisVersion source = sourceVersion;
 
-		while ( static_cast<int>( source ) <= static_cast<int>( targetVersion ) - 100 )
+		while ( source <= targetVersion - 1 )
 		{
 			if ( !node.has_value() )
 			{
 				break;
 			}
 
-			const VisVersion target = static_cast<VisVersion>( static_cast<int>( source ) + 100 );
+			const VisVersion target = source + 1;
 
 			node = convertNodeInternal( source, *node, target );
 
-			source = static_cast<VisVersion>( static_cast<int>( source ) + 100 );
+			++source;
 		}
 
 		return node;
@@ -90,14 +167,14 @@ namespace dnv::vista::sdk
 		std::optional<GmodNode> node = sourceNode;
 		VisVersion source = sourceVersion;
 
-		while ( static_cast<int>( source ) <= static_cast<int>( targetVersion ) - 100 )
+		while ( source <= targetVersion - 1 )
 		{
 			if ( !node.has_value() )
 			{
 				break;
 			}
 
-			const VisVersion target = static_cast<VisVersion>( static_cast<int>( source ) + 100 );
+			const VisVersion target = source + 1;
 
 			if ( target == targetVersion )
 			{
@@ -108,7 +185,7 @@ namespace dnv::vista::sdk
 				node = convertNodeInternal( source, *node, target );
 			}
 
-			source = static_cast<VisVersion>( static_cast<int>( source ) + 100 );
+			++source;
 		}
 
 		return node;
@@ -178,99 +255,6 @@ namespace dnv::vista::sdk
 		std::vector<GmodNode> path;
 		path.reserve( 64 );
 
-		struct PathHelper
-		{
-			static inline void addToPath( const Gmod& gmod, std::vector<GmodNode>& pathRef, const GmodNode& node )
-			{
-				if ( pathRef.empty() )
-				{
-					pathRef.emplace_back( node );
-					return;
-				}
-
-				const GmodNode& prev = pathRef.back();
-				if ( prev.isChild( node ) )
-				{
-					pathRef.emplace_back( node );
-					return;
-				}
-
-				std::vector<const GmodNode*> currentParentPtrs;
-				std::vector<const GmodNode*> remaining;
-				std::vector<GmodNode> nodesToAdd;
-
-				currentParentPtrs.reserve( pathRef.size() );
-				remaining.reserve( 16 );
-				nodesToAdd.reserve( 16 );
-
-				for ( size_t idx = 0; idx < pathRef.size(); ++idx )
-				{
-					currentParentPtrs.push_back( &pathRef[idx] );
-				}
-
-				for ( int j = static_cast<int>( pathRef.size() ) - 1; j >= 0; --j )
-				{
-					const GmodNode& parent = pathRef[static_cast<size_t>( j )];
-
-					currentParentPtrs.resize( static_cast<size_t>( j + 1 ) );
-
-					remaining.clear();
-					if ( !GmodTraversal::pathExistsBetween( gmod, currentParentPtrs, node, remaining ) )
-					{
-						bool hasOtherAssetFunction = false;
-						const std::string_view parentCode = parent.code();
-						for ( const GmodNode* pathNodePtr : currentParentPtrs )
-						{
-							if ( pathNodePtr->isAssetFunctionNode() && pathNodePtr->code() != parentCode )
-							{
-								hasOtherAssetFunction = true;
-								break;
-							}
-						}
-						if ( !hasOtherAssetFunction )
-						{
-							throw std::runtime_error( "Tried to remove last asset function node" );
-						}
-						pathRef.erase( pathRef.begin() + static_cast<std::ptrdiff_t>( j ) );
-					}
-					else
-					{
-						nodesToAdd.clear();
-						nodesToAdd.reserve( remaining.size() );
-
-						if ( const auto nodeLocationOpt = node.location(); nodeLocationOpt.has_value() )
-						{
-							const auto& nodeLocation = *nodeLocationOpt;
-							for ( const GmodNode* n : remaining )
-							{
-								if ( !n->isIndividualizable( false, true ) )
-								{
-									nodesToAdd.emplace_back( *n );
-								}
-								else
-								{
-									nodesToAdd.emplace_back( n->tryWithLocation( nodeLocation ) );
-								}
-							}
-						}
-						else
-						{
-							for ( const GmodNode* n : remaining )
-							{
-								nodesToAdd.emplace_back( *n );
-							}
-						}
-
-						pathRef.insert( pathRef.end(),
-							std::make_move_iterator( nodesToAdd.begin() ),
-							std::make_move_iterator( nodesToAdd.end() ) );
-						break;
-					}
-				}
-				pathRef.emplace_back( node );
-			}
-		};
-
 		for ( size_t i = 0; i < qualifyingNodes.size(); ++i )
 		{
 			const auto& qualifyingNode = qualifyingNodes[i];
@@ -288,27 +272,27 @@ namespace dnv::vista::sdk
 			const std::string_view sourceCode = qualifyingNode.first->code();
 			const bool codeChanged = sourceCode != currentCode;
 
-			const GmodNode* sourceNormalAssignment = qualifyingNode.first->productType();
-			const GmodNode* targetNormalAssignment = qualifyingNode.second.productType();
+			const std::optional<GmodNode> sourceNormalAssignment = qualifyingNode.first->productType();
+			const std::optional<GmodNode> targetNormalAssignment = qualifyingNode.second.productType();
 
 			const bool normalAssignmentChanged =
-				( sourceNormalAssignment == nullptr ) != ( targetNormalAssignment == nullptr ) ||
-				( sourceNormalAssignment != nullptr && targetNormalAssignment != nullptr &&
+				sourceNormalAssignment.has_value() != targetNormalAssignment.has_value() ||
+				( sourceNormalAssignment.has_value() && targetNormalAssignment.has_value() &&
 					sourceNormalAssignment->code() != targetNormalAssignment->code() );
 
 			bool selectionChanged = false;
 
 			if ( codeChanged )
 			{
-				PathHelper::addToPath( targetGmod, path, qualifyingNode.second );
+				addToPath( targetGmod, path, qualifyingNode.second );
 			}
 			else if ( normalAssignmentChanged )
 			{
-				bool wasDeleted = sourceNormalAssignment != nullptr && targetNormalAssignment == nullptr;
+				bool wasDeleted = sourceNormalAssignment.has_value() && !targetNormalAssignment.has_value();
 
 				if ( !codeChanged )
 				{
-					PathHelper::addToPath( targetGmod, path, qualifyingNode.second );
+					addToPath( targetGmod, path, qualifyingNode.second );
 				}
 
 				if ( wasDeleted )
@@ -328,14 +312,14 @@ namespace dnv::vista::sdk
 				}
 				else if ( currentCode != targetEndNode->code() )
 				{
-					if ( targetNormalAssignment != nullptr )
+					if ( targetNormalAssignment.has_value() )
 					{
 						GmodNode targetNormalAssignmentVal = *targetNormalAssignment;
-						if ( qualifyingNode.second.location().has_value() && targetNormalAssignment->isIndividualizable( false, true ) )
+						if ( qualifyingNode.second.location().has_value() && targetNormalAssignmentVal.isIndividualizable( false, true ) )
 						{
-							targetNormalAssignmentVal = targetNormalAssignment->tryWithLocation( *qualifyingNode.second.location() );
+							targetNormalAssignmentVal = targetNormalAssignmentVal.tryWithLocation( *qualifyingNode.second.location() );
 						}
-						PathHelper::addToPath( targetGmod, path, targetNormalAssignmentVal );
+						addToPath( targetGmod, path, targetNormalAssignmentVal );
 						++i;
 					}
 				}
@@ -348,7 +332,7 @@ namespace dnv::vista::sdk
 
 			if ( !codeChanged && !normalAssignmentChanged )
 			{
-				PathHelper::addToPath( targetGmod, path, qualifyingNode.second );
+				addToPath( targetGmod, path, qualifyingNode.second );
 			}
 
 			if ( !path.empty() && std::string_view( path.back().code() ) == targetEndNode->code() )

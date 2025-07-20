@@ -76,7 +76,7 @@ namespace dnv::vista::sdk
 	{
 		if ( imoNumber < 1000000 || imoNumber > 9999999 )
 		{
-			SPDLOG_ERROR( "IMO number outside valid range: {}", imoNumber );
+			fmt::print( stderr, "ERROR: IMO number outside valid range: {}\n", imoNumber );
 
 			return false;
 		}
@@ -170,11 +170,11 @@ namespace dnv::vista::sdk
 		{
 			if ( ec == std::errc::invalid_argument )
 			{
-				SPDLOG_ERROR( "Failed to convert '{}' to integer", fmt::string_view( sv.data(), sv.size() ) );
+				fmt::print( stderr, "ERROR: Failed to convert '{}' to integer\n", fmt::string_view( sv.data(), sv.size() ) );
 			}
 			else if ( ec == std::errc::result_out_of_range )
 			{
-				SPDLOG_ERROR( "IMO number out of valid integer range: '{}'", fmt::string_view( sv.data(), sv.size() ) );
+				fmt::print( stderr, "ERROR: IMO number out of valid integer range: '{}'\n", fmt::string_view( sv.data(), sv.size() ) );
 			}
 
 			return std::nullopt;
@@ -182,7 +182,7 @@ namespace dnv::vista::sdk
 
 		if ( num == 0 || !isValid( num ) )
 		{
-			SPDLOG_ERROR( "Invalid IMO number format or checksum: {}", num );
+			fmt::print( stderr, "ERROR: Invalid IMO number format or checksum: {}\n", num );
 
 			return std::nullopt;
 		}

@@ -55,15 +55,15 @@ namespace dnv::vista::sdk
 
 					return { metaIndex, endOfMetaIndex };
 				}
-
 				case LocalIdParsingState::SecondaryItem:
+				{
 					if ( isVerbose && customIndex != std::string_view::npos )
 					{
 						return { customIndex, endOfCustomIndex };
 					}
 
 					return { metaIndex, endOfMetaIndex };
-
+				}
 				case LocalIdParsingState::NamingRule:
 				case LocalIdParsingState::VisVersion:
 				case LocalIdParsingState::ItemDescription:
@@ -81,7 +81,9 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::NamingEntity:
 				case LocalIdParsingState::IMONumber:
 				default:
+				{
 					return { metaIndex, endOfMetaIndex };
+				}
 			}
 		}
 
@@ -90,29 +92,53 @@ namespace dnv::vista::sdk
 			switch ( name )
 			{
 				case CodebookName::Position:
+				{
 					return "Position";
+				}
 				case CodebookName::Quantity:
+				{
 					return "Quantity";
+				}
 				case CodebookName::Calculation:
+				{
 					return "Calculation";
+				}
 				case CodebookName::State:
+				{
 					return "State";
+				}
 				case CodebookName::Content:
+				{
 					return "Content";
+				}
 				case CodebookName::Command:
+				{
 					return "Command";
+				}
 				case CodebookName::Type:
+				{
 					return "Type";
+				}
 				case CodebookName::FunctionalServices:
+				{
 					return "FunctionalServices";
+				}
 				case CodebookName::MaintenanceCategory:
+				{
 					return "MaintenanceCategory";
+				}
 				case CodebookName::ActivityType:
+				{
 					return "ActivityType";
+				}
 				case CodebookName::Detail:
+				{
 					return "Detail";
+				}
 				default:
+				{
 					throw std::invalid_argument( "Unknown codebook: " + std::to_string( static_cast<int>( name ) ) );
+				}
 			}
 		}
 	}
@@ -415,35 +441,53 @@ namespace dnv::vista::sdk
 		switch ( metadataTag->name() )
 		{
 			case CodebookName::Quantity:
+			{
 				succeeded = true;
 				return withQuantity( *metadataTag );
+			}
 			case CodebookName::Content:
+			{
 				succeeded = true;
 				return withContent( *metadataTag );
+			}
 			case CodebookName::Calculation:
+			{
 				succeeded = true;
 				return withCalculation( *metadataTag );
+			}
 			case CodebookName::State:
+			{
 				succeeded = true;
 				return withState( *metadataTag );
+			}
 			case CodebookName::Command:
+			{
 				succeeded = true;
 				return withCommand( *metadataTag );
+			}
 			case CodebookName::Type:
+			{
 				succeeded = true;
 				return withType( *metadataTag );
+			}
 			case CodebookName::Position:
+			{
 				succeeded = true;
 				return withPosition( *metadataTag );
+			}
 			case CodebookName::Detail:
+			{
 				succeeded = true;
 				return withDetail( *metadataTag );
+			}
 			case CodebookName::FunctionalServices:
 			case CodebookName::MaintenanceCategory:
 			case CodebookName::ActivityType:
 			default:
+			{
 				succeeded = false;
 				return std::move( *this );
+			}
 		}
 	}
 
@@ -452,26 +496,44 @@ namespace dnv::vista::sdk
 		switch ( name )
 		{
 			case CodebookName::Quantity:
+			{
 				return withoutQuantity();
+			}
 			case CodebookName::Content:
+			{
 				return withoutContent();
+			}
 			case CodebookName::Calculation:
+			{
 				return withoutCalculation();
+			}
 			case CodebookName::State:
+			{
 				return withoutState();
+			}
 			case CodebookName::Command:
+			{
 				return withoutCommand();
+			}
 			case CodebookName::Type:
+			{
 				return withoutType();
+			}
 			case CodebookName::Position:
+			{
 				return withoutPosition();
+			}
 			case CodebookName::Detail:
+			{
 				return withoutDetail();
+			}
 			case CodebookName::FunctionalServices:
 			case CodebookName::MaintenanceCategory:
 			case CodebookName::ActivityType:
 			default:
+			{
 				return std::move( *this );
+			}
 		}
 	}
 
@@ -666,15 +728,8 @@ namespace dnv::vista::sdk
 	bool LocalIdBuilder::tryParse( std::string_view localIdStr, ParsingErrors& errors, std::optional<LocalIdBuilder>& localId )
 	{
 		localId = std::nullopt;
-
 		LocalIdParsingErrorBuilder errorBuilder = LocalIdParsingErrorBuilder::create();
-
 		bool success = tryParseInternal( localIdStr, errorBuilder, localId );
-
-		if ( errorBuilder.hasError() )
-		{
-			SPDLOG_ERROR( "Parsing encountered errors." );
-		}
 
 		errors = errorBuilder.build();
 
@@ -758,7 +813,6 @@ namespace dnv::vista::sdk
 					advanceParser( i, segment, state );
 					break;
 				}
-
 				case LocalIdParsingState::VisVersion:
 				{
 					if ( segment.empty() )
@@ -794,7 +848,6 @@ namespace dnv::vista::sdk
 					advanceParser( i, segment, state );
 					break;
 				}
-
 				case LocalIdParsingState::PrimaryItem:
 				{
 					if ( segment.empty() )
@@ -942,7 +995,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::SecondaryItem:
 				{
 					if ( segment.empty() )
@@ -1046,7 +1098,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::ItemDescription:
 				{
 					if ( segment.empty() )
@@ -1070,7 +1121,6 @@ namespace dnv::vista::sdk
 					advanceParser( i, segment, state );
 					break;
 				}
-
 				case LocalIdParsingState::MetaQuantity:
 				{
 					if ( segment.empty() )
@@ -1087,7 +1137,6 @@ namespace dnv::vista::sdk
 
 					break;
 				}
-
 				case LocalIdParsingState::MetaContent:
 				{
 					if ( segment.empty() )
@@ -1103,7 +1152,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaCalculation:
 				{
 					if ( segment.empty() )
@@ -1119,7 +1167,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaState:
 				{
 					if ( segment.empty() )
@@ -1135,7 +1182,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaCommand:
 				{
 					if ( segment.empty() )
@@ -1151,7 +1197,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaType:
 				{
 					if ( segment.empty() )
@@ -1167,7 +1212,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaPosition:
 				{
 					if ( segment.empty() )
@@ -1183,7 +1227,6 @@ namespace dnv::vista::sdk
 					}
 					break;
 				}
-
 				case LocalIdParsingState::MetaDetail:
 				{
 					if ( segment.empty() )
@@ -1205,8 +1248,10 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::NamingEntity:
 				case LocalIdParsingState::IMONumber:
 				default:
+				{
 					advanceParser( i, segment, state );
 					break;
+				}
 			}
 		}
 
@@ -1334,21 +1379,37 @@ namespace dnv::vista::sdk
 		switch ( prev )
 		{
 			case LocalIdParsingState::MetaQuantity:
+			{
 				return LocalIdParsingState::MetaContent;
+			}
 			case LocalIdParsingState::MetaContent:
+			{
 				return LocalIdParsingState::MetaCalculation;
+			}
 			case LocalIdParsingState::MetaCalculation:
+			{
 				return LocalIdParsingState::MetaState;
+			}
 			case LocalIdParsingState::MetaState:
+			{
 				return LocalIdParsingState::MetaCommand;
+			}
 			case LocalIdParsingState::MetaCommand:
+			{
 				return LocalIdParsingState::MetaType;
+			}
 			case LocalIdParsingState::MetaType:
+			{
 				return LocalIdParsingState::MetaPosition;
+			}
 			case LocalIdParsingState::MetaPosition:
+			{
 				return LocalIdParsingState::MetaDetail;
+			}
 			case LocalIdParsingState::MetaDetail:
+			{
 				return std::nullopt;
+			}
 
 			case LocalIdParsingState::NamingRule:
 			case LocalIdParsingState::VisVersion:
@@ -1361,7 +1422,9 @@ namespace dnv::vista::sdk
 			case LocalIdParsingState::NamingEntity:
 			case LocalIdParsingState::IMONumber:
 			default:
+			{
 				return std::nullopt;
+			}
 		}
 	}
 

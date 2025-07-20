@@ -113,7 +113,7 @@ namespace dnv::vista::sdk
 		{
 			for ( [[maybe_unused]] const auto& [localId, error] : context.errors )
 			{
-				SPDLOG_ERROR( "Failed to parse {} with error {}", localId, error.has_value() ? *error : "Not a match" );
+				fmt::print( stderr, "ERROR: Failed to parse {} with error {}\n", localId, error.has_value() ? *error : "Not a match" );
 			}
 		}
 

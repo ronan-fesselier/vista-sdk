@@ -118,19 +118,11 @@ foreach(test_source ${TEST_SOURCES})
 
 		target_link_libraries(${test_target_name} PRIVATE
 			vista-sdk-cpp
-			spdlog::spdlog
 			GTest::gtest_main
-			spdlog::spdlog
 			fmt::fmt
 	        cpuid
 			nlohmann_json::nlohmann_json
 			zlibstatic
-		)
-
-		target_compile_definitions(${test_target_name} PRIVATE
-			$<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-			$<$<CONFIG:RelWithDebInfo>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-			$<$<AND:$<CONFIG:Debug>,$<BOOL:${CI_FORCE_DEBUG_SPDLOG_WARN}>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
 		)
 
 		target_include_directories(${test_target_name} PRIVATE

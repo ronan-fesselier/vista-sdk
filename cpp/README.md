@@ -7,7 +7,6 @@ This directory contains the C++ implementation of the Vista SDK, a native librar
 The C++ SDK uses CMake and its [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) module to manage external dependencies directly during the build configuration phase. The required libraries are fetched from their respective sources (primarily GitHub):
 
 -   [nlohmann/json](https://github.com/nlohmann/json): For JSON parsing and serialization
--   [spdlog](https://github.com/gabime/spdlog): For structured logging
 -   [zlib](https://github.com/madler/zlib): For compression and decompression of resources
 -   [libcpuid](https://github.com/anrieff/libcpuid): For CPU feature detection
 -   [{fmt}](https://github.com/fmtlib/fmt): Formatting library
@@ -126,9 +125,7 @@ This C++ implementation follows the same core design principles (Immutability, B
 | **String Handling** | `std::string`, `std::string_view`, `std::stringstream`, extensive view usage              | `string`, `ReadOnlySpan<char>`, `StringBuilder`            | C++ version uses string_view extensively for performance.      |
 | **Error Handling**  | `std::exception` hierarchy, comprehensive `ParsingErrors` system, `std::invalid_argument` | `.NET` exceptions, `ParsingErrors` struct                  |
 | **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), comprehensive input validation                                      | FNV1a/CRC32 (SSE4.2)                                       |                                                                |
-| **Logging**         | `spdlog` with extensive diagnostic logging throughout                                     | Minimal built-in logging                                   |
 | **Build System**    | CMake (`FetchContent`) with comprehensive dependency management                           | .NET SDK (MSBuild/NuGet)                                   | CMake configuration with cross-platform support.               |
-| **Dependencies**    | `nlohmann/json`, `spdlog`, `zlib`, `fmt`, `gtest`, `libcpuid`                             | NuGet packages                                             | Managed via `FetchContent` with version pinning.               |
 | **Path Parsing**    | Validation with root node checking and structure validation                               | Basic validation                                           |
 
 ## Features
@@ -240,7 +237,6 @@ Benchmark suites include:
 -   **Dependencies automatically fetched via FetchContent:**
 
     -   nlohmann/json
-    -   spdlog
     -   {fmt}
     -   zlib
     -   cpuid

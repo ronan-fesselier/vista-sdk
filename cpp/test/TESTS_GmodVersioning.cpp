@@ -55,7 +55,7 @@ namespace dnv::vista::sdk::tests
 			}
 			catch ( [[maybe_unused]] const std::exception& ex )
 			{
-				SPDLOG_ERROR( "Test setup failed: {}", ex.what() );
+				fmt::print( stderr, "ERROR: Test setup failed: {}\n", ex.what() );
 				m_setupSuccess = false;
 			}
 		}
@@ -270,7 +270,7 @@ namespace dnv::vista::sdk::tests
 					errorNodes += code + ", ";
 				}
 
-				SPDLOG_ERROR( "Failed nodes for {}: {}", dnv::vista::sdk::VisVersionExtensions::toVersionString( pair.first ), errorNodes );
+				fmt::print( stderr, "ERROR: Failed nodes for {}: {}\n", dnv::vista::sdk::VisVersionExtensions::toVersionString( pair.first ), errorNodes );
 			}
 		}
 	}

@@ -43,7 +43,6 @@
 #include <vector>
 
 /* Libs */
-#include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
 #include <zlib.h>

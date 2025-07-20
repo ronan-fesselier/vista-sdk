@@ -13,6 +13,13 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#ifdef _MSC_VER
+#	include <intrin.h>
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#	include <immintrin.h>
+#	include <x86intrin.h>
+#endif
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -28,19 +35,21 @@ namespace dnv::vista::sdk
 	{
 		using is_transparent = void;
 
+		static constexpr std::hash<std::string_view> s_hasher{};
+
 		[[nodiscard]] inline size_t operator()( std::string_view sv ) const noexcept
 		{
-			return std::hash<std::string_view>{}( sv );
+			return s_hasher( sv );
 		}
 
 		[[nodiscard]] inline size_t operator()( const std::string& s ) const noexcept
 		{
-			return std::hash<std::string_view>{}( s );
+			return s_hasher( std::string_view{ s.data(), s.size() } );
 		}
 
 		[[nodiscard]] inline size_t operator()( const char* s ) const noexcept
 		{
-			return std::hash<std::string_view>{}( std::string_view{ s } );
+			return s_hasher( std::string_view{ s } );
 		}
 	};
 
@@ -55,47 +64,53 @@ namespace dnv::vista::sdk
 
 		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept
 		{
-			return lhs == rhs;
+			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept
 		{
-			return lhs == rhs;
+			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept
 		{
-			return lhs == rhs;
+			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( std::string_view lhs, std::string_view rhs ) const noexcept
 		{
-			return lhs == rhs;
+			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( const char* lhs, const std::string& rhs ) const noexcept
 		{
-			return std::string_view{ lhs } == rhs;
+			std::string_view lhs_view{ lhs };
+			return lhs_view.size() == rhs.size() && lhs_view == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, const char* rhs ) const noexcept
 		{
-			return lhs == std::string_view{ rhs };
+			std::string_view rhs_view{ rhs };
+			return lhs.size() == rhs_view.size() && lhs == rhs_view;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( const char* lhs, std::string_view rhs ) const noexcept
 		{
-			return std::string_view{ lhs } == rhs;
+			std::string_view lhs_view{ lhs };
+			return lhs_view.size() == rhs.size() && lhs_view == rhs;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( std::string_view lhs, const char* rhs ) const noexcept
 		{
-			return lhs == std::string_view{ rhs };
+			std::string_view rhs_view{ rhs };
+			return lhs.size() == rhs_view.size() && lhs == rhs_view;
 		}
 
 		[[nodiscard]] constexpr inline bool operator()( const char* lhs, const char* rhs ) const noexcept
 		{
-			return std::string_view{ lhs } == std::string_view{ rhs };
+			std::string_view lhs_view{ lhs };
+			std::string_view rhs_view{ rhs };
+			return lhs_view.size() == rhs_view.size() && lhs_view == rhs_view;
 		}
 	};
 
@@ -124,12 +139,7 @@ namespace dnv::vista::sdk
 		 */
 		inline T& operator[]( std::string_view key )
 		{
-			auto it = this->find( key );
-			if ( it != this->end() )
-			{
-				return it->second;
-			}
-			return this->emplace( std::string{ key }, T{} ).first->second;
+			return this->try_emplace( std::string{ key }, T{} ).first->second;
 		}
 
 		/**
@@ -139,7 +149,7 @@ namespace dnv::vista::sdk
 		 */
 		inline T& operator[]( const char* key )
 		{
-			return operator[]( std::string_view{ key } );
+			return this->try_emplace( std::string{ key }, T{} ).first->second;
 		}
 
 		/**
@@ -151,12 +161,7 @@ namespace dnv::vista::sdk
 		template <typename... Args>
 		inline std::pair<typename Base::iterator, bool> try_emplace( std::string_view key, Args&&... args )
 		{
-			auto it = this->find( key );
-			if ( it != this->end() )
-			{
-				return { it, false };
-			}
-			return this->emplace( std::string{ key }, std::forward<Args>( args )... );
+			return Base::try_emplace( std::string{ key }, std::forward<Args>( args )... );
 		}
 
 		/**
@@ -168,7 +173,7 @@ namespace dnv::vista::sdk
 		template <typename... Args>
 		inline std::pair<typename Base::iterator, bool> try_emplace( const char* key, Args&&... args )
 		{
-			return try_emplace( std::string_view{ key }, std::forward<Args>( args )... );
+			return Base::try_emplace( std::string{ key }, std::forward<Args>( args )... );
 		}
 	};
 

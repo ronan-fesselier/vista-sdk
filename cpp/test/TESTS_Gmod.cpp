@@ -117,11 +117,11 @@ namespace dnv::vista::sdk::tests
 			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
 			const GmodNode& node1 = gmod["411.3"];
-			EXPECT_NE( node1.productType(), nullptr );
-			EXPECT_EQ( node1.productSelection(), nullptr );
+			EXPECT_TRUE( node1.productType().has_value() );
+			EXPECT_FALSE( node1.productSelection().has_value() );
 
 			const GmodNode& node2 = gmod["H601"];
-			EXPECT_EQ( node2.productType(), nullptr );
+			EXPECT_FALSE( node2.productType().has_value() );
 		}
 
 		//----------------------------------------------
@@ -133,11 +133,11 @@ namespace dnv::vista::sdk::tests
 			auto [vis, gmod] = visAndGmod( VisVersion::v3_4a );
 
 			const GmodNode& node1 = gmod["411.2"];
-			EXPECT_NE( node1.productSelection(), nullptr );
-			EXPECT_EQ( node1.productType(), nullptr );
+			EXPECT_TRUE( node1.productSelection().has_value() );
+			EXPECT_FALSE( node1.productType().has_value() );
 
 			const GmodNode& node2 = gmod["H601"];
-			EXPECT_EQ( node2.productSelection(), nullptr );
+			EXPECT_FALSE( node2.productSelection().has_value() );
 		}
 
 		//----------------------------------------------

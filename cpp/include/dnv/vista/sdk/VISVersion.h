@@ -20,6 +20,16 @@ namespace dnv::vista::sdk
 	};
 
 	/**
+	 * @brief Arithmetic operators for VisVersion to optimize version arithmetic
+	 */
+	inline VisVersion operator++( VisVersion& version );
+	inline VisVersion operator++( VisVersion& version, int );
+	inline VisVersion operator+( VisVersion version, int increment );
+	inline VisVersion operator-( VisVersion version, int decrement );
+	inline bool operator<=( VisVersion lhs, VisVersion rhs );
+	inline int operator-( VisVersion lhs, VisVersion rhs );
+
+	/**
 	 * @brief Static helper class for VisVersion operations
 	 */
 	class VisVersionExtensions final

@@ -28,6 +28,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( ISO19848_DTO_KEY_TYPE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_TYPE;
 			}
 			catch ( ... )
@@ -53,23 +54,27 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for DataChannelTypeNameDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for DataChannelTypeNameDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
 			DataChannelTypeNameDto dto = json.get<DataChannelTypeNameDto>();
+
 			return std::optional<DataChannelTypeNameDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}\n",
 				typeHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}\n",
 				typeHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -120,11 +125,11 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_type.empty() )
 		{
-			SPDLOG_WARN( "Empty 'type' field found in DataChannelTypeNameDto" );
+			fmt::print( stderr, "WARN: Empty 'type' field found in DataChannelTypeNameDto\n" );
 		}
 		if ( dto.m_description.empty() )
 		{
-			SPDLOG_WARN( "Empty 'description' field found in DataChannelTypeNameDto" );
+			fmt::print( stderr, "WARN: Empty 'description' field found in DataChannelTypeNameDto\n" );
 		}
 	}
 
@@ -149,25 +154,21 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for DataChannelTypeNamesDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for DataChannelTypeNamesDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
 			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
 			{
-				SPDLOG_ERROR( "DataChannelTypeNamesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES );
+				fmt::print( stderr, "ERROR: DataChannelTypeNamesDto JSON missing required '{}' array\n", ISO19848_DTO_KEY_VALUES );
+
 				return std::nullopt;
 			}
 
 			const auto& valuesArray = json.at( ISO19848_DTO_KEY_VALUES );
 			size_t totalItems = valuesArray.size();
 			size_t successCount = 0;
-
-			if ( totalItems > 10000 )
-			{
-				[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( DataChannelTypeNameDto ) ) / ( 1024 * 1024 );
-				SPDLOG_DEBUG( "Large ISO19848 data channel types loaded: ~{} MB estimated memory usage", approxMemoryUsage );
-			}
 
 			std::vector<DataChannelTypeNameDto> tempValues;
 			const size_t reserveSize = totalItems < 1000
@@ -185,11 +186,9 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					SPDLOG_WARN( "Skipping invalid DataChannelTypeNameDto item during parsing" );
+					fmt::print( stderr, "WARN: Skipping invalid DataChannelTypeNameDto item during parsing\n" );
 				}
 			}
-
-			SPDLOG_DEBUG( "Successfully parsed {}/{} data channel type names", successCount, totalItems );
 
 			/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
 			if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
@@ -205,12 +204,14 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during DataChannelTypeNamesDto parsing: {}", ex.what() );
+			fmt::print( stderr, "ERROR: JSON exception during DataChannelTypeNamesDto parsing: {}\n", ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during DataChannelTypeNamesDto parsing: {}", ex.what() );
+			fmt::print( stderr, "ERROR: Standard exception during DataChannelTypeNamesDto parsing: {}\n", ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -222,6 +223,7 @@ namespace dnv::vista::sdk
 		{
 			throw std::invalid_argument( "Failed to deserialize DataChannelTypeNamesDto from JSON" );
 		}
+
 		return std::move( dtoOpt ).value();
 	}
 
@@ -229,6 +231,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 
@@ -267,23 +270,27 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for FormatDataTypeDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for FormatDataTypeDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
 			FormatDataTypeDto dto = json.get<FormatDataTypeDto>();
+
 			return std::optional<FormatDataTypeDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during FormatDataTypeDto parsing (hint: type='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during FormatDataTypeDto parsing (hint: type='{}'): {}\n",
 				typeHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during FormatDataTypeDto parsing (hint: type='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during FormatDataTypeDto parsing (hint: type='{}'): {}\n",
 				typeHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -305,6 +312,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 
@@ -333,11 +341,11 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_type.empty() )
 		{
-			SPDLOG_WARN( "Empty 'type' field found in FormatDataTypeDto" );
+			fmt::print( stderr, "WARN: Empty 'type' field found in FormatDataTypeDto\n" );
 		}
 		if ( dto.m_description.empty() )
 		{
-			SPDLOG_WARN( "Empty 'description' field found in FormatDataTypeDto" );
+			fmt::print( stderr, "WARN: Empty 'description' field found in FormatDataTypeDto\n" );
 		}
 	}
 	void to_json( nlohmann::json& j, const FormatDataTypeDto& dto )
@@ -361,13 +369,15 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for FormatDataTypesDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for FormatDataTypesDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
 			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
 			{
-				SPDLOG_ERROR( "FormatDataTypesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES );
+				fmt::print( stderr, "ERROR: FormatDataTypesDto JSON missing required '{}' array\n", ISO19848_DTO_KEY_VALUES );
+
 				return std::nullopt;
 			}
 
@@ -378,7 +388,6 @@ namespace dnv::vista::sdk
 			if ( totalItems > 10000 )
 			{
 				[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( FormatDataTypeDto ) ) / ( 1024 * 1024 );
-				SPDLOG_DEBUG( "Large ISO19848 format data types loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 			}
 
 			std::vector<FormatDataTypeDto> tempValues;
@@ -397,11 +406,9 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					SPDLOG_WARN( "Skipping invalid FormatDataTypeDto item during parsing" );
+					fmt::print( stderr, "WARN: Skipping invalid FormatDataTypeDto item during parsing\n" );
 				}
 			}
-
-			SPDLOG_DEBUG( "Successfully parsed {}/{} format data types", successCount, totalItems );
 
 			/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
 			if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
@@ -413,16 +420,19 @@ namespace dnv::vista::sdk
 			}
 
 			FormatDataTypesDto resultDto( std::move( tempValues ) );
+
 			return std::optional<FormatDataTypesDto>{ std::move( resultDto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during FormatDataTypesDto parsing: {}", ex.what() );
+			fmt::print( stderr, "ERROR: JSON exception during FormatDataTypesDto parsing: {}\n", ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during FormatDataTypesDto parsing: {}", ex.what() );
+			fmt::print( stderr, "ERROR: Standard exception during FormatDataTypesDto parsing: {}\n", ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -434,6 +444,7 @@ namespace dnv::vista::sdk
 		{
 			throw std::invalid_argument( "Failed to deserialize FormatDataTypesDto from JSON" );
 		}
+
 		return std::move( dtoOpt ).value();
 	}
 
@@ -441,6 +452,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 

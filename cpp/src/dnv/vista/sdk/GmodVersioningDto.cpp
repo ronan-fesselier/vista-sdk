@@ -30,6 +30,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_VERSION;
 			}
 			catch ( ... )
@@ -47,6 +48,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_OLD_ASSIGNMENT;
 			}
 			catch ( ... )
@@ -64,6 +66,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_SOURCE;
 			}
 			catch ( ... )
@@ -89,7 +92,8 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for GmodVersioningAssignmentChangeDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for GmodVersioningAssignmentChangeDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
@@ -98,14 +102,16 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}\n",
 				oldAssignmentHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}\n",
 				oldAssignmentHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -119,6 +125,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningAssignmentChangeDto from JSON (hint: oldAssignment='{}')",
 				oldAssignmentHint ) );
 		}
+
 		return dtoOpt.value();
 	}
 
@@ -126,6 +133,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 
@@ -149,11 +157,11 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_oldAssignment.empty() )
 		{
-			SPDLOG_WARN( "Empty 'oldAssignment' field found in GmodVersioningAssignmentChangeDto" );
+			fmt::print( stderr, "WARN: Empty 'oldAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
 		}
 		if ( dto.m_currentAssignment.empty() )
 		{
-			SPDLOG_WARN( "Empty 'currentAssignment' field found in GmodVersioningAssignmentChangeDto" );
+			fmt::print( stderr, "WARN: Empty 'currentAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
 		}
 	}
 
@@ -180,7 +188,8 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for GmodNodeConversionDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for GmodNodeConversionDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
@@ -189,14 +198,16 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during GmodNodeConversionDto parsing (hint: source='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during GmodNodeConversionDto parsing (hint: source='{}'): {}\n",
 				sourceHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodNodeConversionDto parsing (hint: source='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during GmodNodeConversionDto parsing (hint: source='{}'): {}\n",
 				sourceHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -210,6 +221,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodNodeConversionDto from JSON (hint: source='{}')",
 				sourceHint ) );
 		}
+
 		return dtoOpt.value();
 	}
 
@@ -217,6 +229,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 
@@ -248,7 +261,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_operations.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_OPERATIONS );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_OPERATIONS );
 		}
 
 		if ( j.contains( GMODVERSIONING_DTO_KEY_SOURCE ) )
@@ -262,7 +275,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_source.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_SOURCE );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_SOURCE );
 		}
 
 		if ( j.contains( GMODVERSIONING_DTO_KEY_TARGET ) )
@@ -276,7 +289,7 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_target.clear();
-			SPDLOG_WARN( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_TARGET );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_TARGET );
 		}
 
 		if ( j.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) )
@@ -290,7 +303,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_oldAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT );
 		}
 
 		if ( j.contains( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ) )
@@ -304,7 +316,6 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_newAssignment.clear();
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field", GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT );
 		}
 
 		if ( j.contains( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ) )
@@ -318,16 +329,15 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_deleteAssignment = false;
-			SPDLOG_DEBUG( "GmodNodeConversionDto JSON missing optional '{}' field, defaulting to false", GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT );
 		}
 
 		if ( dto.m_operations.empty() )
 		{
-			SPDLOG_WARN( "Node conversion has no operations: source={}, target={}", dto.m_source, dto.m_target );
+			fmt::print( stderr, "WARN: Node conversion has no operations: source={}, target={}\n", dto.m_source, dto.m_target );
 		}
 		if ( dto.m_source.empty() && dto.m_target.empty() )
 		{
-			SPDLOG_WARN( "Node conversion has empty source and target" );
+			fmt::print( stderr, "WARN: Node conversion has empty source and target\n" );
 		}
 	}
 
@@ -358,23 +368,26 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for GmodVersioningDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for GmodVersioningDto is not an object\n" );
 				return std::nullopt;
 			}
 
 			GmodVersioningDto dto = json.get<GmodVersioningDto>();
+
 			return std::optional<GmodVersioningDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -388,6 +401,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningDto from JSON (hint: visRelease='{}')",
 				visHint ) );
 		}
+
 		return std::move( dtoOpt ).value();
 	}
 
@@ -395,6 +409,7 @@ namespace dnv::vista::sdk
 	{
 		nlohmann::json result;
 		to_json( result, *this );
+
 		return result;
 	}
 
@@ -423,8 +438,6 @@ namespace dnv::vista::sdk
 
 			if ( itemCount > 10000 )
 			{
-				[[maybe_unused]] const size_t approxMemoryUsage = ( itemCount * sizeof( GmodNodeConversionDto ) ) / ( 1024 * 1024 );
-				SPDLOG_DEBUG( "Large GMOD versioning model loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 			}
 
 			size_t successCount = 0;
@@ -442,15 +455,13 @@ namespace dnv::vista::sdk
 				}
 				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 				{
-					SPDLOG_ERROR( "Error parsing conversion item '{}': {}", key, ex.what() );
+					fmt::print( stderr, "ERROR: Error parsing conversion item '{}': {}\n", key, ex.what() );
 				}
 				catch ( [[maybe_unused]] const std::exception& ex )
 				{
-					SPDLOG_ERROR( "Standard exception parsing conversion item '{}': {}", key, ex.what() );
+					fmt::print( stderr, "ERROR: Standard exception parsing conversion item '{}': {}\n", key, ex.what() );
 				}
 			}
-
-			SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD versioning nodes", successCount, itemCount );
 
 			/* If parsing failed for more than 10% of items, rebuild the map to potentially save memory */
 			if ( itemCount > 0 && successCount < itemCount * 9 / 10 )
@@ -466,7 +477,7 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			SPDLOG_WARN( "No '{}' object found in GMOD versioning data for VIS version {}",
+			fmt::print( stderr, "WARN: No '{}' object found in GMOD versioning data for VIS version {}\n",
 				GMODVERSIONING_DTO_KEY_ITEMS, dto.m_visVersion );
 		}
 	}
@@ -489,7 +500,7 @@ namespace dnv::vista::sdk
 			}
 			if ( emptyOperationsCount > 0 )
 			{
-				SPDLOG_WARN( "{} nodes have no operations defined during serialization", emptyOperationsCount );
+				fmt::print( stderr, "WARN: {} nodes have no operations defined during serialization\n", emptyOperationsCount );
 			}
 		}
 		else
