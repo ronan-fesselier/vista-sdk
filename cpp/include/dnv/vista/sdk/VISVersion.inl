@@ -8,6 +8,51 @@
 
 namespace dnv::vista::sdk
 {
+	inline VisVersion operator++( VisVersion& version )
+	{
+		version = static_cast<VisVersion>( static_cast<int>( version ) + 100 );
+
+		return version;
+	}
+
+	inline VisVersion operator++( VisVersion& version, int )
+	{
+		VisVersion old = version;
+		++version;
+
+		return old;
+	}
+
+	inline VisVersion operator+( VisVersion version, int increment )
+	{
+		if ( increment == 1 )
+		{
+			return static_cast<VisVersion>( static_cast<int>( version ) + 100 );
+		}
+
+		return static_cast<VisVersion>( static_cast<int>( version ) + increment * 100 );
+	}
+
+	inline VisVersion operator-( VisVersion version, int decrement )
+	{
+		if ( decrement == 1 )
+		{
+			return static_cast<VisVersion>( static_cast<int>( version ) - 100 );
+		}
+
+		return static_cast<VisVersion>( static_cast<int>( version ) - decrement * 100 );
+	}
+
+	inline bool operator<=( VisVersion lhs, VisVersion rhs )
+	{
+		return static_cast<int>( lhs ) <= static_cast<int>( rhs );
+	}
+
+	inline int operator-( VisVersion lhs, VisVersion rhs )
+	{
+		return ( static_cast<int>( lhs ) - static_cast<int>( rhs ) ) / 100;
+	}
+
 	inline bool VisVersionExtensions::isValid( VisVersion version )
 	{
 		return version >= VisVersion::v3_4a && version <= VisVersion::LATEST;

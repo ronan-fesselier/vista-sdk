@@ -89,17 +89,10 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 
 		target_link_libraries(${benchmark_target_name} PRIVATE
 			vista-sdk-cpp
-			spdlog::spdlog
 			benchmark::benchmark
 			cpuid
 			fmt::fmt
 			nlohmann_json::nlohmann_json
-		)
-
-		target_compile_definitions(${benchmark_target_name} PRIVATE
-			$<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-			$<$<CONFIG:RelWithDebInfo>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-			$<$<AND:$<CONFIG:Debug>,$<BOOL:${CI_FORCE_DEBUG_SPDLOG_WARN}>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
 		)
 
 		target_include_directories(${benchmark_target_name} PRIVATE

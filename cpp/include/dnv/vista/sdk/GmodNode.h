@@ -335,16 +335,16 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Gets the product type node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product type.
-		 * @return A const non-owning pointer to the product type node, or `nullptr` if not applicable or not found.
+		 * @return Optional GmodNode value, or std::nullopt if not applicable or not found.
 		 */
-		[[nodiscard]] inline const GmodNode* productType() const noexcept;
+		[[nodiscard]] inline std::optional<GmodNode> productType() const noexcept;
 
 		/**
 		 * @brief Gets the product selection node associated with this function node, if applicable.
 		 * @details For a function node, this typically refers to its single child node if that child is a product selection.
-		 * @return A const non-owning pointer to the product selection node, or `nullptr` if not applicable or not found.
+		 * @return Optional GmodNode value, or std::nullopt if not applicable or not found.
 		 */
-		[[nodiscard]] inline const GmodNode* productSelection() const noexcept;
+		[[nodiscard]] inline std::optional<GmodNode> productSelection() const noexcept;
 
 		//----------------------------------------------
 		// Node location methods
@@ -563,9 +563,6 @@ namespace dnv::vista::sdk
 
 		/** @brief Set of child codes for efficient `isChild(std::string_view)` lookups. Maintained by addChild/trim. */
 		StringSet m_childrenSet;
-
-		mutable std::optional<const GmodNode*> m_cachedProductType;
-		mutable std::optional<const GmodNode*> m_cachedProductSelection;
 	};
 }
 

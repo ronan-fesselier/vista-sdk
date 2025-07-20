@@ -31,24 +31,6 @@ add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
 # --- FetchContent dependencies ---
 include(FetchContent)
 
-# --- spdlog ---
-set(SPDLOG_ENABLE_PCH        OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_EXAMPLE     OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_EXAMPLE_HO  OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_TESTS       OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_BENCH       OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_WARNINGS    OFF CACHE BOOL "" FORCE)
-set(SPDLOG_FMT_EXTERNAL      ON  CACHE BOOL "" FORCE)
-set(SPDLOG_NO_EXCEPTIONS     ON  CACHE BOOL "" FORCE)
-set(SPDLOG_PREVENT_CHILD_FD  OFF CACHE BOOL "" FORCE)
-
-FetchContent_Declare(
-	spdlog
-	GIT_REPOSITORY https://github.com/gabime/spdlog.git
-	GIT_TAG        v1.15.3
-	GIT_SHALLOW    TRUE
-)
-
 # --- zlib ---
 set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ZLIB_BUILD_STATIC  ON  CACHE BOOL "" FORCE)
@@ -63,7 +45,7 @@ FetchContent_Declare(
 	GIT_SHALLOW    TRUE
 )
 
-# --- {cpuid} ---
+# --- libcpuid ---
 set(LIBCPUID_ENABLE_TESTS   OFF CACHE BOOL "" FORCE)
 set(LIBCPUID_BUILD_DRIVERS  OFF CACHE BOOL "" FORCE)
 set(LIBCPUID_ENABLE_DOCS    OFF CACHE BOOL "" FORCE)
@@ -116,4 +98,4 @@ FetchContent_Declare(
 	GIT_SHALLOW    TRUE
 )
 
-FetchContent_MakeAvailable(fmt spdlog zlib cpuid googletest googlebenchmark)
+FetchContent_MakeAvailable(fmt zlib cpuid googletest googlebenchmark)

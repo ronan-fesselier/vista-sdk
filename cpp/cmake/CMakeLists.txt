@@ -23,7 +23,6 @@ option(VISTA_SDK_CPP_RUN_BENCHMARKS        "Run benchmarks after build"         
 option(VISTA_SDK_CPP_COPY_RESOURCES        "Copy resources to build directory"                         ON     )
 option(VISTA_SDK_CPP_BUILD_SAMPLES         "Build vista-sdk-cpp samples"                               OFF    )
 option(VISTA_SDK_CPP_BUILD_DOCUMENTATION   "Build vista-sdk-cpp doxygen documentation"                 OFF    )
-option(CI_FORCE_DEBUG_SPDLOG_WARN          "For CI Debug builds, force SPDLOG_ACTIVE_LEVEL to WARN"    ON     )
 
 # --- Platform specific settings ---
 if(MSVC)
@@ -130,16 +129,10 @@ target_include_directories(${PROJECT_NAME}
 
 # --- Linker ---
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	spdlog::spdlog
 	nlohmann_json::nlohmann_json
 	zlibstatic
 	cpuid
 	fmt::fmt
-)
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-	$<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-	$<$<CONFIG:RelWithDebInfo>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF>
-	$<$<AND:$<CONFIG:Debug>,$<BOOL:${CI_FORCE_DEBUG_SPDLOG_WARN}>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN>
 )
 
 # --- Samples subdirectory ---
@@ -196,7 +189,6 @@ message(STATUS "Run Benchmarks      : ${VISTA_SDK_CPP_RUN_BENCHMARKS}")
 message(STATUS "Build Samples       : ${VISTA_SDK_CPP_BUILD_SAMPLES}")
 message(STATUS "Build Documentation : ${VISTA_SDK_CPP_BUILD_DOCUMENTATION}")
 message(STATUS "Copy Resources      : ${VISTA_SDK_CPP_COPY_RESOURCES}")
-message(STATUS "CI Force Spdlog WARN: ${CI_FORCE_DEBUG_SPDLOG_WARN}")
 
 message(STATUS "--------- Paths ---------")
 if(VISTA_SDK_CPP_COPY_RESOURCES)
@@ -224,9 +216,6 @@ message(STATUS "System Memory      : ${MEMORY_GB} GB total")
 message(STATUS "Processor Count    : ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 message(STATUS "--------- Dependencies ---------")
-if(TARGET spdlog::spdlog)
-	get_target_property(SPDLOG_VERSION spdlog::spdlog VERSION)
-endif()
 
 if(TARGET nlohmann_json::nlohmann_json)
 	string(REPLACE "v" "" NLOHMANN_VERSION "${NLOHMANN_JSON_VERSION}")
@@ -273,7 +262,6 @@ if(TARGET benchmark::benchmark)
 	get_target_property(BENCHMARK_VERSION benchmark::benchmark VERSION)
 endif()
 
-message(STATUS "spdlog version          : ${SPDLOG_VERSION}")
 message(STATUS "nlohmann/json version   : ${NLOHMANN_VERSION}")
 message(STATUS "{fmt} version           : ${FMT_VERSION}")
 message(STATUS "zlib version            : ${ZLIB_VERSION}")

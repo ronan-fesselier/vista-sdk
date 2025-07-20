@@ -29,6 +29,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( GMOD_DTO_KEY_CODE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_CODE;
 			}
 			catch ( ... )
@@ -46,6 +47,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( GMOD_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_VERSION;
 			}
 			catch ( ... )
@@ -71,20 +73,23 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.contains( GMOD_DTO_KEY_CODE ) || !json.at( GMOD_DTO_KEY_CODE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
 					GMOD_DTO_KEY_CODE );
+
 				return std::nullopt;
 			}
 			if ( !json.contains( GMOD_DTO_KEY_CATEGORY ) || !json.at( GMOD_DTO_KEY_CATEGORY ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
 					GMOD_DTO_KEY_CATEGORY );
+
 				return std::nullopt;
 			}
 			if ( !json.contains( GMOD_DTO_KEY_TYPE ) || !json.at( GMOD_DTO_KEY_TYPE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD Node JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
 					GMOD_DTO_KEY_TYPE );
+
 				return std::nullopt;
 			}
 
@@ -101,33 +106,35 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					SPDLOG_ERROR( "GMOD Node JSON (code='{}') field '{}' is present but not a string",
+					fmt::print( stderr, "ERROR: GMOD Node JSON (code='{}') field '{}' is present but not a string\n",
 						tempCode, GMOD_DTO_KEY_NAME );
+
 					return std::nullopt;
 				}
 			}
 			else
 			{
-				SPDLOG_WARN( "GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.",
+				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.\n",
 					tempCode, GMOD_DTO_KEY_NAME );
+
 				tempName = "";
 			}
 
 			if ( tempCode.empty() )
 			{
-				SPDLOG_WARN( "Empty code field found in GMOD node" );
+				fmt::print( stderr, "WARN: Empty code field found in GMOD node\n" );
 			}
 			if ( tempCategory.empty() )
 			{
-				SPDLOG_WARN( "Empty category field found in GMOD node code='{}'", tempCode );
+				fmt::print( stderr, "WARN: Empty category field found in GMOD node code='{}'\n", tempCode );
 			}
 			if ( tempType.empty() )
 			{
-				SPDLOG_WARN( "Empty type field found in GMOD node code='{}'", tempCode );
+				fmt::print( stderr, "WARN: Empty type field found in GMOD node code='{}'\n", tempCode );
 			}
 			if ( tempName.empty() )
 			{
-				SPDLOG_WARN( "Empty name field used for GMOD node code='{}'", tempCode );
+				fmt::print( stderr, "WARN: Empty name field used for GMOD node code='{}'\n", tempCode );
 			}
 
 			std::optional<std::string> tempCommonName = std::nullopt;
@@ -139,7 +146,7 @@ namespace dnv::vista::sdk
 				}
 				else if ( !json.at( GMOD_DTO_KEY_COMMON_NAME ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
 						tempCode, GMOD_DTO_KEY_COMMON_NAME );
 				}
 			}
@@ -153,7 +160,7 @@ namespace dnv::vista::sdk
 				}
 				else if ( !json.at( GMOD_DTO_KEY_DEFINITION ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
 						tempCode, GMOD_DTO_KEY_DEFINITION );
 				}
 			}
@@ -167,7 +174,7 @@ namespace dnv::vista::sdk
 				}
 				else if ( !json.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}'",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
 						tempCode, GMOD_DTO_KEY_COMMON_DEFINITION );
 				}
 			}
@@ -181,7 +188,7 @@ namespace dnv::vista::sdk
 				}
 				else if ( !json.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}'",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-bool '{}'\n",
 						tempCode, GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
 				}
 			}
@@ -201,13 +208,13 @@ namespace dnv::vista::sdk
 					}
 					catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 					{
-						SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object: {}",
+						fmt::print( stderr, "WARN: GMOD Node code='{}' failed to parse '{}' object: {}\n",
 							tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
 					}
 				}
 				else if ( !json.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}'",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-object '{}'\n",
 						tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
 				}
 			}
@@ -228,14 +235,16 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during GmodNodeDto parsing (hint: code='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during GmodNodeDto parsing (hint: code='{}'): {}\n",
 				codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodNodeDto parsing (hint: code='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during GmodNodeDto parsing (hint: code='{}'): {}\n",
 				codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -307,20 +316,20 @@ namespace dnv::vista::sdk
 			}
 			else if ( j.at( GMOD_DTO_KEY_NAME ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node JSON (code='{}') has null '{}' field. Defaulting name to empty string.",
+				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') has null '{}' field. Defaulting name to empty string.\n",
 					tempCode, GMOD_DTO_KEY_NAME );
 				tempName = "";
 			}
 			else
 			{
-				SPDLOG_WARN( "GMOD Node JSON (code='{}') has non-string '{}' field. Defaulting name to empty string.",
+				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') has non-string '{}' field. Defaulting name to empty string.\n",
 					tempCode, GMOD_DTO_KEY_NAME );
 				tempName = "";
 			}
 		}
 		else
 		{
-			SPDLOG_WARN( "GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.",
+			fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.\n",
 				tempCode, GMOD_DTO_KEY_NAME );
 			tempName = "";
 		}
@@ -335,7 +344,7 @@ namespace dnv::vista::sdk
 			}
 			else if ( !j.at( GMOD_DTO_KEY_COMMON_NAME ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
 					tempCode, GMOD_DTO_KEY_COMMON_NAME );
 			}
 		}
@@ -349,7 +358,7 @@ namespace dnv::vista::sdk
 			}
 			else if ( !j.at( GMOD_DTO_KEY_DEFINITION ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
 					tempCode, GMOD_DTO_KEY_DEFINITION );
 			}
 		}
@@ -363,7 +372,7 @@ namespace dnv::vista::sdk
 			}
 			else if ( !j.at( GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-string '{}' in from_json",
+				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
 					tempCode, GMOD_DTO_KEY_COMMON_DEFINITION );
 			}
 		}
@@ -377,7 +386,7 @@ namespace dnv::vista::sdk
 			}
 			else if ( !j.at( GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-bool '{}' in from_json",
+				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-bool '{}' in from_json\n",
 					tempCode, GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
 			}
 		}
@@ -397,13 +406,13 @@ namespace dnv::vista::sdk
 				}
 				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 				{
-					SPDLOG_WARN( "GMOD Node code='{}' failed to parse '{}' object in from_json: {}",
+					fmt::print( stderr, "WARN: GMOD Node code='{}' failed to parse '{}' object in from_json: {}\n",
 						tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
 				}
 			}
 			else if ( !j.at( GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
 			{
-				SPDLOG_WARN( "GMOD Node code='{}' has non-object '{}' in from_json",
+				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-object '{}' in from_json\n",
 					tempCode, GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
 			}
 		}
@@ -467,7 +476,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.contains( GMOD_DTO_KEY_VIS_RELEASE ) || !json.at( GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				SPDLOG_ERROR( "GMOD JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: GMOD JSON missing required '{}' field or not a string\n",
 					GMOD_DTO_KEY_VIS_RELEASE );
 				return std::nullopt;
 			}
@@ -482,7 +491,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !json.at( GMOD_DTO_KEY_ITEMS ).is_array() )
 				{
-					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
 						GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 				}
 				else
@@ -501,12 +510,10 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							SPDLOG_WARN( "Skipping malformed GMOD node during GmodDto parsing for VIS version {}",
+							fmt::print( stderr, "WARN: Skipping malformed GMOD node during GmodDto parsing for VIS version {}\n",
 								std::string_view{ tempVisVersion } );
 						}
 					}
-
-					SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD nodes", successCount, totalItems );
 
 					/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
 					if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
@@ -520,7 +527,7 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' array found in GmodDto for VIS version {}",
+				fmt::print( stderr, "WARN: No '{}' array found in GmodDto for VIS version {}\n",
 					GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 			}
 
@@ -532,7 +539,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !json.at( GMOD_DTO_KEY_RELATIONS ).is_array() )
 				{
-					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
 						GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
 				}
 				else
@@ -557,7 +564,7 @@ namespace dnv::vista::sdk
 								}
 								else
 								{
-									SPDLOG_WARN( "Non-string value found in relation entry for VIS version {}",
+									fmt::print( stderr, "WARN: Non-string value found in relation entry for VIS version {}\n",
 										std::string_view{ tempVisVersion } );
 									validPair = false;
 									break;
@@ -572,12 +579,10 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							SPDLOG_WARN( "Non-array entry found in '{}' array for VIS version {}",
+							fmt::print( stderr, "WARN: Non-array entry found in '{}' array for VIS version {}\n",
 								GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
 						}
 					}
-
-					SPDLOG_DEBUG( "Successfully parsed {}/{} GMOD relations", validRelationCount, relationCount );
 
 					/* If parsing failed for more than 10% of relations, shrink the vector to potentially save memory */
 					if ( relationCount > 0 && validRelationCount < relationCount * 9 / 10 )
@@ -591,14 +596,12 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' array found in GmodDto for VIS version {}",
+				fmt::print( stderr, "WARN: No '{}' array found in GmodDto for VIS version {}\n",
 					GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
 			}
 
 			if ( tempItems.size() > 10000 )
 			{
-				[[maybe_unused]] const size_t approxMemoryUsage = ( tempItems.size() * sizeof( GmodNodeDto ) + tempRelations.size() * 24 ) / ( 1024 * 1024 );
-				SPDLOG_DEBUG( "Large GMOD model loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 			}
 
 			/* Construct the final DTO using successfully parsed data */
@@ -608,13 +611,13 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during GmodDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during GmodDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during GmodDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during GmodDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
 			return std::nullopt;
 		}

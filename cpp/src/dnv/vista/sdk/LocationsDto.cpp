@@ -29,6 +29,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( LOCATIONS_DTO_KEY_CODE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_CODE;
 			}
 			catch ( ... )
@@ -46,6 +47,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( LOCATIONS_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_VERSION;
 			}
 			catch ( ... )
@@ -71,34 +73,37 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for RelativeLocationsDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for RelativeLocationsDto is not an object\n" );
 				return std::nullopt;
 			}
 
 			if ( !json.contains( LOCATIONS_DTO_KEY_CODE ) || !json.at( LOCATIONS_DTO_KEY_CODE ).is_string() )
 			{
-				SPDLOG_ERROR( "RelativeLocationsDto JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
 					LOCATIONS_DTO_KEY_CODE );
+
 				return std::nullopt;
 			}
 			if ( !json.contains( LOCATIONS_DTO_KEY_NAME ) || !json.at( LOCATIONS_DTO_KEY_NAME ).is_string() )
 			{
-				SPDLOG_ERROR( "RelativeLocationsDto JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
 					LOCATIONS_DTO_KEY_NAME );
+
 				return std::nullopt;
 			}
 
 			std::string codeStr = json.at( LOCATIONS_DTO_KEY_CODE ).get<std::string>();
 			if ( codeStr.empty() || codeStr.length() != 1 )
 			{
-				SPDLOG_ERROR( "RelativeLocationsDto (hint: code='{}') has invalid code format", codeHint );
+				fmt::print( stderr, "ERROR: RelativeLocationsDto (hint: code='{}') has invalid code format\n", codeHint );
+
 				return std::nullopt;
 			}
 
 			std::string tempName = json.at( LOCATIONS_DTO_KEY_NAME ).get<std::string>();
 			if ( tempName.empty() )
 			{
-				SPDLOG_WARN( "Empty name field found in RelativeLocationsDto code='{}'", codeStr );
+				fmt::print( stderr, "WARN: Empty name field found in RelativeLocationsDto code='{}'\n", codeStr );
 			}
 
 			char tempCode = codeStr[0];
@@ -112,8 +117,7 @@ namespace dnv::vista::sdk
 				}
 				else if ( !json.at( LOCATIONS_DTO_KEY_DEFINITION ).is_null() )
 				{
-					SPDLOG_WARN( "RelativeLocationsDto code='{}' has non-string definition field",
-						codeStr );
+					fmt::print( stderr, "WARN: RelativeLocationsDto code='{}' has non-string definition field\n", codeStr );
 				}
 			}
 
@@ -126,14 +130,16 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during RelativeLocationsDto parsing (hint: code='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during RelativeLocationsDto parsing (hint: code='{}'): {}\n",
 				codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during RelativeLocationsDto parsing (hint: code='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during RelativeLocationsDto parsing (hint: code='{}'): {}\n",
 				codeHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -145,6 +151,7 @@ namespace dnv::vista::sdk
 		{
 			throw std::invalid_argument( "Failed to deserialize RelativeLocationsDto from JSON" );
 		}
+
 		return std::move( dtoOpt ).value();
 	}
 
@@ -155,6 +162,7 @@ namespace dnv::vista::sdk
 	nlohmann::json RelativeLocationsDto::toJson() const
 	{
 		nlohmann::json j = *this;
+
 		return j;
 	}
 
@@ -163,6 +171,7 @@ namespace dnv::vista::sdk
 		j = nlohmann::json{
 			{ LOCATIONS_DTO_KEY_CODE, std::string( 1, dto.m_code ) },
 			{ LOCATIONS_DTO_KEY_NAME, dto.m_name } };
+
 		if ( dto.m_definition.has_value() )
 		{
 			j[LOCATIONS_DTO_KEY_DEFINITION] = dto.m_definition.value();
@@ -194,7 +203,7 @@ namespace dnv::vista::sdk
 		dto.m_name = ( nameIt->get<std::string>() );
 		if ( dto.m_name.empty() )
 		{
-			SPDLOG_WARN( "Empty name field found in RelativeLocationsDto code='{}'", dto.m_code );
+			fmt::print( stderr, "WARN: Empty name field found in RelativeLocationsDto code='{}'\n", dto.m_code );
 		}
 
 		if ( defIt != j.end() && defIt->is_string() )
@@ -203,7 +212,7 @@ namespace dnv::vista::sdk
 
 			if ( dto.m_definition.has_value() && dto.m_definition->empty() )
 			{
-				SPDLOG_WARN( "Empty definition field found in RelativeLocationsDto code='{}'", dto.m_code );
+				fmt::print( stderr, "WARN: Empty definition field found in RelativeLocationsDto code='{}'\n", dto.m_code );
 			}
 		}
 		else
@@ -228,35 +237,41 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				SPDLOG_ERROR( "JSON value for LocationsDto is not an object" );
+				fmt::print( stderr, "ERROR: JSON value for LocationsDto is not an object\n" );
+
 				return std::nullopt;
 			}
 
 			if ( !json.contains( LOCATIONS_DTO_KEY_VIS_RELEASE ) || !json.at( LOCATIONS_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				SPDLOG_ERROR( "LocationsDto JSON missing required '{}' field or not a string",
+				fmt::print( stderr, "ERROR: LocationsDto JSON missing required '{}' field or not a string\n",
 					LOCATIONS_DTO_KEY_VIS_RELEASE );
+
 				return std::nullopt;
 			}
 			if ( !json.contains( LOCATIONS_DTO_KEY_ITEMS ) || !json.at( LOCATIONS_DTO_KEY_ITEMS ).is_array() )
 			{
-				SPDLOG_ERROR( "LocationsDto JSON missing required '{}' array", LOCATIONS_DTO_KEY_ITEMS );
+				fmt::print( stderr, "ERROR: LocationsDto JSON missing required '{}' array\n", LOCATIONS_DTO_KEY_ITEMS );
+
 				return std::nullopt;
 			}
 
 			LocationsDto dto = json.get<LocationsDto>();
+
 			return std::optional<LocationsDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during LocationsDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during LocationsDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
+
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during LocationsDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during LocationsDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
+
 			return std::nullopt;
 		}
 	}
@@ -268,6 +283,7 @@ namespace dnv::vista::sdk
 		{
 			throw std::invalid_argument( "Failed to deserialize LocationsDto from JSON" );
 		}
+
 		return std::move( dtoOpt ).value();
 	}
 
@@ -309,7 +325,7 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_visVersion.empty() )
 		{
-			SPDLOG_WARN( "Empty visVersion field found in LocationsDto" );
+			fmt::print( stderr, "WARN: Empty visVersion field found in LocationsDto\n" );
 		}
 
 		const auto& jsonArray = *itemsIt;
@@ -319,12 +335,12 @@ namespace dnv::vista::sdk
 		if ( totalItems > 10000 )
 		{
 			[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( RelativeLocationsDto ) ) / ( 1024 * 1024 );
-			SPDLOG_DEBUG( "Large locations dataset loaded: ~{} MB estimated memory usage", approxMemoryUsage );
 		}
 
 		const size_t reserveSize = totalItems < 1000
 									   ? totalItems + totalItems / 4
 									   : totalItems + totalItems / 16;
+
 		dto.m_items.reserve( reserveSize );
 
 		for ( const auto& itemJson : jsonArray )
@@ -337,11 +353,9 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				SPDLOG_WARN( "Skipping invalid RelativeLocationsDto item during parsing" );
+				fmt::print( stderr, "WARN: Skipping invalid RelativeLocationsDto item during parsing\n" );
 			}
 		}
-
-		SPDLOG_DEBUG( "Successfully parsed {}/{} relative locations", successCount, totalItems );
 
 		if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
 		{

@@ -115,6 +115,7 @@ namespace dnv::vista::sdk
 								if ( setNode->isLeafNode() || j == pathParents.size() )
 								{
 									hasLeafNode = true;
+
 									break;
 								}
 							}
@@ -425,8 +426,11 @@ namespace dnv::vista::sdk
 			for ( char c : item )
 			{
 				if ( c == '/' )
+				{
 					++count;
+				}
 			}
+
 			return count;
 		}();
 
@@ -720,6 +724,7 @@ namespace dnv::vista::sdk
 				ctx.foundPathParents = std::move( reverseHierarchy );
 				ctx.foundEndNode = std::move( endNode );
 				ctx.pathFound = true;
+
 				return TraversalHandlerResult::Stop;
 			}
 
@@ -949,10 +954,6 @@ namespace dnv::vista::sdk
 			int nodeIdx = m_nodeIndices[j];
 			if ( nodeIdx < 0 || static_cast<size_t>( nodeIdx ) >= m_path.length() )
 			{
-				SPDLOG_ERROR( "GmodIndividualizableSet::toString(): Node index {} is out of bounds for path length {}. Skipping.",
-					nodeIdx,
-					m_path.length() );
-
 				continue;
 			}
 

@@ -227,9 +227,7 @@ namespace dnv::vista::sdk
 		  m_metadata{ other.m_metadata },
 		  m_children{ other.m_children },
 		  m_parents{ other.m_parents },
-		  m_childrenSet{ other.m_childrenSet },
-		  m_cachedProductType{ other.m_cachedProductType },
-		  m_cachedProductSelection{ other.m_cachedProductSelection }
+		  m_childrenSet{ other.m_childrenSet }
 	{
 	}
 
@@ -251,8 +249,6 @@ namespace dnv::vista::sdk
 		m_children = other.m_children;
 		m_parents = other.m_parents;
 		m_childrenSet = other.m_childrenSet;
-		m_cachedProductType = other.m_cachedProductType;
-		m_cachedProductSelection = other.m_cachedProductSelection;
 
 		return *this;
 	}
@@ -336,66 +332,66 @@ namespace dnv::vista::sdk
 		return m_parents;
 	}
 
-	inline const GmodNode* GmodNode::productType() const noexcept
+	inline std::optional<GmodNode> GmodNode::productType() const noexcept
 	{
 		if ( m_children.size() != 1 )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( !contains( m_metadata.category(), GMODNODE_CATEGORY_FUNCTION ) )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		const GmodNode* child = m_children[0];
 		if ( !child )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( child->m_metadata.category() != GMODNODE_CATEGORY_PRODUCT )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( child->m_metadata.type() != GMODNODE_TYPE_TYPE )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
-		return child;
+		return *child;
 	}
 
-	inline const GmodNode* GmodNode::productSelection() const noexcept
+	inline std::optional<GmodNode> GmodNode::productSelection() const noexcept
 	{
 		if ( m_children.size() != 1 )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( !contains( m_metadata.category(), GMODNODE_CATEGORY_FUNCTION ) )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		const GmodNode* child = m_children[0];
 		if ( !child )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( !contains( child->m_metadata.category(), GMODNODE_CATEGORY_PRODUCT ) )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
 		if ( child->m_metadata.type() != GMODNODE_TYPE_SELECTION )
 		{
-			return nullptr;
+			return std::nullopt;
 		}
 
-		return child;
+		return *child;
 	}
 
 	//----------------------------------------------
@@ -442,58 +438,14 @@ namespace dnv::vista::sdk
 
 	inline bool GmodNode::isMappable() const noexcept
 	{
-		if ( !m_cachedProductType.has_value() )
-		{
-			if ( m_children.size() == 1 &&
-				 m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) != std::string::npos )
-			{
-				const GmodNode* child = m_children[0];
-				if ( child &&
-					 child->m_metadata.category() == GMODNODE_CATEGORY_PRODUCT &&
-					 child->m_metadata.type() == GMODNODE_TYPE_TYPE )
-				{
-					m_cachedProductType = child;
-				}
-				else
-				{
-					m_cachedProductType = nullptr;
-				}
-			}
-			else
-			{
-				m_cachedProductType = nullptr;
-			}
-		}
-
-		if ( m_cachedProductType.value() != nullptr )
+		auto productTypeOpt = productType();
+		if ( productTypeOpt.has_value() )
 		{
 			return false;
 		}
 
-		if ( !m_cachedProductSelection.has_value() )
-		{
-			if ( m_children.size() == 1 &&
-				 m_metadata.category().find( GMODNODE_CATEGORY_FUNCTION ) != std::string::npos )
-			{
-				const GmodNode* child = m_children[0];
-				if ( child &&
-					 child->m_metadata.category().find( GMODNODE_CATEGORY_PRODUCT ) != std::string::npos &&
-					 child->m_metadata.type() == GMODNODE_TYPE_SELECTION )
-				{
-					m_cachedProductSelection = child;
-				}
-				else
-				{
-					m_cachedProductSelection = nullptr;
-				}
-			}
-			else
-			{
-				m_cachedProductSelection = nullptr;
-			}
-		}
-
-		if ( m_cachedProductSelection.value() != nullptr )
+		auto productSelectionOpt = productSelection();
+		if ( productSelectionOpt.has_value() )
 		{
 			return false;
 		}
@@ -579,9 +531,6 @@ namespace dnv::vista::sdk
 
 		m_children.push_back( child );
 		m_childrenSet.emplace( childCode );
-
-		m_cachedProductType.reset();
-		m_cachedProductSelection.reset();
 	}
 
 	inline void GmodNode::addParent( GmodNode* parent ) noexcept

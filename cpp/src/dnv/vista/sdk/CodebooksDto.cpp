@@ -29,6 +29,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( CODEBOOK_DTO_KEY_NAME ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_NAME;
 			}
 			catch ( ... )
@@ -46,6 +47,7 @@ namespace dnv::vista::sdk
 					const auto& str = json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
+
 				return UNKNOWN_VERSION;
 			}
 			catch ( ... )
@@ -71,7 +73,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.contains( CODEBOOK_DTO_KEY_NAME ) || !json.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
 			{
-				SPDLOG_ERROR( "Codebook JSON missing required '{}' field or field is not a string",
+				fmt::print( stderr, "ERROR: Codebook JSON missing required '{}' field or field is not a string\n",
 					CODEBOOK_DTO_KEY_NAME );
 
 				return std::nullopt;
@@ -85,7 +87,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !json.at( CODEBOOK_DTO_KEY_VALUES ).is_object() )
 				{
-					SPDLOG_WARN( "No '{}' object found or not an object for codebook '{}'",
+					fmt::print( stderr, "WARN: No '{}' object found or not an object for codebook '{}'\n",
 						CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 				}
 				else
@@ -98,7 +100,7 @@ namespace dnv::vista::sdk
 					{
 						if ( !groupValueJson.is_array() )
 						{
-							SPDLOG_WARN( "Group '{}' values are not in array format for codebook '{}', skipping",
+							fmt::print( stderr, "WARN: Group '{}' values are not in array format for codebook '{}', skipping\n",
 								std::string_view{ groupName }, std::string_view{ tempName } );
 
 							continue;
@@ -114,7 +116,7 @@ namespace dnv::vista::sdk
 						}
 						catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 						{
-							SPDLOG_WARN( "Error parsing values for group '{}' in codebook '{}': {}. Skipping group.",
+							fmt::print( stderr, "WARN: Error parsing values for group '{}' in codebook '{}': {}. Skipping group.\n",
 								std::string_view{ groupName }, std::string_view{ tempName }, ex.what() );
 						}
 					}
@@ -122,7 +124,7 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' object found for codebook '{}'",
+				fmt::print( stderr, "WARN: No '{}' object found for codebook '{}'\n",
 					CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 			}
 
@@ -133,14 +135,14 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during CodebookDto parsing (hint: name='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during CodebookDto parsing (hint: name='{}'): {}\n",
 				nameHint, ex.what() );
 
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during CodebookDto parsing (hint: name='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during CodebookDto parsing (hint: name='{}'): {}\n",
 				nameHint, ex.what() );
 
 			return std::nullopt;
@@ -177,7 +179,8 @@ namespace dnv::vista::sdk
 		if ( !j.contains( CODEBOOK_DTO_KEY_NAME ) || !j.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "CodebookDto JSON missing required '{}' field or field is not a string",
+				fmt::format(
+					"CodebookDto JSON missing required '{}' field or field is not a string",
 					CODEBOOK_DTO_KEY_NAME ),
 				nullptr );
 		}
@@ -186,7 +189,7 @@ namespace dnv::vista::sdk
 		std::string tempName = j.at( CODEBOOK_DTO_KEY_NAME ).get<std::string>();
 		if ( tempName.empty() )
 		{
-			SPDLOG_WARN( "Empty name field found in CodebookDto" );
+			fmt::print( stderr, "WARN: Empty name field found in CodebookDto\n" );
 		}
 
 		CodebookDto::ValuesMap tempValues;
@@ -221,7 +224,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				SPDLOG_ERROR( "Codebooks JSON missing required '{}' field or field is not a string",
+				fmt::print( stderr, "ERROR: Codebooks JSON missing required '{}' field or field is not a string\n",
 					CODEBOOK_DTO_KEY_VIS_RELEASE );
 
 				return std::nullopt;
@@ -237,7 +240,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !json.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
 				{
-					SPDLOG_WARN( "'{}' field is not an array for VIS version {}",
+					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
 						CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 				}
 				else
@@ -258,7 +261,7 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							SPDLOG_WARN( "Skipping invalid codebook item during CodebooksDto parsing for VIS version {}.",
+							fmt::print( stderr, "WARN: Skipping invalid codebook item during CodebooksDto parsing for VIS version {}.\n",
 								std::string_view{ tempVisVersion } );
 						}
 					}
@@ -275,7 +278,7 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				SPDLOG_WARN( "No '{}' array found in CodebooksDto for VIS version {}",
+				fmt::print( stderr, "WARN: No '{}' array found in CodebooksDto for VIS version {}\n",
 					CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 			}
 
@@ -286,14 +289,14 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			SPDLOG_ERROR( "JSON exception during CodebooksDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: JSON exception during CodebooksDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
 
 			return std::nullopt;
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			SPDLOG_ERROR( "Standard exception during CodebooksDto parsing (hint: visRelease='{}'): {}",
+			fmt::print( stderr, "ERROR: Standard exception during CodebooksDto parsing (hint: visRelease='{}'): {}\n",
 				visHint, ex.what() );
 
 			return std::nullopt;
@@ -330,13 +333,19 @@ namespace dnv::vista::sdk
 		if ( !j.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !j.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 201, 0u,
-				fmt::format( "Codebooks JSON missing required '{}' field", CODEBOOK_DTO_KEY_VIS_RELEASE ), nullptr );
+				fmt::format(
+					"Codebooks JSON missing required '{}' field",
+					CODEBOOK_DTO_KEY_VIS_RELEASE ),
+				nullptr );
 		}
 
 		if ( !j.contains( CODEBOOK_DTO_KEY_ITEMS ) || !j.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
 		{
 			throw nlohmann::json::parse_error::create( 202, 0u,
-				fmt::format( "Codebooks JSON missing required '{}' array", CODEBOOK_DTO_KEY_ITEMS ), nullptr );
+				fmt::format(
+					"Codebooks JSON missing required '{}' array",
+					CODEBOOK_DTO_KEY_ITEMS ),
+				nullptr );
 		}
 
 		/* Extract required fields */

@@ -11,7 +11,6 @@
 #include <variant>
 
 /* Libs */
-#include <spdlog/spdlog.h>
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
