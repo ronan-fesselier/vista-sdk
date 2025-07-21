@@ -10,16 +10,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Accessors
-	//----------------------------------------------
-
-	inline VisVersion GmodVersioning::GmodVersioningNode::visVersion() const
-	{
-		return m_visVersion;
-	}
-
-	//----------------------------------------------
-	// Inline validation methods
+	// Private validation methods
 	//----------------------------------------------
 
 	inline void GmodVersioning::validateSourceAndTargetVersions(
@@ -56,24 +47,27 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Inline hot path helper methods
+	// Private helper methods
 	//----------------------------------------------
 
 	inline bool GmodVersioning::tryGetVersioningNode(
 		VisVersion visVersion,
-		GmodVersioningNode& versioningNode ) const
+		const GmodVersioningNode*& versioningNode ) const
 	{
 		auto it = m_versioningsMap.find( visVersion );
 		if ( it != m_versioningsMap.end() )
 		{
-			versioningNode = it->second;
+			versioningNode = &it->second;
+
 			return true;
 		}
+		versioningNode = nullptr;
+
 		return false;
 	}
 
 	//----------------------------------------------
-	// Inline conversion type parsing
+	// Private static utility methods
 	//----------------------------------------------
 
 	inline GmodVersioning::ConversionType GmodVersioning::parseConversionType( std::string_view type )
@@ -101,4 +95,32 @@ namespace dnv::vista::sdk
 
 		throw std::invalid_argument( "Invalid conversion type: " + std::string{ type } );
 	}
+
+	//----------------------------------------------
+	// GmodVersioning::GmodVersioningNode class
+	//----------------------------------------------
+
+	//----------------------------
+	// Accessors
+	//----------------------------
+
+	inline VisVersion GmodVersioning::GmodVersioningNode::visVersion() const
+	{
+		return m_visVersion;
+	}
+
+	inline bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
+		std::string_view code, const GmodNodeConversion*& nodeChanges ) const
+	{
+		auto it = m_versioningNodeChanges.find( code );
+		if ( it != m_versioningNodeChanges.end() )
+		{
+			nodeChanges = &it->second;
+
+			return true;
+		}
+
+		return false;
+	}
+
 }

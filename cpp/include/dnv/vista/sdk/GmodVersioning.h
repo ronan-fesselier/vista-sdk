@@ -152,9 +152,10 @@ namespace dnv::vista::sdk
 		class GmodVersioningNode final
 		{
 		public:
-			//----------------------------------------------
+			//----------------------------
 			// Construction
-			//----------------------------------------------
+			//----------------------------
+
 			/**
 			 * @brief Constructor for GmodVersioningNode
 			 */
@@ -170,16 +171,16 @@ namespace dnv::vista::sdk
 			/** @brief Move constructor */
 			GmodVersioningNode( GmodVersioningNode&& ) noexcept = default;
 
-			//----------------------------------------------
+			//----------------------------
 			// Destruction
-			//----------------------------------------------
+			//----------------------------
 
 			/** @brief Destructor */
 			~GmodVersioningNode() = default;
 
-			//----------------------------------------------
+			//----------------------------
 			// Assignment operators
-			//----------------------------------------------
+			//----------------------------
 
 			/** @brief Copy assignment operator */
 			GmodVersioningNode& operator=( const GmodVersioningNode& ) = default;
@@ -187,9 +188,9 @@ namespace dnv::vista::sdk
 			/** @brief Move assignment operator */
 			GmodVersioningNode& operator=( GmodVersioningNode&& ) noexcept = delete;
 
-			//----------------------------------------------
+			//----------------------------
 			// Accessors
-			//----------------------------------------------
+			//----------------------------
 
 			/**
 			 * @brief Get the VIS version of this versioning node
@@ -199,12 +200,12 @@ namespace dnv::vista::sdk
 			/**
 			 * @brief Try to get code changes for a specific node code
 			 */
-			bool tryGetCodeChanges( std::string_view code, GmodNodeConversion& nodeChanges ) const;
+			inline bool tryGetCodeChanges( std::string_view code, const GmodNodeConversion*& nodeChanges ) const;
 
 		private:
-			//----------------------------------------------
+			//----------------------------
 			// Private member variables
-			//----------------------------------------------
+			//----------------------------
 
 			VisVersion m_visVersion;
 			StringMap<GmodNodeConversion> m_versioningNodeChanges;
@@ -235,7 +236,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Try to get a versioning node for a specific VIS version
 		 */
-		[[nodiscard]] inline bool tryGetVersioningNode( VisVersion visVersion, GmodVersioningNode& versioningNode ) const;
+		[[nodiscard]] inline bool tryGetVersioningNode( VisVersion visVersion, const GmodVersioningNode*& versioningNode ) const;
 
 		//----------------------------------------------
 		// Private validation methods

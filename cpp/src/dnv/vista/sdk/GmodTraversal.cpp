@@ -62,6 +62,7 @@ namespace dnv::vista::sdk
 
 			return traverse( capturedHandler, rootNode, wrapperHandler, options );
 		}
+
 		bool pathExistsBetween(
 			const Gmod& gmodInstance,
 			const std::vector<const GmodNode*>& fromPath,
