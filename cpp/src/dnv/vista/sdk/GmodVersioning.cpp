@@ -30,26 +30,33 @@ namespace dnv::vista::sdk
 			const GmodNode& prev = path.back();
 			if ( !prev.isChild( node ) )
 			{
+				thread_local std::vector<const GmodNode*> currentParents;
+				thread_local std::vector<const GmodNode*> remaining;
+				
 				for ( int j = static_cast<int>( path.size() ) - 1; j >= 0; --j )
 				{
 					const GmodNode& parent = path[static_cast<size_t>( j )];
 
-					std::vector<const GmodNode*> currentParents;
+					currentParents.clear();
 					currentParents.reserve( static_cast<size_t>( j + 1 ) );
 					for ( size_t k = 0; k <= static_cast<size_t>( j ); ++k )
 					{
 						currentParents.push_back( &path[k] );
 					}
 
-					std::vector<const GmodNode*> remaining;
+					remaining.clear();
 					if ( !GmodTraversal::pathExistsBetween( gmod, currentParents, node, remaining ) )
 					{
+						bool hasOtherAssetFunction = false;
 						const std::string_view parentCode = parent.code();
-						const bool hasOtherAssetFunction = std::any_of(
-							currentParents.cbegin(), currentParents.cend(),
-							[parentCode]( const GmodNode* pathNode ) {
-								return pathNode->isAssetFunctionNode() && pathNode->code() != parentCode;
-							} );
+						for ( const GmodNode* pathNode : currentParents )
+						{
+							if ( pathNode->isAssetFunctionNode() && pathNode->code() != parentCode )
+							{
+								hasOtherAssetFunction = true;
+								break;
+							}
+						}
 
 						if ( !hasOtherAssetFunction )
 						{
@@ -59,34 +66,20 @@ namespace dnv::vista::sdk
 					}
 					else
 					{
-						std::vector<GmodNode> nodes;
-						nodes.reserve( remaining.size() );
+						path.reserve( path.size() + remaining.size() );
+						const auto nodeLocation = node.location();
 
-						if ( const auto nodeLocationOpt = node.location(); nodeLocationOpt.has_value() )
+						for ( const GmodNode* n : remaining )
 						{
-							const auto& nodeLocation = *nodeLocationOpt;
-							for ( const GmodNode* n : remaining )
+							if ( nodeLocation.has_value() && n->isIndividualizable( false, true ) )
 							{
-								if ( !n->isIndividualizable( false, true ) )
-								{
-									nodes.emplace_back( *n );
-								}
-								else
-								{
-									nodes.emplace_back( n->tryWithLocation( nodeLocation ) );
-								}
+								path.emplace_back( n->tryWithLocation( nodeLocation.value() ) );
+							}
+							else
+							{
+								path.emplace_back( *n );
 							}
 						}
-						else
-						{
-							for ( const GmodNode* n : remaining )
-							{
-								nodes.emplace_back( *n );
-							}
-						}
-
-						path.insert( path.end(), std::make_move_iterator( nodes.begin() ),
-							std::make_move_iterator( nodes.end() ) );
 						break;
 					}
 				}
@@ -444,9 +437,9 @@ namespace dnv::vista::sdk
 	// GmodVersioning::GmodVersioningNode class
 	//----------------------------------------------
 
-	//----------------------------------------------
+	//----------------------------
 	// Construction
-	//----------------------------------------------
+	//----------------------------
 
 	GmodVersioning::GmodVersioningNode::GmodVersioningNode(
 		VisVersion visVersion,
@@ -481,23 +474,9 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
-		std::string_view code, GmodNodeConversion& nodeChanges ) const
-	{
-		auto it = m_versioningNodeChanges.find( code );
-		if ( it != m_versioningNodeChanges.end() )
-		{
-			nodeChanges = it->second;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	//----------------------------------------------
+	//----------------------------
 	// Private helper methods
-	//----------------------------------------------
+	//----------------------------
 
 	std::optional<GmodNode> GmodVersioning::convertNodeInternal(
 		[[maybe_unused]] VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const
@@ -508,16 +487,14 @@ namespace dnv::vista::sdk
 
 		const auto& targetGmod = VIS::instance().gmod( targetVersion );
 
-		auto versioningIt = m_versioningsMap.find( targetVersion );
-		if ( versioningIt != m_versioningsMap.end() )
+		const GmodVersioningNode* versioningNode = nullptr;
+		if ( tryGetVersioningNode( targetVersion, versioningNode ) )
 		{
-			const auto& versioningNode = versioningIt->second;
-
-			GmodNodeConversion change{};
-			if ( versioningNode.tryGetCodeChanges( nextCodeView, change ) && change.target.has_value() )
+			const GmodNodeConversion* change = nullptr;
+			if ( versioningNode->tryGetCodeChanges( nextCodeView, change ) && change && change->target.has_value() )
 			{
 				const GmodNode* targetNodePtr = nullptr;
-				if ( !targetGmod.tryGetNode( change.target.value(), targetNodePtr ) )
+				if ( !targetGmod.tryGetNode( change->target.value(), targetNodePtr ) )
 				{
 					return std::nullopt;
 				}
@@ -526,6 +503,7 @@ namespace dnv::vista::sdk
 				{
 					return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 				}
+
 				return *targetNodePtr;
 			}
 		}
@@ -540,6 +518,7 @@ namespace dnv::vista::sdk
 		{
 			return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 		}
+
 		return *targetNodePtr;
 	}
 
@@ -550,16 +529,14 @@ namespace dnv::vista::sdk
 
 		std::string_view nextCodeView = sourceNode.code();
 
-		auto versioningIt = m_versioningsMap.find( targetVersion );
-		if ( versioningIt != m_versioningsMap.end() )
+		const GmodVersioningNode* versioningNode = nullptr;
+		if ( tryGetVersioningNode( targetVersion, versioningNode ) )
 		{
-			const auto& versioningNode = versioningIt->second;
-
-			GmodNodeConversion change{};
-			if ( versioningNode.tryGetCodeChanges( nextCodeView, change ) && change.target.has_value() )
+			const GmodNodeConversion* change = nullptr;
+			if ( versioningNode->tryGetCodeChanges( nextCodeView, change ) && change && change->target.has_value() )
 			{
 				const GmodNode* targetNodePtr = nullptr;
-				if ( !targetGmod.tryGetNode( change.target.value(), targetNodePtr ) )
+				if ( !targetGmod.tryGetNode( change->target.value(), targetNodePtr ) )
 				{
 					return std::nullopt;
 				}
@@ -568,6 +545,7 @@ namespace dnv::vista::sdk
 				{
 					return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 				}
+
 				return *targetNodePtr;
 			}
 		}
@@ -582,6 +560,7 @@ namespace dnv::vista::sdk
 		{
 			return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 		}
+
 		return *targetNodePtr;
 	}
 }

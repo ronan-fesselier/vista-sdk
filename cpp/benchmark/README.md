@@ -66,7 +66,7 @@ dotnet run -c Release --project benchmark/Vista.SDK.Benchmarks/Vista.SDK.Benchma
 | **GMOD Lookup**              | **1.21-2.15x faster**            |   ✅   | C++ shows performance advantage     |
 | **GMOD Traversal**           | **2.08x slower**                 |   ❌   | **Optimization opportunity**        |
 | **Path Parsing**             | **8.36-11.0x slower**            |  ❌❌  | **Significant optimization needed** |
-| **Version Path Conversion**  | **162x slower**                  | ❌❌❌ | **Critical performance gap**        |
+| **Version Path Conversion**  | **19.7x slower**                  | ❌❌❌ | **Critical performance gap**        |
 
 ### Linux Platform Performance
 
@@ -395,7 +395,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation        | Windows C++ | Linux C++ | Performance Ratio | Status | Notes |
 | :--------------- | :---------- | :-------- | :---------------- | :----: | :---- |
-| **Convert Path** | 30.4 μs     | 172 μs    | **5.66x slower**  |   ⚠️   |       |
+| **Convert Path** | 29.4 μs     | 172 μs    | **5.85x slower**  |   ⚠️   |       |
 
 ### GMOD Versioning Path Conversion Performance Comparison
 
@@ -403,7 +403,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method      | Windows Time | Linux Time | Performance Ratio | C# Method (Win) | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)  |
 | :-------------- | :----------- | :--------- | :---------------- | :-------------- | :------------ | :---------------- | :-------------- | :------------------ | :----------------- |
-| **convertPath** | 30.4 μs      | 172 μs     | **5.66x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **20.4x slower** | ❌ **117x slower** |
+| **convertPath** | 29.4 μs      | 172 μs     | **5.85x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **19.7x slower** | ❌ **117x slower** |
 
 #### Detailed C++ Results
 
@@ -411,7 +411,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark       | Time    | CPU     | Iterations |
 | :-------------- | :------ | :------ | :--------- |
-| **convertPath** | 30.4 μs | 30.3 μs | 459K       |
+| **convertPath** | 29.4 μs | 29.4 μs | 479K       |
 
 ##### Linux Platform
 
