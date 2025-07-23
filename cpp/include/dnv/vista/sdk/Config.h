@@ -5,6 +5,19 @@
 
 #pragma once
 
+//=====================================================================
+// Cross-compiler performance macros
+//=====================================================================
+
+/** @brief Cross-compiler force inline directive for performance-critical functions */
+#if defined( _MSC_VER )
+#	define VISTA_SDK_CPP_FORCE_INLINE __forceinline
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#	define VISTA_SDK_CPP_FORCE_INLINE __attribute__( ( always_inline ) ) inline
+#else
+#	define VISTA_SDK_CPP_FORCE_INLINE inline
+#endif
+
 namespace dnv::vista::sdk
 {
 	namespace
