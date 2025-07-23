@@ -53,7 +53,7 @@ namespace dnv::vista::sdk
 	// Node query methods
 	//----------------------------------------------
 
-	inline bool Gmod::tryGetNode( std::string_view code, const GmodNode*& node ) const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE bool Gmod::tryGetNode( std::string_view code, const GmodNode*& node ) const noexcept
 	{
 		return m_nodeMap.tryGetValue( code, node );
 	}

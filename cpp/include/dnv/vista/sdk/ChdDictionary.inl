@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "Config.h"
 #include "utils/StringUtils.h"
 
 namespace dnv::vista::sdk
@@ -20,7 +19,7 @@ namespace dnv::vista::sdk
 		// CPU feature detection
 		//----------------------------------------------
 
-		inline bool hasSSE42Support() noexcept
+		VISTA_SDK_CPP_FORCE_INLINE bool hasSSE42Support() noexcept
 		{
 			static thread_local const bool s_hasSSE42 = []() {
 				bool hasSupport = false;
@@ -69,22 +68,22 @@ namespace dnv::vista::sdk
 		// Public static methods
 		//----------------------------
 
-		inline constexpr uint32_t Hashing::Larson( uint32_t hash, uint8_t ch ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE constexpr uint32_t Hashing::Larson( uint32_t hash, uint8_t ch ) noexcept
 		{
 			return 37 * hash + ch;
 		}
 
-		inline constexpr uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE constexpr uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch ) noexcept
 		{
 			return ( ch ^ hash ) * FNV_PRIME;
 		}
 
-		inline uint32_t Hashing::crc32( uint32_t hash, uint8_t ch ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE uint32_t Hashing::crc32( uint32_t hash, uint8_t ch ) noexcept
 		{
 			return _mm_crc32_u8( hash, ch );
 		}
 
-		inline constexpr uint32_t Hashing::seed( uint32_t seed, uint32_t hash, size_t size ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE constexpr uint32_t Hashing::seed( uint32_t seed, uint32_t hash, size_t size ) noexcept
 		{
 			/* Mixes the primary hash with the seed to find the final table slot */
 			uint32_t x{ seed + hash };
@@ -243,86 +242,14 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
+	VISTA_SDK_CPP_FORCE_INLINE TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
 	{
 		if ( isEmpty() )
 		{
 			ThrowHelper::throwKeyNotFoundException( key );
 		}
 
-		uint32_t hashValue = FNV_OFFSET_BASIS;
-
-		if ( !key.empty() )
-		{
-			const char* data = key.data();
-			size_t length = key.length();
-
-			static const bool hasSSE42 = hasSSE42Support();
-
-			if ( hasSSE42 )
-			{
-				while ( length >= 8 )
-				{
-					uint64_t chunk1 = 0, chunk2 = 0;
-
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[4] ) ) << 0;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[5] ) ) << 16;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[6] ) ) << 32;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[7] ) ) << 48;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk1 ) );
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk2 ) );
-
-					data += 8;
-					length -= 8;
-				}
-
-				if ( length >= 4 )
-				{
-					uint64_t chunk = 0;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk ) );
-					data += 4;
-					length -= 4;
-				}
-
-				if ( length >= 2 )
-				{
-					uint32_t chunk = 0;
-					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u32( hashValue, chunk ) );
-					data += 2;
-					length -= 2;
-				}
-
-				if ( length > 0 )
-				{
-					uint16_t chunk = static_cast<uint16_t>( static_cast<uint8_t>( data[0] ) );
-					hashValue = static_cast<uint32_t>( _mm_crc32_u16( hashValue, chunk ) );
-				}
-			}
-			else
-			{
-				const char* end = data + length;
-				while ( data < end )
-				{
-					hashValue = ( static_cast<uint8_t>( *data ) ^ hashValue ) * 0x01000193u;
-					++data;
-				}
-			}
-		}
-
+		uint32_t hashValue = hash( key );
 		const size_t tableSize = m_table.size();
 		const uint32_t index = hashValue & ( tableSize - 1 );
 		const int seed = m_seeds[index];
@@ -334,12 +261,7 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			uint32_t x{ static_cast<uint32_t>( seed ) + hashValue };
-			x ^= x >> 12;
-			x ^= x << 25;
-			x ^= x >> 27;
-
-			finalIndex = static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( tableSize - 1 ) );
+			finalIndex = Hashing::seed( static_cast<uint32_t>( seed ), hashValue, tableSize );
 		}
 
 		const auto& kvp = m_table[finalIndex];
@@ -398,120 +320,32 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE bool ChdDictionary<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const noexcept
 	{
-		outValue = nullptr;
-
 		if ( key.empty() )
 		{
+			outValue = nullptr;
 			return false;
 		}
 
-		if ( m_table.empty() )
-		{
-			return false;
-		}
-
-		uint32_t hashValue = FNV_OFFSET_BASIS;
-
-		if ( !key.empty() )
-		{
-			const char* data = key.data();
-			size_t length = key.length();
-
-			static const bool hasSSE42 = hasSSE42Support();
-
-			if ( hasSSE42 )
-			{
-				while ( length >= 8 )
-				{
-					uint64_t chunk1 = 0, chunk2 = 0;
-
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-					chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[4] ) ) << 0;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[5] ) ) << 16;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[6] ) ) << 32;
-					chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[7] ) ) << 48;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk1 ) );
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk2 ) );
-
-					data += 8;
-					length -= 8;
-				}
-
-				if ( length >= 4 )
-				{
-					uint64_t chunk = 0;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-					chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk ) );
-					data += 4;
-					length -= 4;
-				}
-
-				if ( length >= 2 )
-				{
-					uint32_t chunk = 0;
-					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-					chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-
-					hashValue = static_cast<uint32_t>( _mm_crc32_u32( hashValue, chunk ) );
-					data += 2;
-					length -= 2;
-				}
-
-				if ( length > 0 )
-				{
-					uint16_t chunk = static_cast<uint16_t>( static_cast<uint8_t>( data[0] ) );
-					hashValue = static_cast<uint32_t>( _mm_crc32_u16( hashValue, chunk ) );
-				}
-			}
-			else
-			{
-				const char* end = data + length;
-				while ( data < end )
-				{
-					hashValue = ( static_cast<uint8_t>( *data ) ^ hashValue ) * 0x01000193u;
-					++data;
-				}
-			}
-		}
-
+		const uint32_t hashValue = hash( key );
 		const size_t tableSize = m_table.size();
 		const uint32_t index = hashValue & ( tableSize - 1 );
 		const int seed = m_seeds[index];
 
-		size_t finalIndex;
-		if ( seed < 0 )
-		{
-			finalIndex = static_cast<size_t>( -seed - 1 );
-		}
-		else
-		{
-			uint32_t x{ static_cast<uint32_t>( seed ) + hashValue };
-			x ^= x >> 12;
-			x ^= x << 25;
-			x ^= x >> 27;
-
-			finalIndex = static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( tableSize - 1 ) );
-		}
+		const size_t finalIndex = ( seed < 0 ) ? static_cast<size_t>( -seed - 1 ) : Hashing::seed( static_cast<uint32_t>( seed ), hashValue, tableSize );
 
 		const auto& kvp = m_table[finalIndex];
+		const size_t keyLen = key.size();
+		const size_t storedLen = kvp.first.size();
 
-		if ( key.size() == kvp.first.size() && key.compare( kvp.first ) == 0 )
+		if ( keyLen == storedLen && ( keyLen == 0 || std::memcmp( key.data(), kvp.first.data(), keyLen ) == 0 ) )
 		{
 			outValue = &kvp.second;
 			return true;
 		}
 
+		outValue = nullptr;
 		return false;
 	}
 
@@ -558,7 +392,7 @@ namespace dnv::vista::sdk
 	//---------------------------
 
 	template <typename TValue>
-	inline uint32_t ChdDictionary<TValue>::hash( std::string_view key ) noexcept
+	VISTA_SDK_CPP_FORCE_INLINE uint32_t ChdDictionary<TValue>::hash( std::string_view key ) noexcept
 	{
 		if ( key.empty() )
 		{
