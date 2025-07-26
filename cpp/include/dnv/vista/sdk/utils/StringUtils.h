@@ -7,18 +7,7 @@
 
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <functional>
-#include <unordered_map>
-#include <unordered_set>
-
-#ifdef _MSC_VER
-#	include <intrin.h>
-#elif defined( __GNUC__ ) || defined( __clang__ )
-#	include <immintrin.h>
-#	include <x86intrin.h>
-#endif
+#include "dnv/vista/sdk/Config.h"
 
 namespace dnv::vista::sdk
 {
@@ -62,17 +51,17 @@ namespace dnv::vista::sdk
 	{
 		using is_transparent = void;
 
-		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR inline bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept
 		{
 			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR inline bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept
 		{
 			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR inline bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept
 		{
 			return lhs.size() == rhs.size() && lhs == rhs;
 		}
@@ -82,13 +71,13 @@ namespace dnv::vista::sdk
 			return lhs.size() == rhs.size() && lhs == rhs;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( const char* lhs, const std::string& rhs ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR inline bool operator()( const char* lhs, const std::string& rhs ) const noexcept
 		{
 			std::string_view lhs_view{ lhs };
 			return lhs_view.size() == rhs.size() && lhs_view == rhs;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( const std::string& lhs, const char* rhs ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR inline bool operator()( const std::string& lhs, const char* rhs ) const noexcept
 		{
 			std::string_view rhs_view{ rhs };
 			return lhs.size() == rhs_view.size() && lhs == rhs_view;
