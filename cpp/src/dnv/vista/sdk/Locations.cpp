@@ -20,17 +20,29 @@ namespace dnv::vista::sdk
 			switch ( group )
 			{
 				case LocationGroup::Number:
+				{
 					return "Number";
+				}
 				case LocationGroup::Side:
+				{
 					return "Side";
+				}
 				case LocationGroup::Vertical:
+				{
 					return "Vertical";
+				}
 				case LocationGroup::Transverse:
+				{
 					return "Transverse";
+				}
 				case LocationGroup::Longitudinal:
+				{
 					return "Longitudinal";
+				}
 				default:
+				{
 					return "Unknown";
+				}
 			}
 		}
 	}
@@ -409,7 +421,7 @@ namespace dnv::vista::sdk
 							invalidChars += ",";
 						}
 						first = false;
-						invalidChars += "'" + std::string( 1, c ) + "'";
+						invalidChars += std::string( "'" ) + std::string( 1, c ) + std::string( "'" );
 					}
 				}
 

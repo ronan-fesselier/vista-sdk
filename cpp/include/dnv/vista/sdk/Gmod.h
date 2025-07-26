@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ChdDictionary.h"
-#include "GmodNode.h"
 
 namespace dnv::vista::sdk
 {
@@ -21,6 +20,8 @@ namespace dnv::vista::sdk
 
 	enum class VisVersion;
 	class GmodDto;
+	class GmodNode;
+	class GmodNodeMetadata;
 	class GmodPath;
 
 	//=====================================================================

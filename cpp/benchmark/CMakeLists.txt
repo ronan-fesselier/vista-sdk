@@ -83,6 +83,30 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 				$<$<CONFIG:Release>:/OPT:ICF>          # Identical COMDAT folding
 				$<$<CONFIG:Release>:/INCREMENTAL:NO>   # Disable incremental linking
 			)
+		else()
+			# GCC/Clang settings for benchmarks
+			target_compile_options(${benchmark_target_name} PRIVATE
+				-std=c++20                             # C++20 standard
+				-Wall                                  # All warnings
+				-Wextra                                # Extra warnings
+				-msse4.2                               # SSE4.2 support (includes CRC32)
+				$<$<CXX_COMPILER_ID:Clang>:-mcrc32>    # Explicit CRC32 support for Clang
+				-mavx                                  # AVX support
+				-mavx2                                 # AVX2 support
+				-mfma                                  # Fused multiply-add
+
+				# Optimization settings
+				$<$<CONFIG:Release>:-O3>               # Maximum optimization
+				$<$<CONFIG:Release>:-march=native>     # Use all available CPU features
+				$<$<CONFIG:Release>:-mtune=native>     # Tune for current CPU
+				$<$<CONFIG:Release>:-ffast-math>       # Fast math operations
+				$<$<CONFIG:Release>:-funroll-loops>    # Unroll loops
+				$<$<CONFIG:Release>:-DNDEBUG>          # Disable assertions
+
+				# Debug settings
+				$<$<CONFIG:Debug>:-O0>                 # No optimization
+				$<$<CONFIG:Debug>:-g>                  # Debug information
+			)
 		endif()
 
 		target_precompile_headers(${benchmark_target_name} PRIVATE pch.h)

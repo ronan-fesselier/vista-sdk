@@ -8,6 +8,8 @@
 #include "Config.h"
 #include "utils/StringUtils.h"
 
+#include "GmodNode.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================

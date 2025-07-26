@@ -510,7 +510,7 @@ namespace dnv::vista::sdk
 
 		if ( sourceNode.location().has_value() )
 		{
-			return std::move( targetNodePtr->tryWithLocation( sourceNode.location().value() ) );
+			return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 		}
 
 		return *targetNodePtr;
@@ -541,7 +541,7 @@ namespace dnv::vista::sdk
 
 		if ( sourceNode.location().has_value() )
 		{
-			return std::move( targetNodePtr->tryWithLocation( sourceNode.location().value() ) );
+			return targetNodePtr->tryWithLocation( sourceNode.location().value() );
 		}
 
 		return *targetNodePtr;
