@@ -29,18 +29,67 @@ namespace dnv::vista::sdk
 	// Cached objects
 	//-----------------------------
 
+	MemoryCache<VisVersion, GmodDto>& VIS::gmodDtoCache()
+	{
+		static MemoryCache<VisVersion, GmodDto> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<VisVersion, CodebooksDto>& VIS::codebooksDtoCache()
+	{
+		static MemoryCache<VisVersion, CodebooksDto> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<VisVersion, LocationsDto>& VIS::locationsDtoCache()
+	{
+		static MemoryCache<VisVersion, LocationsDto> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<VisVersion, Codebooks>& VIS::codebooksCache()
+	{
+		static MemoryCache<VisVersion, Codebooks> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<VisVersion, Gmod>& VIS::gmodsCache()
+	{
+		static MemoryCache<VisVersion, Gmod> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<VisVersion, Locations>& VIS::locationsCache()
+	{
+		static MemoryCache<VisVersion, Locations> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
+	MemoryCache<int, GmodVersioning>& VIS::gmodVersioningCache()
+	{
+		static MemoryCache<int, GmodVersioning> cache{
+			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		return cache;
+	}
+
 	const GmodVersioning& VIS::gmodVersioning()
 	{
-		static GmodVersioning staticGmodVersioning = []() {
+		static constexpr int cacheKey = 0;
+
+		return gmodVersioningCache().getOrCreate( cacheKey, []() {
 			auto dto = EmbeddedResource::gmodVersioning();
 			if ( !dto )
 			{
 				throw std::runtime_error( "Failed to load GMOD versioning data" );
 			}
 			return GmodVersioning( *dto );
-		}();
-
-		return staticGmodVersioning;
+		} );
 	}
 
 	//-----------------------------
@@ -51,7 +100,6 @@ namespace dnv::vista::sdk
 	{
 		std::unordered_map<VisVersion, Gmod> result;
 		result.reserve( visVersions.size() );
-
 		for ( const auto& version : visVersions )
 		{
 			if ( !VisVersionExtensions::isValid( version ) )

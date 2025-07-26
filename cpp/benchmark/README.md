@@ -115,8 +115,8 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **Hash Table Lookup** | 2.17 ns     |  **3.15x**   | 2.79 ns   |  **13.16x**  | **1.29x slower** |       |
 | **CHD Dictionary**    | 36.3 ns     |  **52.7x**   | 23.6 ns   |  **111x**    | **1.54x faster** |       |
 | **Tree Lookup**       | 7.13 ns     |  **10.3x**   | 3.04 ns   |  **14.34x**  | **2.35x faster** |       |
-| **SDK API Method**    | 859 ns      |  **1,247x**  | 76.8 ns   |   **362x**   | **11.2x faster** |       |
-| **VIS Singleton**     | 122,457 ns  | **177,787x** | 92,820 ns | **437,830x** | **1.32x faster** |       |
+| **SDK API Method**    | 859 ns      |  **1247x**  | 76.8 ns   |   **362x**   | **11.2x faster** |       |
+| **VIS Singleton**     | 122457 ns  | **177787x** | 92820 ns | **437830x** | **1.32x faster** |       |
 
 #### STL Container Performance
 
@@ -135,7 +135,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **CodebooksInstance**  | **0.689 ns**   | **0.212 ns**  | **3.25x faster**  | Owned instance + direct access     | **3.30x faster**     | ✅     |       |
 | **CodebooksReference** | **0.855 ns**   | **0.210 ns**  | **4.07x faster**  | Reference wrapper + direct access  | **3.33x faster**     | ✅     |       |
 | **CodebooksAPI**       | **859 ns**     | **76.8 ns**   | **11.2x faster**  | `codebook()` method call           | **110x slower**      | ⚠️     |       |
-| **CodebooksVISCall**   | **122,457 ns** | **92,820 ns** | **1.32x faster**  | `VIS::instance().codebooks()` call | **132,755x slower**  | ⚠️     |       |
+| **CodebooksVISCall**   | **122457 ns** | **92820 ns** | **1.32x faster**  | `VIS::instance().codebooks()` call | **132755x slower**  | ⚠️     |       |
 
 #### Detailed C++ Results
 
@@ -151,7 +151,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **BM_ChdDictionary**      | **35.9 ns**    | **35.9 ns**    | 388M       |
 | **BM_Map**                | **7.13 ns**    | **7.12 ns**    | 1.94B      |
 | **BM_CodebooksAPI**       | **859 ns**     | **859 ns**     | 16.3M      |
-| **BM_CodebooksVISCall**   | **117,876 ns** | **117,658 ns** | 115K       |
+| **BM_CodebooksVISCall**   | **117876 ns** | **117658 ns** | 115K       |
 
 ##### Linux Platform
 
@@ -165,7 +165,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **BM_ChdDictionary**      | **23.6 ns**   | **23.6 ns**   | 589M       |
 | **BM_Map**                | **3.04 ns**   | **3.04 ns**   | 4.6B       |
 | **BM_CodebooksAPI**       | **76.8 ns**   | **76.8 ns**   | 182M       |
-| **BM_CodebooksVISCall**   | **92,820 ns** | **92,817 ns** | 145K       |
+| **BM_CodebooksVISCall**   | **92820 ns** | **92817 ns** | 145K       |
 
 #### Detailed C# Results (Windows)
 
@@ -211,7 +211,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark    | Time    | CPU     | Iterations |
 | :----------- | :------ | :------ | :--------- |
-| **gmodLoad** | 11.1 ms | 11.1 ms | 1,251      |
+| **gmodLoad** | 11.1 ms | 11.1 ms | 1251      |
 
 #### Detailed C# Results (Windows)
 
@@ -329,19 +329,19 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Method                             | Mean       | Error    | StdDev   | Categories    | Gen0   | Allocated |
 | :--------------------------------- | :--------- | :------- | :------- | :------------ | :----- | :-------- |
-| **TryParse**                       | 3,360.8 ns | 41.66 ns | 38.97 ns | No location   | 0.2213 | 2,792 B   |
+| **TryParse**                       | 3360.8 ns  | 41.66 ns | 38.97 ns | No location   | 0.2213 | 2792 B   |
 | **TryParseFullPath**               | 571.2 ns   | 7.45 ns  | 5.82 ns  | No location   | 0.0601 | 760 B     |
-| **TryParseIndividualized**         | 1,492.2 ns | 28.77 ns | 51.14 ns | With location | 0.2251 | 2,832 B   |
-| **TryParseFullPathIndividualized** | 694.1 ns   | 4.33 ns  | 3.84 ns  | With location | 0.0935 | 1,176 B   |
+| **TryParseIndividualized**         | 1492.2 ns  | 28.77 ns | 51.14 ns | With location | 0.2251 | 2,832 B   |
+| **TryParseFullPathIndividualized** | 694.1 ns   | 4.33 ns  | 3.84 ns  | With location | 0.0935 | 1176 B   |
 
 #### Detailed C# Results (Linux)
 
 | Method                             | Categories    |       Mean |    Error |   StdDev |   Gen0 | Allocated |
 | ---------------------------------- | ------------- | ---------: | -------: | -------: | -----: | --------: |
 | **TryParseFullPath**               | No location   |   630.4 ns |  2.53 ns |  2.11 ns | 0.0601 |     760 B |
-| **TryParse**                       | No location   | 3,548.7 ns | 14.72 ns | 11.49 ns | 0.2213 |    2792 B |
+| **TryParse**                       | No location   | 3548.7 ns | 14.72 ns | 11.49 ns | 0.2213 |    2792 B |
 | **TryParseFullPathIndividualized** | With location |   787.9 ns |  2.30 ns |  1.92 ns | 0.0935 |    1176 B |
-| **TryParseIndividualized**         | With location | 1,598.6 ns | 13.64 ns | 12.76 ns | 0.2251 |    2832 B |
+| **TryParseIndividualized**         | With location | 1598.6 ns | 13.64 ns | 12.76 ns | 0.2251 |    2832 B |
 
 ---
 
