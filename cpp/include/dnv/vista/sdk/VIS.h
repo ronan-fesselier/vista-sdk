@@ -14,6 +14,7 @@
 #include "VISVersion.h"
 
 #include "utils/StringUtils.h"
+#include "utils/MemoryCache.h"
 
 namespace dnv::vista::sdk
 {
@@ -358,38 +359,43 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
-		// Cache member variables
+		// Private helper methods for static caches
 		//----------------------------------------------
 
 		/**
-		 * @brief Thread-safe cache for GMOD DTOs by VisVersion
+		 * @brief Access static thread-safe cache for GMOD DTOs by VisVersion
 		 */
-		std::unordered_map<VisVersion, GmodDto> m_gmodDtoCache;
+		static MemoryCache<VisVersion, GmodDto>& gmodDtoCache();
 
 		/**
-		 * @brief Thread-safe cache for Codebooks DTOs by VisVersion
+		 * @brief Access static thread-safe cache for Codebooks DTOs by VisVersion
 		 */
-		std::unordered_map<VisVersion, CodebooksDto> m_codebooksDtoCache;
+		static MemoryCache<VisVersion, CodebooksDto>& codebooksDtoCache();
 
 		/**
-		 * @brief Thread-safe cache for Locations DTOs by VisVersion
+		 * @brief Access static thread-safe cache for Locations DTOs by VisVersion
 		 */
-		std::unordered_map<VisVersion, LocationsDto> m_locationsDtoCache;
+		static MemoryCache<VisVersion, LocationsDto>& locationsDtoCache();
 
 		/**
-		 * @brief Thread-safe cache for processed Codebooks objects by VisVersion
+		 * @brief Access static thread-safe cache for processed Codebooks objects by VisVersion
 		 */
-		std::unordered_map<VisVersion, Codebooks> m_codebooksCache;
+		static MemoryCache<VisVersion, Codebooks>& codebooksCache();
 
 		/**
-		 * @brief Thread-safe cache for processed GMOD objects by VisVersion
+		 * @brief Access static thread-safe cache for processed GMOD objects by VisVersion
 		 */
-		std::unordered_map<VisVersion, Gmod> m_gmodsCache;
+		static MemoryCache<VisVersion, Gmod>& gmodsCache();
 
 		/**
-		 * @brief Thread-safe cache for processed Locations objects by VisVersion
+		 * @brief Access static thread-safe cache for processed Locations objects by VisVersion
 		 */
-		std::unordered_map<VisVersion, Locations> m_locationsCache;
+		static MemoryCache<VisVersion, Locations>& locationsCache();
+
+		/**
+		 * @brief Access static thread-safe cache for GMOD versioning object
+		 */
+		static MemoryCache<int, GmodVersioning>& gmodVersioningCache();
 	};
 }
 

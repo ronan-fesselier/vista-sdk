@@ -8,7 +8,7 @@
 #include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodVersioning.h"
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/VISversion.h"
+#include "dnv/vista/sdk/VISVersion.h"
 
 namespace dnv::vista::sdk::tests
 {

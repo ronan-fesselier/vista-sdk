@@ -5,6 +5,7 @@
 set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/version.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/MemoryCache.h
 
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.inl

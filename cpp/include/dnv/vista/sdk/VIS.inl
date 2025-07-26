@@ -22,12 +22,6 @@ namespace dnv::vista::sdk
 
 	inline VIS::VIS()
 	{
-		m_gmodDtoCache.reserve( 10 );
-		m_codebooksDtoCache.reserve( 10 );
-		m_locationsDtoCache.reserve( 10 );
-		m_gmodsCache.reserve( 10 );
-		m_codebooksCache.reserve( 10 );
-		m_locationsCache.reserve( 10 );
 	}
 
 	//----------------------------------------------
@@ -79,16 +73,11 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto it = m_gmodsCache.find( visVersion );
-		if ( it != m_gmodsCache.end() )
-		{
-			return it->second;
-		}
+		return gmodsCache().getOrCreate( visVersion, [visVersion]() {
+			const auto& dto = instance().gmodDto( visVersion );
 
-		const auto& dto = gmodDto( visVersion );
-		auto [emplace_it, inserted] = m_gmodsCache.try_emplace( visVersion, visVersion, dto );
-
-		return emplace_it->second;
+			return Gmod{ visVersion, dto };
+		} );
 	}
 
 	inline const Codebooks& VIS::codebooks( VisVersion visVersion )
@@ -98,16 +87,11 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto it = m_codebooksCache.find( visVersion );
-		if ( it != m_codebooksCache.end() )
-		{
-			return it->second;
-		}
+		return codebooksCache().getOrCreate( visVersion, [visVersion]() {
+			const auto& dto = instance().codebooksDto( visVersion );
 
-		const auto& dto = codebooksDto( visVersion );
-		auto [emplace_it, inserted] = m_codebooksCache.try_emplace( visVersion, visVersion, dto );
-
-		return emplace_it->second;
+			return Codebooks{ visVersion, dto };
+		} );
 	}
 
 	inline const Locations& VIS::locations( VisVersion visVersion )
@@ -117,16 +101,11 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto it = m_locationsCache.find( visVersion );
-		if ( it != m_locationsCache.end() )
-		{
-			return it->second;
-		}
+		return locationsCache().getOrCreate( visVersion, [visVersion]() {
+			const auto& dto = instance().locationsDto( visVersion );
 
-		const auto& dto = locationsDto( visVersion );
-		auto [emplace_it, inserted] = m_locationsCache.try_emplace( visVersion, visVersion, dto );
-
-		return emplace_it->second;
+			return Locations{ visVersion, dto };
+		} );
 	}
 
 	//----------------------------------------------
@@ -140,19 +119,15 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto [it, inserted] = m_gmodDtoCache.try_emplace( visVersion );
-		if ( inserted )
-		{
+		return gmodDtoCache().getOrCreate( visVersion, [visVersion]() {
 			auto dto = loadGmodDto( visVersion );
 			if ( !dto )
 			{
-				m_gmodDtoCache.erase( it );
 				throw std::runtime_error( fmt::format( "Failed to load GMOD DTO for version: {}", VisVersionExtensions::toVersionString( visVersion ) ) );
 			}
-			it->second = std::move( *dto );
-		}
 
-		return it->second;
+			return std::move( *dto );
+		} );
 	}
 
 	inline const CodebooksDto& VIS::codebooksDto( VisVersion visVersion )
@@ -162,19 +137,15 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto [it, inserted] = m_codebooksDtoCache.try_emplace( visVersion );
-		if ( inserted )
-		{
+		return codebooksDtoCache().getOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::codebooks( VisVersionExtensions::toVersionString( visVersion ) );
 			if ( !dto )
 			{
-				m_codebooksDtoCache.erase( it );
 				throw std::runtime_error( fmt::format( "Failed to load codebooks DTO for version: {}", VisVersionExtensions::toVersionString( visVersion ) ) );
 			}
-			it->second = std::move( *dto );
-		}
 
-		return it->second;
+			return std::move( *dto );
+		} );
 	}
 
 	inline const LocationsDto& VIS::locationsDto( VisVersion visVersion )
@@ -184,19 +155,15 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( fmt::format( "Invalid VIS version: {}", static_cast<int>( visVersion ) ) );
 		}
 
-		auto [it, inserted] = m_locationsDtoCache.try_emplace( visVersion );
-		if ( inserted )
-		{
+		return locationsDtoCache().getOrCreate( visVersion, [visVersion]() {
 			auto dto = EmbeddedResource::locations( VisVersionExtensions::toVersionString( visVersion ) );
 			if ( !dto )
 			{
-				m_locationsDtoCache.erase( it );
 				throw std::runtime_error( fmt::format( "Failed to load locations DTO for version: {}", VisVersionExtensions::toVersionString( visVersion ) ) );
 			}
-			it->second = std::move( *dto );
-		}
 
-		return it->second;
+			return std::move( *dto );
+		} );
 	}
 
 	//----------------------------------------------

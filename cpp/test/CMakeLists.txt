@@ -58,7 +58,7 @@ foreach(test_source ${TEST_SOURCES})
 	get_filename_component(test_target_name ${test_source} NAME_WE)
 
 	if(NOT TARGET ${test_target_name})
-		add_executable(${test_target_name} TestDataLoader.h TestDataLoader.cpp ${test_source})
+		add_executable(${test_target_name} TestDataLoader.h TestDataLoader.h TestDataLoader.cpp TestDataLoader.cpp ${test_source})
 
 		# --- Target-specific MSVC optimisation ---
 		if(MSVC)
