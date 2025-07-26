@@ -6,8 +6,24 @@
 #pragma once
 
 //=====================================================================
-// Cross-compiler performance macros
+// Cross-platform compiler support
 //=====================================================================
+
+//----------------------------------------------
+// Compiler intrinsics headers
+//----------------------------------------------
+
+/** @brief Platform-specific intrinsics headers for SIMD and hardware optimization support */
+#ifdef _MSC_VER
+#	include <intrin.h>
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#	include <immintrin.h>
+#	include <x86intrin.h>
+#endif
+
+//----------------------------------------------
+// Cross-compiler performance macros
+//----------------------------------------------
 
 /** @brief Cross-compiler force inline directive for performance-critical functions */
 #if defined( _MSC_VER )
@@ -16,6 +32,17 @@
 #	define VISTA_SDK_CPP_FORCE_INLINE __attribute__( ( always_inline ) ) inline
 #else
 #	define VISTA_SDK_CPP_FORCE_INLINE inline
+#endif
+
+//----------------------------------------------
+// Compiler-specific C++20 feature support
+//----------------------------------------------
+
+/** @brief Conditional constexpr support for GCC 11.x which has incomplete constexpr std::string support */
+#if defined(__GNUC__) && __GNUC__ >= 11 && __GNUC__ < 12
+#	define VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR
+#else
+#	define VISTA_SDK_CPP_CONDITIONAL_CONSTEXPR constexpr
 #endif
 
 namespace dnv::vista::sdk
