@@ -361,7 +361,7 @@ namespace dnv::vista::sdk
 		 * @param location The Location object to set for the new node.
 		 * @return A new `GmodNode` instance with the given location.
 		 */
-		[[nodiscard]] GmodNode withLocation( const Location& location ) const;
+		[[nodiscard]] inline GmodNode withLocation( const Location& location ) const;
 
 		/**
 		 * @brief Creates a new GmodNode instance identical to this one but with the specified location string.

@@ -507,18 +507,23 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error( "Item is empty" );
 		}
 
-		item = item.substr( item.find_first_not_of( NULL_OR_WHITESPACE ) );
-		item = item.substr( 0, item.find_last_not_of( NULL_OR_WHITESPACE ) + 1 );
-
-		if ( !item.empty() && item.front() == '/' )
-		{
-			item.remove_prefix( 1 );
-		}
-
-		if ( item.empty() )
+		size_t start = item.find_first_not_of( NULL_OR_WHITESPACE );
+		if ( start == std::string_view::npos )
 		{
 			return GmodParsePathResult::Error( "Item is empty" );
 		}
+
+		size_t end = item.find_last_not_of( NULL_OR_WHITESPACE ) + 1;
+
+		if ( start < end && item[start] == '/' )
+			++start;
+
+		if ( start >= end )
+		{
+			return GmodParsePathResult::Error( "Item is empty" );
+		}
+
+		item = item.substr( start, end - start );
 
 		struct PathNode
 		{
@@ -549,15 +554,21 @@ namespace dnv::vista::sdk
 				const GmodNode* tempNode = nullptr;
 				if ( !gmod.tryGetNode( codePart, tempNode ) || !tempNode )
 				{
-					return GmodParsePathResult::Error(
-						fmt::format( "Failed to get GmodNode for {}", codePart ) );
+					thread_local std::string errorMsg;
+					errorMsg.clear();
+					errorMsg.append( "Failed to get GmodNode for " );
+					errorMsg.append( codePart );
+					return GmodParsePathResult::Error( std::move( errorMsg ) );
 				}
 
 				Location parsedLocation;
 				if ( !locations.tryParse( locationPart, parsedLocation ) )
 				{
-					return GmodParsePathResult::Error(
-						fmt::format( "Failed to parse location {}", locationPart ) );
+					thread_local std::string errorMsg;
+					errorMsg.clear();
+					errorMsg.append( "Failed to parse location " );
+					errorMsg.append( locationPart );
+					return GmodParsePathResult::Error( std::move( errorMsg ) );
 				}
 
 				parts.emplace( PathNode{ codePart, parsedLocation } );
@@ -567,8 +578,11 @@ namespace dnv::vista::sdk
 				const GmodNode* tempNode = nullptr;
 				if ( !gmod.tryGetNode( part, tempNode ) || !tempNode )
 				{
-					return GmodParsePathResult::Error(
-						fmt::format( "Failed to get GmodNode for {}", part ) );
+					thread_local std::string errorMsg;
+					errorMsg.clear();
+					errorMsg.append( "Failed to get GmodNode for " );
+					errorMsg.append( part );
+					return GmodParsePathResult::Error( std::move( errorMsg ) );
 				}
 
 				parts.emplace( PathNode{ part, std::nullopt } );
@@ -605,7 +619,6 @@ namespace dnv::vista::sdk
 		};
 
 		ParseContext context{ std::move( parts ), toFind, std::nullopt, std::nullopt, &gmod };
-
 		TraverseHandlerWithState<ParseContext> handler = []( ParseContext& ctx, const std::vector<const GmodNode*>& parents, const GmodNode& current ) -> TraversalHandlerResult {
 			bool found = ( current.code() == ctx.toFind.code );
 
@@ -626,7 +639,7 @@ namespace dnv::vista::sdk
 					ctx.locations = StringMap<Location>{};
 					ctx.locations->reserve( 8 );
 				}
-				ctx.locations->emplace( std::string{ ctx.toFind.code }, ctx.toFind.location.value() );
+				ctx.locations->emplace( ctx.toFind.code, ctx.toFind.location.value() );
 			}
 
 			if ( !ctx.parts.empty() )
@@ -637,13 +650,13 @@ namespace dnv::vista::sdk
 			}
 
 			std::vector<GmodNode> pathParents;
-			pathParents.reserve( parents.size() + 4 );
+			pathParents.reserve( parents.size() + 8 );
 
 			for ( const GmodNode* parent : parents )
 			{
 				if ( ctx.locations.has_value() )
 				{
-					auto it = ctx.locations->find( std::string{ parent->code() } );
+					auto it = ctx.locations->find( parent->code() );
 					if ( it != ctx.locations->end() )
 					{
 						pathParents.emplace_back( parent->withLocation( it->second ) );
@@ -671,23 +684,28 @@ namespace dnv::vista::sdk
 			}
 
 			GmodNode startNode = *startNodeOpt;
+
+			thread_local std::vector<GmodNode> prefixChain;
+			prefixChain.clear();
+			prefixChain.reserve( 8 );
+
 			while ( startNode.parents().size() == 1 )
 			{
 				if ( ctx.locations.has_value() )
 				{
-					auto it = ctx.locations->find( std::string{ startNode.code() } );
+					auto it = ctx.locations->find( startNode.code() );
 					if ( it != ctx.locations->end() )
 					{
-						pathParents.insert( pathParents.begin(), startNode.withLocation( it->second ) );
+						prefixChain.emplace_back( startNode.withLocation( it->second ) );
 					}
 					else
 					{
-						pathParents.insert( pathParents.begin(), startNode );
+						prefixChain.emplace_back( startNode );
 					}
 				}
 				else
 				{
-					pathParents.insert( pathParents.begin(), startNode );
+					prefixChain.emplace_back( startNode );
 				}
 
 				startNode = *startNode.parents()[0];
@@ -698,13 +716,19 @@ namespace dnv::vista::sdk
 			}
 
 			pathParents.insert( pathParents.begin(), ctx.gmod->rootNode() );
+			pathParents.insert( pathParents.begin() + 1,
+				std::make_move_iterator( prefixChain.rbegin() ),
+				std::make_move_iterator( prefixChain.rend() ) );
 
-			internal::LocationSetsVisitor visitor;
+			thread_local internal::LocationSetsVisitor visitor;
+			visitor.currentParentStart = std::numeric_limits<size_t>().max();
+
 			const size_t totalNodes = pathParents.size() + 1;
 
 			thread_local std::vector<GmodNode*> tempParents;
 			tempParents.clear();
-			tempParents.reserve( pathParents.size() + 2 );
+			if ( tempParents.capacity() < pathParents.size() + 2 )
+				tempParents.reserve( pathParents.size() + 2 );
 
 			for ( auto& p : pathParents )
 				tempParents.push_back( &p );
