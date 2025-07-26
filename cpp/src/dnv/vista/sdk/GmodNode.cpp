@@ -40,7 +40,6 @@ namespace dnv::vista::sdk
 	{
 		GmodNode result = *this;
 		result.m_location = location;
-
 		return result;
 	}
 
@@ -81,6 +80,11 @@ namespace dnv::vista::sdk
 	GmodNode GmodNode::tryWithLocation( const std::optional<Location>& location ) const
 	{
 		if ( !location.has_value() )
+		{
+			return *this;
+		}
+
+		if ( m_location.has_value() && m_location.value() == location.value() )
 		{
 			return *this;
 		}

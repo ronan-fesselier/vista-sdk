@@ -115,7 +115,7 @@ namespace dnv::vista::sdk
 	namespace
 	{
 		/** @brief Standard whitespace characters for string trimming operations. */
-		static constexpr std::string_view WHITESPACE = " \t\n\r\f\v";
+		static constexpr std::string_view WHITESPACE = NULL_OR_WHITESPACE;
 
 		alignas( 64 ) constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};

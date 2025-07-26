@@ -24,7 +24,7 @@ namespace dnv::vista::sdk
 			{
 				m_parents.emplace_back( parent );
 
-				std::string_view key = parent->code();
+				const std::string& key = parent->code();
 				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
 				{
 					++it->second;
@@ -45,7 +45,7 @@ namespace dnv::vista::sdk
 				const GmodNode* parent = m_parents.back();
 				m_parents.pop_back();
 
-				std::string_view key = parent->code();
+				const std::string& key = parent->code();
 				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
 				{
 					if ( it->second == 1 )
@@ -61,7 +61,7 @@ namespace dnv::vista::sdk
 
 			inline size_t Parents::occurrences( const GmodNode& node ) const noexcept
 			{
-				std::string_view key = node.code();
+				const std::string& key = node.code();
 				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
 				{
 					return it->second;
