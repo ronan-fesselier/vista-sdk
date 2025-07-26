@@ -559,4 +559,16 @@ namespace dnv::vista::sdk
 			}
 		}
 	}
+
+	//----------------------------------------------
+	// Node location methods
+	//----------------------------------------------
+
+	inline GmodNode GmodNode::withLocation( const Location& location ) const
+	{
+		GmodNode result = *this;
+		result.m_location = location;
+
+		return result;
+	}
 }

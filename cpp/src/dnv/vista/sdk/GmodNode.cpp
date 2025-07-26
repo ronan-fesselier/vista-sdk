@@ -36,13 +36,6 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	GmodNode GmodNode::withLocation( const Location& location ) const
-	{
-		GmodNode result = *this;
-		result.m_location = location;
-		return result;
-	}
-
 	GmodNode GmodNode::withLocation( std::string_view locationStr ) const
 	{
 		Locations locations = VIS::instance().locations( m_visVersion );

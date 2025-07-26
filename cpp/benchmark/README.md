@@ -65,8 +65,8 @@ dotnet run -c Release --project benchmark/Vista.SDK.Benchmarks/Vista.SDK.Benchma
 | **GMOD Loading**             | **1.00x same**                   |   ✅   | Achieved C# performance parity     |
 | **GMOD Lookup**              | **1.14-2.30x faster**            |   ✅   | C++ shows performance advantage    |
 | **GMOD Traversal**           | **1.97x slower**                 |   ❌   | **Optimization opportunity**       |
-| **Path Parsing**             | **6.13-16.2x slower**            |  ❌❌  | **Optimization needed**            |
-| **Version Path Conversion**  | **19.7x slower**                 | ❌❌❌ | **Critical performance gap**       |
+| **Path Parsing**             | **5.17-15.2x slower**            |  ❌❌  | **Optimization needed**            |
+| **Version Path Conversion**  | **19.6x slower**                 | ❌❌❌ | **Critical performance gap**       |
 
 ### Linux Platform Performance
 
@@ -148,10 +148,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **BM_Array**              | **1.60 ns**    | **1.60 ns**    | 8.96B      |
 | **BM_Vector**             | **1.78 ns**    | **1.78 ns**    | 7.93B      |
 | **BM_UnorderedMap**       | **2.17 ns**    | **2.17 ns**    | 6.45B      |
-| **BM_ChdDictionary**      | **36.3 ns**    | **36.3 ns**    | 400M       |
+| **BM_ChdDictionary**      | **35.9 ns**    | **35.9 ns**    | 388M       |
 | **BM_Map**                | **7.13 ns**    | **7.12 ns**    | 1.94B      |
 | **BM_CodebooksAPI**       | **859 ns**     | **859 ns**     | 16.3M      |
-| **BM_CodebooksVISCall**   | **122,457 ns** | **122,328 ns** | 118K       |
+| **BM_CodebooksVISCall**   | **117,876 ns** | **117,658 ns** | 115K       |
 
 ##### Linux Platform
 
@@ -235,7 +235,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | :-------------------- | :---------- | :---------: | :-------- | :---------: | :--------------- | :------------------------------- |
 | **Frozen Dictionary** | 17.4 ns     |  **1.00x**  | 51.2 ns   |  **1.00x**  | **2.94x slower** | ⚡ Baseline lookup method        |
 | **Hash Table Lookup** | 16.7 ns     |  **0.96x**  | 51.1 ns   |  **1.00x**  | **3.06x slower** | ⚡ Similar                       |
-| **GMOD API Lookup**   | 10.2 ns     |  **0.59x**  | 13.0 ns   |  **0.25x**  | **1.27x slower** | ✅ Expected method call overhead |
+| **GMOD API Lookup**   | 9.71 ns     |  **0.56x**  | 13.0 ns   |  **0.25x**  | **1.34x slower** | ✅ Expected method call overhead |
 
 ### GMOD Lookup Performance Comparison
 
@@ -255,7 +255,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | :------------- | :------ | :------ | :--------- |
 | **Dict**       | 16.7 ns | 16.6 ns | 861M       |
 | **FrozenDict** | 17.4 ns | 17.4 ns | 815M       |
-| **Gmod**       | 10.2 ns | 10.2 ns | 1.36B      |
+| **Gmod**       | 9.71 ns | 9.62 ns | 1.47B      |
 
 ##### Linux Platform
 
@@ -289,10 +289,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation                          | Windows C++ | Linux C++ | Performance Ratio | Status | Notes |
 | :--------------------------------- | :---------- | :-------- | :---------------- | :----: | :---- |
-| **TryParse**                       | 23.1 μs     | 14.6 μs   | **1.58x slower**  |   ✅   |       |
-| **TryParseFullPath**               | 9.26 μs     | 4.31 μs   | **2.15x slower**  |   ✅   |       |
-| **TryParseIndividualized**         | 22.2 μs     | 13.8 μs   | **1.61x slower**  |   ✅   |       |
-| **TryParseFullPathIndividualized** | 9.05 μs     | 3.99 μs   | **2.27x slower**  |   ✅   |       |
+| **TryParse**                       | 19.5 μs     | 14.6 μs   | **1.34x slower**  |   ✅   |       |
+| **TryParseFullPath**               | 8.67 μs     | 4.31 μs   | **2.01x slower**  |   ✅   |       |
+| **TryParseIndividualized**         | 17.9 μs     | 13.8 μs   | **1.30x slower**  |   ✅   |       |
+| **TryParseFullPathIndividualized** | 8.75 μs     | 3.99 μs   | **2.19x slower**  |   ✅   |       |
 
 ### GMOD Path Parsing Performance Comparison
 
@@ -300,10 +300,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method                         | Windows Time | Linux Time | Performance Ratio | C# Method (Win)                    | C# Time (Win) | C# Method (Linux)                  | C# Time (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
 | :--------------------------------- | :----------- | :--------- | :---------------- | :--------------------------------- | :------------ | :--------------------------------- | :-------------- | :------------------ | :------------------ |
-| **tryParse**                       | 23.1 μs      | 14.6 μs    | **1.58x slower**  | **TryParse**                       | 3.77 μs       | **TryParse**                       | 3.55 μs         | ❌ **6.13x slower** | ❌ **4.11x slower** |
-| **tryParseFullPath**               | 9.26 μs      | 4.31 μs    | **2.15x slower**  | **TryParseFullPath**               | 571 ns        | **TryParseFullPath**               | 630 ns          | ❌ **16.2x slower** | ❌ **6.84x slower** |
-| **tryParseIndividualized**         | 22.2 μs      | 13.8 μs    | **1.61x slower**  | **TryParseIndividualized**         | 1.49 μs       | **TryParseIndividualized**         | 1.60 μs         | ❌ **14.9x slower** | ❌ **8.63x slower** |
-| **tryParseFullPathIndividualized** | 9.05 μs      | 3.99 μs    | **2.27x slower**  | **TryParseFullPathIndividualized** | 694 ns        | **TryParseFullPathIndividualized** | 788 ns          | ❌ **13.0x slower** | ❌ **5.06x slower** |
+| **tryParse**                       | 19.5 μs      | 14.6 μs    | **1.34x slower**  | **TryParse**                       | 3.77 μs       | **TryParse**                       | 3.55 μs         | ❌ **5.17x slower** | ❌ **4.11x slower** |
+| **tryParseFullPath**               | 8.67 μs      | 4.31 μs    | **2.01x slower**  | **TryParseFullPath**               | 571 ns        | **TryParseFullPath**               | 630 ns          | ❌ **15.2x slower** | ❌ **6.84x slower** |
+| **tryParseIndividualized**         | 17.9 μs      | 13.8 μs    | **1.30x slower**  | **TryParseIndividualized**         | 1.49 μs       | **TryParseIndividualized**         | 1.60 μs         | ❌ **12.0x slower** | ❌ **8.63x slower** |
+| **tryParseFullPathIndividualized** | 8.75 μs      | 3.99 μs    | **2.19x slower**  | **TryParseFullPathIndividualized** | 694 ns        | **TryParseFullPathIndividualized** | 788 ns          | ❌ **12.6x slower** | ❌ **5.06x slower** |
 
 #### Detailed C++ Results
 
@@ -311,10 +311,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark                          | Time    | CPU     | Iterations |
 | :--------------------------------- | :------ | :------ | :--------- |
-| **tryParse**                       | 23.1 μs | 23.1 μs | 618K       |
-| **tryParseFullPath**               | 9.26 μs | 9.24 μs | 1.51M      |
-| **tryParseIndividualized**         | 22.2 μs | 22.2 μs | 631K       |
-| **tryParseFullPathIndividualized** | 9.05 μs | 9.05 μs | 1.52M      |
+| **tryParse**                       | 19.5 μs | 19.4 μs | 711K       |
+| **tryParseFullPath**               | 8.67 μs | 8.65 μs | 1.64M      |
+| **tryParseIndividualized**         | 17.9 μs | 17.8 μs | 800K       |
+| **tryParseFullPathIndividualized** | 8.75 μs | 8.69 μs | 1.60M      |
 
 ##### Linux Platform
 
@@ -351,7 +351,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation          | Windows C++ | Linux C++ | Performance Ratio | Status | Notes |
 | :----------------- | :---------- | :-------- | :---------------- | :----: | :---- |
-| **Full Traversal** | 266 ms      | 318 ms    | **1.20x slower**  |   ✅   |       |
+| **Full Traversal** | 263 ms      | 318 ms    | **1.21x slower**  |   ✅   |       |
 
 ### GMOD Traversal Performance Comparison
 
@@ -359,7 +359,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method        | Windows Time | Linux Time | Performance Ratio | C# Method (Win)   | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
 | :---------------- | :----------- | :--------- | :---------------- | :---------------- | :------------ | :---------------- | :-------------- | :------------------ | :------------------ |
-| **fullTraversal** | 266 ms       | 318 ms     | **1.19x slower**  | **FullTraversal** | 135.3 ms      | **FullTraversal** | 161.3 ms        | ❌ **2.05x slower** | ❌ **1.97x slower** |
+| **fullTraversal** | 263 ms       | 318 ms     | **1.21x slower**  | **FullTraversal** | 135.3 ms      | **FullTraversal** | 161.3 ms        | ❌ **1.94x slower** | ❌ **1.97x slower** |
 
 #### Detailed C++ Results
 
@@ -367,7 +367,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark         | Time   | CPU    | Iterations |
 | :---------------- | :----- | :----- | :--------- |
-| **FullTraversal** | 266 ms | 265 ms | 49         |
+| **FullTraversal** | 263 ms | 245 ms | 62         |
 
 ##### Linux Platform
 
@@ -395,7 +395,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation        | Windows C++ | Linux C++ | Performance Ratio | Status | Notes |
 | :--------------- | :---------- | :-------- | :---------------- | :----: | :---- |
-| **Convert Path** | 29.4 μs     | 172 μs    | **5.85x slower**  |   ⚠️   |       |
+| **Convert Path** | 29.2 μs     | 172 μs    | **5.89x slower**  |   ⚠️   |       |
 
 ### GMOD Versioning Path Conversion Performance Comparison
 
@@ -403,7 +403,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method      | Windows Time | Linux Time | Performance Ratio | C# Method (Win) | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)  |
 | :-------------- | :----------- | :--------- | :---------------- | :-------------- | :------------ | :---------------- | :-------------- | :------------------ | :----------------- |
-| **convertPath** | 29.4 μs      | 172 μs     | **5.85x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **19.7x slower** | ❌ **117x slower** |
+| **convertPath** | 29.2 μs      | 172 μs     | **5.89x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **19.6x slower** | ❌ **117x slower** |
 
 #### Detailed C++ Results
 
@@ -411,7 +411,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark       | Time    | CPU     | Iterations |
 | :-------------- | :------ | :------ | :--------- |
-| **convertPath** | 29.4 μs | 29.4 μs | 479K       |
+| **convertPath** | 29.2 μs | 28.9 μs | 482K       |
 
 ##### Linux Platform
 
