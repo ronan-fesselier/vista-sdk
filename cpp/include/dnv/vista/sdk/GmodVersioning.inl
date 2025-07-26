@@ -122,5 +122,4 @@ namespace dnv::vista::sdk
 
 		return false;
 	}
-
 }

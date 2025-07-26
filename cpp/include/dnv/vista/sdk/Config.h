@@ -218,5 +218,11 @@ namespace dnv::vista::sdk
 		inline constexpr std::string_view LOCATIONS_DTO_KEY_DEFINITION = "definition";
 		inline constexpr std::string_view LOCATIONS_DTO_KEY_VIS_RELEASE = "visRelease";
 		inline constexpr std::string_view LOCATIONS_DTO_KEY_ITEMS = "items";
+
+		//----------------------------------------------
+		// String parsing constants
+		//----------------------------------------------
+
+		inline constexpr std::string_view NULL_OR_WHITESPACE = " \t\n\r\f\v";
 	}
 }
