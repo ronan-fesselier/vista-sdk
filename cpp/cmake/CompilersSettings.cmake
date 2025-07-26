@@ -116,6 +116,7 @@ else()
 		-Wextra                                        # Extra warnings
 		-Wpedantic                                     # Pedantic warnings
 		-msse4.2                                       # SSE4.2 support
+		$<$<CXX_COMPILER_ID:Clang>:-mcrc32>            # Explicit CRC32 support for Clang
 		-mavx                                          # AVX support
 		-mavx2                                         # AVX2 support
 		-mfma                                          # Fused multiply-add

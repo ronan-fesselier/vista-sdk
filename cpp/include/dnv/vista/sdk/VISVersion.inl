@@ -4,7 +4,7 @@
  */
 
 #include "VISVersion.h"
-#include "Utils/StringUtils.h"
+#include "utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {

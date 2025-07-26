@@ -389,13 +389,15 @@ namespace dnv::vista::sdk
 
 	inline GmodPath GmodPath::parse( std::string_view item, VisVersion visVersion )
 	{
-		std::optional<GmodPath> path;
+		std::optional<GmodPath> path{}; 
 		if ( !tryParse( item, visVersion, path ) )
 		{
 			throw std::invalid_argument( "Couldnt parse path" );
 		}
 
-		return path.value();
+		assert( path.has_value() && "tryParse returned true but path is empty" );
+		
+		return std::move( path.value() );
 	}
 
 	inline GmodPath GmodPath::parse( std::string_view item, const Gmod& gmod, const Locations& locations )
