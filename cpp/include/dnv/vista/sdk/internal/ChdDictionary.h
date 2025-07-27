@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include "Config.h"
+#include "dnv/vista/sdk/config/Platform.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	namespace
 	{
@@ -192,7 +192,7 @@ namespace dnv::vista::sdk
 		 * @brief Constructs a key not found exception.
 		 * @param[in] key The key that was not found.
 		 */
-		explicit key_not_found_exception( std::string_view key );
+		inline explicit key_not_found_exception( std::string_view key );
 	};
 
 	/**
@@ -206,13 +206,13 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Constructs an invalid operation exception with default message.
 		 */
-		invalid_operation_exception();
+		inline invalid_operation_exception();
 
 		/**
 		 * @brief Constructs an invalid operation exception with custom message.
 		 * @param[in] message The exception message.
 		 */
-		explicit invalid_operation_exception( std::string_view message );
+		inline explicit invalid_operation_exception( std::string_view message );
 	};
 
 	//=====================================================================

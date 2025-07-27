@@ -335,9 +335,12 @@ namespace dnv::vista::sdk::tests
 			}
 			catch ( const std::exception& ex )
 			{
-				if ( std::string( ex.what() ).find( "location" ) != std::string::npos )
+				if ( std::string{ ex.what() }.find( "location" ) != std::string::npos )
+				{
 					continue;
-				errored.push_back( ErrorInfo{ localIdStr, std::nullopt, std::string( ex.what() ), ParsingErrors::empty() } );
+				}
+
+				errored.push_back( ErrorInfo{ localIdStr, std::nullopt, std::string{ ex.what() }, ParsingErrors::empty() } );
 			}
 		}
 

@@ -5,16 +5,9 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/Platform.h"
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <unordered_map>
-
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	/**
 	 * @brief Configuration options for MemoryCache behavior
@@ -48,7 +41,8 @@ namespace dnv::vista::sdk
 		const void* keyPtr = nullptr;
 
 		VISTA_SDK_CPP_FORCE_INLINE CacheEntry( std::chrono::milliseconds expiration = std::chrono::hours( 1 ) )
-			: lastAccessed( std::chrono::steady_clock::now() ), slidingExpiration( expiration )
+			: lastAccessed{ std::chrono::steady_clock::now() },
+			  slidingExpiration{ expiration }
 		{
 		}
 

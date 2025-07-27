@@ -5,13 +5,16 @@
 
 #pragma once
 
-#include "Config.h"
+#include "config/CodebookConstants.h"
 #include "utils/StringUtils.h"
 
 #include "GmodNode.h"
 
 namespace dnv::vista::sdk
 {
+	using dnv::vista::sdk::utils::contains;
+	using dnv::vista::sdk::utils::equals;
+
 	//=====================================================================
 	// Gmod class
 	//=====================================================================
@@ -69,11 +72,11 @@ namespace dnv::vista::sdk
 		switch ( type.length() )
 		{
 			case 4:
-				return equals( type, GMODNODE_TYPE_LEAF );
+				return equals( type, gmod::GMODNODE_TYPE_LEAF );
 			case 5:
-				return equals( type, GMODNODE_TYPE_GROUP );
+				return equals( type, gmod::GMODNODE_TYPE_GROUP );
 			case 9:
-				return equals( type, GMODNODE_TYPE_SELECTION );
+				return equals( type, gmod::GMODNODE_TYPE_SELECTION );
 			default:
 				return false;
 		}
@@ -82,38 +85,38 @@ namespace dnv::vista::sdk
 	inline bool Gmod::isLeafNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& fullType = metadata.fullType();
-		return equals( fullType, GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
-			   equals( fullType, GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
+		return equals( fullType, gmod::GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
+			   equals( fullType, gmod::GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
 	}
 
 	inline bool Gmod::isFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& category = metadata.category();
 
-		return !equals( category, GMODNODE_CATEGORY_PRODUCT ) &&
-			   !equals( category, GMODNODE_CATEGORY_ASSET );
+		return !equals( category, gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   !equals( category, gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isProductSelection( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), GMODNODE_CATEGORY_PRODUCT ) &&
-			   equals( metadata.type(), GMODNODE_TYPE_SELECTION );
+		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   equals( metadata.type(), gmod::GMODNODE_TYPE_SELECTION );
 	}
 
 	inline bool Gmod::isProductType( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), GMODNODE_CATEGORY_PRODUCT ) &&
-			   equals( metadata.type(), GMODNODE_TYPE_TYPE );
+		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   equals( metadata.type(), gmod::GMODNODE_TYPE_TYPE );
 	}
 
 	inline bool Gmod::isAsset( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), GMODNODE_CATEGORY_ASSET );
+		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isAssetFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), GMODNODE_CATEGORY_ASSET_FUNCTION );
+		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET_FUNCTION );
 	}
 
 	inline bool Gmod::isProductTypeAssignment( const GmodNode* parent, const GmodNode* child ) noexcept
@@ -125,11 +128,11 @@ namespace dnv::vista::sdk
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !contains( parentCategory, GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !equals( childCategory, GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, GMODNODE_TYPE_TYPE ) )
+		if ( !equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, gmod::GMODNODE_TYPE_TYPE ) )
 		{
 			return false;
 		}
@@ -148,11 +151,11 @@ namespace dnv::vista::sdk
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !contains( parentCategory, GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !equals( childCategory, GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, GMODNODE_TYPE_SELECTION ) )
+		if ( !equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, gmod::GMODNODE_TYPE_SELECTION ) )
 		{
 			return false;
 		}

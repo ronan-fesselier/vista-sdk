@@ -120,7 +120,7 @@ namespace dnv::vista::sdk
 				std::vector<const GmodNode*> m_parents;
 
 				/** @brief Occurrence count per node code */
-				StringMap<size_t> m_occurrences;
+				utils::StringMap<size_t> m_occurrences;
 
 				size_t m_maxTraversalOccurrence;
 			};

@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/Codebook.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/CodebookConstants.h"
 
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/MetadataTag.h"
@@ -42,63 +42,63 @@ namespace dnv::vista::sdk
 			switch ( name.size() )
 			{
 				case 5:
-					if ( name == CODEBOOK_NAME_TYPE )
+					if ( name == codebook::CODEBOOK_NAME_TYPE )
 					{
 						return CodebookName::Type;
 					}
 					break;
 				case 6:
-					if ( name == CODEBOOK_NAME_STATE )
+					if ( name == codebook::CODEBOOK_NAME_STATE )
 					{
 						return CodebookName::State;
 					}
-					if ( name == CODEBOOK_NAME_DETAIL )
+					if ( name == codebook::CODEBOOK_NAME_DETAIL )
 					{
 						return CodebookName::Detail;
 					}
 					break;
 				case 8:
-					if ( name == CODEBOOK_NAME_CONTENT )
+					if ( name == codebook::CODEBOOK_NAME_CONTENT )
 					{
 						return CodebookName::Content;
 					}
-					if ( name == CODEBOOK_NAME_COMMAND )
+					if ( name == codebook::CODEBOOK_NAME_COMMAND )
 					{
 						return CodebookName::Command;
 					}
 					break;
 				case 9:
-					if ( name == CODEBOOK_NAME_POSITION )
+					if ( name == codebook::CODEBOOK_NAME_POSITION )
 					{
 						return CodebookName::Position;
 					}
 					break;
 				case 10:
-					if ( name == CODEBOOK_NAME_QUANTITY )
+					if ( name == codebook::CODEBOOK_NAME_QUANTITY )
 					{
 						return CodebookName::Quantity;
 					}
 					break;
 				case 12:
-					if ( name == CODEBOOK_NAME_CALCULATION )
+					if ( name == codebook::CODEBOOK_NAME_CALCULATION )
 					{
 						return CodebookName::Calculation;
 					}
 					break;
 				case 13:
-					if ( name == CODEBOOK_NAME_ACTIVITY_TYPE )
+					if ( name == codebook::CODEBOOK_NAME_ACTIVITY_TYPE )
 					{
 						return CodebookName::ActivityType;
 					}
 					break;
 				case 19:
-					if ( name == CODEBOOK_NAME_FUNCTIONAL_SERVICES )
+					if ( name == codebook::CODEBOOK_NAME_FUNCTIONAL_SERVICES )
 					{
 						return CodebookName::FunctionalServices;
 					}
 					break;
 				case 20:
-					if ( name == CODEBOOK_NAME_MAINTENANCE_CATEGORY )
+					if ( name == codebook::CODEBOOK_NAME_MAINTENANCE_CATEGORY )
 					{
 						return CodebookName::MaintenanceCategory;
 					}
@@ -115,7 +115,7 @@ namespace dnv::vista::sdk
 	namespace
 	{
 		/** @brief Standard whitespace characters for string trimming operations. */
-		static constexpr std::string_view WHITESPACE = NULL_OR_WHITESPACE;
+		static constexpr std::string_view WHITESPACE = constants::NULL_OR_WHITESPACE;
 
 		alignas( 64 ) constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
@@ -176,11 +176,11 @@ namespace dnv::vista::sdk
 	namespace
 	{
 		static constexpr std::array<std::pair<std::string_view, PositionValidationResult>, 5> s_validationResultMap{
-			{ { CODEBOOK_POSITION_VALIDATION_INVALID, PositionValidationResult::Invalid },
-				{ CODEBOOK_POSITION_VALIDATION_INVALID_ORDER, PositionValidationResult::InvalidOrder },
-				{ CODEBOOK_POSITION_VALIDATION_INVALID_GROUPING, PositionValidationResult::InvalidGrouping },
-				{ CODEBOOK_POSITION_VALIDATION_VALID, PositionValidationResult::Valid },
-				{ CODEBOOK_POSITION_VALIDATION_CUSTOM, PositionValidationResult::Custom } } };
+			{ { codebook::CODEBOOK_POSITION_VALIDATION_INVALID, PositionValidationResult::Invalid },
+				{ codebook::CODEBOOK_POSITION_VALIDATION_INVALID_ORDER, PositionValidationResult::InvalidOrder },
+				{ codebook::CODEBOOK_POSITION_VALIDATION_INVALID_GROUPING, PositionValidationResult::InvalidGrouping },
+				{ codebook::CODEBOOK_POSITION_VALIDATION_VALID, PositionValidationResult::Valid },
+				{ codebook::CODEBOOK_POSITION_VALIDATION_CUSTOM, PositionValidationResult::Custom } } };
 
 		[[nodiscard]] static std::string toLower( std::string_view input ) noexcept
 		{
@@ -256,8 +256,8 @@ namespace dnv::vista::sdk
 		m_groupMap.reserve( capacity );
 		m_rawData.reserve( groupCount + ( groupCount >> 2 ) ); /* 1.25x */
 
-		StringSet valueSet;
-		StringSet groupSet;
+		utils::StringSet valueSet;
+		utils::StringSet groupSet;
 		valueSet.reserve( capacity );
 		groupSet.reserve( groupCount + ( groupCount >> 2 ) );
 
@@ -275,7 +275,7 @@ namespace dnv::vista::sdk
 				std::string valueStr{ valueTrimmed };
 				trimmedValues.emplace_back( std::move( valueStr ) );
 
-				if ( trimmedValues.back() != CODEBOOK_GROUP_NUMBER )
+				if ( trimmedValues.back() != codebook::CODEBOOK_GROUP_NUMBER )
 				{
 					m_groupMap.emplace( trimmedValues.back(), groupStr );
 					valueSet.emplace( trimmedValues.back() );
@@ -478,7 +478,7 @@ namespace dnv::vista::sdk
 
 		if ( worstResult == PositionValidationResult::Valid )
 		{
-			StringSet uniqueGroups;
+			utils::StringSet uniqueGroups;
 			uniqueGroups.reserve( MAX_GROUPS );
 			bool hasDefaultGroup = false;
 
@@ -488,17 +488,17 @@ namespace dnv::vista::sdk
 
 				if ( isDigitArray[i] )
 				{
-					group = CODEBOOK_GROUP_NUMBER;
+					group = codebook::CODEBOOK_GROUP_NUMBER;
 				}
 				else
 				{
 					auto it = m_groupMap.find( positions[i] );
-					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : CODEBOOK_GROUP_UNKNOWN;
+					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : codebook::CODEBOOK_GROUP_UNKNOWN;
 				}
 
 				uniqueGroups.emplace( group );
 
-				if ( group == CODEBOOK_GROUP_DEFAULT )
+				if ( group == codebook::CODEBOOK_GROUP_DEFAULT )
 				{
 					hasDefaultGroup = true;
 				}

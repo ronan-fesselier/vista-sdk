@@ -144,7 +144,7 @@ namespace dnv::vista::sdk
 		m_relativeLocations.reserve( dto.items().size() );
 		for ( const auto& relLocDto : dto.items() )
 		{
-			Location loc( std::string( 1, relLocDto.code() ) );
+			Location loc{ std::string{ 1, relLocDto.code() } };
 
 			RelativeLocation relLoc(
 				relLocDto.code(),
@@ -329,7 +329,7 @@ namespace dnv::vista::sdk
 		LocationParsingErrorBuilder& errorBuilder ) const
 	{
 		auto displayString = [&span, &originalStr]() -> std::string {
-			return originalStr.has_value() ? *originalStr : std::string( span );
+			return originalStr.has_value() ? *originalStr : std::string{ span };
 		};
 
 		if ( span.empty() )
@@ -440,7 +440,9 @@ namespace dnv::vista::sdk
 				{
 					std::string groupName = groupNameToString( group );
 					errorBuilder.addError( LocationValidationResult::Invalid,
-						"Invalid location: Multiple '" + groupName + "' values. Got both '" +
+						"Invalid location: Multiple '" +
+							groupName +
+							"' values. Got both '" +
 							std::string( 1, existingValue.value() ) + "' and '" + std::string( 1, ch ) + "' in '" + displayString() + "'" );
 
 					return false;

@@ -10,12 +10,12 @@
 
 #pragma once
 
+#include "internal/HashMap.h"
+#include "utils/StringUtils.h"
+
 #include "GmodVersioningDto.h"
 #include "GmodPath.h"
 #include "LocalId.h"
-
-#include "utils/StringUtils.h"
-#include "utils/HashMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -46,7 +46,7 @@ namespace dnv::vista::sdk
 		 *
 		 * @param dto Dictionary of GmodVersioningDto objects indexed by version string with heterogeneous lookup
 		 */
-		explicit GmodVersioning( const StringMap<GmodVersioningDto>& dto );
+		explicit GmodVersioning( const utils::StringMap<GmodVersioningDto>& dto );
 
 		/** @brief Default constructor. */
 		GmodVersioning() = delete;
@@ -161,7 +161,7 @@ namespace dnv::vista::sdk
 			 * @brief Constructor for GmodVersioningNode
 			 */
 			GmodVersioningNode( VisVersion visVersion,
-				const StringMap<GmodNodeConversionDto>& dto );
+				const utils::StringMap<GmodNodeConversionDto>& dto );
 
 			/** @brief Default constructor. */
 			GmodVersioningNode() = default;
@@ -209,7 +209,7 @@ namespace dnv::vista::sdk
 			//----------------------------
 
 			VisVersion m_visVersion;
-			StringMap<GmodNodeConversion> m_versioningNodeChanges;
+			utils::StringMap<GmodNodeConversion> m_versioningNodeChanges;
 		};
 
 		//----------------------------------------------

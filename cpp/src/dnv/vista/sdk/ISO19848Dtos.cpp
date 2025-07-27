@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/ISO19848Dtos.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/DtoKeys.h"
 
 namespace dnv::vista::sdk
 {
@@ -17,23 +17,22 @@ namespace dnv::vista::sdk
 		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr std::string_view UNKNOWN_TYPE = "[unknown type]";
-
 		std::string_view extractTypeHint( const nlohmann::json& json ) noexcept
 		{
 			try
 			{
-				if ( json.contains( ISO19848_DTO_KEY_TYPE ) && json.at( ISO19848_DTO_KEY_TYPE ).is_string() )
+				if ( json.contains( dto::ISO19848_DTO_KEY_TYPE ) && json.at( dto::ISO19848_DTO_KEY_TYPE ).is_string() )
 				{
-					const auto& str = json.at( ISO19848_DTO_KEY_TYPE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::ISO19848_DTO_KEY_TYPE ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_TYPE;
+				return dto::ISO19848_DTO_UNKNOWN_TYPE;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_TYPE;
+				return dto::ISO19848_DTO_UNKNOWN_TYPE;
 			}
 		}
 	}
@@ -106,18 +105,25 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, DataChannelTypeNameDto& dto )
 	{
-		const auto typeIt = j.find( ISO19848_DTO_KEY_TYPE );
-		const auto descIt = j.find( ISO19848_DTO_KEY_DESCRIPTION );
+		const auto typeIt = j.find( dto::ISO19848_DTO_KEY_TYPE );
+		const auto descIt = j.find( dto::ISO19848_DTO_KEY_DESCRIPTION );
 
 		if ( typeIt == j.end() || !typeIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "DataChannelTypeNameDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_TYPE ), nullptr );
+				fmt::format(
+					"DataChannelTypeNameDto JSON missing required '{}' field or not a string",
+					dto::ISO19848_DTO_KEY_TYPE ),
+				nullptr );
 		}
 		if ( descIt == j.end() || !descIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "DataChannelTypeNameDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_DESCRIPTION ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"DataChannelTypeNameDto JSON missing required '{}' field or not a string",
+					dto::ISO19848_DTO_KEY_DESCRIPTION ),
+				nullptr );
 		}
 
 		dto.m_type = typeIt->get<std::string>();
@@ -136,8 +142,8 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const DataChannelTypeNameDto& dto )
 	{
 		j = nlohmann::json{
-			{ ISO19848_DTO_KEY_TYPE, dto.m_type },
-			{ ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
+			{ dto::ISO19848_DTO_KEY_TYPE, dto.m_type },
+			{ dto::ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
 	}
 
 	//=====================================================================
@@ -159,14 +165,17 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+			if ( !json.contains( dto::ISO19848_DTO_KEY_VALUES ) || !json.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
 			{
-				fmt::print( stderr, "ERROR: DataChannelTypeNamesDto JSON missing required '{}' array\n", ISO19848_DTO_KEY_VALUES );
+				fmt::print(
+					stderr,
+					"ERROR: DataChannelTypeNamesDto JSON missing required '{}' array\n",
+					dto::ISO19848_DTO_KEY_VALUES );
 
 				return std::nullopt;
 			}
 
-			const auto& valuesArray = json.at( ISO19848_DTO_KEY_VALUES );
+			const auto& valuesArray = json.at( dto::ISO19848_DTO_KEY_VALUES );
 			size_t totalItems = valuesArray.size();
 			size_t successCount = 0;
 
@@ -241,17 +250,22 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, DataChannelTypeNamesDto& dto )
 	{
-		if ( !j.contains( ISO19848_DTO_KEY_VALUES ) || !j.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+		if ( !j.contains( dto::ISO19848_DTO_KEY_VALUES ) || !j.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "DataChannelTypeNamesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"DataChannelTypeNamesDto JSON missing required '{}' array",
+					dto::ISO19848_DTO_KEY_VALUES ),
+				nullptr );
 		}
 
-		dto.m_values = j.at( ISO19848_DTO_KEY_VALUES ).get<std::vector<DataChannelTypeNameDto>>();
+		dto.m_values = j.at( dto::ISO19848_DTO_KEY_VALUES ).get<std::vector<DataChannelTypeNameDto>>();
 	}
 
 	void to_json( nlohmann::json& j, const DataChannelTypeNamesDto& dto )
 	{
-		j = nlohmann::json{ { ISO19848_DTO_KEY_VALUES, dto.m_values } };
+		j = nlohmann::json{ { dto::ISO19848_DTO_KEY_VALUES, dto.m_values } };
 	}
 
 	//=====================================================================
@@ -301,8 +315,10 @@ namespace dnv::vista::sdk
 		auto dtoOpt = FormatDataTypeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize FormatDataTypeDto from JSON (hint: type='{}')",
-				typeHint ) );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize FormatDataTypeDto from JSON (hint: type='{}')",
+					typeHint ) );
 		}
 
 		return std::move( dtoOpt ).value();
@@ -322,18 +338,24 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, FormatDataTypeDto& dto )
 	{
-		const auto typeIt = j.find( ISO19848_DTO_KEY_TYPE );
-		const auto descIt = j.find( ISO19848_DTO_KEY_DESCRIPTION );
+		const auto typeIt = j.find( dto::ISO19848_DTO_KEY_TYPE );
+		const auto descIt = j.find( dto::ISO19848_DTO_KEY_DESCRIPTION );
 
 		if ( typeIt == j.end() || !typeIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "FormatDataTypeDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_TYPE ), nullptr );
+				fmt::format(
+					"FormatDataTypeDto JSON missing required '{}' field or not a string",
+					dto::ISO19848_DTO_KEY_TYPE ),
+				nullptr );
 		}
 		if ( descIt == j.end() || !descIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "FormatDataTypeDto JSON missing required '{}' field or not a string", ISO19848_DTO_KEY_DESCRIPTION ), nullptr );
+				fmt::format(
+					"FormatDataTypeDto JSON missing required '{}' field or not a string",
+					dto::ISO19848_DTO_KEY_DESCRIPTION ),
+				nullptr );
 		}
 
 		dto.m_type = typeIt->get<std::string>();
@@ -351,8 +373,8 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const FormatDataTypeDto& dto )
 	{
 		j = nlohmann::json{
-			{ ISO19848_DTO_KEY_TYPE, dto.m_type },
-			{ ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
+			{ dto::ISO19848_DTO_KEY_TYPE, dto.m_type },
+			{ dto::ISO19848_DTO_KEY_DESCRIPTION, dto.m_description } };
 	}
 
 	//=====================================================================
@@ -374,14 +396,17 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			if ( !json.contains( ISO19848_DTO_KEY_VALUES ) || !json.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+			if ( !json.contains( dto::ISO19848_DTO_KEY_VALUES ) || !json.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
 			{
-				fmt::print( stderr, "ERROR: FormatDataTypesDto JSON missing required '{}' array\n", ISO19848_DTO_KEY_VALUES );
+				fmt::print(
+					stderr,
+					"ERROR: FormatDataTypesDto JSON missing required '{}' array\n",
+					dto::ISO19848_DTO_KEY_VALUES );
 
 				return std::nullopt;
 			}
 
-			const auto& valuesArray = json.at( ISO19848_DTO_KEY_VALUES );
+			const auto& valuesArray = json.at( dto::ISO19848_DTO_KEY_VALUES );
 			size_t totalItems = valuesArray.size();
 			size_t successCount = 0;
 
@@ -462,16 +487,21 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, FormatDataTypesDto& dto )
 	{
-		if ( !j.contains( ISO19848_DTO_KEY_VALUES ) || !j.at( ISO19848_DTO_KEY_VALUES ).is_array() )
+		if ( !j.contains( dto::ISO19848_DTO_KEY_VALUES ) || !j.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "FormatDataTypesDto JSON missing required '{}' array", ISO19848_DTO_KEY_VALUES ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"FormatDataTypesDto JSON missing required '{}' array",
+					dto::ISO19848_DTO_KEY_VALUES ),
+				nullptr );
 		}
 
-		dto.m_values = j.at( ISO19848_DTO_KEY_VALUES ).get<std::vector<FormatDataTypeDto>>();
+		dto.m_values = j.at( dto::ISO19848_DTO_KEY_VALUES ).get<std::vector<FormatDataTypeDto>>();
 	}
 
 	void to_json( nlohmann::json& j, const FormatDataTypesDto& dto )
 	{
-		j = nlohmann::json{ { ISO19848_DTO_KEY_VALUES, dto.m_values } };
+		j = nlohmann::json{ { dto::ISO19848_DTO_KEY_VALUES, dto.m_values } };
 	}
 }

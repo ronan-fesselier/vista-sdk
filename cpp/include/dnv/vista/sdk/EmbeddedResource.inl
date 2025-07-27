@@ -9,6 +9,10 @@
 
 namespace dnv::vista::sdk
 {
+	using dnv::vista::sdk::utils::contains;
+	using dnv::vista::sdk::utils::equals;
+	using dnv::vista::sdk::utils::endsWith;
+
 	/**
 	 * @brief Fast check if filename is a GMOD resource (without versioning)
 	 */

@@ -147,7 +147,7 @@ namespace dnv::vista::sdk
 			if ( name == "Custom" )
 				return PositionValidationResult::Custom;
 
-			throw std::invalid_argument( "Unknown position validation result: " + std::string( name ) );
+			throw std::invalid_argument( "Unknown position validation result: " + std::string{ name } );
 		}
 
 		TEST_P( PositionValidationTest, Test_Position_Validation )
@@ -426,14 +426,14 @@ namespace dnv::vista::sdk
 				const auto cbName = pair.first;
 				const auto expectedPrefix = pair.second;
 
-				SCOPED_TRACE( "Testing CodebookName toPrefix: " + std::string( expectedPrefix ) );
+				SCOPED_TRACE( "Testing CodebookName toPrefix: " + std::string{ expectedPrefix } );
 				std::string_view actualPrefix;
 				ASSERT_NO_THROW( {
 					actualPrefix = dnv::vista::sdk::CodebookNames::toPrefix( cbName );
 				} );
 				ASSERT_EQ( expectedPrefix, actualPrefix );
 
-				SCOPED_TRACE( "Testing fromPrefix round trip for: " + std::string( expectedPrefix ) );
+				SCOPED_TRACE( "Testing fromPrefix round trip for: " + std::string{ expectedPrefix } );
 				dnv::vista::sdk::CodebookName roundTripName;
 				ASSERT_NO_THROW( {
 					roundTripName = dnv::vista::sdk::CodebookNames::fromPrefix( actualPrefix );

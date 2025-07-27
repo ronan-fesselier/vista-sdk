@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/LocationsDto.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/DtoKeys.h"
 
 namespace dnv::vista::sdk
 {
@@ -17,24 +17,21 @@ namespace dnv::vista::sdk
 		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr std::string_view UNKNOWN_CODE = "[unknown code]";
-		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
-
 		std::string_view extractCodeHint( const nlohmann::json& json ) noexcept
 		{
 			try
 			{
-				if ( json.contains( LOCATIONS_DTO_KEY_CODE ) && json.at( LOCATIONS_DTO_KEY_CODE ).is_string() )
+				if ( json.contains( dto::LOCATIONS_DTO_KEY_CODE ) && json.at( dto::LOCATIONS_DTO_KEY_CODE ).is_string() )
 				{
-					const auto& str = json.at( LOCATIONS_DTO_KEY_CODE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::LOCATIONS_DTO_KEY_CODE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_CODE;
+				return dto::LOCATIONS_DTO_UNKNOWN_CODE;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_CODE;
+				return dto::LOCATIONS_DTO_UNKNOWN_CODE;
 			}
 		}
 
@@ -42,17 +39,17 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( LOCATIONS_DTO_KEY_VIS_RELEASE ) && json.at( LOCATIONS_DTO_KEY_VIS_RELEASE ).is_string() )
+				if ( json.contains( dto::LOCATIONS_DTO_KEY_VIS_RELEASE ) && json.at( dto::LOCATIONS_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
-					const auto& str = json.at( LOCATIONS_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::LOCATIONS_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_VERSION;
+				return dto::LOCATIONS_DTO_UNKNOWN_VERSION;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_VERSION;
+				return dto::LOCATIONS_DTO_UNKNOWN_VERSION;
 			}
 		}
 	}
@@ -77,22 +74,24 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			if ( !json.contains( LOCATIONS_DTO_KEY_CODE ) || !json.at( LOCATIONS_DTO_KEY_CODE ).is_string() )
+			if ( !json.contains( dto::LOCATIONS_DTO_KEY_CODE ) || !json.at( dto::LOCATIONS_DTO_KEY_CODE ).is_string() )
 			{
-				fmt::print( stderr, "ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
-					LOCATIONS_DTO_KEY_CODE );
+				fmt::print( stderr,
+					"ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
+					dto::LOCATIONS_DTO_KEY_CODE );
 
 				return std::nullopt;
 			}
-			if ( !json.contains( LOCATIONS_DTO_KEY_NAME ) || !json.at( LOCATIONS_DTO_KEY_NAME ).is_string() )
+			if ( !json.contains( dto::LOCATIONS_DTO_KEY_NAME ) || !json.at( dto::LOCATIONS_DTO_KEY_NAME ).is_string() )
 			{
-				fmt::print( stderr, "ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
-					LOCATIONS_DTO_KEY_NAME );
+				fmt::print( stderr,
+					"ERROR: RelativeLocationsDto JSON missing required '{}' field or not a string\n",
+					dto::LOCATIONS_DTO_KEY_NAME );
 
 				return std::nullopt;
 			}
 
-			std::string codeStr = json.at( LOCATIONS_DTO_KEY_CODE ).get<std::string>();
+			std::string codeStr = json.at( dto::LOCATIONS_DTO_KEY_CODE ).get<std::string>();
 			if ( codeStr.empty() || codeStr.length() != 1 )
 			{
 				fmt::print( stderr, "ERROR: RelativeLocationsDto (hint: code='{}') has invalid code format\n", codeHint );
@@ -100,7 +99,7 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			std::string tempName = json.at( LOCATIONS_DTO_KEY_NAME ).get<std::string>();
+			std::string tempName = json.at( dto::LOCATIONS_DTO_KEY_NAME ).get<std::string>();
 			if ( tempName.empty() )
 			{
 				fmt::print( stderr, "WARN: Empty name field found in RelativeLocationsDto code='{}'\n", codeStr );
@@ -109,13 +108,13 @@ namespace dnv::vista::sdk
 			char tempCode = codeStr[0];
 			std::optional<std::string> tempDefinition = std::nullopt;
 
-			if ( json.contains( LOCATIONS_DTO_KEY_DEFINITION ) )
+			if ( json.contains( dto::LOCATIONS_DTO_KEY_DEFINITION ) )
 			{
-				if ( json.at( LOCATIONS_DTO_KEY_DEFINITION ).is_string() )
+				if ( json.at( dto::LOCATIONS_DTO_KEY_DEFINITION ).is_string() )
 				{
-					tempDefinition = json.at( LOCATIONS_DTO_KEY_DEFINITION ).get<std::string>();
+					tempDefinition = json.at( dto::LOCATIONS_DTO_KEY_DEFINITION ).get<std::string>();
 				}
-				else if ( !json.at( LOCATIONS_DTO_KEY_DEFINITION ).is_null() )
+				else if ( !json.at( dto::LOCATIONS_DTO_KEY_DEFINITION ).is_null() )
 				{
 					fmt::print( stderr, "WARN: RelativeLocationsDto code='{}' has non-string definition field\n", codeStr );
 				}
@@ -169,20 +168,20 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const RelativeLocationsDto& dto )
 	{
 		j = nlohmann::json{
-			{ LOCATIONS_DTO_KEY_CODE, std::string( 1, dto.m_code ) },
-			{ LOCATIONS_DTO_KEY_NAME, dto.m_name } };
+			{ dto::LOCATIONS_DTO_KEY_CODE, std::string{ 1, dto.m_code } },
+			{ dto::LOCATIONS_DTO_KEY_NAME, dto.m_name } };
 
 		if ( dto.m_definition.has_value() )
 		{
-			j[LOCATIONS_DTO_KEY_DEFINITION] = dto.m_definition.value();
+			j[dto::LOCATIONS_DTO_KEY_DEFINITION] = dto.m_definition.value();
 		}
 	}
 
 	void from_json( const nlohmann::json& j, RelativeLocationsDto& dto )
 	{
-		const auto codeIt = j.find( LOCATIONS_DTO_KEY_CODE );
-		const auto nameIt = j.find( LOCATIONS_DTO_KEY_NAME );
-		const auto defIt = j.find( LOCATIONS_DTO_KEY_DEFINITION );
+		const auto codeIt = j.find( dto::LOCATIONS_DTO_KEY_CODE );
+		const auto nameIt = j.find( dto::LOCATIONS_DTO_KEY_NAME );
+		const auto defIt = j.find( dto::LOCATIONS_DTO_KEY_DEFINITION );
 
 		if ( codeIt == j.end() || !codeIt->is_string() )
 		{
@@ -242,16 +241,20 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 
-			if ( !json.contains( LOCATIONS_DTO_KEY_VIS_RELEASE ) || !json.at( LOCATIONS_DTO_KEY_VIS_RELEASE ).is_string() )
+			if ( !json.contains( dto::LOCATIONS_DTO_KEY_VIS_RELEASE ) || !json.at( dto::LOCATIONS_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
-				fmt::print( stderr, "ERROR: LocationsDto JSON missing required '{}' field or not a string\n",
-					LOCATIONS_DTO_KEY_VIS_RELEASE );
+				fmt::print(
+					stderr,
+					"ERROR: LocationsDto JSON missing required '{}' field or not a string\n",
+					dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
 
 				return std::nullopt;
 			}
-			if ( !json.contains( LOCATIONS_DTO_KEY_ITEMS ) || !json.at( LOCATIONS_DTO_KEY_ITEMS ).is_array() )
+			if ( !json.contains( dto::LOCATIONS_DTO_KEY_ITEMS ) || !json.at( dto::LOCATIONS_DTO_KEY_ITEMS ).is_array() )
 			{
-				fmt::print( stderr, "ERROR: LocationsDto JSON missing required '{}' array\n", LOCATIONS_DTO_KEY_ITEMS );
+				fmt::print( stderr,
+					"ERROR: LocationsDto JSON missing required '{}' array\n",
+					dto::LOCATIONS_DTO_KEY_ITEMS );
 
 				return std::nullopt;
 			}
@@ -299,26 +302,26 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const LocationsDto& dto )
 	{
 		j = nlohmann::json{
-			{ LOCATIONS_DTO_KEY_VIS_RELEASE, dto.m_visVersion },
-			{ LOCATIONS_DTO_KEY_ITEMS, dto.m_items } };
+			{ dto::LOCATIONS_DTO_KEY_VIS_RELEASE, dto.m_visVersion },
+			{ dto::LOCATIONS_DTO_KEY_ITEMS, dto.m_items } };
 	}
 
 	void from_json( const nlohmann::json& j, LocationsDto& dto )
 	{
 		dto.m_items.clear();
 
-		const auto visIt = j.find( LOCATIONS_DTO_KEY_VIS_RELEASE );
-		const auto itemsIt = j.find( LOCATIONS_DTO_KEY_ITEMS );
+		const auto visIt = j.find( dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
+		const auto itemsIt = j.find( dto::LOCATIONS_DTO_KEY_ITEMS );
 
 		if ( visIt == j.end() || !visIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "LocationsDto JSON missing required '{}' field", LOCATIONS_DTO_KEY_VIS_RELEASE ), nullptr );
+				fmt::format( "LocationsDto JSON missing required '{}' field", dto::LOCATIONS_DTO_KEY_VIS_RELEASE ), nullptr );
 		}
 		if ( itemsIt == j.end() || !itemsIt->is_array() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "LocationsDto JSON missing required '{}' field", LOCATIONS_DTO_KEY_ITEMS ), nullptr );
+				fmt::format( "LocationsDto JSON missing required '{}' field", dto::LOCATIONS_DTO_KEY_ITEMS ), nullptr );
 		}
 
 		dto.m_visVersion = visIt->get<std::string>();

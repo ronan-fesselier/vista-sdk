@@ -5,20 +5,10 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/Config.h"
-#include "StringUtils.h"
+#include "dnv/vista/sdk/config/Platform.h"
+#include "dnv/vista/sdk/utils/StringUtils.h"
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <unordered_map>
-#include <vector>
-#include <cstring>
-#include <cassert>
-
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	//=====================================================================
 	// HashMap class
@@ -54,10 +44,11 @@ namespace dnv::vista::sdk
 		size_t m_capacity = INITIAL_CAPACITY;
 		size_t m_mask = INITIAL_CAPACITY - 1;
 
-		[[no_unique_address]] std::conditional_t<
+		VISTA_SDK_CPP_NO_UNIQUE_ADDRESS std::conditional_t<
 			std::is_same_v<TKey, std::string> || std::is_same_v<TKey, std::string_view>,
-			StringViewHash,
-			std::hash<TKey>> m_hasher;
+			utils::StringViewHash,
+			std::hash<TKey>>
+			m_hasher;
 
 	public:
 		//----------------------------------------------
@@ -212,11 +203,11 @@ namespace dnv::vista::sdk
 		{
 			if constexpr ( std::is_same_v<KeyType1, std::string> && std::is_same_v<KeyType2, std::string_view> )
 			{
-				return StringViewEqual{}( k1, k2 );
+				return utils::StringViewEqual{}( k1, k2 );
 			}
 			else if constexpr ( std::is_same_v<KeyType1, std::string_view> && std::is_same_v<KeyType2, std::string> )
 			{
-				return StringViewEqual{}( k1, k2 );
+				return utils::StringViewEqual{}( k1, k2 );
 			}
 			else
 			{

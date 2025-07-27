@@ -29,58 +29,58 @@ namespace dnv::vista::sdk
 	// Cached objects
 	//-----------------------------
 
-	MemoryCache<VisVersion, GmodDto>& VIS::gmodDtoCache()
+	internal::MemoryCache<VisVersion, GmodDto>& VIS::gmodDtoCache()
 	{
-		static MemoryCache<VisVersion, GmodDto> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, GmodDto> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<VisVersion, CodebooksDto>& VIS::codebooksDtoCache()
+	internal::MemoryCache<VisVersion, CodebooksDto>& VIS::codebooksDtoCache()
 	{
-		static MemoryCache<VisVersion, CodebooksDto> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, CodebooksDto> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<VisVersion, LocationsDto>& VIS::locationsDtoCache()
+	internal::MemoryCache<VisVersion, LocationsDto>& VIS::locationsDtoCache()
 	{
-		static MemoryCache<VisVersion, LocationsDto> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, LocationsDto> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<VisVersion, Codebooks>& VIS::codebooksCache()
+	internal::MemoryCache<VisVersion, Codebooks>& VIS::codebooksCache()
 	{
-		static MemoryCache<VisVersion, Codebooks> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Codebooks> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<VisVersion, Gmod>& VIS::gmodsCache()
+	internal::MemoryCache<VisVersion, Gmod>& VIS::gmodsCache()
 	{
-		static MemoryCache<VisVersion, Gmod> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Gmod> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<VisVersion, Locations>& VIS::locationsCache()
+	internal::MemoryCache<VisVersion, Locations>& VIS::locationsCache()
 	{
-		static MemoryCache<VisVersion, Locations> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Locations> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
-	MemoryCache<int, GmodVersioning>& VIS::gmodVersioningCache()
+	internal::MemoryCache<int, GmodVersioning>& VIS::gmodVersioningCache()
 	{
-		static MemoryCache<int, GmodVersioning> cache{
-			MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<int, GmodVersioning> cache{
+			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
@@ -160,9 +160,9 @@ namespace dnv::vista::sdk
 	// DTO Loading
 	//----------------------------------------------
 
-	const StringMap<GmodVersioningDto>& VIS::gmodVersioningDto()
+	const utils::StringMap<GmodVersioningDto>& VIS::gmodVersioningDto()
 	{
-		static auto versioningDto = []() -> StringMap<GmodVersioningDto> {
+		static auto versioningDto = []() -> utils::StringMap<GmodVersioningDto> {
 			auto dto = EmbeddedResource::gmodVersioning();
 			if ( !dto )
 			{

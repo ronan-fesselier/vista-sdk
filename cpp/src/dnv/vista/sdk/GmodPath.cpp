@@ -7,10 +7,11 @@
 
 #include "dnv/vista/sdk/GmodPath.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 #include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {
@@ -508,13 +509,13 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error( "Item is empty" );
 		}
 
-		size_t start = item.find_first_not_of( NULL_OR_WHITESPACE );
+		size_t start = item.find_first_not_of( constants::NULL_OR_WHITESPACE );
 		if ( start == std::string_view::npos )
 		{
 			return GmodParsePathResult::Error( "Item is empty" );
 		}
 
-		size_t end = item.find_last_not_of( NULL_OR_WHITESPACE ) + 1;
+		size_t end = item.find_last_not_of( constants::NULL_OR_WHITESPACE ) + 1;
 
 		if ( start < end && item[start] == '/' )
 			++start;
@@ -614,7 +615,7 @@ namespace dnv::vista::sdk
 		{
 			std::queue<PathNode> parts;
 			PathNode toFind;
-			std::optional<StringMap<Location>> locations;
+			std::optional<utils::StringMap<Location>> locations;
 			std::optional<GmodPath> path;
 			const Gmod* gmod;
 		};
@@ -637,7 +638,7 @@ namespace dnv::vista::sdk
 			{
 				if ( !ctx.locations.has_value() )
 				{
-					ctx.locations = StringMap<Location>{};
+					ctx.locations = utils::StringMap<Location>{};
 				}
 				ctx.locations->emplace( std::string{ ctx.toFind.code }, ctx.toFind.location.value() );
 			}

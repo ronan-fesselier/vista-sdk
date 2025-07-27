@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ChdDictionary.h"
+#include "internal/ChdDictionary.h"
 
 namespace dnv::vista::sdk
 {
@@ -275,7 +275,7 @@ namespace dnv::vista::sdk
 			 * @brief Private constructor, typically called by Gmod::enumerator().
 			 * @param map Pointer to the ChdDictionary of GmodNodes to iterate over.
 			 */
-			Enumerator( const ChdDictionary<GmodNode>* map ) noexcept;
+			Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept;
 
 		public:
 			/** @brief Default constructor. */
@@ -326,8 +326,8 @@ namespace dnv::vista::sdk
 			// Private member variables
 			//-----------------------------
 
-			const ChdDictionary<GmodNode>* m_sourceMapPtr;
-			ChdDictionary<GmodNode>::Iterator m_currentMapIterator;
+			const internal::ChdDictionary<GmodNode>* m_sourceMapPtr;
+			internal::ChdDictionary<GmodNode>::Iterator m_currentMapIterator;
 			bool m_isInitialState;
 		};
 
@@ -351,7 +351,7 @@ namespace dnv::vista::sdk
 		 * @details This dictionary maps node codes (strings) to GmodNode objects.
 		 *          It owns the GmodNode instances.
 		 */
-		ChdDictionary<GmodNode> m_nodeMap;
+		internal::ChdDictionary<GmodNode> m_nodeMap;
 	};
 }
 

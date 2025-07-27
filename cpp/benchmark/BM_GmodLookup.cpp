@@ -5,19 +5,19 @@
 
 #include "pch.h"
 
+#include "dnv/vista/sdk/internal/HashMap.h"
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/VIS.h"
-
-#include "dnv/vista/sdk/utils/StringUtils.h"
-#include "dnv/vista/sdk/utils/HashMap.h"
 
 using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
-	static StringMap<const GmodNode*> g_dict;
-	static StringMap<const GmodNode*> g_frozenDict;
-	static HashMap<std::string, const GmodNode*> g_dictionary;
+	static utils::StringMap<const GmodNode*> g_dict;
+	static utils::StringMap<const GmodNode*> g_frozenDict;
+	static internal::HashMap<std::string, const GmodNode*> g_dictionary;
 	static const Gmod* g_gmod = nullptr;
 	static bool g_initialized = false;
 

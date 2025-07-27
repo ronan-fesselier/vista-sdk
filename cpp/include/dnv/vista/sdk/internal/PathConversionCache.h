@@ -6,16 +6,13 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/Config.h"
 #include "HashMap.h"
 #include "MemoryCache.h"
-#include "dnv/vista/sdk//GmodPath.h"
-#include "dnv/vista/sdk//VISVersion.h"
 
-#include <string>
-#include <functional>
+#include "dnv/vista/sdk/GmodPath.h"
+#include "dnv/vista/sdk/VISVersion.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	//=====================================================================
 	// Path conversion cache key
@@ -51,7 +48,7 @@ namespace dnv::vista::sdk
 		{
 			std::size_t h1 = std::hash<int>{}( static_cast<int>( key.sourceVersion ) );
 			std::size_t h2 = std::hash<int>{}( static_cast<int>( key.targetVersion ) );
-			std::size_t h3 = StringViewHash{}( key.pathString );
+			std::size_t h3 = utils::StringViewHash{}( key.pathString );
 
 			return h1 ^ ( h2 << 1 ) ^ ( h3 << 2 );
 		}

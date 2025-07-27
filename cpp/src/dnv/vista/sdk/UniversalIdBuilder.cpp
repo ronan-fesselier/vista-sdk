@@ -199,7 +199,7 @@ namespace dnv::vista::sdk
 
 		if ( universalId.empty() )
 		{
-			errorBuilder.addError( LocalIdParsingState::NamingRule, std::string( "Failed to find localId start segment" ) );
+			errorBuilder.addError( LocalIdParsingState::NamingRule, std::string{ "Failed to find localId start segment" } );
 			errors = errorBuilder.build();
 			return false;
 		}
@@ -207,13 +207,13 @@ namespace dnv::vista::sdk
 		auto localIdStartIndex = universalId.find( "/dnv-v" );
 		if ( localIdStartIndex == std::string::npos )
 		{
-			errorBuilder.addError( LocalIdParsingState::NamingRule, std::string( "Failed to find localId start segment" ) );
+			errorBuilder.addError( LocalIdParsingState::NamingRule, std::string{ "Failed to find localId start segment" } );
 			errors = errorBuilder.build();
 			return false;
 		}
 
-		std::string universalIdSegment = std::string( universalId.substr( 0, localIdStartIndex ) );
-		std::string localIdSegment = std::string( universalId.substr( localIdStartIndex ) );
+		std::string universalIdSegment = std::string{ universalId.substr( 0, localIdStartIndex ) };
+		std::string localIdSegment = std::string{ universalId.substr( localIdStartIndex ) };
 
 		std::optional<ImoNumber> imoNumber = std::nullopt;
 
@@ -259,7 +259,9 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::NamingEntity:
 					if ( segment != namingEntity )
 					{
-						errorBuilder.addError( state, std::string( "Naming entity segment didnt match. Found: " ) + std::string( segment ) );
+						errorBuilder.addError(
+							state, std::string{ "Naming entity segment didnt match. Found: " } +
+									   std::string{ segment } );
 						break;
 					}
 					break;
@@ -268,7 +270,7 @@ namespace dnv::vista::sdk
 					auto imoResult = ImoNumber::tryParse( segment );
 					if ( !imoResult.has_value() )
 					{
-						errorBuilder.addError( state, std::string( "Invalid IMO number segment" ) );
+						errorBuilder.addError( state, std::string{ "Invalid IMO number segment" } );
 						break;
 					}
 					else

@@ -1,7 +1,7 @@
 #include "pch.h"
 
-#include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/GmodTraversal.h"
+
 #include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk
@@ -74,7 +74,7 @@ namespace dnv::vista::sdk
 			const GmodNode* lastAssetFunction = nullptr;
 			for ( auto it = fromPath.rbegin(); it != fromPath.rend(); ++it )
 			{
-				if ( ( *it )->metadata().category() == GMODNODE_CATEGORY_ASSET_FUNCTION )
+				if ( ( *it )->metadata().category() == gmod::GMODNODE_CATEGORY_ASSET_FUNCTION )
 				{
 					lastAssetFunction = *it;
 					break;

@@ -33,7 +33,7 @@ namespace dnv::vista::sdk
 				GmodNode{ version, nodeDto } );
 		}
 
-		m_nodeMap = ChdDictionary<GmodNode>( std::move( nodePairs ) );
+		m_nodeMap = internal::ChdDictionary<GmodNode>( std::move( nodePairs ) );
 
 		for ( const auto& relation : dto.relations() )
 		{
@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 		{
 			pairs.emplace_back( code, node );
 		}
-		m_nodeMap = ChdDictionary<GmodNode>( std::move( pairs ) );
+		m_nodeMap = internal::ChdDictionary<GmodNode>( std::move( pairs ) );
 
 		for ( auto& [key, node] : m_nodeMap )
 		{
@@ -106,7 +106,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//-----------------------------
 
-	Gmod::Enumerator::Enumerator( const ChdDictionary<GmodNode>* map ) noexcept
+	Gmod::Enumerator::Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept
 		: m_sourceMapPtr{ map },
 		  m_isInitialState{ true }
 	{

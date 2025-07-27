@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/CodebooksDto.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/DtoKeys.h"
 
 namespace dnv::vista::sdk
 {
@@ -17,24 +17,21 @@ namespace dnv::vista::sdk
 		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr std::string_view UNKNOWN_NAME = "[unknown name]";
-		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
-
 		std::string_view extractNameHint( const nlohmann::json& json ) noexcept
 		{
 			try
 			{
-				if ( json.contains( CODEBOOK_DTO_KEY_NAME ) && json.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
+				if ( json.contains( dto::CODEBOOK_DTO_KEY_NAME ) && json.at( dto::CODEBOOK_DTO_KEY_NAME ).is_string() )
 				{
-					const auto& str = json.at( CODEBOOK_DTO_KEY_NAME ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::CODEBOOK_DTO_KEY_NAME ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_NAME;
+				return dto::CODEBOOK_DTO_UNKNOWN_NAME;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_NAME;
+				return dto::CODEBOOK_DTO_UNKNOWN_NAME;
 			}
 		}
 
@@ -42,17 +39,17 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) && json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
+				if ( json.contains( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ) && json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
-					const auto& str = json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_VERSION;
+				return dto::CODEBOOK_DTO_UNKNOWN_VERSION;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_VERSION;
+				return dto::CODEBOOK_DTO_UNKNOWN_VERSION;
 			}
 		}
 	}
@@ -71,29 +68,29 @@ namespace dnv::vista::sdk
 
 		try
 		{
-			if ( !json.contains( CODEBOOK_DTO_KEY_NAME ) || !json.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
+			if ( !json.contains( dto::CODEBOOK_DTO_KEY_NAME ) || !json.at( dto::CODEBOOK_DTO_KEY_NAME ).is_string() )
 			{
 				fmt::print( stderr, "ERROR: Codebook JSON missing required '{}' field or field is not a string\n",
-					CODEBOOK_DTO_KEY_NAME );
+					dto::CODEBOOK_DTO_KEY_NAME );
 
 				return std::nullopt;
 			}
 
-			std::string tempName = json.at( CODEBOOK_DTO_KEY_NAME ).get<std::string>();
+			std::string tempName = json.at( dto::CODEBOOK_DTO_KEY_NAME ).get<std::string>();
 
 			ValuesMap tempValues;
 
-			if ( json.contains( CODEBOOK_DTO_KEY_VALUES ) )
+			if ( json.contains( dto::CODEBOOK_DTO_KEY_VALUES ) )
 			{
-				if ( !json.at( CODEBOOK_DTO_KEY_VALUES ).is_object() )
+				if ( !json.at( dto::CODEBOOK_DTO_KEY_VALUES ).is_object() )
 				{
 					fmt::print( stderr, "WARN: No '{}' object found or not an object for codebook '{}'\n",
-						CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
+						dto::CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 				}
 				else
 				{
 					/* Each key is a group name, and its value should be an array of strings. */
-					const auto& valuesObject = json.at( CODEBOOK_DTO_KEY_VALUES );
+					const auto& valuesObject = json.at( dto::CODEBOOK_DTO_KEY_VALUES );
 					tempValues.reserve( valuesObject.size() + valuesObject.size() / 4 );
 
 					for ( const auto& [groupName, groupValueJson] : valuesObject.items() )
@@ -125,7 +122,7 @@ namespace dnv::vista::sdk
 			else
 			{
 				fmt::print( stderr, "WARN: No '{}' object found for codebook '{}'\n",
-					CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
+					dto::CODEBOOK_DTO_KEY_VALUES, std::string_view{ tempName } );
 			}
 
 			/* Construct the final DTO using successfully parsed data */
@@ -176,26 +173,26 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, CodebookDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		if ( !j.contains( CODEBOOK_DTO_KEY_NAME ) || !j.at( CODEBOOK_DTO_KEY_NAME ).is_string() )
+		if ( !j.contains( dto::CODEBOOK_DTO_KEY_NAME ) || !j.at( dto::CODEBOOK_DTO_KEY_NAME ).is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 101, 0u,
 				fmt::format(
 					"CodebookDto JSON missing required '{}' field or field is not a string",
-					CODEBOOK_DTO_KEY_NAME ),
+					dto::CODEBOOK_DTO_KEY_NAME ),
 				nullptr );
 		}
 
 		/* Extract required fields */
-		std::string tempName = j.at( CODEBOOK_DTO_KEY_NAME ).get<std::string>();
+		std::string tempName = j.at( dto::CODEBOOK_DTO_KEY_NAME ).get<std::string>();
 		if ( tempName.empty() )
 		{
 			fmt::print( stderr, "WARN: Empty name field found in CodebookDto\n" );
 		}
 
 		CodebookDto::ValuesMap tempValues;
-		if ( j.contains( CODEBOOK_DTO_KEY_VALUES ) && j.at( CODEBOOK_DTO_KEY_VALUES ).is_object() )
+		if ( j.contains( dto::CODEBOOK_DTO_KEY_VALUES ) && j.at( dto::CODEBOOK_DTO_KEY_VALUES ).is_object() )
 		{
-			tempValues = j.at( CODEBOOK_DTO_KEY_VALUES ).get<CodebookDto::ValuesMap>();
+			tempValues = j.at( dto::CODEBOOK_DTO_KEY_VALUES ).get<CodebookDto::ValuesMap>();
 		}
 
 		dto.m_name = std::move( tempName );
@@ -205,7 +202,7 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const CodebookDto& dto )
 	{
 		/* ADL hook for nlohmann::json serialization. */
-		j = nlohmann::json{ { CODEBOOK_DTO_KEY_NAME, dto.name() }, { CODEBOOK_DTO_KEY_VALUES, dto.values() } };
+		j = nlohmann::json{ { dto::CODEBOOK_DTO_KEY_NAME, dto.name() }, { dto::CODEBOOK_DTO_KEY_VALUES, dto.values() } };
 	}
 
 	//=====================================================================
@@ -222,31 +219,31 @@ namespace dnv::vista::sdk
 
 		try
 		{
-			if ( !json.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
+			if ( !json.contains( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ) || !json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 			{
 				fmt::print( stderr, "ERROR: Codebooks JSON missing required '{}' field or field is not a string\n",
-					CODEBOOK_DTO_KEY_VIS_RELEASE );
+					dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 
 				return std::nullopt;
 			}
 
-			std::string tempVisVersion = json.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
+			std::string tempVisVersion = json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
 
 			Items tempItems;
 			size_t totalItems = 0;
 			size_t successCount = 0;
 
-			if ( json.contains( CODEBOOK_DTO_KEY_ITEMS ) )
+			if ( json.contains( dto::CODEBOOK_DTO_KEY_ITEMS ) )
 			{
-				if ( !json.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
+				if ( !json.at( dto::CODEBOOK_DTO_KEY_ITEMS ).is_array() )
 				{
 					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
-						CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
+						dto::CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 				}
 				else
 				{
 					/* The "items" key should contain a JSON array of codebook objects. */
-					const auto& itemsArray = json.at( CODEBOOK_DTO_KEY_ITEMS );
+					const auto& itemsArray = json.at( dto::CODEBOOK_DTO_KEY_ITEMS );
 					totalItems = itemsArray.size();
 					tempItems.reserve( totalItems );
 
@@ -279,7 +276,7 @@ namespace dnv::vista::sdk
 			else
 			{
 				fmt::print( stderr, "WARN: No '{}' array found in CodebooksDto for VIS version {}\n",
-					CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
+					dto::CODEBOOK_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
 			}
 
 			/* Construct the final DTO using successfully parsed data */
@@ -330,32 +327,32 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, CodebooksDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		if ( !j.contains( CODEBOOK_DTO_KEY_VIS_RELEASE ) || !j.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
+		if ( !j.contains( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ) || !j.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 		{
 			throw nlohmann::json::parse_error::create( 201, 0u,
 				fmt::format(
 					"Codebooks JSON missing required '{}' field",
-					CODEBOOK_DTO_KEY_VIS_RELEASE ),
+					dto::CODEBOOK_DTO_KEY_VIS_RELEASE ),
 				nullptr );
 		}
 
-		if ( !j.contains( CODEBOOK_DTO_KEY_ITEMS ) || !j.at( CODEBOOK_DTO_KEY_ITEMS ).is_array() )
+		if ( !j.contains( dto::CODEBOOK_DTO_KEY_ITEMS ) || !j.at( dto::CODEBOOK_DTO_KEY_ITEMS ).is_array() )
 		{
 			throw nlohmann::json::parse_error::create( 202, 0u,
 				fmt::format(
 					"Codebooks JSON missing required '{}' array",
-					CODEBOOK_DTO_KEY_ITEMS ),
+					dto::CODEBOOK_DTO_KEY_ITEMS ),
 				nullptr );
 		}
 
 		/* Extract required fields */
-		dto.m_visVersion = j.at( CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
-		dto.m_items = j.at( CODEBOOK_DTO_KEY_ITEMS ).get<CodebooksDto::Items>();
+		dto.m_visVersion = j.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).get<std::string>();
+		dto.m_items = j.at( dto::CODEBOOK_DTO_KEY_ITEMS ).get<CodebooksDto::Items>();
 	}
 
 	void to_json( nlohmann::json& j, const CodebooksDto& dto )
 	{
 		/* ADL hook for nlohmann::json serialization. */
-		j = { { CODEBOOK_DTO_KEY_VIS_RELEASE, dto.visVersion() }, { CODEBOOK_DTO_KEY_ITEMS, dto.items() } };
+		j = { { dto::CODEBOOK_DTO_KEY_VIS_RELEASE, dto.visVersion() }, { dto::CODEBOOK_DTO_KEY_ITEMS, dto.items() } };
 	}
 }

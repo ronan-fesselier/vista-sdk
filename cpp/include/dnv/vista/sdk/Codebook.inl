@@ -15,7 +15,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	inline CodebookStandardValues::CodebookStandardValues( CodebookName name, StringSet&& standardValues ) noexcept
+	inline CodebookStandardValues::CodebookStandardValues( CodebookName name, utils::StringSet&& standardValues ) noexcept
 		: m_name{ name },
 		  m_standardValues{ std::move( standardValues ) }
 	{
@@ -70,7 +70,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	inline CodebookGroups::CodebookGroups( StringSet&& groups ) noexcept
+	inline CodebookGroups::CodebookGroups( utils::StringSet&& groups ) noexcept
 		: m_groups{ std::move( groups ) }
 	{
 	}
@@ -126,7 +126,7 @@ namespace dnv::vista::sdk
 		return m_standardValues;
 	}
 
-	inline const StringMap<std::vector<std::string>>& Codebook::rawData() const noexcept
+	inline const utils::StringMap<std::vector<std::string>>& Codebook::rawData() const noexcept
 	{
 		return m_rawData;
 	}

@@ -21,7 +21,7 @@
 #include "dnv/vista/sdk/Codebook.h"
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/CodebookName.h"
-#include "dnv/vista/sdk/ChdDictionary.h"
+#include "dnv/vista/sdk/internal/ChdDictionary.h"
 #include "dnv/vista/sdk/VIS.h"
 
 using namespace dnv::vista::sdk;
@@ -53,7 +53,7 @@ namespace dnv::vista::sdk::benchmarks
 		std::array<std::pair<CodebookName, Codebook>, 3> m_array;
 		std::vector<std::pair<CodebookName, Codebook>> m_vector;
 		std::unordered_map<CodebookName, Codebook> m_unorderedMap;
-		std::unique_ptr<dnv::vista::sdk::ChdDictionary<Codebook>> m_chdDictionary;
+		std::unique_ptr<dnv::vista::sdk::internal::ChdDictionary<Codebook>> m_chdDictionary;
 		std::map<CodebookName, Codebook> m_map;
 
 		bool tryGetValue( const std::array<std::pair<CodebookName, Codebook>, 3>& arr, CodebookName key, const Codebook*& outValue ) const noexcept
@@ -90,7 +90,7 @@ namespace dnv::vista::sdk::benchmarks
 			return false;
 		}
 
-		bool tryGetValue( const dnv::vista::sdk::ChdDictionary<Codebook>& dict, CodebookName key, const Codebook*& outValue ) const noexcept
+		bool tryGetValue( const dnv::vista::sdk::internal::ChdDictionary<Codebook>& dict, CodebookName key, const Codebook*& outValue ) const noexcept
 		{
 			static const char* const keyMappings[] = {
 				nullptr,
@@ -183,7 +183,7 @@ namespace dnv::vista::sdk::benchmarks
 			chdItems.emplace_back( "Quantity", codebooks_ref[CodebookName::Quantity] );
 			chdItems.emplace_back( "Type", codebooks_ref[CodebookName::Type] );
 			chdItems.emplace_back( "Detail", codebooks_ref[CodebookName::Detail] );
-			m_chdDictionary = std::make_unique<dnv::vista::sdk::ChdDictionary<Codebook>>( std::move( chdItems ) );
+			m_chdDictionary = std::make_unique<dnv::vista::sdk::internal::ChdDictionary<Codebook>>( std::move( chdItems ) );
 
 			/* Setup map (red-black tree) */
 			m_map.clear();

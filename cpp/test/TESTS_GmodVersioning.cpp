@@ -5,6 +5,8 @@
 
 #include "pch.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 #include "TestDataLoader.h"
 
 #include "dnv/vista/sdk/GmodTraversal.h"
@@ -12,8 +14,6 @@
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
-
-#include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk::tests
 {
@@ -41,7 +41,7 @@ namespace dnv::vista::sdk::tests
 				}
 				catch ( [[maybe_unused]] const std::exception& ex )
 				{
-					StringMap<GmodVersioningDto> emptyDto;
+					utils::StringMap<GmodVersioningDto> emptyDto;
 					m_gmodVersioning = std::make_unique<GmodVersioning>( emptyDto );
 				}
 
@@ -329,20 +329,14 @@ namespace dnv::vista::sdk::tests
 
 	class PathConversionTest : public ::testing::TestWithParam<PathTestData>
 	{
-	protected:
-		virtual void SetUp() override
-		{
-			m_vis = &VIS::instance();
-		}
-
-		VIS* m_vis = nullptr;
 	};
 
 	TEST_P( PathConversionTest, Test_GmodVersioning_ConvertPath )
 	{
 		auto testData = GetParam();
-		const auto& sourceGmod = m_vis->gmod( testData.sourceVersion );
-		const auto& targetGmod = m_vis->gmod( testData.targetVersion );
+		auto& vis = VIS::instance();
+		const auto& sourceGmod = vis.gmod( testData.sourceVersion );
+		const auto& targetGmod = vis.gmod( testData.targetVersion );
 
 		std::optional<GmodPath> sourcePathOpt;
 		auto res = sourceGmod.tryParsePath( testData.inputPath, sourcePathOpt );
@@ -353,7 +347,7 @@ namespace dnv::vista::sdk::tests
 		std::optional<GmodPath> parsedTargetPathOpt;
 		bool parsedExpectedPath = targetGmod.tryParsePath( testData.expectedPath, parsedTargetPathOpt );
 
-		auto targetPath = m_vis->convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
+		auto targetPath = vis.convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
 		ASSERT_TRUE( targetPath.has_value() );
 
 		std::vector<std::string> nodesWithLocation;
@@ -364,9 +358,30 @@ namespace dnv::vista::sdk::tests
 
 			if ( nodePtr && nodePtr->location().has_value() )
 			{
-				nodesWithLocation.push_back( std::string( nodePtr->code() ) );
+				nodesWithLocation.push_back( std::string{ nodePtr->code() } );
 			}
 		}
+
+		struct LocationValidationState
+		{
+			bool allNodesHaveNullLocation = true;
+		};
+
+		LocationValidationState state;
+		TraverseHandlerWithState<LocationValidationState> handler =
+			[]( LocationValidationState& s, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			(void)parents;
+
+			if ( node.location().has_value() )
+			{
+				s.allNodesHaveNullLocation = false;
+			}
+
+			return TraversalHandlerResult::Continue;
+		};
+
+		GmodTraversal::traverse( state, targetGmod, handler );
+		EXPECT_TRUE( state.allNodesHaveNullLocation ) << "Some nodes in target GMOD have non-null location";
 
 		ASSERT_TRUE( sourcePathOpt.has_value() );
 		EXPECT_EQ( testData.inputPath, sourcePathOpt->toString() );
@@ -413,20 +428,14 @@ namespace dnv::vista::sdk::tests
 
 	class FullPathConversionTest : public ::testing::TestWithParam<FullPathTestData>
 	{
-	protected:
-		virtual void SetUp() override
-		{
-			m_vis = &VIS::instance();
-		}
-
-		VIS* m_vis = nullptr;
 	};
 
 	TEST_P( FullPathConversionTest, Test_GmodVersioning_ConvertFullPath )
 	{
 		auto testData = GetParam();
-		const auto& sourceGmod = m_vis->gmod( testData.sourceVersion );
-		const auto& targetGmod = m_vis->gmod( testData.targetVersion );
+		auto& vis = VIS::instance();
+		const auto& sourceGmod = vis.gmod( testData.sourceVersion );
+		const auto& targetGmod = vis.gmod( testData.targetVersion );
 
 		std::optional<GmodPath> sourcePathOpt;
 		ASSERT_TRUE( sourceGmod.tryParseFromFullPath( testData.inputPath, sourcePathOpt ) );
@@ -435,7 +444,7 @@ namespace dnv::vista::sdk::tests
 		std::optional<GmodPath> parsedTargetPathOpt;
 		bool parsedPath = targetGmod.tryParseFromFullPath( testData.expectedPath, parsedTargetPathOpt );
 
-		auto targetPath = m_vis->convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
+		auto targetPath = vis.convertPath( testData.sourceVersion, *sourcePathOpt, testData.targetVersion );
 
 		ASSERT_TRUE( targetPath.has_value() ) << "Path conversion failed for input: " << testData.inputPath;
 
@@ -489,21 +498,15 @@ namespace dnv::vista::sdk::tests
 
 	class NodeConversionTest : public ::testing::TestWithParam<NodeTestData>
 	{
-	protected:
-		virtual void SetUp() override
-		{
-			m_vis = &VIS::instance();
-		}
-
-		VIS* m_vis = nullptr;
 	};
 
 	TEST_P( NodeConversionTest, Test_GmodVersioning_ConvertNode )
 	{
 		auto testData = GetParam();
+		auto& vis = VIS::instance();
 
-		const auto& gmod = m_vis->gmod( VisVersion::v3_4a );
-		const auto& targetGmod = m_vis->gmod( VisVersion::v3_6a );
+		const auto& gmod = vis.gmod( VisVersion::v3_4a );
+		const auto& targetGmod = vis.gmod( VisVersion::v3_6a );
 
 		const GmodNode* sourceNodePtr = nullptr;
 		bool foundSource = gmod.tryGetNode( testData.inputCode, sourceNodePtr );
@@ -531,7 +534,7 @@ namespace dnv::vista::sdk::tests
 			expectedNode = expectedNode.withLocation( location.toString() );
 		}
 
-		auto targetNodeOpt = m_vis->convertNode( VisVersion::v3_4a, sourceNode, VisVersion::v3_6a );
+		auto targetNodeOpt = vis.convertNode( VisVersion::v3_4a, sourceNode, VisVersion::v3_6a );
 
 		ASSERT_TRUE( targetNodeOpt.has_value() );
 		const auto& targetNode = *targetNodeOpt;

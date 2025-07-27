@@ -3,14 +3,22 @@
 # ==============================================================================
 
 set(PUBLIC_HEADERS
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/version.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/MemoryCache.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/HashMap.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/PathConversionCache.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/AlgorithmConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/CodebookConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/DtoKeys.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/GmodConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/Platform.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h
 
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/ChdDictionary.inl
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringMap.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h
+
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/HashMap.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/MemoryCache.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/PathConversionCache.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/ChdDictionary.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/ChdDictionary.inl
+
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebooks.h
@@ -21,7 +29,6 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/CodebooksDto.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/EmbeddedResource.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/EmbeddedResource.inl
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Gmod.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Gmod.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/GmodDto.h
@@ -72,7 +79,6 @@ set(PRIVATE_HEADERS
 )
 
 set(PRIVATE_SOURCES
-	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/ChdDictionary.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Codebook.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Codebooks.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/CodebooksDto.cpp

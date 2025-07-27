@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/ImoNumber.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/AlgorithmConstants.h"
 
 namespace dnv::vista::sdk
 {
@@ -149,7 +149,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( value.find_first_of( NULL_OR_WHITESPACE ) != std::string::npos )
+		if ( value.find_first_of( constants::NULL_OR_WHITESPACE ) != std::string::npos )
 		{
 			return std::nullopt;
 		}

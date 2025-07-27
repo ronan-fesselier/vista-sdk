@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "utils/StringUtils.h"
+#include "utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -40,7 +40,7 @@ namespace dnv::vista::sdk
 		// Type aliases for heterogeneous containers
 		//----------------------------------------------
 
-		using PathCache = StringMap<std::filesystem::path>;
+		using PathCache = utils::StringMap<std::filesystem::path>;
 
 		//----------------------------------------------
 		// Public interface
@@ -63,7 +63,7 @@ namespace dnv::vista::sdk
 		 *
 		 * @return Dictionary of versioning DTOs by version string with heterogeneous lookup if found, std::nullopt otherwise
 		 */
-		static const std::optional<StringMap<GmodVersioningDto>>& gmodVersioning();
+		static const std::optional<utils::StringMap<GmodVersioningDto>>& gmodVersioning();
 
 		/**
 		 * @brief Get GMOD for specific VIS version

@@ -64,7 +64,7 @@ namespace dnv::vista::sdk
 						break;
 				}
 				throw std::invalid_argument(
-					"The value '" + std::string( 1, value ) + "' is an invalid " + groupName + " value" );
+					"The value '" + std::string{ 1, value } + "' is an invalid " + groupName + " value" );
 			}
 
 			LocationBuilder result = builder;
@@ -252,7 +252,7 @@ namespace dnv::vista::sdk
 		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Side )
 		{
 			throw std::invalid_argument(
-				"The value '" + std::string( 1, side ) + "' is an invalid Side value" );
+				"The value '" + std::string{ 1, side } + "' is an invalid Side value" );
 		}
 
 		LocationBuilder result = *this;
@@ -279,7 +279,7 @@ namespace dnv::vista::sdk
 		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Vertical )
 		{
 			throw std::invalid_argument(
-				"The value '" + std::string( 1, vertical ) + "' is an invalid Vertical value" );
+				"The value '" + std::string{ 1, vertical } + "' is an invalid Vertical value" );
 		}
 
 		LocationBuilder result = *this;
@@ -306,7 +306,7 @@ namespace dnv::vista::sdk
 		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Transverse )
 		{
 			throw std::invalid_argument(
-				"The value '" + std::string( 1, transverse ) + "' is an invalid Transverse value" );
+				"The value '" + std::string{ 1, transverse } + "' is an invalid Transverse value" );
 		}
 
 		LocationBuilder result = *this;
@@ -333,7 +333,7 @@ namespace dnv::vista::sdk
 		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Longitudinal )
 		{
 			throw std::invalid_argument(
-				"The value '" + std::string( 1, longitudinal ) + "' is an invalid Longitudinal value" );
+				"The value '" + std::string{ 1, longitudinal } + "' is an invalid Longitudinal value" );
 		}
 
 		LocationBuilder result = *this;
@@ -364,7 +364,7 @@ namespace dnv::vista::sdk
 		auto it = m_reversedGroups.find( value );
 		if ( it == m_reversedGroups.end() )
 		{
-			throw std::invalid_argument( "The value '" + std::string( 1, value ) + "' is an invalid Locations value" );
+			throw std::invalid_argument( "The value '" + std::string{ 1, value } + "' is an invalid Locations value" );
 		}
 
 		LocationGroup group = it->second;

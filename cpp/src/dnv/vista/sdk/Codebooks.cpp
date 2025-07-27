@@ -5,7 +5,6 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/Config.h"
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/CodebooksDto.h"
 #include "dnv/vista/sdk/VISVersion.h"
@@ -33,7 +32,7 @@ namespace dnv::vista::sdk
 			m_codebooks[index] = std::move( codebook );
 		}
 
-		CodebookDto detailDto( std::string{ CODEBOOK_NAME_DETAIL }, CodebookDto::ValuesMap{} );
+		CodebookDto detailDto( std::string{ codebook::CODEBOOK_NAME_DETAIL }, CodebookDto::ValuesMap{} );
 		constexpr auto detailIndex = static_cast<size_t>( CodebookName::Detail ) - 1;
 		m_codebooks[detailIndex] = Codebook( std::move( detailDto ) );
 	}

@@ -6,6 +6,7 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/GmodVersioning.h"
+#include "dnv/vista/sdk/internal/PathConversionCache.h"
 
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/GmodNode.h"
@@ -16,7 +17,6 @@
 #include "dnv/vista/sdk/MetadataTag.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
-#include "dnv/vista/sdk/utils/PathConversionCache.h"
 
 namespace dnv::vista::sdk
 {
@@ -104,7 +104,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	GmodVersioning::GmodVersioning( const StringMap<GmodVersioningDto>& dto )
+	GmodVersioning::GmodVersioning( const utils::StringMap<GmodVersioningDto>& dto )
 	{
 		m_versioningsMap.reserve( dto.size() );
 
@@ -197,7 +197,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodPath> GmodVersioning::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
 	{
-		auto& pathCache = PathConversionCache::instance();
+		auto& pathCache = internal::PathConversionCache::instance();
 		const std::string pathString = sourcePath.toString();
 
 		std::optional<GmodPath> cachedResult;
@@ -467,7 +467,7 @@ namespace dnv::vista::sdk
 
 	GmodVersioning::GmodVersioningNode::GmodVersioningNode(
 		VisVersion visVersion,
-		const StringMap<GmodNodeConversionDto>& dto )
+		const utils::StringMap<GmodNodeConversionDto>& dto )
 		: m_visVersion{ visVersion }
 	{
 		for ( const auto& [code, dtoNode] : dto )

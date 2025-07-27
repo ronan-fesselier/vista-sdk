@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include "Config.h"
+#include "config/CodebookConstants.h"
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -22,17 +23,17 @@ namespace dnv::vista::sdk
 		};
 
 		static constexpr std::array<PrefixMapping, 11> s_prefixMappings{
-			{ { CODEBOOK_PREFIX_POSITION, CodebookName::Position },
-				{ CODEBOOK_PREFIX_QUANTITY, CodebookName::Quantity },
-				{ CODEBOOK_PREFIX_STATE, CodebookName::State },
-				{ CODEBOOK_PREFIX_CONTENT, CodebookName::Content },
-				{ CODEBOOK_PREFIX_COMMAND, CodebookName::Command },
-				{ CODEBOOK_PREFIX_TYPE, CodebookName::Type },
-				{ CODEBOOK_PREFIX_CALCULATION, CodebookName::Calculation },
-				{ CODEBOOK_PREFIX_DETAIL, CodebookName::Detail },
-				{ CODEBOOK_PREFIX_FUNCTIONAL_SERVICES, CodebookName::FunctionalServices },
-				{ CODEBOOK_PREFIX_MAINTENANCE_CATEGORY, CodebookName::MaintenanceCategory },
-				{ CODEBOOK_PREFIX_ACTIVITY_TYPE, CodebookName::ActivityType } } };
+			{ { codebook::CODEBOOK_PREFIX_POSITION, CodebookName::Position },
+				{ codebook::CODEBOOK_PREFIX_QUANTITY, CodebookName::Quantity },
+				{ codebook::CODEBOOK_PREFIX_STATE, CodebookName::State },
+				{ codebook::CODEBOOK_PREFIX_CONTENT, CodebookName::Content },
+				{ codebook::CODEBOOK_PREFIX_COMMAND, CodebookName::Command },
+				{ codebook::CODEBOOK_PREFIX_TYPE, CodebookName::Type },
+				{ codebook::CODEBOOK_PREFIX_CALCULATION, CodebookName::Calculation },
+				{ codebook::CODEBOOK_PREFIX_DETAIL, CodebookName::Detail },
+				{ codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES, CodebookName::FunctionalServices },
+				{ codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY, CodebookName::MaintenanceCategory },
+				{ codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE, CodebookName::ActivityType } } };
 	}
 
 	//=====================================================================
@@ -67,47 +68,47 @@ namespace dnv::vista::sdk
 		{
 			case CodebookName::Position:
 			{
-				return CODEBOOK_PREFIX_POSITION;
+				return codebook::CODEBOOK_PREFIX_POSITION;
 			}
 			case CodebookName::Quantity:
 			{
-				return CODEBOOK_PREFIX_QUANTITY;
+				return codebook::CODEBOOK_PREFIX_QUANTITY;
 			}
 			case CodebookName::Calculation:
 			{
-				return CODEBOOK_PREFIX_CALCULATION;
+				return codebook::CODEBOOK_PREFIX_CALCULATION;
 			}
 			case CodebookName::State:
 			{
-				return CODEBOOK_PREFIX_STATE;
+				return codebook::CODEBOOK_PREFIX_STATE;
 			}
 			case CodebookName::Content:
 			{
-				return CODEBOOK_PREFIX_CONTENT;
+				return codebook::CODEBOOK_PREFIX_CONTENT;
 			}
 			case CodebookName::Command:
 			{
-				return CODEBOOK_PREFIX_COMMAND;
+				return codebook::CODEBOOK_PREFIX_COMMAND;
 			}
 			case CodebookName::Type:
 			{
-				return CODEBOOK_PREFIX_TYPE;
+				return codebook::CODEBOOK_PREFIX_TYPE;
 			}
 			case CodebookName::FunctionalServices:
 			{
-				return CODEBOOK_PREFIX_FUNCTIONAL_SERVICES;
+				return codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES;
 			}
 			case CodebookName::MaintenanceCategory:
 			{
-				return CODEBOOK_PREFIX_MAINTENANCE_CATEGORY;
+				return codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY;
 			}
 			case CodebookName::ActivityType:
 			{
-				return CODEBOOK_PREFIX_ACTIVITY_TYPE;
+				return codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE;
 			}
 			case CodebookName::Detail:
 			{
-				return CODEBOOK_PREFIX_DETAIL;
+				return codebook::CODEBOOK_PREFIX_DETAIL;
 			}
 			default:
 			{

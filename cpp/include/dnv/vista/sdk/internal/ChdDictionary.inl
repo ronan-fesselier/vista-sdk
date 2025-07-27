@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include "utils/StringUtils.h"
+#include "dnv/vista/sdk/config/AlgorithmConstants.h"
+#include "dnv/vista/sdk/utils/StringUtils.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	namespace
 	{
@@ -75,7 +76,7 @@ namespace dnv::vista::sdk
 
 		VISTA_SDK_CPP_FORCE_INLINE constexpr uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch ) noexcept
 		{
-			return ( ch ^ hash ) * FNV_PRIME;
+			return ( ch ^ hash ) * constants::FNV_PRIME;
 		}
 
 		VISTA_SDK_CPP_FORCE_INLINE uint32_t Hashing::crc32( uint32_t hash, uint8_t ch ) noexcept
@@ -93,6 +94,25 @@ namespace dnv::vista::sdk
 
 			return static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( size - 1 ) );
 		}
+	}
+
+	//=====================================================================
+	// Exception class
+	//=====================================================================
+
+	inline key_not_found_exception::key_not_found_exception( std::string_view key )
+		: std::runtime_error{ fmt::format( "No value associated to key: {}", key ) }
+	{
+	}
+
+	inline invalid_operation_exception::invalid_operation_exception()
+		: std::runtime_error{ "Operation is not valid due to the current state of the object." }
+	{
+	}
+
+	inline invalid_operation_exception::invalid_operation_exception( std::string_view message )
+		: std::runtime_error{ std::string{ message } }
+	{
 	}
 
 	//=====================================================================
@@ -183,7 +203,7 @@ namespace dnv::vista::sdk
 					break;
 				}
 
-				if ( currentSeedValue > size * MAX_SEED_SEARCH_MULTIPLIER )
+				if ( currentSeedValue > size * constants::MAX_SEED_SEARCH_MULTIPLIER )
 				{
 					throw std::runtime_error( fmt::format(
 						"Bucket {}: Seed search exceeded threshold ({}), aborting construction!",
@@ -244,6 +264,8 @@ namespace dnv::vista::sdk
 	template <typename TValue>
 	VISTA_SDK_CPP_FORCE_INLINE TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
 	{
+		using dnv::vista::sdk::utils::equals;
+
 		if ( isEmpty() )
 		{
 			ThrowHelper::throwKeyNotFoundException( key );
@@ -396,10 +418,10 @@ namespace dnv::vista::sdk
 	{
 		if ( key.empty() )
 		{
-			return FNV_OFFSET_BASIS;
+			return constants::FNV_OFFSET_BASIS;
 		}
 
-		uint32_t hashValue = FNV_OFFSET_BASIS;
+		uint32_t hashValue = constants::FNV_OFFSET_BASIS;
 		const char* data = key.data();
 		size_t length = key.length();
 

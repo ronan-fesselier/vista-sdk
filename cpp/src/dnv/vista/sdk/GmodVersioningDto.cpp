@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 
-#include "dnv/vista/sdk/Config.h"
+#include "dnv/vista/sdk/config/DtoKeys.h"
 
 namespace dnv::vista::sdk
 {
@@ -17,25 +17,21 @@ namespace dnv::vista::sdk
 		// JSON parsing helper functions
 		//=====================================================================
 
-		static constexpr std::string_view UNKNOWN_VERSION = "[unknown version]";
-		static constexpr std::string_view UNKNOWN_OLD_ASSIGNMENT = "[unknown oldAssignment]";
-		static constexpr std::string_view UNKNOWN_SOURCE = "[unknown source]";
-
 		std::string_view extractVisHint( const nlohmann::json& json ) noexcept
 		{
 			try
 			{
-				if ( json.contains( GMODVERSIONING_DTO_KEY_VIS_RELEASE ) && json.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ) && json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
-					const auto& str = json.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_VERSION;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_VERSION;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_VERSION;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_VERSION;
 			}
 		}
 
@@ -43,17 +39,17 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) && json.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) && json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 				{
-					const auto& str = json.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_OLD_ASSIGNMENT;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_OLD_ASSIGNMENT;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_OLD_ASSIGNMENT;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_OLD_ASSIGNMENT;
 			}
 		}
 
@@ -61,17 +57,17 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( GMODVERSIONING_DTO_KEY_SOURCE ) && json.at( GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
+				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_SOURCE ) && json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
 				{
-					const auto& str = json.at( GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
+					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
 					return std::string_view{ str };
 				}
 
-				return UNKNOWN_SOURCE;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_SOURCE;
 			}
 			catch ( ... )
 			{
-				return UNKNOWN_SOURCE;
+				return dto::GMODVERSIONING_DTO_UNKNOWN_SOURCE;
 			}
 		}
 	}
@@ -143,17 +139,27 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodVersioningAssignmentChangeDto& dto )
 	{
-		if ( !j.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) || !j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) || !j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string",
+					dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ),
+				nullptr );
 		}
-		if ( !j.contains( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ) || !j.at( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).is_string() )
+		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ) || !j.at( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"GmodVersioningAssignmentChangeDto JSON missing required '{}' field or not a string",
+					dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ),
+				nullptr );
 		}
 
-		dto.m_oldAssignment = j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
-		dto.m_currentAssignment = j.at( GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).get<std::string>();
+		dto.m_oldAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
+		dto.m_currentAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).get<std::string>();
 
 		if ( dto.m_oldAssignment.empty() )
 		{
@@ -168,8 +174,8 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const GmodVersioningAssignmentChangeDto& dto )
 	{
 		j = nlohmann::json{
-			{ GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
-			{ GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT, dto.m_currentAssignment } };
+			{ dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
+			{ dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT, dto.m_currentAssignment } };
 	}
 
 	//=====================================================================
@@ -239,21 +245,21 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodNodeConversionDto& dto )
 	{
-		if ( j.contains( GMODVERSIONING_DTO_KEY_OPERATIONS ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_OPERATIONS ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_OPERATIONS ).is_array() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS ).is_array() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not an array", GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not an array", dto::GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
 			}
 			dto.m_operations.clear();
-			const auto& opsArray = j.at( GMODVERSIONING_DTO_KEY_OPERATIONS );
+			const auto& opsArray = j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
 
 			dto.m_operations.reserve( opsArray.size() + opsArray.size() / 8 );
 			for ( const auto& op : opsArray )
 			{
 				if ( !op.is_string() )
 				{
-					throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' contains non-string element", GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
+					throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' contains non-string element", dto::GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
 				}
 				dto.m_operations.insert( op.get<std::string>() );
 			}
@@ -261,70 +267,83 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_operations.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_OPERATIONS );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
 		}
 
-		if ( j.contains( GMODVERSIONING_DTO_KEY_SOURCE ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_SOURCE ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_SOURCE ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_SOURCE ), nullptr );
 			}
-			dto.m_source = j.at( GMODVERSIONING_DTO_KEY_SOURCE ).get<std::string>();
+			dto.m_source = j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get<std::string>();
 		}
 		else
 		{
 			dto.m_source.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_SOURCE );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_SOURCE );
 		}
 
-		if ( j.contains( GMODVERSIONING_DTO_KEY_TARGET ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_TARGET ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_TARGET ).is_string() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_TARGET ), nullptr );
+				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_TARGET ), nullptr );
 			}
-			dto.m_target = j.at( GMODVERSIONING_DTO_KEY_TARGET ).get<std::string>();
+			dto.m_target = j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).get<std::string>();
 		}
 		else
 		{
 			dto.m_target.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", GMODVERSIONING_DTO_KEY_TARGET );
+			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_TARGET );
 		}
 
-		if ( j.contains( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ), nullptr );
+				throw nlohmann::json::type_error::create( 302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not a string",
+						dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ),
+					nullptr );
 			}
-			dto.m_oldAssignment = j.at( GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
+			dto.m_oldAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
 		}
 		else
 		{
 			dto.m_oldAssignment.clear();
 		}
 
-		if ( j.contains( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).is_string() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ),
+					nullptr );
 			}
-			dto.m_newAssignment = j.at( GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).get<std::string>();
+			dto.m_newAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).get<std::string>();
 		}
 		else
 		{
 			dto.m_newAssignment.clear();
 		}
 
-		if ( j.contains( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).is_boolean() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).is_boolean() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a boolean", GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not a boolean",
+						dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ),
+					nullptr );
 			}
-			dto.m_deleteAssignment = j.at( GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).get<bool>();
+			dto.m_deleteAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).get<bool>();
 		}
 		else
 		{
@@ -344,12 +363,12 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const GmodNodeConversionDto& dto )
 	{
 		j = nlohmann::json{
-			{ GMODVERSIONING_DTO_KEY_OPERATIONS, dto.m_operations },
-			{ GMODVERSIONING_DTO_KEY_SOURCE, dto.m_source },
-			{ GMODVERSIONING_DTO_KEY_TARGET, dto.m_target },
-			{ GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
-			{ GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT, dto.m_newAssignment },
-			{ GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT, dto.m_deleteAssignment } };
+			{ dto::GMODVERSIONING_DTO_KEY_OPERATIONS, dto.m_operations },
+			{ dto::GMODVERSIONING_DTO_KEY_SOURCE, dto.m_source },
+			{ dto::GMODVERSIONING_DTO_KEY_TARGET, dto.m_target },
+			{ dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT, dto.m_oldAssignment },
+			{ dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT, dto.m_newAssignment },
+			{ dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT, dto.m_deleteAssignment } };
 	}
 
 	//=====================================================================
@@ -419,21 +438,31 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodVersioningDto& dto )
 	{
-		if ( !j.contains( GMODVERSIONING_DTO_KEY_VIS_RELEASE ) || !j.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ) || !j.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u, fmt::format( "GmodVersioningDto JSON missing required '{}' field or not a string", GMODVERSIONING_DTO_KEY_VIS_RELEASE ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"GmodVersioningDto JSON missing required '{}' field or not a string",
+					dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ),
+				nullptr );
 		}
-		dto.m_visVersion = j.at( GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get<std::string>();
+		dto.m_visVersion = j.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get<std::string>();
 
 		dto.m_items.clear();
-		if ( j.contains( GMODVERSIONING_DTO_KEY_ITEMS ) )
+		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_ITEMS ) )
 		{
-			if ( !j.at( GMODVERSIONING_DTO_KEY_ITEMS ).is_object() )
+			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_ITEMS ).is_object() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodVersioningDto JSON field '{}' is not an object", GMODVERSIONING_DTO_KEY_ITEMS ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodVersioningDto JSON field '{}' is not an object",
+						dto::GMODVERSIONING_DTO_KEY_ITEMS ),
+					nullptr );
 			}
 
-			const auto& itemsObj = j.at( GMODVERSIONING_DTO_KEY_ITEMS );
+			const auto& itemsObj = j.at( dto::GMODVERSIONING_DTO_KEY_ITEMS );
 			size_t itemCount = itemsObj.size();
 
 			if ( itemCount > 10000 )
@@ -477,18 +506,20 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			fmt::print( stderr, "WARN: No '{}' object found in GMOD versioning data for VIS version {}\n",
-				GMODVERSIONING_DTO_KEY_ITEMS, dto.m_visVersion );
+			fmt::print(
+				stderr,
+				"WARN: No '{}' object found in GMOD versioning data for VIS version {}\n",
+				dto::GMODVERSIONING_DTO_KEY_ITEMS, dto.m_visVersion );
 		}
 	}
 
 	void to_json( nlohmann::json& j, const GmodVersioningDto& dto )
 	{
-		j = nlohmann::json{ { GMODVERSIONING_DTO_KEY_VIS_RELEASE, dto.m_visVersion } };
+		j = nlohmann::json{ { dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE, dto.m_visVersion } };
 
 		if ( !dto.m_items.empty() )
 		{
-			j[GMODVERSIONING_DTO_KEY_ITEMS] = dto.m_items;
+			j[dto::GMODVERSIONING_DTO_KEY_ITEMS] = dto.m_items;
 
 			size_t emptyOperationsCount = 0;
 			for ( const auto& [key, value] : dto.m_items )
@@ -500,12 +531,15 @@ namespace dnv::vista::sdk
 			}
 			if ( emptyOperationsCount > 0 )
 			{
-				fmt::print( stderr, "WARN: {} nodes have no operations defined during serialization\n", emptyOperationsCount );
+				fmt::print(
+					stderr,
+					"WARN: {} nodes have no operations defined during serialization\n",
+					emptyOperationsCount );
 			}
 		}
 		else
 		{
-			j[GMODVERSIONING_DTO_KEY_ITEMS] = nlohmann::json::object();
+			j[dto::GMODVERSIONING_DTO_KEY_ITEMS] = nlohmann::json::object();
 		}
 	}
 }

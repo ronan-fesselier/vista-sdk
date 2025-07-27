@@ -6,7 +6,7 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/ChdDictionary.h"
+#include "dnv/vista/sdk/internal/ChdDictionary.h"
 
 using namespace dnv::vista::sdk;
 
@@ -41,7 +41,7 @@ namespace dnv::vista::sdk::benchmarks
 	{
 		[[nodiscard]] static uint32_t hash( uint32_t hash, uint8_t ch ) noexcept
 		{
-			return Hashing::Larson( hash, ch );
+			return internal::Hashing::Larson( hash, ch );
 		}
 	};
 
@@ -49,7 +49,7 @@ namespace dnv::vista::sdk::benchmarks
 	{
 		[[nodiscard]] static uint32_t hash( uint32_t hash, uint8_t ch ) noexcept
 		{
-			return Hashing::crc32( hash, ch );
+			return internal::Hashing::crc32( hash, ch );
 		}
 	};
 
@@ -57,7 +57,7 @@ namespace dnv::vista::sdk::benchmarks
 	{
 		[[nodiscard]] static uint32_t hash( uint32_t hash, uint8_t ch ) noexcept
 		{
-			return Hashing::fnv1a( hash, ch );
+			return internal::Hashing::fnv1a( hash, ch );
 		}
 	};
 

@@ -433,7 +433,7 @@ namespace dnv::vista::sdk::tests
 				for ( const auto& node : set.nodes() )
 				{
 					ASSERT_NE( node, nullptr );
-					auto insertResult = uniqueCodes.insert( std::string( node->code().data() ) );
+					auto insertResult = uniqueCodes.insert( std::string{ node->code().data() } );
 					ASSERT_TRUE( insertResult.second );
 				}
 			}
@@ -472,7 +472,7 @@ namespace dnv::vista::sdk::tests
 				for ( const auto& node : set.nodes() )
 				{
 					ASSERT_NE( node, nullptr );
-					auto insertResult = uniqueCodes.insert( std::string( node->code().data() ) );
+					auto insertResult = uniqueCodes.insert( std::string{ node->code().data() } );
 					ASSERT_TRUE( insertResult.second );
 				}
 			}

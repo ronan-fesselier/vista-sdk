@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utils/StringUtils.h"
+#include "utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -35,7 +35,7 @@ namespace dnv::vista::sdk
 		using ValueGroup = std::vector<std::string>;
 
 		/** @brief Type representing a mapping of group names to their values with heterogeneous lookup */
-		using ValuesMap = StringMap<ValueGroup>;
+		using ValuesMap = utils::StringMap<ValueGroup>;
 
 		//----------------------------------------------
 		// Construction

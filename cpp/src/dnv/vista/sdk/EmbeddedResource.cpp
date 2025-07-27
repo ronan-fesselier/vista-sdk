@@ -94,10 +94,10 @@ namespace dnv::vista::sdk
 		return visVersions;
 	}
 
-	const std::optional<StringMap<GmodVersioningDto>>& EmbeddedResource::gmodVersioning()
+	const std::optional<utils::StringMap<GmodVersioningDto>>& EmbeddedResource::gmodVersioning()
 	{
 		static std::mutex gmodVersioningCacheMutex;
-		static std::optional<StringMap<GmodVersioningDto>> gmodVersioningCache;
+		static std::optional<utils::StringMap<GmodVersioningDto>> gmodVersioningCache;
 		static bool cacheInitialized = false;
 
 		{
@@ -121,7 +121,7 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		StringMap<GmodVersioningDto> resultMap;
+		utils::StringMap<GmodVersioningDto> resultMap;
 		std::mutex resultMutex;
 		bool foundAnyResource = false;
 
@@ -178,9 +178,12 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> EmbeddedResource::gmod( std::string_view visVersion )
 	{
+		using dnv::vista::sdk::utils::contains;
+		using dnv::vista::sdk::utils::endsWith;
+
 		static std::mutex gmodCacheMutex;
 
-		static StringMap<std::optional<GmodDto>> gmodCache;
+		static utils::StringMap<std::optional<GmodDto>> gmodCache;
 
 		{
 			std::lock_guard<std::mutex> lock( gmodCacheMutex );
@@ -195,10 +198,10 @@ namespace dnv::vista::sdk
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
-				return dnv::vista::sdk::contains( name, "gmod" ) &&
-					   dnv::vista::sdk::contains( name, visVersion ) &&
-					   dnv::vista::sdk::endsWith( name, ".json.gz" ) &&
-					   !dnv::vista::sdk::contains( name, "versioning" );
+				return contains( name, "gmod" ) &&
+					   contains( name, visVersion ) &&
+					   endsWith( name, ".json.gz" ) &&
+					   !contains( name, "versioning" );
 			} );
 
 		if ( it == names.end() )
@@ -242,9 +245,12 @@ namespace dnv::vista::sdk
 
 	std::optional<CodebooksDto> EmbeddedResource::codebooks( std::string_view visVersion )
 	{
+		using dnv::vista::sdk::utils::contains;
+		using dnv::vista::sdk::utils::endsWith;
+
 		static std::mutex codebooksCacheMutex;
 
-		static StringMap<std::optional<CodebooksDto>> codebooksCache;
+		static utils::StringMap<std::optional<CodebooksDto>> codebooksCache;
 
 		{
 			std::lock_guard<std::mutex> lock( codebooksCacheMutex );
@@ -259,9 +265,9 @@ namespace dnv::vista::sdk
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
-				return dnv::vista::sdk::contains( name, "codebooks" ) &&
-					   dnv::vista::sdk::contains( name, visVersion ) &&
-					   dnv::vista::sdk::endsWith( name, ".json.gz" );
+				return contains( name, "codebooks" ) &&
+					   contains( name, visVersion ) &&
+					   endsWith( name, ".json.gz" );
 			} );
 
 		if ( it == names.end() )
@@ -306,7 +312,7 @@ namespace dnv::vista::sdk
 	{
 		static std::mutex locationsCacheMutex;
 
-		static StringMap<std::optional<LocationsDto>> locationsCache;
+		static utils::StringMap<std::optional<LocationsDto>> locationsCache;
 
 		{
 			std::lock_guard<std::mutex> lock( locationsCacheMutex );
@@ -367,7 +373,7 @@ namespace dnv::vista::sdk
 	{
 		static std::mutex dataChannelTypeNamesCacheMutex;
 
-		static StringMap<std::optional<DataChannelTypeNamesDto>> dataChannelTypeNamesCache;
+		static utils::StringMap<std::optional<DataChannelTypeNamesDto>> dataChannelTypeNamesCache;
 
 		{
 			std::lock_guard<std::mutex> lock( dataChannelTypeNamesCacheMutex );
@@ -429,7 +435,7 @@ namespace dnv::vista::sdk
 	{
 		static std::mutex fdTypesCacheMutex;
 
-		static StringMap<std::optional<FormatDataTypesDto>> fdTypesCache;
+		static utils::StringMap<std::optional<FormatDataTypesDto>> fdTypesCache;
 
 		{
 			std::lock_guard<std::mutex> lock( fdTypesCacheMutex );

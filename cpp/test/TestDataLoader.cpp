@@ -4,12 +4,14 @@
  */
 
 #include "pch.h"
+
+#include "dnv/vista/sdk/internal/HashMap.h"
+
 #include "TestDataLoader.h"
-#include "dnv/vista/sdk/utils/HashMap.h"
 
 namespace dnv::vista::sdk
 {
-	static HashMap<std::string, nlohmann::json> g_testDataCache;
+	static internal::HashMap<std::string, nlohmann::json> g_testDataCache;
 
 	const nlohmann::json& loadTestData( const char* testDataPath )
 	{

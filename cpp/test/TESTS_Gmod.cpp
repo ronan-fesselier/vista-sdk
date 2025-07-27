@@ -5,11 +5,11 @@
 
 #include "pch.h"
 
+#include "dnv/vista/sdk/utils/StringUtils.h"
+
 #include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
-
-#include "dnv/vista/sdk/utils/StringUtils.h"
 
 namespace dnv::vista::sdk::tests
 {
@@ -345,7 +345,7 @@ namespace dnv::vista::sdk::tests
 			auto [vis, gmod] = visAndGmod( visVersion );
 
 			const GmodNode* tempNodePtr = nullptr;
-			ASSERT_TRUE( gmod.tryGetNode( std::string( "400a" ), tempNodePtr ) ) << "Node '400a' not found in GMOD for version " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_TRUE( gmod.tryGetNode( std::string{ "400a" }, tempNodePtr ) ) << "Node '400a' not found in GMOD for version " << VisVersionExtensions::toVersionString( visVersion );
 			ASSERT_NE( tempNodePtr, nullptr ) << "tryGetNode succeeded but pointer is null for '400a' in GMOD version " << VisVersionExtensions::toVersionString( visVersion );
 		}
 
@@ -482,7 +482,7 @@ namespace dnv::vista::sdk::tests
 			}
 
 			const GmodNode* tempNodePtr = nullptr;
-			ASSERT_FALSE( gmod.tryGetNode( std::string( "ABC" ), tempNodePtr ) );
+			ASSERT_FALSE( gmod.tryGetNode( std::string_view{ "ABC" }, tempNodePtr ) );
 			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "" ), tempNodePtr ) );
 			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "SDFASDFSDAFb" ), tempNodePtr ) );
 			ASSERT_FALSE( gmod.tryGetNode( std::string_view( "✅" ), tempNodePtr ) );

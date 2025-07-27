@@ -3,8 +3,7 @@
  * @brief Inline implementations for performance-critical VISVersion operations
  */
 
-#include "VISVersion.h"
-#include "utils/StringUtils.h"
+#include "utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -103,7 +102,7 @@ namespace dnv::vista::sdk
 
 	inline bool VisVersionExtensions::tryParse( std::string_view versionString, VisVersion& version )
 	{
-		static const StringMap<VisVersion> versionMap = {
+		static const utils::StringMap<VisVersion> versionMap = {
 			{ "3.4a", VisVersion::v3_4a },
 			{ "3.5a", VisVersion::v3_5a },
 			{ "3.6a", VisVersion::v3_6a },
