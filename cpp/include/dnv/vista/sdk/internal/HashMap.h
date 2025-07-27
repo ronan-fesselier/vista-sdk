@@ -1,6 +1,6 @@
 /**
  * @file HashMap.h
- * @brief High-performance map with Robin Hood hashing and string optimization
+ * @brief Map with Robin Hood hashing and string optimization
  */
 
 #pragma once
@@ -15,7 +15,7 @@ namespace dnv::vista::sdk::internal
 	//=====================================================================
 
 	/**
-	 * @brief High-performance hash table with Robin Hood hashing
+	 * @brief Hash table with Robin Hood hashing
 	 * @details Cache-friendly dictionary implementation optimized for string keys
 	 *          with heterogeneous lookup support and aggressive inlining
 	 */

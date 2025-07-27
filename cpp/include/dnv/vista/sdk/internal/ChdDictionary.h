@@ -234,15 +234,15 @@ namespace dnv::vista::sdk::internal
 	 * @tparam TValue The type of values stored in the dictionary.
 	 *
 	 * @warning **C# Cross-Platform Compatibility:**
-	 * This C++ implementation is designed to be **FULLY COMPATIBLE** with the C# version,
+	 * This C++ implementation is designed to be fully compatible with the C# version,
 	 * producing identical hash values for ASCII strings. The compatibility is achieved by
 	 * matching the C# byte processing pattern:
-	 * 
+	 *
 	 *   - **C# Behavior:** Processes UTF-16 strings by reading only the low byte of each
 	 *     character (using `curr = ref Unsafe.Add(ref curr, 2)` to skip high bytes)
 	 *   - **C++ Behavior:** Processes ASCII strings byte-by-byte, which produces identical
 	 *     results since ASCII characters have zero high bytes in UTF-16 encoding
-	 * 
+	 *
 	 * This ensures **perfect hash compatibility** and allows dictionaries created by either
 	 * implementation to be used interchangeably across platforms.
 	 *
@@ -402,13 +402,13 @@ namespace dnv::vista::sdk::internal
 		 * @details Two-path implementation optimized for performance:
 		 *   - **SSE4.2 Path:** Uses hardware CRC32 instruction (_mm_crc32_u8) for maximum speed
 		 *   - **Fallback Path:** Uses FNV-1a algorithm for universal compatibility
-		 * 
+		 *
 		 * **Cross-Platform Compatibility:**
 		 * This implementation produces identical hash values to the C# version by matching
 		 * its byte processing pattern. C# processes UTF-16 strings by reading only the
 		 * low byte of each character (skipping high bytes). For ASCII strings, this is
 		 * equivalent to processing each character directly since high bytes are zero.
-		 * 
+		 *
 		 * @param[in] key ASCII string key to hash
 		 * @return 32-bit hash value compatible with C# implementation
 		 */

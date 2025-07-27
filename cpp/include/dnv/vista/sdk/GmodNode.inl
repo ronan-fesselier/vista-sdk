@@ -4,6 +4,8 @@
  */
 
 #include "config/GmodConstants.h"
+#include "config/Platform.h"
+#include "utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -494,10 +496,15 @@ namespace dnv::vista::sdk
 
 	inline std::string GmodNode::toString() const noexcept
 	{
-		fmt::memory_buffer builder;
-		toString( std::back_inserter( builder ) );
+		auto lease = utils::StringBuilderPool::instance();
+		lease.Builder().append( m_code );
+		if ( m_location.has_value() )
+		{
+			lease.Builder().push_back( '-' );
+			lease.Builder().append( m_location->toString() );
+		}
 
-		return fmt::to_string( builder );
+		return lease.toString();
 	}
 
 	template <typename OutputIt>

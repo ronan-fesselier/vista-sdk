@@ -1,6 +1,6 @@
 /**
  * @file LocalIdBuilder.h
- * @brief High-performance fluent builder for LocalId objects.
+ * @brief Fluent builder for LocalId objects.
  * @details This file contains the definition of the LocalIdBuilder class,
  *          which provides a concrete implementation using direct value storage
  *          and move semantics for creating LocalId objects with an immutable
@@ -33,7 +33,7 @@ namespace dnv::vista::sdk
 
 	/**
 	 * @class LocalIdBuilder
-	 * @brief High-performance fluent builder for LocalId objects.
+	 * @brief Fluent builder for LocalId objects.
 	 *
 	 * @details Concrete implementation using immutable fluent pattern with direct value storage.
 	 * Provides methods for setting all properties required to build a valid LocalId, plus
@@ -274,13 +274,12 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline std::string toString() const;
 
 		/**
-		 * @brief Appends the string representation of the Local ID to a generic output iterator.
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to append to.
-		 * @return The iterator pointing to the end of the written output.
+		 * @brief Appends the string representation of the Local ID to a StringBuilder.
+		 * @tparam StringBuilder The type of the string builder (e.g., StringBuilderWrapper).
+		 * @param builder The StringBuilder to append to.
 		 */
-		template <typename OutputIt>
-		inline OutputIt toString( OutputIt out ) const;
+		template <typename StringBuilder>
+		inline void toString( StringBuilder& builder ) const;
 
 		//----------------------------------------------
 		// Static factory methods

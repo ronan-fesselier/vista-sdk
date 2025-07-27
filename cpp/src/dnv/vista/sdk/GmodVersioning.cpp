@@ -36,13 +36,18 @@ namespace dnv::vista::sdk
 					const GmodNode& parent = path[static_cast<size_t>( j )];
 
 					std::vector<const GmodNode*> currentParents;
-					currentParents.reserve( static_cast<size_t>( j + 1 ) );
-					for ( size_t k = 0; k <= static_cast<size_t>( j ); ++k )
+					const size_t currentParentsCount = static_cast<size_t>( j + 1 );
+
+					currentParents.reserve( currentParentsCount );
+
+					for ( size_t k = 0; k < currentParentsCount; ++k )
 					{
 						currentParents.push_back( &path[k] );
 					}
 
 					std::vector<const GmodNode*> remaining;
+					remaining.reserve( 16 );
+
 					if ( !GmodTraversal::pathExistsBetween( gmod, currentParents, node, remaining ) )
 					{
 						bool hasOtherAssetFunction = false;
@@ -67,11 +72,13 @@ namespace dnv::vista::sdk
 						const auto nodeLocation = node.location();
 						if ( nodeLocation.has_value() )
 						{
+							path.reserve( path.size() + remaining.size() );
+
 							for ( const GmodNode* n : remaining )
 							{
 								if ( n->isIndividualizable( false, true ) )
 								{
-									path.emplace_back( n->tryWithLocation( nodeLocation.value() ) );
+									path.emplace_back( std::move( n->tryWithLocation( nodeLocation.value() ) ) );
 								}
 								else
 								{

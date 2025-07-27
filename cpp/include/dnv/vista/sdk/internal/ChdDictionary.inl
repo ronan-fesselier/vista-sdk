@@ -427,24 +427,6 @@ namespace dnv::vista::sdk::internal
 
 		static const bool hasSSE42 = hasSSE42Support();
 
-		/*
-		 * C# COMPATIBILITY: The C# implementation processes UTF-16 strings by reading
-		 * only the LOW BYTE of each character, effectively skipping high bytes.
-		 *
-		 * C# code pattern:
-		 * - length = key.Length * sizeof(char)        // Double length for UTF-16
-		 * - while (length > 0) {
-		 *     hash = Hashing.Crc32(hash, curr);       // Process 1 byte (low byte)
-		 *     curr = ref Unsafe.Add(ref curr, 2);     // Advance by 2, skip high byte
-		 *     length -= 2;
-		 *   }
-		 *
-		 * For ASCII strings: UTF-16 = [char0_low, 0, char1_low, 0, char2_low, 0, ...]
-		 * C# processes: [char0_low, char1_low, char2_low, ...] (skips zeros)
-		 * C++ processes: [char0_low, char1_low, char2_low, ...] (directly)
-		 * Result: Identical hash values with much simpler C++ implementation.
-		 */
-
 		if ( hasSSE42 )
 		{
 			/* Use SSE4.2 CRC32 - process each character's low byte only */

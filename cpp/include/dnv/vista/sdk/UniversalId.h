@@ -1,8 +1,7 @@
 /**
  * @file UniversalId.h
- * @brief High-performance Universal ID implementation.
+ * @brief Universal ID implementation.
  * @details Combines IMO number with Local ID for globally unique vessel identification.
- *          Uses direct value storage for optimal performance.
  */
 
 #pragma once
@@ -25,10 +24,9 @@ namespace dnv::vista::sdk
 
 	/**
 	 * @class UniversalId
-	 * @brief High-performance Universal ID with direct value storage.
+	 * @brief Universal ID with direct value storage.
 	 *
 	 * @details Immutable Universal ID combining vessel IMO number with Local ID.
-	 * Uses direct member storage instead of interface inheritance for optimal performance.
 	 */
 	class UniversalId final
 	{

@@ -1,8 +1,6 @@
 /**
  * @file Codebooks.inl
  * @brief Inline implementation of Codebooks class methods
- * @details Contains performance-critical inline implementations for
- *          fast codebook access operations.
  */
 
 namespace dnv::vista::sdk

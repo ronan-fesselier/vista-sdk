@@ -29,6 +29,7 @@ set(TEST_SOURCES
 	TESTS_ISOString.cpp
 	TESTS_LocalId.cpp
 	TESTS_Locations.cpp
+	TESTS_StringBuilderPoolTests.cpp
 	TESTS_UniversalId.cpp
 )
 
@@ -145,7 +146,7 @@ foreach(test_source ${TEST_SOURCES})
 			vista-sdk-cpp
 			GTest::gtest_main
 			fmt::fmt
-	        cpuid
+			cpuid
 			nlohmann_json::nlohmann_json
 			zlibstatic
 		)

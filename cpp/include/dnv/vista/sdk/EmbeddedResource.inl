@@ -1,8 +1,6 @@
 /**
  * @file EmbeddedResource.inl
  * @brief Inline implementations for performance-critical resource operations
- * @details Contains performance-critical inline implementations for
- *          fast resource access operations.
  */
 
 #pragma once

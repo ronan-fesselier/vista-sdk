@@ -7,6 +7,7 @@
 #include "Locations.h"
 #include "VIS.h"
 #include "VISVersion.h"
+#include "utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -252,26 +253,94 @@ namespace dnv::vista::sdk
 
 	inline std::string GmodPath::toString() const
 	{
-		fmt::memory_buffer builder;
-		toString( std::back_inserter( builder ) );
+		auto lease = utils::StringBuilderPool::instance();
+		bool first = true;
+		for ( const auto& parent : m_parents )
+		{
+			if ( !Gmod::isLeafNode( parent.metadata() ) )
+			{
+				continue;
+			}
+			if ( !first )
+			{
+				lease.Builder().push_back( '/' );
+			}
+			lease.Builder().append( parent.toString() );
+			first = false;
+		}
 
-		return fmt::to_string( builder );
+		if ( m_node.has_value() )
+		{
+			if ( !first )
+			{
+				lease.Builder().push_back( '/' );
+			}
+			lease.Builder().append( m_node->toString() );
+		}
+
+		return lease.toString();
 	}
 
 	inline std::string GmodPath::toFullPathString() const
 	{
-		fmt::memory_buffer builder;
-		toFullPathString( std::back_inserter( builder ) );
+		auto lease = utils::StringBuilderPool::instance();
+		auto enumerator = this->fullPath();
+		while ( enumerator.next() )
+		{
+			const auto& [depth, pathNode] = enumerator.current();
+			lease.Builder().append( pathNode->toString() );
+			if ( depth != ( length() - 1 ) )
+			{
+				lease.Builder().push_back( '/' );
+			}
+		}
 
-		return fmt::to_string( builder );
+		return lease.toString();
 	}
 
 	inline std::string GmodPath::toStringDump() const
 	{
-		fmt::memory_buffer builder;
-		toStringDump( std::back_inserter( builder ) );
+		auto lease = utils::StringBuilderPool::instance();
+		auto enumerator = this->fullPath();
+		while ( enumerator.next() )
+		{
+			const auto& [depth, pathNode] = enumerator.current();
 
-		return fmt::to_string( builder );
+			if ( depth == 0 )
+			{
+				continue;
+			}
+
+			if ( depth != 1 )
+			{
+				lease.Builder().append( " | " );
+			}
+
+			lease.Builder().append( pathNode->code() );
+
+			const auto& name = pathNode->metadata().name();
+			if ( !name.empty() )
+			{
+				lease.Builder().append( "/N:" );
+				lease.Builder().append( name );
+			}
+
+			const auto& commonName = pathNode->metadata().commonName();
+			if ( commonName.has_value() && !commonName->empty() )
+			{
+				lease.Builder().append( "/CN:" );
+				lease.Builder().append( *commonName );
+			}
+
+			auto normalAssignment = normalAssignmentName( depth );
+			if ( normalAssignment && !normalAssignment->empty() )
+			{
+				lease.Builder().append( "/NAN:" );
+				lease.Builder().append( *normalAssignment );
+			}
+		}
+
+		return lease.toString();
 	}
 
 	template <typename OutputIt>

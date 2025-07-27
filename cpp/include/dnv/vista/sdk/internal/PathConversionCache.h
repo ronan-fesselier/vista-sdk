@@ -1,6 +1,6 @@
 /**
  * @file PathConversionCache.h
- * @brief High-performance cache for GMOD path conversions between VIS versions
+ * @brief Cache for GMOD path conversions between VIS versions
  * @details Thread-safe cache implementation with statistics tracking and automatic size management
  */
 

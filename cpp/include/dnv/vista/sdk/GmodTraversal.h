@@ -1,8 +1,6 @@
 /**
  * @file GmodTraversal.h
  * @brief High-performance GMOD tree traversal algorithms
- * @details Optimized traversal functions with cycle detection and branch prediction.
- *          Supports both stateless and stateful handlers with zero-overhead templates.
  */
 
 #pragma once
@@ -166,7 +164,7 @@ namespace dnv::vista::sdk
 			 * @return Traversal result
 			 */
 			template <typename TState>
-			[[nodiscard]] TraversalHandlerResult traverseNode( TraversalContext<TState>& context, const GmodNode& node );
+			[[nodiscard]] inline TraversalHandlerResult traverseNode( TraversalContext<TState>& context, const GmodNode& node );
 		}
 
 		//=====================================================================
@@ -184,7 +182,7 @@ namespace dnv::vista::sdk
 		 * @param options Traversal configuration
 		 * @return true if completed, false if stopped early
 		 */
-		[[nodiscard]] bool traverse( const Gmod& gmodInstance, TraverseHandler handler, const TraversalOptions& options = {} );
+		[[nodiscard]] bool VISTA_SDK_CPP_FORCE_INLINE traverse( const Gmod& gmodInstance, TraverseHandler handler, const TraversalOptions& options = {} );
 
 		/**
 		 * @brief Traverse GMOD tree from specific node with stateless handler
@@ -193,7 +191,7 @@ namespace dnv::vista::sdk
 		 * @param options Traversal configuration
 		 * @return true if completed, false if stopped early
 		 */
-		[[nodiscard]] bool traverse( const GmodNode& rootNode, TraverseHandler handler, const TraversalOptions& options = {} );
+		[[nodiscard]] bool VISTA_SDK_CPP_FORCE_INLINE traverse( const GmodNode& rootNode, TraverseHandler handler, const TraversalOptions& options = {} );
 
 		/**
 		 * @brief Check if path exists between nodes

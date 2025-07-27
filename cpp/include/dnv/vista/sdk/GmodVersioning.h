@@ -86,7 +86,7 @@ namespace dnv::vista::sdk
 			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
-		 * @brief Convert a GmodNode with cached target GMOD (performance optimization)
+		 * @brief Convert a GmodNode with cached target GMOD
 		 * @throws std::invalid_argument If targetVersion is not higher than sourceVersion
 		 */
 		[[nodiscard]] std::optional<GmodNode> convertNode(
@@ -229,7 +229,7 @@ namespace dnv::vista::sdk
 			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
-		 * @brief Internal implementation for converting a node with cached GMOD (performance optimization)
+		 * @brief Internal implementation for converting a node with cached GMOD
 		 */
 		[[nodiscard]] std::optional<GmodNode> convertNodeInternal(
 			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion, const Gmod& targetGmod ) const;

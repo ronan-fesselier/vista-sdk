@@ -304,7 +304,6 @@ namespace dnv::vista::sdk
 		 * @brief Validates ISO Local ID format for any string-like container.
 		 * @details Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"
 		 *          Allows '/' characters within the string, validates all other characters against ISO rules.
-		 *          Converts input to string_view for optimal performance.
 		 * @tparam StringLike Any type convertible to string_view (string, string_view, const char*, etc.)
 		 * @param value The string-like value to validate
 		 * @return True if the value matches the ISO Local ID format, false otherwise
@@ -316,7 +315,6 @@ namespace dnv::vista::sdk
 		 * @brief Validates that all characters are valid ISO characters for any string-like container.
 		 * @details Rules according to: "ISO19848 5.2.1, Note 1" and "RFC3986 2.3 - Unreserved characters"
 		 *          Does NOT allow '/' characters - strict ISO character validation only.
-		 *          Converts input to string_view for optimal performance.
 		 * @tparam StringLike Any type convertible to string_view (string, string_view, const char*, etc.)
 		 * @param value The string-like value to validate
 		 * @return True if all characters are valid ISO characters, false otherwise

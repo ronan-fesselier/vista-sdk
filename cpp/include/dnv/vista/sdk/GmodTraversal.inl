@@ -135,7 +135,7 @@ namespace dnv::vista::sdk
 		}
 
 		template <typename TState>
-		inline bool traverse( TState& state, const Gmod& gmodInstance, TraverseHandlerWithState<TState> handler, const TraversalOptions& options )
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, const Gmod& gmodInstance, TraverseHandlerWithState<TState> handler, const TraversalOptions& options )
 		{
 			detail::Parents parentsStack( options.maxTraversalOccurrence );
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
@@ -144,7 +144,7 @@ namespace dnv::vista::sdk
 		}
 
 		template <typename TState>
-		inline bool traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options )
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options )
 		{
 			detail::Parents parentsStack( options.maxTraversalOccurrence );
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );

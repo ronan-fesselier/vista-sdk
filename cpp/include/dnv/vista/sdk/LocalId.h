@@ -240,11 +240,6 @@ namespace dnv::vista::sdk
 		// Private members variables
 		//----------------------------------------------
 
-		/**
-		 * @brief Direct value storage of LocalIdBuilder state.
-		 * @details Uses direct storage (not shared_ptr) for optimal performance
-		 *          with zero indirection overhead.
-		 */
 		LocalIdBuilder m_builder;
 	};
 }

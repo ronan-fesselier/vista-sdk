@@ -8,6 +8,7 @@
 #include "dnv/vista/sdk/GmodPath.h"
 
 #include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 #include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/Locations.h"
@@ -939,7 +940,7 @@ namespace dnv::vista::sdk
 
 	std::string GmodIndividualizableSet::toString() const
 	{
-		fmt::memory_buffer builder;
+		auto lease = utils::StringBuilderPool::instance();
 		bool firstNodeAppended = false;
 
 		for ( size_t j = 0; j < m_nodeIndices.size(); ++j )
@@ -956,14 +957,14 @@ namespace dnv::vista::sdk
 			{
 				if ( firstNodeAppended )
 				{
-					builder.push_back( '/' );
+					lease.Builder().push_back( '/' );
 				}
 
-				currentNode.toString( std::back_inserter( builder ) );
+				lease.Builder().append( currentNode.toString() );
 				firstNodeAppended = true;
 			}
 		}
 
-		return fmt::to_string( builder );
+		return lease.toString();
 	}
 }

@@ -1,8 +1,7 @@
 /**
  * @file UniversalIdBuilder.h
- * @brief High-performance fluent builder for UniversalId objects.
+ * @brief Fuent builder for UniversalId objects.
  * @details Concrete implementation using immutable fluent pattern with direct value storage.
- *          Optimized for performance without interface overhead.
  */
 
 #pragma once
@@ -28,10 +27,9 @@ namespace dnv::vista::sdk
 
 	/**
 	 * @class UniversalIdBuilder
-	 * @brief High-performance fluent builder for UniversalId objects.
+	 * @brief Fluent builder for UniversalId objects.
 	 *
 	 * @details Concrete implementation using immutable fluent pattern with direct value storage.
-	 * Uses move semantics and direct method calls for optimal performance.
 	 */
 	class UniversalIdBuilder final
 	{
