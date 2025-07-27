@@ -95,17 +95,8 @@ Thumbs.db
 
 # Python test files
 *.pytest_cache/
+
+# cpp build directory
 build/
+out/
 
-# User-specific files
-.user
-.config
-
-# Docs directories
-docs/
-
-#github CI/CD
-#.github/workflows/build-cpp.yml
-
-# Generated files
-cpp/include/dnv/vista/sdk/internal/version.h

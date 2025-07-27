@@ -24,6 +24,7 @@ set(TEST_SOURCES
 	TESTS_Gmod.cpp
 	TESTS_GmodPath.cpp
 	TESTS_GmodVersioning.cpp
+	TESTS_HashCompatibility.cpp
 	TESTS_ImoNumber.cpp
 	TESTS_ISOString.cpp
 	TESTS_LocalId.cpp

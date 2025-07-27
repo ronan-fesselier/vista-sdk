@@ -421,7 +421,7 @@ namespace dnv::vista::sdk
 							invalidChars += ",";
 						}
 						first = false;
-						invalidChars += std::string( "'" ) + std::string( 1, c ) + std::string( "'" );
+						invalidChars += std::string{ "'" } + std::string( 1, c ) + std::string{ "'" };
 					}
 				}
 

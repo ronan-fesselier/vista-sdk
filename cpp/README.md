@@ -54,7 +54,7 @@ The C++ SDK currently implements:
     -   `GmodTraversal` utility for tree traversal operations with customizable handlers.
     -   Internal Data Transfer Objects (DTOs) for robust resource deserialization.
     -   Embedded resource handling, including decompression of gzipped JSON data.
-    -   `ChdDictionary` (Perfect Hashing utility) - Includes input validation for empty/duplicate keys.
+    -   `ChdDictionary` (Perfect Hashing utility) - **100% C#/C++ hash compatibility verified** with comprehensive input validation for empty/duplicate keys.
     -   `ParsingErrors` mechanism for collecting and reporting issues during parsing operations.
     -   `ImoNumber` with full validation and parsing capabilities.
     -   Complete `VisVersion` enumeration and extension methods.
@@ -123,8 +123,8 @@ This C++ implementation follows the same core design principles (Immutability, B
 | **Optional Values** | `std::optional`                                                                           | Nullable types (`?`)                                       | Standard C++ approach with comprehensive null-safety patterns. |
 | **Collections**     | `std::vector`, `std::unordered_map`, `std::deque`, `std::array`                           | `List<T>`, `Dictionary<K,V>`, `T[]`, `FrozenDictionary`    | Uses STL containers with performance optimizations.            |
 | **String Handling** | `std::string`, `std::string_view`, `std::stringstream`, extensive view usage              | `string`, `ReadOnlySpan<char>`, `StringBuilder`            | C++ version uses string_view extensively for performance.      |
-| **Error Handling**  | `std::exception` hierarchy, comprehensive `ParsingErrors` system, `std::invalid_argument` | `.NET` exceptions, `ParsingErrors` struct                  |
-| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), comprehensive input validation                                      | FNV1a/CRC32 (SSE4.2)                                       |                                                                |
+| **Error Handling**  | `std::exception` hierarchy, comprehensive `ParsingErrors` system, `std::invalid_argument` | `.NET` exceptions, `ParsingErrors` struct                  |                                                                |
+| **Hashing (CHD)**   | FNV1a/CRC32 (SSE4.2), comprehensive input validation                                      | FNV1a/CRC32 (SSE4.2)                                       | Full cross-platform hash compatibility tested                  |
 | **Build System**    | CMake (`FetchContent`) with comprehensive dependency management                           | .NET SDK (MSBuild/NuGet)                                   | CMake configuration with cross-platform support.               |
 | **Path Parsing**    | Validation with root node checking and structure validation                               | Basic validation                                           |
 
@@ -208,6 +208,7 @@ Test suites include:
 -   `GmodPath`
 -   `GmodVersioning`
 -   `GmodVersioningSmoke`
+-   `HashCompatibility`
 -   `ImoNumber`
 -   `ISOString`
 -   `LocalId`
@@ -374,4 +375,4 @@ The C++ Vista SDK follows a consistent coding style throughout the codebase.
 
 ---
 
-_Last updated: June 7, 2025_
+_Last updated: July 27, 2025_

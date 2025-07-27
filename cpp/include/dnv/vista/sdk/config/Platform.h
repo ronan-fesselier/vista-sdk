@@ -51,8 +51,7 @@
 #if defined( _MSC_VER ) && _MSC_VER >= 1928
 #	define VISTA_SDK_CPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #elif defined( __has_cpp_attribute ) && __has_cpp_attribute( no_unique_address ) >= 201803L
-#	define VISTA_SDK_CPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#	if __cpp_lib_no_unique_address >= 201803L
+#	if defined( __cpp_lib_no_unique_address ) && __cpp_lib_no_unique_address >= 201803L
 #		define VISTA_SDK_CPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #	else
 #		define VISTA_SDK_CPP_NO_UNIQUE_ADDRESS

@@ -233,15 +233,18 @@ namespace dnv::vista::sdk::internal
 	 *
 	 * @tparam TValue The type of values stored in the dictionary.
 	 *
-	 * @warning **UTF-16 Compatibility Note:**
-	 * This C++ implementation is designed to be **FULLY COMPATIBLE** with the C# version.
-	 * Both implementations simulate UTF-16 string processing to ensure identical hash values:
-	 *   - **C++ Processing:** Processes each ASCII character as 2 bytes (low byte + high byte 0)
-	 *     to match UTF-16 encoding used by C# strings.
-	 *   - **C# Processing:** Processes UTF-16 strings by reading low byte of each character
-	 *     and skipping the high byte (which is 0 for ASCII characters).
-	 * This ensures **binary compatibility** and **identical hash values** between C++ and C# versions.
-	 * Dictionaries created by either implementation can be used interchangeably.
+	 * @warning **C# Cross-Platform Compatibility:**
+	 * This C++ implementation is designed to be **FULLY COMPATIBLE** with the C# version,
+	 * producing identical hash values for ASCII strings. The compatibility is achieved by
+	 * matching the C# byte processing pattern:
+	 * 
+	 *   - **C# Behavior:** Processes UTF-16 strings by reading only the low byte of each
+	 *     character (using `curr = ref Unsafe.Add(ref curr, 2)` to skip high bytes)
+	 *   - **C++ Behavior:** Processes ASCII strings byte-by-byte, which produces identical
+	 *     results since ASCII characters have zero high bytes in UTF-16 encoding
+	 * 
+	 * This ensures **perfect hash compatibility** and allows dictionaries created by either
+	 * implementation to be used interchangeably across platforms.
 	 *
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
@@ -396,12 +399,18 @@ namespace dnv::vista::sdk::internal
 
 		/**
 		 * @brief Calculates hash value using hardware-accelerated CRC32 or software FNV-1a fallback.
-		 * @details Two-path implementation:
-		 *   - **SSE4.2 Path:** Uses _mm_crc32_u64 for 4-character chunks (3-5x faster)
-		 *   - **Fallback Path:** Uses FNV-1a algorithm for compatibility
-		 *   Both paths simulate UTF-16 processing for C# compatibility.
+		 * @details Two-path implementation optimized for performance:
+		 *   - **SSE4.2 Path:** Uses hardware CRC32 instruction (_mm_crc32_u8) for maximum speed
+		 *   - **Fallback Path:** Uses FNV-1a algorithm for universal compatibility
+		 * 
+		 * **Cross-Platform Compatibility:**
+		 * This implementation produces identical hash values to the C# version by matching
+		 * its byte processing pattern. C# processes UTF-16 strings by reading only the
+		 * low byte of each character (skipping high bytes). For ASCII strings, this is
+		 * equivalent to processing each character directly since high bytes are zero.
+		 * 
 		 * @param[in] key ASCII string key to hash
-		 * @return 32-bit hash value.
+		 * @return 32-bit hash value compatible with C# implementation
 		 */
 		[[nodiscard]] static VISTA_SDK_CPP_FORCE_INLINE uint32_t hash( std::string_view key ) noexcept;
 

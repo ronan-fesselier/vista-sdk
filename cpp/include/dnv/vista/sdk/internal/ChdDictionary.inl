@@ -427,71 +427,38 @@ namespace dnv::vista::sdk::internal
 
 		static const bool hasSSE42 = hasSSE42Support();
 
+		/*
+		 * C# COMPATIBILITY: The C# implementation processes UTF-16 strings by reading
+		 * only the LOW BYTE of each character, effectively skipping high bytes.
+		 *
+		 * C# code pattern:
+		 * - length = key.Length * sizeof(char)        // Double length for UTF-16
+		 * - while (length > 0) {
+		 *     hash = Hashing.Crc32(hash, curr);       // Process 1 byte (low byte)
+		 *     curr = ref Unsafe.Add(ref curr, 2);     // Advance by 2, skip high byte
+		 *     length -= 2;
+		 *   }
+		 *
+		 * For ASCII strings: UTF-16 = [char0_low, 0, char1_low, 0, char2_low, 0, ...]
+		 * C# processes: [char0_low, char1_low, char2_low, ...] (skips zeros)
+		 * C++ processes: [char0_low, char1_low, char2_low, ...] (directly)
+		 * Result: Identical hash values with much simpler C++ implementation.
+		 */
+
 		if ( hasSSE42 )
 		{
-			/* Process 8 characters at once when possible */
-			while ( length >= 8 )
+			/* Use SSE4.2 CRC32 - process each character's low byte only */
+			for ( size_t i = 0; i < length; ++i )
 			{
-				uint64_t chunk1 = 0, chunk2 = 0;
-
-				chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-				chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-				chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-				chunk1 |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-				chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[4] ) ) << 0;
-				chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[5] ) ) << 16;
-				chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[6] ) ) << 32;
-				chunk2 |= static_cast<uint64_t>( static_cast<uint8_t>( data[7] ) ) << 48;
-
-				hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk1 ) );
-				hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk2 ) );
-
-				data += 8;
-				length -= 8;
-			}
-
-			/* Handle remaining 4 characters if available */
-			if ( length >= 4 )
-			{
-				uint64_t chunk = 0;
-				chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-				chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-				chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[2] ) ) << 32;
-				chunk |= static_cast<uint64_t>( static_cast<uint8_t>( data[3] ) ) << 48;
-
-				hashValue = static_cast<uint32_t>( _mm_crc32_u64( hashValue, chunk ) );
-				data += 4;
-				length -= 4;
-			}
-
-			/* Handle remaining characters with 32-bit processing if possible */
-			if ( length >= 2 )
-			{
-				uint32_t chunk = 0;
-				chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[0] ) ) << 0;
-				chunk |= static_cast<uint32_t>( static_cast<uint8_t>( data[1] ) ) << 16;
-
-				hashValue = static_cast<uint32_t>( _mm_crc32_u32( hashValue, chunk ) );
-				data += 2;
-				length -= 2;
-			}
-
-			/* Handle final character if needed */
-			if ( length > 0 )
-			{
-				uint16_t chunk = static_cast<uint16_t>( static_cast<uint8_t>( data[0] ) );
-				hashValue = static_cast<uint32_t>( _mm_crc32_u16( hashValue, chunk ) );
+				hashValue = static_cast<uint32_t>( _mm_crc32_u8( hashValue, static_cast<uint8_t>( data[i] ) ) );
 			}
 		}
 		else
 		{
-			/* FNV-1a software fallback */
-			const char* end = data + length;
-			while ( data < end )
+			/* FNV-1a software fallback - process each character's low byte only */
+			for ( size_t i = 0; i < length; ++i )
 			{
-				hashValue = Hashing::fnv1a( hashValue, static_cast<uint8_t>( *data ) );
-				++data;
+				hashValue = Hashing::fnv1a( hashValue, static_cast<uint8_t>( data[i] ) );
 			}
 		}
 
