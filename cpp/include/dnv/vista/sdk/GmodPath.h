@@ -59,7 +59,7 @@ namespace dnv::vista::sdk
 		// Construction
 		//----------------------------------------------
 
-		GmodPath( const Gmod& gmod, GmodNode node, std::vector<GmodNode> parents = {} );
+		GmodPath( const Gmod& gmod, GmodNode node, std::vector<GmodNode> parents = {}, bool skipVerify = false );
 
 		/** @brief Default constructor. */
 		inline GmodPath();

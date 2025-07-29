@@ -148,7 +148,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	GmodPath::GmodPath( const Gmod& gmod, GmodNode node, std::vector<GmodNode> parents )
+	GmodPath::GmodPath( const Gmod& gmod, GmodNode node, std::vector<GmodNode> parents, bool skipVerify )
 		: m_visVersion{ node.visVersion() },
 		  m_gmod{ &gmod },
 		  m_node{ std::move( node ) },
@@ -164,7 +164,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "GmodPath constructor: node is not valid" );
 		}
 
-		if ( m_parents.empty() )
+		if ( skipVerify || m_parents.empty() )
 		{
 			return;
 		}
@@ -422,31 +422,22 @@ namespace dnv::vista::sdk
 	GmodParsePathResult GmodPath::parseFullPathInternal(
 		std::string_view item, const Gmod& gmod, const Locations& locations )
 	{
-		constexpr size_t MAX_NODES = 32;
-
-		const size_t estimatedSegments = [item]() -> size_t {
-			size_t count = 1;
-			for ( char c : item )
-			{
-				if ( c == '/' )
-				{
-					++count;
-				}
-			}
-
-			return count;
-		}();
-
-		std::vector<GmodNode> nodes;
-		nodes.reserve( std::min( estimatedSegments, MAX_NODES ) );
-
-		std::string_view remaining = item;
-
-		while ( !remaining.empty() && nodes.size() < MAX_NODES )
+		if ( item.empty() )
 		{
-			const auto slashPos = remaining.find( '/' );
-			const std::string_view segment = remaining.substr( 0, slashPos );
+			return GmodParsePathResult::Error( "Item is empty" );
+		}
 
+		if ( !utils::startsWith( item, gmod.rootNode().code() ) )
+		{
+			return GmodParsePathResult::Error( fmt::format( "Path must start with {}", gmod.rootNode().code() ) );
+		}
+
+		const size_t estimatedSegments = item.length() / 3;
+		std::vector<GmodNode> nodes;
+		nodes.reserve( estimatedSegments );
+
+		for ( const std::string_view segment : utils::splitView( item, '/' ) )
+		{
 			const auto dashPos = segment.find( '-' );
 
 			if ( dashPos != std::string_view::npos )
@@ -478,12 +469,6 @@ namespace dnv::vista::sdk
 
 				nodes.emplace_back( *nodePtr );
 			}
-
-			if ( slashPos == std::string_view::npos )
-			{
-				break;
-			}
-			remaining = remaining.substr( slashPos + 1 );
 		}
 
 		if ( nodes.empty() )
@@ -494,8 +479,99 @@ namespace dnv::vista::sdk
 		GmodNode endNode = std::move( nodes.back() );
 		nodes.pop_back();
 
+		if ( !nodes.empty() && !nodes[0].isRoot() )
+		{
+			return GmodParsePathResult::Error( "Sequence of nodes are invalid" );
+		}
+
+		internal::LocationSetsVisitor visitor;
+		std::optional<size_t> prevNonNullLocation;
+
+		constexpr size_t MAX_SETS = 16;
+		std::pair<size_t, size_t> sets[MAX_SETS];
+		size_t setCounter = 0;
+
+		for ( size_t i = 0; i < nodes.size() + 1; ++i )
+		{
+			const GmodNode& n = ( i < nodes.size() ) ? nodes[i] : endNode;
+
+			std::vector<GmodNode*> tempParents;
+			tempParents.reserve( nodes.size() );
+			for ( auto& node : nodes )
+			{
+				tempParents.push_back( &node );
+			}
+
+			auto set = visitor.visit( n, i, tempParents, endNode );
+			if ( !set.has_value() )
+			{
+				if ( !prevNonNullLocation.has_value() && n.location().has_value() )
+					prevNonNullLocation = i;
+				continue;
+			}
+
+			const auto& [start, end, location] = set.value();
+
+			if ( prevNonNullLocation.has_value() )
+			{
+				for ( size_t j = prevNonNullLocation.value(); j < start; ++j )
+				{
+					const GmodNode& pn = ( j < nodes.size() ) ? nodes[j] : endNode;
+					if ( pn.location().has_value() )
+					{
+						return GmodParsePathResult::Error( "Expected all nodes in the set to be without individualization" );
+					}
+				}
+			}
+			prevNonNullLocation = std::nullopt;
+
+			if ( setCounter < MAX_SETS )
+			{
+				sets[setCounter++] = { start, end };
+			}
+
+			if ( start == end )
+				continue;
+
+			for ( size_t j = start; j <= end; ++j )
+			{
+				if ( j < nodes.size() )
+					nodes[j] = nodes[j].tryWithLocation( location );
+				else
+					endNode = endNode.tryWithLocation( location );
+			}
+		}
+
+		std::pair<size_t, size_t> currentSet = { SIZE_MAX, SIZE_MAX };
+		size_t currentSetIndex = 0;
+
+		for ( size_t i = 0; i < nodes.size() + 1; ++i )
+		{
+			while ( currentSetIndex < setCounter && ( currentSet.second == SIZE_MAX || currentSet.second < i ) )
+				currentSet = sets[currentSetIndex++];
+
+			bool insideSet = ( currentSet.first != SIZE_MAX && i >= currentSet.first && i <= currentSet.second );
+			const GmodNode& n = ( i < nodes.size() ) ? nodes[i] : endNode;
+
+			if ( insideSet )
+			{
+				const GmodNode& expectedLocationNode = ( currentSet.second < nodes.size() ) ? nodes[currentSet.second] : endNode;
+				if ( n.location() != expectedLocationNode.location() )
+				{
+					return GmodParsePathResult::Error( "Expected all nodes in the set to be individualized the same" );
+				}
+			}
+			else
+			{
+				if ( n.location().has_value() )
+				{
+					return GmodParsePathResult::Error( "Expected all nodes in the set to be without individualization" );
+				}
+			}
+		}
+
 		return GmodParsePathResult::Ok(
-			GmodPath( gmod, std::move( endNode ), std::move( nodes ) ) );
+			GmodPath( gmod, std::move( endNode ), std::move( nodes ), true ) );
 	}
 
 	GmodParsePathResult GmodPath::parseInternal( std::string_view item, const Gmod& gmod, const Locations& locations )
@@ -722,8 +798,8 @@ namespace dnv::vista::sdk
 				std::make_move_iterator( prefixChain.rbegin() ),
 				std::make_move_iterator( prefixChain.rend() ) );
 
-			thread_local internal::LocationSetsVisitor visitor;
-			visitor.currentParentStart = std::numeric_limits<size_t>().max();
+			thread_local internal::LocationSetsVisitor locationSetsVisitor;
+			locationSetsVisitor.currentParentStart = std::numeric_limits<size_t>().max();
 
 			const size_t totalNodes = pathParents.size() + 1;
 
@@ -739,7 +815,7 @@ namespace dnv::vista::sdk
 			{
 				GmodNode& n = ( i < pathParents.size() ) ? pathParents[i] : endNode;
 
-				auto set = visitor.visit( n, i, tempParents, endNode );
+				auto set = locationSetsVisitor.visit( n, i, tempParents, endNode );
 				if ( !set.has_value() )
 				{
 					if ( n.location().has_value() )

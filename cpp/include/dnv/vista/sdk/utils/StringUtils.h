@@ -172,4 +172,120 @@ namespace dnv::vista::sdk::utils
 					   std::tolower( static_cast<unsigned char>( b ) );
 			} );
 	}
+
+	//=====================================================================
+	// StringViewSplitter class
+	//=====================================================================
+
+	/**
+	 * @brief Zero-allocation string splitting iterator for performance-critical paths
+	 * @details Provides efficient string_view-based splitting without heap allocations
+	 */
+	class StringViewSplitter
+	{
+	private:
+		std::string_view m_str;
+		char m_delimiter;
+		size_t m_pos;
+
+	public:
+		explicit StringViewSplitter( std::string_view str, char delimiter ) noexcept
+			: m_str{ str },
+			  m_delimiter{ delimiter },
+			  m_pos{ 0 }
+		{
+		}
+
+		/**
+		 * @brief Forward iterator for string segments
+		 */
+		class Iterator
+		{
+		private:
+			const StringViewSplitter* m_splitter;
+			size_t m_currentPos;
+			std::string_view m_currentSegment;
+			bool m_isAtEnd;
+
+		public:
+			/**
+			 * @brief Constructs iterator at beginning or end position
+			 */
+			explicit Iterator( const StringViewSplitter* splitter, bool at_end = false ) noexcept
+				: m_splitter{ splitter },
+				  m_currentPos{ 0 },
+				  m_isAtEnd{ at_end }
+			{
+				if ( !m_isAtEnd )
+				{
+					advance();
+				}
+			}
+
+			/**
+			 * @brief Dereferences iterator to get current string segment
+			 */
+			inline std::string_view operator*() const noexcept { return m_currentSegment; }
+
+			inline Iterator& operator++() noexcept
+			{
+				advance();
+				return *this;
+			}
+
+			/**
+			 * @brief Compares iterators for range-based loops
+			 */
+			inline bool operator!=( const Iterator& other ) const noexcept
+			{
+				return m_isAtEnd != other.m_isAtEnd;
+			}
+
+		private:
+			/**
+			 * @brief Advances to next segment using efficient string_view operations
+			 */
+			inline void advance() noexcept
+			{
+				if ( m_currentPos >= m_splitter->m_str.length() )
+				{
+					m_isAtEnd = true;
+					return;
+				}
+
+				const size_t start = m_currentPos;
+				const size_t delimiter_pos = m_splitter->m_str.find( m_splitter->m_delimiter, start );
+
+				if ( delimiter_pos == std::string_view::npos )
+				{
+					m_currentSegment = m_splitter->m_str.substr( start );
+					m_currentPos = m_splitter->m_str.length();
+				}
+				else
+				{
+					m_currentSegment = m_splitter->m_str.substr( start, delimiter_pos - start );
+					m_currentPos = delimiter_pos + 1;
+				}
+			}
+		};
+
+		/**
+		 * @brief Returns iterator to first segment
+		 */
+		inline Iterator begin() const noexcept { return Iterator( this ); }
+
+		/**
+		 * @brief Returns end iterator for range-based loops
+		 */
+		inline Iterator end() const noexcept { return Iterator( this, true ); }
+	};
+
+	/**
+	 * @brief Factory function for zero-copy string splitting
+	 */
+	[[nodiscard]] inline StringViewSplitter splitView( std::string_view str, char delimiter ) noexcept
+	{
+		return StringViewSplitter( str, delimiter );
+	}
+
 }

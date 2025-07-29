@@ -374,6 +374,7 @@ namespace dnv::vista::sdk::tests
 				bool success = gmod.tryParsePath( param.path, parsedPathOptional );
 				ASSERT_FALSE( success );
 				ASSERT_FALSE( parsedPathOptional.has_value() );
+
 				return;
 			}
 

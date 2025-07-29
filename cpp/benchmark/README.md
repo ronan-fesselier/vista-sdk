@@ -490,13 +490,13 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation          | Windows C++ (MSVC) | Linux C++ (Clang) |
 | :----------------- | :----------------- | :---------------- |
-| **Full Traversal** | 212 ms             | 270 ms            |
+| **Full Traversal** | 209 ms             | 270 ms            |
 
 ### Windows GCC vs MSVC Comparison
 
 | Operation          | MSVC 17.14.10 | GCC 14.2.0 |
 | :----------------- | :------------ | :--------- |
-| **Full Traversal** | 212 ms        | 326 ms     |
+| **Full Traversal** | 209 ms        | 326 ms     |
 
 ### GMOD Traversal Performance Comparison
 
@@ -518,7 +518,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark         | Time   | CPU    | Iterations |
 | :---------------- | :----- | :----- | :--------- |
-| **FullTraversal** | 212 ms | 211 ms | 66         |
+| **FullTraversal** | 209 ms | 211 ms | 66         |
 
 ##### Linux Platform
 
