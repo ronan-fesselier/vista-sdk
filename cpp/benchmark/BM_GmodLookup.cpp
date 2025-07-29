@@ -109,21 +109,17 @@ namespace dnv::vista::sdk::benchmarks
 
 		for ( auto _ : state )
 		{
-			const GmodNode* node1 = nullptr;
-			const GmodNode* node2 = nullptr;
-			const GmodNode* node3 = nullptr;
-			const GmodNode* node4 = nullptr;
+			auto ptr1 = g_dictionary.tryGetValue( "VE" );
+			auto ptr2 = g_dictionary.tryGetValue( "400a" );
+			auto ptr3 = g_dictionary.tryGetValue( "400" );
+			auto ptr4 = g_dictionary.tryGetValue( "H346.11112" );
 
-			const GmodNode** ptr1 = &node1;
-			const GmodNode** ptr2 = &node2;
-			const GmodNode** ptr3 = &node3;
-			const GmodNode** ptr4 = &node4;
+			const GmodNode* node1 = ptr1 ? *ptr1 : nullptr;
+			const GmodNode* node2 = ptr2 ? *ptr2 : nullptr;
+			const GmodNode* node3 = ptr3 ? *ptr3 : nullptr;
+			const GmodNode* node4 = ptr4 ? *ptr4 : nullptr;
 
-			bool result =
-				g_dictionary.tryGetValue( "VE", ptr1 ) &&
-				g_dictionary.tryGetValue( "400a", ptr2 ) &&
-				g_dictionary.tryGetValue( "400", ptr3 ) &&
-				g_dictionary.tryGetValue( "H346.11112", ptr4 );
+			bool result = node1 && node2 && node3 && node4;
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( node1 );

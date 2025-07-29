@@ -17,8 +17,8 @@ namespace dnv::vista::sdk
 	{
 		std::string_view pathView{ testDataPath };
 
-		nlohmann::json* cachedData = nullptr;
-		if ( g_testDataCache.tryGetValue( pathView, cachedData ) )
+		const nlohmann::json* cachedData = g_testDataCache.tryGetValue( pathView );
+		if ( cachedData )
 		{
 			return *cachedData;
 		}
@@ -36,8 +36,8 @@ namespace dnv::vista::sdk
 
 			g_testDataCache.insertOrAssign( std::string{ pathView }, std::move( data ) );
 
-			nlohmann::json* result = nullptr;
-			if ( g_testDataCache.tryGetValue( pathView, result ) )
+			const nlohmann::json* result = g_testDataCache.tryGetValue( pathView );
+			if ( result )
 			{
 				return *result;
 			}

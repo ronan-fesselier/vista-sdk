@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "internal/HashMap.h"
+#include "utils/StringUtils.h"
+
 #include "Gmod.h"
 #include "GmodNode.h"
 
@@ -118,7 +121,7 @@ namespace dnv::vista::sdk
 				std::vector<const GmodNode*> m_parents;
 
 				/** @brief Occurrence count per node code */
-				utils::StringMap<size_t> m_occurrences;
+				internal::HashMap<std::string, size_t> m_occurrences;
 
 				size_t m_maxTraversalOccurrence;
 			};

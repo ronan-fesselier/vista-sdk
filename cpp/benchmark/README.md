@@ -44,97 +44,97 @@ dotnet run -c Release --project benchmark/Vista.SDK.Benchmarks/Vista.SDK.Benchma
 
 **Software Configuration:**
 
-| Platform    | Benchmark Framework     | C++ Compiler | C# Runtime               | OS Version                              |
-| :---------- | :---------------------- | :----------- | :----------------------- | :-------------------------------------- |
-| **Windows** | Google Benchmark v1.9.4 | MSVC 2022    | .NET 8.0.16, RyuJIT AVX2 | Windows 10                              |
-| **Windows** | Google Benchmark v1.9.4 | GCC 14.2.0   | .NET 8.0.16, RyuJIT AVX2 | Windows 10                              |
-| **Linux**   | Google Benchmark v1.9.4 | Clang 16.0.6 | .NET 8.0.17, RyuJIT AVX2 | LMDE 6 (faye) / Debian 6.1.140-1 x86_64 |
+| Platform    | Benchmark Framework     | C++ Compiler  | C# Runtime               | OS Version                              |
+| :---------- | :---------------------- | :------------ | :----------------------- | :-------------------------------------- |
+| **Windows** | Google Benchmark v1.9.4 | MSVC 17.14.10 | .NET 8.0.16, RyuJIT AVX2 | Windows 10                              |
+| **Windows** | Google Benchmark v1.9.4 | GCC 14.2.0    | .NET 8.0.16, RyuJIT AVX2 | Windows 10                              |
+| **Linux**   | Google Benchmark v1.9.4 | Clang 16.0.6  | .NET 8.0.17, RyuJIT AVX2 | LMDE 6 (faye) / Debian 6.1.140-1 x86_64 |
 
-**Note:** All C++ performance data below includes results from both MSVC 2022 and GCC 14.2.0 (mingw-w64) compilers on Windows platform for comprehensive compiler comparison.
+**Note:** All C++ performance data below includes results from both MSVC 17.14.10 and GCC 14.2.0 (mingw-w64) compilers on Windows platform for comprehensive compiler comparison.
 
 ---
 
 ## Executive Summary
 
-### Windows Platform Performance (MSVC 2022)
+### Windows Platform Performance (MSVC 17.14.10)
 
-**Note:** The following results are from MSVC 2022 compiler. See GCC comparison section below for GCC 14.2.0 results.
+**Note:** The following results are from MSVC 17.14.10 compiler. See GCC comparison section below for GCC 14.2.0 results.
 
-| Operation Category           | C++ vs C# Performance            | Status | Key Findings                          |
-| :--------------------------- | :------------------------------- | :----: | :------------------------------------ |
-| **Hash Table Operations**    | **1.10-2.28x faster**            |   ✅   | C++ shows performance advantage       |
-| **Codebook Access (Direct)** | **1.36x faster** vs C# baseline  |   ✅   | Solid C++ performance advantage       |
-| **Codebook Access (API)**    | **1,266x slower** vs C# baseline |   ⚠️   | Expected method call overhead         |
-| **String Hashing (Short)**   | **1.03-1.70x mixed**             |   ✅   | Mixed results, algorithm dependent    |
-| **String Hashing (Long)**    | **1.03x slower to 1.51x slower** |   ❌   | C# advantage on longer strings        |
-| **GMOD Loading**             | **1.28x slower**                 |   ❌   | Performance regression                |
-| **GMOD Lookup**              | **1.10-2.28x faster**            |   ✅   | C++ shows performance advantage       |
-| **GMOD Lookup (HashMap)**    | **1.10x slower**                 |   ❌   | **HashMap slower than C# on Windows** |
-| **GMOD Traversal**           | **2.15x slower**                 |   ❌   | **Optimization opportunity**          |
-| **Path Parsing**             | **5.81-17.0x slower**            |  ❌❌  | **Optimization needed**               |
-| **Version Path Conversion**  | **5.84x slower**                 |  ❌❌  | **Optimization needed**               |
+| Operation Category           | C++ vs C# Performance            | Status |
+| :--------------------------- | :------------------------------- | :----: |
+| **Hash Table Operations**    | **1.10-2.28x faster**            |   ✅   |
+| **Codebook Access (Direct)** | **1.04x slower** vs C# baseline  |   ⚠️   |
+| **Codebook Access (API)**    | **1,287x slower** vs C# baseline |   ⚠️   |
+| **String Hashing (Short)**   | **1.03-1.70x mixed**             |   ✅   |
+| **String Hashing (Long)**    | **1.03x slower to 1.51x slower** |   ⚠️   |
+| **GMOD Loading**             | **1.12x slower**                 |   ⚠️   |
+| **GMOD Lookup**              | **1.10-2.28x faster**            |   ✅   |
+| **GMOD Lookup (HashMap)**    | **1.28x slower**                 |   ❌   |
+| **GMOD Traversal**           | **1.54x slower**                 |   ❌   |
+| **Path Parsing**             | **5.81-17.0x slower**            |  ❌❌  |
+| **Version Path Conversion**  | **5.55x slower**                 |  ❌❌  |
 
 ### Windows Platform Performance (GCC 14.2.0)
 
-| Operation Category           | C++ vs C# Performance            | Status | Key Findings                         |
-| :--------------------------- | :------------------------------- | :----: | :----------------------------------- |
-| **Hash Table Operations**    | **1.0-13.0x faster**             |   ✅   | **Outstanding GCC performance**      |
-| **Codebook Access (Direct)** | **25-31x faster** vs C# baseline |   🚀   | **Exceptional optimization**         |
-| **Codebook Access (API)**    | **10x faster** vs C# baseline    |   ✅   | **Dramatic improvement over MSVC**   |
-| **String Hashing (Short)**   | **1.1-2.4x mixed**               |   ✅   | Mixed results, generally competitive |
-| **String Hashing (Long)**    | **1.1-2.4x mixed**               |   ✅   | Algorithm-dependent performance      |
-| **GMOD Loading**             | **1.95x faster**                 |   ✅   | **Significant improvement**          |
-| **GMOD Lookup**              | **1.2-1.7x faster**              |   ✅   | Good performance advantage           |
-| **GMOD Lookup (HashMap)**    | **4x slower**                    |   ❌   | **STL implementation differences**   |
-| **GMOD Traversal**           | **2x slower**                    |   ❌   | **Still needs optimization**         |
-| **Path Parsing**             | **1.3-1.6x faster**              |   ✅   | **Major improvement over MSVC**      |
-| **Version Path Conversion**  | **1.3x faster**                  |   ✅   | **Better than MSVC**                 |
+| Operation Category           | C++ vs C# Performance           | Status |
+| :--------------------------- | :------------------------------ | :----: |
+| **Hash Table Operations**    | **1.0-13.0x faster**            |   ✅   |
+| **Codebook Access (Direct)** | **25.7x faster** vs C# baseline |   ✅   |
+| **Codebook Access (API)**    | **96.3x slower** vs C# baseline |   ❌   |
+| **String Hashing (Short)**   | **1.1-2.4x mixed**              |   ✅   |
+| **String Hashing (Long)**    | **1.1-2.4x mixed**              |   ✅   |
+| **GMOD Loading**             | **1.52x faster**                |   ✅   |
+| **GMOD Lookup**              | **1.2-1.7x faster**             |   ✅   |
+| **GMOD Lookup (HashMap)**    | **1.09x faster**                |   ✅   |
+| **GMOD Traversal**           | **1.57x slower**                |   ❌   |
+| **Path Parsing**             | **1.3-1.6x faster**             |   ✅   |
+| **Version Path Conversion**  | **1.3x faster**                 |   ✅   |
 
 ### GCC vs MSVC Performance Comparison (Windows)
 
-| Operation Category           | GCC vs MSVC Performance | Status | Compiler Recommendation       |
-| :--------------------------- | :---------------------- | :----: | :---------------------------- |
-| **Codebook Access (Direct)** | **25-31x faster**       |   🚀   | **GCC dramatically superior** |
-| **Codebook Access (API)**    | **13x faster**          |   🚀   | **GCC strongly preferred**    |
-| **GMOD Loading**             | **1.95x faster**        |   ✅   | **GCC preferred**             |
-| **Path Parsing**             | **1.3-1.6x faster**     |   ✅   | **GCC preferred**             |
-| **Version Path Conversion**  | **1.3x faster**         |   ✅   | **GCC preferred**             |
-| **STL Containers**           | **Mixed results**       |   ⚠️   | **Implementation-dependent**  |
-| **Hash Algorithms**          | **Mixed results**       |   ⚠️   | **Algorithm-dependent**       |
+| Operation Category           | GCC vs MSVC Performance | Status |
+| :--------------------------- | :---------------------- | :----: |
+| **Codebook Access (Direct)** | **24.8x faster**        |   ✅   |
+| **Codebook Access (API)**    | **13.4x faster**        |   ✅   |
+| **GMOD Loading**             | **1.70x faster**        |   ✅   |
+| **Path Parsing**             | **1.3-1.6x faster**     |   ✅   |
+| **Version Path Conversion**  | **1.3x faster**         |   ✅   |
+| **STL Containers**           | **Mixed results**       |   ⚠️   |
+| **Hash Algorithms**          | **Mixed results**       |   ⚠️   |
 
 ### Linux Platform Performance (Clang 16.0.6)
 
-| Operation Category           | C++ vs C# Performance            | Status | Key Findings                                      |
-| :--------------------------- | :------------------------------- | :----: | :------------------------------------------------ |
-| **Hash Table Operations**    | **1.20-3.37x faster**            |   ✅   | Strong C++ advantage on Linux                     |
-| **Codebook Access (Direct)** | **2.74x faster** vs C# baseline  |   ✅   | Strong C++ performance advantage                  |
-| **Codebook Access (API)**    | **133x slower** vs C# baseline   |   ⚠️   | Much better than Windows, still expected overhead |
-| **String Hashing (Short)**   | **1.03-2.40x mixed**             |   ✅   | Mixed results, some algorithms competitive        |
-| **String Hashing (Long)**    | **1.02x slower to 1.81x faster** |   ✅   | Generally better performance than Windows         |
-| **GMOD Loading**             | **2.68x faster**                 |   ✅   | Excellent performance advantage                   |
-| **GMOD Lookup**              | **1.47-2.45x faster**            |   ✅   | Excellent C++ advantage, especially GMOD API      |
-| **GMOD Lookup (HashMap)**    | **1.91x slower**                 |   ❌   | **HashMap slower than C# on Linux**               |
-| **GMOD Traversal**           | **1.67x slower**                 |   ❌   | **Better than Windows, needs optimization**       |
-| **Path Parsing**             | **3.18-7.03x slower**            |  ❌❌  | **Optimization needed**                           |
-| **Version Path Conversion**  | **2.88x slower**                 |  ❌❌  | **Optimization needed**                           |
+| Operation Category           | C++ vs C# Performance            | Status |
+| :--------------------------- | :------------------------------- | :----: |
+| **Hash Table Operations**    | **1.20-3.37x faster**            |   ✅   |
+| **Codebook Access (Direct)** | **2.74x faster** vs C# baseline  |   ✅   |
+| **Codebook Access (API)**    | **133x slower** vs C# baseline   |   ⚠️   |
+| **String Hashing (Short)**   | **1.03-2.40x mixed**             |   ✅   |
+| **String Hashing (Long)**    | **1.02x slower to 1.81x faster** |   ✅   |
+| **GMOD Loading**             | **2.68x faster**                 |   ✅   |
+| **GMOD Lookup**              | **1.47-2.45x faster**            |   ✅   |
+| **GMOD Lookup (HashMap)**    | **1.91x slower**                 |   ❌   |
+| **GMOD Traversal**           | **1.67x slower**                 |   ❌   |
+| **Path Parsing**             | **3.18-7.03x slower**            |  ❌❌  |
+| **Version Path Conversion**  | **2.88x slower**                 |  ❌❌  |
 
 ### Cross-Platform Summary (Linux Clang vs Windows MSVC)
 
-**Note:** This comparison is between Linux Clang 16.0.6 and Windows MSVC 2022. For GCC vs MSVC comparison, see section above.
+**Note:** This comparison is between Linux Clang 16.0.6 and Windows MSVC 17.14.10. For GCC vs MSVC comparison, see section above.
 
-| Operation Category           | Linux vs Windows (C++) | Status | Platform Recommendation                             |
-| :--------------------------- | :--------------------- | :----: | :-------------------------------------------------- |
-| **Hash Table Operations**    | **1.13-11.9x faster**  |   ✅   | **Linux strongly preferred**                        |
-| **Codebook Access (Direct)** | **3.02x faster**       |   ✅   | **Linux significantly better**                      |
-| **Codebook Access (API)**    | **10.4x faster**       |   ✅   | **Linux dramatically better**                       |
-| **String Hashing (Short)**   | **1.04-2.31x mixed**   |   ⚠️   | **Algorithm-dependent performance**                 |
-| **String Hashing (Long)**    | **1.12-1.32x faster**  |   ✅   | **Linux slightly better**                           |
-| **GMOD Loading**             | **2.59x faster**       |   ✅   | **Linux preferred**                                 |
-| **GMOD Lookup**              | **1.45-7.91x mixed**   |   ⚠️   | **Mixed results, significant GMOD API improvement** |
-| **GMOD Lookup (HashMap)**    | **Same performance**   |   ✅   | **HashMap consistent cross-platform**               |
-| **GMOD Traversal**           | **1.03x slower**       |   ❌   | **Nearly identical cross-platform**                 |
-| **Path Parsing**             | **1.73-2.04x faster**  |   ✅   | **Linux significant improvement**                   |
-| **Version Path Conversion**  | **6.92x faster**       |   ✅   | **Linux dramatically better**                       |
+| Operation Category           | Linux vs Windows (C++) | Status |
+| :--------------------------- | :--------------------- | :----: |
+| **Hash Table Operations**    | **1.13-11.9x faster**  |   ✅   |
+| **Codebook Access (Direct)** | **3.02x faster**       |   ✅   |
+| **Codebook Access (API)**    | **10.4x faster**       |   ✅   |
+| **String Hashing (Short)**   | **1.04-2.31x mixed**   |   ⚠️   |
+| **String Hashing (Long)**    | **1.12-1.32x faster**  |   ✅   |
+| **GMOD Loading**             | **2.59x faster**       |   ✅   |
+| **GMOD Lookup**              | **1.45-7.91x mixed**   |   ⚠️   |
+| **GMOD Lookup (HashMap)**    | **Same performance**   |   ✅   |
+| **GMOD Traversal**           | **1.03x slower**       |   ❌   |
+| **Path Parsing**             | **1.73-2.04x faster**  |   ✅   |
+| **Version Path Conversion**  | **6.92x faster**       |   ✅   |
 
 ---
 
@@ -142,89 +142,89 @@ dotnet run -c Release --project benchmark/Vista.SDK.Benchmarks/Vista.SDK.Benchma
 
 ### Cross-Platform Performance Comparison (MSVC vs Linux Clang)
 
-**Note:** Windows results are from MSVC 2022. See GCC section below for GCC 14.2.0 comparison.
+**Note:** Windows results are from MSVC 17.14.10. See GCC section below for GCC 14.2.0 comparison.
 
 Performance comparison between different C++ access methods for Vista SDK codebook operations:
 
 | Operation             | Windows C++ (MSVC) | vs Baseline | Linux C++ (Clang) | vs Baseline | Cross-Platform   |
 | :-------------------- | :----------------- | :---------: | :---------------- | :---------: | :--------------- |
-| **SDK Instance**      | 0.689 ns           |  **1.00x**  | 0.212 ns          |  **1.00x**  | **3.24x faster** |
-| **SDK Reference**     | 0.848 ns           |  **1.23x**  | 0.210 ns          |  **0.99x**  | **4.04x faster** |
-| **Array Lookup**      | 1.53 ns            |  **2.22x**  | 0.699 ns          |  **3.30x**  | **2.19x faster** |
-| **Vector Lookup**     | 1.83 ns            |  **2.66x**  | 1.68 ns           |  **7.92x**  | **1.09x faster** |
-| **Hash Table Lookup** | 2.17 ns            |  **3.15x**  | 2.79 ns           | **13.16x**  | **1.29x slower** |
-| **CHD Dictionary**    | 35.3 ns            |  **51.2x**  | 23.6 ns           |  **111x**   | **1.50x faster** |
-| **Tree Lookup**       | 7.51 ns            |  **10.9x**  | 3.04 ns           | **14.34x**  | **2.47x faster** |
-| **SDK API Method**    | 872 ns             |  **1266x**  | 76.8 ns           |  **362x**   | **11.4x faster** |
-| **VIS Singleton**     | 121804 ns          | **176827x** | 92820 ns          | **437830x** | **1.31x faster** |
+| **SDK Instance**      | 0.669 ns           |  **1.00x**  | 0.212 ns          |  **1.00x**  | **3.16x faster** |
+| **SDK Reference**     | 0.841 ns           |  **1.26x**  | 0.210 ns          |  **0.99x**  | **4.00x faster** |
+| **Array Lookup**      | 1.56 ns            |  **2.33x**  | 0.699 ns          |  **3.30x**  | **2.23x faster** |
+| **Vector Lookup**     | 1.80 ns            |  **2.69x**  | 1.68 ns           |  **7.92x**  | **1.07x faster** |
+| **Hash Table Lookup** | 2.13 ns            |  **3.18x**  | 2.79 ns           | **13.16x**  | **1.31x slower** |
+| **CHD Dictionary**    | 35.9 ns            |  **53.7x**  | 23.6 ns           |  **111x**   | **1.52x faster** |
+| **Tree Lookup**       | 7.63 ns            |  **11.4x**  | 3.04 ns           | **14.34x**  | **2.51x faster** |
+| **SDK API Method**    | 893 ns             |  **1335x**  | 76.8 ns           |  **362x**   | **11.6x faster** |
+| **VIS Singleton**     | 117860 ns          | **176168x** | 92820 ns          | **437830x** | **1.27x faster** |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation             | MSVC 2022   | GCC 14.2.0    | GCC vs MSVC      | GCC Performance Notes                 |
-| :-------------------- | :---------- | :------------ | :--------------- | :------------------------------------ |
-| **SDK Instance**      | 0.689 ns    | **0.027 ns**  | **25.5x faster** | **Exceptional optimization**          |
-| **SDK Reference**     | 0.848 ns    | **0.027 ns**  | **31.4x faster** | **Exceptional optimization**          |
-| **Array Lookup**      | 1.53 ns     | **0.412 ns**  | **3.7x faster**  | **Strong improvement**                |
-| **Vector Lookup**     | **1.83 ns** | 3.03 ns       | **1.7x slower**  | **GCC STL implementation difference** |
-| **Hash Table Lookup** | **2.17 ns** | 6.58 ns       | **3.0x slower**  | **GCC STL implementation difference** |
-| **CHD Dictionary**    | 35.3 ns     | **7.28 ns**   | **4.8x faster**  | **Significant improvement**           |
-| **Tree Lookup**       | 7.51 ns     | **2.37 ns**   | **3.2x faster**  | **Good improvement**                  |
-| **SDK API Method**    | 872 ns      | **66.8 ns**   | **13.0x faster** | **Dramatic optimization**             |
-| **VIS Singleton**     | 121804 ns   | **107337 ns** | **1.13x faster** | **Modest improvement**                |
+| Operation             | MSVC 17.14.10 | GCC 14.2.0    | GCC vs MSVC      | GCC Performance Notes                 |
+| :-------------------- | :------------ | :------------ | :--------------- | :------------------------------------ |
+| **SDK Instance**      | 0.669 ns      | **0.027 ns**  | **24.8x faster** | **Exceptional optimization**          |
+| **SDK Reference**     | 0.841 ns      | **0.027 ns**  | **31.1x faster** | **Exceptional optimization**          |
+| **Array Lookup**      | 1.56 ns       | **0.412 ns**  | **3.8x faster**  | **Strong improvement**                |
+| **Vector Lookup**     | **1.80 ns**   | 3.03 ns       | **1.7x slower**  | **GCC STL implementation difference** |
+| **Hash Table Lookup** | **2.13 ns**   | 6.58 ns       | **3.1x slower**  | **GCC STL implementation difference** |
+| **CHD Dictionary**    | 35.9 ns       | **7.28 ns**   | **4.9x faster**  | **Significant improvement**           |
+| **Tree Lookup**       | 7.63 ns       | **2.37 ns**   | **3.2x faster**  | **Good improvement**                  |
+| **SDK API Method**    | 893 ns        | **66.8 ns**   | **13.4x faster** | **Dramatic optimization**             |
+| **VIS Singleton**     | 117860 ns     | **107337 ns** | **1.10x faster** | **Modest improvement**                |
 
 #### STL Container Performance (MSVC vs Linux Clang)
 
 | C++ Method        | Windows Time (MSVC) | Linux Time (Clang) | Performance Ratio | Implementation                      | Performance vs Array | Status |
 | :---------------- | :------------------ | :----------------- | :---------------- | :---------------------------------- | :------------------- | :----- |
-| **Array**         | 1.53 ns             | 0.699 ns           | **2.19x faster**  | `std::array` linear search          | **Baseline**         | ✅     |
-| **Vector**        | 1.83 ns             | 1.68 ns            | **1.09x faster**  | `std::vector` linear search         | **1.20x slower**     | ✅     |
-| **UnorderedMap**  | 2.17 ns             | 2.79 ns            | **1.29x slower**  | `std::unordered_map::find()`        | **1.42x slower**     | ✅     |
-| **ChdDictionary** | 35.3 ns             | 23.6 ns            | **1.50x faster**  | CHD perfect hash table              | **23.1x slower**     | ✅     |
-| **Map**           | 7.51 ns             | 3.04 ns            | **2.47x faster**  | `std::map::find()` (red-black tree) | **4.91x slower**     | ⚠️     |
+| **Array**         | 1.56 ns             | 0.699 ns           | **2.23x faster**  | `std::array` linear search          | **Baseline**         | ✅     |
+| **Vector**        | 1.80 ns             | 1.68 ns            | **1.07x faster**  | `std::vector` linear search         | **1.15x slower**     | ✅     |
+| **UnorderedMap**  | 2.13 ns             | 2.79 ns            | **1.31x slower**  | `std::unordered_map::find()`        | **1.37x slower**     | ✅     |
+| **ChdDictionary** | 35.9 ns             | 23.6 ns            | **1.52x faster**  | CHD perfect hash table              | **23.0x slower**     | ⚠️     |
+| **Map**           | 7.63 ns             | 3.04 ns            | **2.51x faster**  | `std::map::find()` (red-black tree) | **4.89x slower**     | ⚠️     |
 
 #### STL Container Performance (Windows: GCC vs MSVC)
 
-| C++ Method        | MSVC 2022   | GCC 14.2.0   | GCC vs MSVC     | Implementation Notes                           | Status |
-| :---------------- | :---------- | :----------- | :-------------- | :--------------------------------------------- | :----- |
-| **Array**         | 1.53 ns     | **0.412 ns** | **3.7x faster** | GCC better optimization                        | ✅     |
-| **Vector**        | **1.83 ns** | 3.03 ns      | **1.7x slower** | **GCC STL vector implementation difference**   | ⚠️     |
-| **UnorderedMap**  | **2.17 ns** | 6.58 ns      | **3.0x slower** | **GCC STL hash map implementation difference** | ⚠️     |
-| **ChdDictionary** | 35.3 ns     | **7.28 ns**  | **4.8x faster** | GCC excellent optimization                     | ✅     |
-| **Map**           | 7.51 ns     | **2.37 ns**  | **3.2x faster** | GCC red-black tree optimization                | ✅     |
+| C++ Method        | MSVC 17.14.10 | GCC 14.2.0   | GCC vs MSVC     | Implementation Notes                           | Status |
+| :---------------- | :------------ | :----------- | :-------------- | :--------------------------------------------- | :----- |
+| **Array**         | 1.56 ns       | **0.412 ns** | **3.8x faster** | GCC better optimization                        | ✅     |
+| **Vector**        | **1.80 ns**   | 3.03 ns      | **1.7x slower** | **GCC STL vector implementation difference**   | ⚠️     |
+| **UnorderedMap**  | **2.13 ns**   | 6.58 ns      | **3.1x slower** | **GCC STL hash map implementation difference** | ⚠️     |
+| **ChdDictionary** | 35.9 ns       | **7.28 ns**  | **4.9x faster** | GCC excellent optimization                     | ✅     |
+| **Map**           | 7.63 ns       | **2.37 ns**  | **3.2x faster** | GCC red-black tree optimization                | ✅     |
 
 #### Vista SDK Access Performance (MSVC vs Linux Clang)
 
 | C++ Method             | Windows Time (MSVC) | Linux Time (Clang) | Performance Ratio | Implementation                     | Performance vs Array | Status |
 | :--------------------- | :------------------ | :----------------- | :---------------- | :--------------------------------- | :------------------- | :----- |
-| **CodebooksInstance**  | **0.689 ns**        | **0.212 ns**       | **3.24x faster**  | Owned instance + direct access     | **2.22x faster**     | ✅     |
-| **CodebooksReference** | **0.848 ns**        | **0.210 ns**       | **4.04x faster**  | Reference wrapper + direct access  | **1.80x faster**     | ✅     |
-| **CodebooksAPI**       | **872 ns**          | **76.8 ns**        | **11.4x faster**  | `codebook()` method call           | **570x slower**      | ⚠️     |
-| **CodebooksVISCall**   | **121804 ns**       | **92820 ns**       | **1.31x faster**  | `VIS::instance().codebooks()` call | **79631x slower**    | ⚠️     |
+| **CodebooksInstance**  | **0.669 ns**        | **0.212 ns**       | **3.16x faster**  | Owned instance + direct access     | **2.33x faster**     | ✅     |
+| **CodebooksReference** | **0.841 ns**        | **0.210 ns**       | **4.00x faster**  | Reference wrapper + direct access  | **1.85x faster**     | ✅     |
+| **CodebooksAPI**       | **893 ns**          | **76.8 ns**        | **11.6x faster**  | `codebook()` method call           | **572x slower**      | ⚠️     |
+| **CodebooksVISCall**   | **117860 ns**       | **92820 ns**       | **1.27x faster**  | `VIS::instance().codebooks()` call | **75551x slower**    | ❌     |
 
 #### Vista SDK Access Performance (Windows: GCC vs MSVC)
 
-| C++ Method             | MSVC 2022 | GCC 14.2.0    | GCC vs MSVC      | Performance Notes                       | Status |
-| :--------------------- | :-------- | :------------ | :--------------- | :-------------------------------------- | :----- |
-| **CodebooksInstance**  | 0.689 ns  | **0.027 ns**  | **25.5x faster** | **Near-complete optimization**          | 🚀     |
-| **CodebooksReference** | 0.848 ns  | **0.027 ns**  | **31.4x faster** | **Near-complete optimization**          | 🚀     |
-| **CodebooksAPI**       | 872 ns    | **66.8 ns**   | **13.0x faster** | **Dramatic method call optimization**   | 🚀     |
-| **CodebooksVISCall**   | 121804 ns | **107337 ns** | **1.13x faster** | **Modest singleton access improvement** | ✅     |
+| C++ Method             | MSVC 17.14.10 | GCC 14.2.0    | GCC vs MSVC      | Performance Notes                       | Status |
+| :--------------------- | :------------ | :------------ | :--------------- | :-------------------------------------- | :----- |
+| **CodebooksInstance**  | 0.669 ns      | **0.027 ns**  | **24.8x faster** | **Near-complete optimization**          | ✅     |
+| **CodebooksReference** | 0.841 ns      | **0.027 ns**  | **31.1x faster** | **Near-complete optimization**          | ✅     |
+| **CodebooksAPI**       | 893 ns        | **66.8 ns**   | **13.4x faster** | **Dramatic method call optimization**   | ✅     |
+| **CodebooksVISCall**   | 117860 ns     | **107337 ns** | **1.10x faster** | **Modest singleton access improvement** | ✅     |
 
 #### Detailed C++ Results
 
-##### Windows Platform (MSVC 2022)
+##### Windows Platform (MSVC 17.14.10)
 
 | Benchmark                 | Time          | CPU           | Iterations |
 | :------------------------ | :------------ | :------------ | :--------- |
-| **BM_CodebooksInstance**  | **0.689 ns**  | **0.685 ns**  | 20.98B     |
-| **BM_CodebooksReference** | **0.848 ns**  | **0.843 ns**  | 16.59B     |
-| **BM_Array**              | **1.53 ns**   | **1.53 ns**   | 9.14B      |
-| **BM_Vector**             | **1.83 ns**   | **1.82 ns**   | 7.79B      |
-| **BM_UnorderedMap**       | **2.17 ns**   | **2.16 ns**   | 6.49B      |
-| **BM_ChdDictionary**      | **35.3 ns**   | **35.2 ns**   | 391M       |
-| **BM_Map**                | **7.51 ns**   | **7.44 ns**   | 1.87B      |
-| **BM_CodebooksAPI**       | **872 ns**    | **865 ns**    | 16.2M      |
-| **BM_CodebooksVISCall**   | **121804 ns** | **120923 ns** | 115K       |
+| **BM_CodebooksInstance**  | **0.669 ns**  | **0.666 ns**  | 21.54B     |
+| **BM_CodebooksReference** | **0.841 ns**  | **0.838 ns**  | 16.69B     |
+| **BM_Array**              | **1.56 ns**   | **1.54 ns**   | 9.24B      |
+| **BM_Vector**             | **1.80 ns**   | **1.79 ns**   | 7.53B      |
+| **BM_UnorderedMap**       | **2.13 ns**   | **2.12 ns**   | 6.69B      |
+| **BM_ChdDictionary**      | **35.9 ns**   | **35.7 ns**   | 395M       |
+| **BM_Map**                | **7.63 ns**   | **7.57 ns**   | 1.85B      |
+| **BM_CodebooksAPI**       | **893 ns**    | **888 ns**    | 15.86M     |
+| **BM_CodebooksVISCall**   | **117860 ns** | **116664 ns** | 119K       |
 
 ##### Windows Platform (GCC 14.2.0)
 
@@ -278,27 +278,27 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation     | Windows C++ (MSVC) | vs Baseline | Linux C++ (Clang) | vs Baseline | Cross-Platform   |
 | :------------ | :----------------- | :---------: | :---------------- | :---------: | :--------------- |
-| **GMOD Load** | 38.9 ms            |  **1.00x**  | 11.1 ms           |  **1.00x**  | **3.50x faster** |
+| **GMOD Load** | 34.0 ms            |  **1.00x**  | 11.1 ms           |  **1.00x**  | **3.06x faster** |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation     | MSVC 2022 | GCC 14.2.0  | GCC vs MSVC      | Performance Notes           |
-| :------------ | :-------- | :---------- | :--------------- | :-------------------------- |
-| **GMOD Load** | 38.9 ms   | **20.0 ms** | **1.95x faster** | **Significant improvement** |
+| Operation     | MSVC 17.14.10 | GCC 14.2.0  | GCC vs MSVC      | Performance Notes           |
+| :------------ | :------------ | :---------- | :--------------- | :-------------------------- |
+| **GMOD Load** | 34.0 ms       | **20.0 ms** | **1.70x faster** | **Significant improvement** |
 
 ### GMOD Load Performance Comparison
 
 | C++ Method   | Windows Time (MSVC) | Windows Time (GCC) | Linux Time (Clang) | C# Method | C# Time (Win) | C# Time (Linux) | MSVC vs C# (Windows) | GCC vs C# (Windows) | C++ vs C# (Linux)   |
 | :----------- | :------------------ | :----------------- | :----------------- | :-------- | :------------ | :-------------- | :------------------- | :------------------ | :------------------ |
-| **gmodLoad** | 38.9 ms             | **20.0 ms**        | 11.1 ms            | **Load**  | 30.40 ms      | 29.68 ms        | ❌ **1.28x slower**  | ✅ **1.52x faster** | ✅ **2.68x faster** |
+| **gmodLoad** | 34.0 ms             | **20.0 ms**        | 11.1 ms            | **Load**  | 30.40 ms      | 29.68 ms        | ❌ **1.12x slower**  | ✅ **1.52x faster** | ✅ **2.68x faster** |
 
 #### Detailed C++ Results
 
-##### Windows Platform (MSVC 2022)
+##### Windows Platform (MSVC 17.14.10)
 
 | Benchmark    | Time    | CPU     | Iterations |
 | :----------- | :------ | :------ | :--------- |
-| **gmodLoad** | 38.9 ms | 37.5 ms | 309        |
+| **gmodLoad** | 34.0 ms | 33.8 ms | 365        |
 
 ##### Windows Platform (GCC 14.2.0)
 
@@ -332,19 +332,19 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation              | Windows C++ (MSVC) | vs Baseline | Linux C++ (Clang) | vs Baseline | Cross-Platform   | Notes                          |
 | :--------------------- | :----------------- | :---------: | :---------------- | :---------: | :--------------- | :----------------------------- |
-| **StringMap (Frozen)** | 16.9 ns            |  **1.00x**  | 54.8 ns           |  **1.00x**  | **3.24x slower** | ⚡ Legacy baseline method      |
-| **StringMap (Dict)**   | 16.8 ns            |  **0.99x**  | 55.6 ns           |  **1.01x**  | **3.31x slower** | ⚡ Similar to frozen           |
+| **StringMap (Dict)**   | 16.8 ns            |  **0.99x**  | 55.6 ns           |  **1.01x**  | **3.31x slower** | ✅ Similar to frozen           |
+| **StringMap (Frozen)** | 16.9 ns            |  **1.00x**  | 54.8 ns           |  **1.00x**  | **3.24x slower** | ✅ Legacy baseline method      |
 | **HashMap (Robin)**    | 16.8 ns            |  **0.99x**  | 30.2 ns           |  **0.55x**  | **1.80x slower** | ✅ **1.82x faster** Robin Hood |
 | **GMOD API Lookup**    | 17.6 ns            |  **1.04x**  | 6.97 ns           |  **0.13x**  | **2.52x faster** | ✅ Direct GMOD API access      |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation              | MSVC 2022   | GCC 14.2.0  | GCC vs MSVC     | Performance Notes               |
-| :--------------------- | :---------- | :---------- | :-------------- | :------------------------------ |
-| **StringMap (Dict)**   | **16.8 ns** | 65.5 ns     | **3.9x slower** | **GCC STL hash map slower**     |
-| **StringMap (Frozen)** | **16.9 ns** | 65.3 ns     | **3.9x slower** | **GCC STL hash map slower**     |
-| **HashMap (Robin)**    | 16.8 ns     | **13.9 ns** | **1.2x faster** | **GCC Robin Hood optimization** |
-| **GMOD API Lookup**    | 17.6 ns     | **10.1 ns** | **1.7x faster** | **GCC API optimization**        |
+| Operation              | MSVC 17.14.10 | GCC 14.2.0  | GCC vs MSVC     | Performance Notes               |
+| :--------------------- | :------------ | :---------- | :-------------- | :------------------------------ |
+| **StringMap (Dict)**   | **16.8 ns**   | 65.5 ns     | **3.9x slower** | **GCC STL hash map slower**     |
+| **StringMap (Frozen)** | **16.9 ns**   | 65.3 ns     | **3.9x slower** | **GCC STL hash map slower**     |
+| **HashMap (Robin)**    | 16.8 ns       | **13.9 ns** | **1.2x faster** | **GCC Robin Hood optimization** |
+| **GMOD API Lookup**    | 17.6 ns       | **10.1 ns** | **1.7x faster** | **GCC API optimization**        |
 
 ### GMOD Lookup Performance Comparison
 
@@ -352,10 +352,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method           | Windows Time (MSVC) | Linux Time (Clang) | Performance Ratio | C# Method (Win) | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | MSVC vs C# (Windows) | C++ vs C# (Linux)   |
 | :------------------- | :------------------ | :----------------- | :---------------- | :-------------- | :------------ | :---------------- | :-------------- | :------------------- | :------------------ |
-| **StringMap (Dict)** | 16.8 ns             | 55.6 ns            | **3.31x slower**  | **Dict**        | 38.34 ns      | **Dict**          | 37.85 ns        | ✅ **2.28x faster**  | ❌ **1.47x slower** |
-| **frozenDict**       | 16.9 ns             | 54.8 ns            | **3.24x slower**  | **FrozenDict**  | 15.21 ns      | **FrozenDict**    | 15.81 ns        | ❌ **1.11x slower**  | ❌ **3.47x slower** |
-| **HashMap (Robin)**  | 16.8 ns             | 30.2 ns            | **1.80x slower**  | **FrozenDict**  | 15.21 ns      | **FrozenDict**    | 15.81 ns        | ❌ **1.10x slower**  | ❌ **1.91x slower** |
-| **gmod**             | 17.6 ns             | 6.97 ns            | **2.52x faster**  | **Gmod**        | 15.62 ns      | **Gmod**          | 17.07 ns        | ❌ **1.13x slower**  | ✅ **2.45x faster** |
+| **StringMap (Dict)** | 16.3 ns             | 55.6 ns            | **3.41x slower**  | **Dict**        | 38.34 ns      | **Dict**          | 37.85 ns        | ✅ **2.35x faster**  | ❌ **1.47x slower** |
+| **frozenDict**       | 16.4 ns             | 54.8 ns            | **3.34x slower**  | **FrozenDict**  | 15.21 ns      | **FrozenDict**    | 15.81 ns        | ❌ **1.08x slower**  | ❌ **3.47x slower** |
+| **HashMap (Robin)**  | 19.4 ns             | 30.2 ns            | **1.56x slower**  | **FrozenDict**  | 15.21 ns      | **FrozenDict**    | 15.81 ns        | ❌ **1.28x slower**  | ❌ **1.91x slower** |
+| **gmod**             | 15.2 ns             | 6.97 ns            | **2.18x faster**  | **Gmod**        | 15.62 ns      | **Gmod**          | 17.07 ns        | ✅ **1.03x faster**  | ✅ **2.45x faster** |
 
 #### Windows GCC vs C# Comparison
 
@@ -368,14 +368,14 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 #### Detailed C++ Results
 
-##### Windows Platform (MSVC 2022)
+##### Windows Platform (MSVC 17.14.10)
 
 | Benchmark      | Time    | CPU     | Iterations |
 | :------------- | :------ | :------ | :--------- |
-| **Dict**       | 16.8 ns | 16.7 ns | 837M       |
-| **FrozenDict** | 16.9 ns | 16.8 ns | 830M       |
-| **HashMap**    | 16.8 ns | 16.7 ns | 830M       |
-| **Gmod**       | 17.6 ns | 17.5 ns | 786M       |
+| **Dict**       | 16.3 ns | 16.2 ns | 887M       |
+| **FrozenDict** | 16.4 ns | 16.3 ns | 862M       |
+| **HashMap**    | 19.4 ns | 19.3 ns | 734M       |
+| **Gmod**       | 15.2 ns | 15.1 ns | 924M       |
 
 ##### Windows Platform (GCC 14.2.0)
 
@@ -426,12 +426,12 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation                          | MSVC 2022 | GCC 14.2.0  | GCC vs MSVC     | Performance Notes           |
-| :--------------------------------- | :-------- | :---------- | :-------------- | :-------------------------- |
-| **TryParse**                       | 21.9 μs   | **14.7 μs** | **1.5x faster** | **Significant improvement** |
-| **TryParseFullPath**               | 9.68 μs   | **6.29 μs** | **1.5x faster** | **Good improvement**        |
-| **TryParseIndividualized**         | 19.9 μs   | **12.8 μs** | **1.6x faster** | **Notable improvement**     |
-| **TryParseFullPathIndividualized** | 9.56 μs   | **6.20 μs** | **1.5x faster** | **Consistent improvement**  |
+| Operation                          | MSVC 17.14.10 | GCC 14.2.0  | GCC vs MSVC     | Performance Notes           |
+| :--------------------------------- | :------------ | :---------- | :-------------- | :-------------------------- |
+| **TryParse**                       | 21.9 μs       | **14.7 μs** | **1.5x faster** | **Significant improvement** |
+| **TryParseFullPath**               | 9.68 μs       | **6.29 μs** | **1.5x faster** | **Good improvement**        |
+| **TryParseIndividualized**         | 19.9 μs       | **12.8 μs** | **1.6x faster** | **Notable improvement**     |
+| **TryParseFullPathIndividualized** | 9.56 μs       | **6.20 μs** | **1.5x faster** | **Consistent improvement**  |
 
 ### GMOD Path Parsing Performance Comparison
 
@@ -439,10 +439,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method                         | Windows Time | Linux Time | Performance Ratio | C# Method (Win)                    | C# Time (Win) | C# Method (Linux)                  | C# Time (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
 | :--------------------------------- | :----------- | :--------- | :---------------- | :--------------------------------- | :------------ | :--------------------------------- | :-------------- | :------------------ | :------------------ |
-| **tryParse**                       | 21.9 μs      | 11.3 μs    | **1.94x slower**  | **TryParse**                       | 3.77 μs       | **TryParse**                       | 3.55 μs         | ❌ **5.81x slower** | ❌ **3.18x slower** |
-| **tryParseFullPath**               | 9.68 μs      | 4.43 μs    | **2.19x slower**  | **TryParseFullPath**               | 571 ns        | **TryParseFullPath**               | 630 ns          | ❌ **17.0x slower** | ❌ **7.03x slower** |
-| **tryParseIndividualized**         | 19.9 μs      | 9.17 μs    | **2.17x slower**  | **TryParseIndividualized**         | 1.49 μs       | **TryParseIndividualized**         | 1.60 μs         | ❌ **13.4x slower** | ❌ **5.73x slower** |
-| **tryParseFullPathIndividualized** | 9.56 μs      | 4.29 μs    | **2.23x slower**  | **TryParseFullPathIndividualized** | 694 ns        | **TryParseFullPathIndividualized** | 788 ns          | ❌ **13.8x slower** | ❌ **5.44x slower** |
+| **tryParse**                       | 20.0 μs      | 11.3 μs    | **1.77x slower**  | **TryParse**                       | 3.77 μs       | **TryParse**                       | 3.55 μs         | ❌ **5.31x slower** | ❌ **3.18x slower** |
+| **tryParseFullPath**               | 9.21 μs      | 4.43 μs    | **2.08x slower**  | **TryParseFullPath**               | 571 ns        | **TryParseFullPath**               | 630 ns          | ❌ **16.1x slower** | ❌ **7.03x slower** |
+| **tryParseIndividualized**         | 18.8 μs      | 9.17 μs    | **2.05x slower**  | **TryParseIndividualized**         | 1.49 μs       | **TryParseIndividualized**         | 1.60 μs         | ❌ **12.6x slower** | ❌ **5.73x slower** |
+| **tryParseFullPathIndividualized** | 9.11 μs      | 4.29 μs    | **2.12x slower**  | **TryParseFullPathIndividualized** | 694 ns        | **TryParseFullPathIndividualized** | 788 ns          | ❌ **13.1x slower** | ❌ **5.44x slower** |
 
 #### Detailed C++ Results
 
@@ -450,10 +450,10 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark                          | Time    | CPU     | Iterations |
 | :--------------------------------- | :------ | :------ | :--------- |
-| **tryParse**                       | 21.9 μs | 21.6 μs | 644K       |
-| **tryParseFullPath**               | 9.68 μs | 9.44 μs | 1.50M      |
-| **tryParseIndividualized**         | 19.9 μs | 19.4 μs | 711K       |
-| **tryParseFullPathIndividualized** | 9.56 μs | 9.21 μs | 1.52M      |
+| **tryParse**                       | 20.0 μs | 19.9 μs | 700K       |
+| **tryParseFullPath**               | 8.60 μs | 8.55 μs | 1.64M      |
+| **tryParseIndividualized**         | 18.0 μs | 17.9 μs | 779K       |
+| **tryParseFullPathIndividualized** | 8.56 μs | 8.51 μs | 1.64M      |
 
 ##### Linux Platform
 
@@ -488,15 +488,15 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ### Cross-Platform Performance Comparison (MSVC vs Linux Clang)
 
-| Operation          | Windows C++ (MSVC) | Linux C++ (Clang) | Performance Ratio | Status |
-| :----------------- | :----------------- | :---------------- | :---------------- | :----: |
-| **Full Traversal** | 291 ms             | 270 ms            | **1.08x faster**  |   ✅   |
+| Operation          | Windows C++ (MSVC) | Linux C++ (Clang) |
+| :----------------- | :----------------- | :---------------- |
+| **Full Traversal** | 212 ms             | 270 ms            |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation          | MSVC 2022  | GCC 14.2.0 | GCC vs MSVC     | Performance Notes              |
-| :----------------- | :--------- | :--------- | :-------------- | :----------------------------- |
-| **Full Traversal** | **291 ms** | 326 ms     | **1.1x slower** | **Modest regression with GCC** |
+| Operation          | MSVC 17.14.10 | GCC 14.2.0 |
+| :----------------- | :------------ | :--------- |
+| **Full Traversal** | 212 ms        | 326 ms     |
 
 ### GMOD Traversal Performance Comparison
 
@@ -504,13 +504,13 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method        | Windows Time (MSVC) | Linux Time (Clang) | Performance Ratio | C# Method (Win)   | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | MSVC vs C# (Windows) | C++ vs C# (Linux)   |
 | :---------------- | :------------------ | :----------------- | :---------------- | :---------------- | :------------ | :---------------- | :-------------- | :------------------- | :------------------ |
-| **fullTraversal** | 291 ms              | 270 ms             | **1.08x faster**  | **FullTraversal** | 135.3 ms      | **FullTraversal** | 161.3 ms        | ❌ **2.15x slower**  | ❌ **1.67x slower** |
+| **fullTraversal** | 209 ms              | 270 ms             | **1.29x slower**  | **FullTraversal** | 135.3 ms      | **FullTraversal** | 161.3 ms        | ❌ **1.54x slower**  | ❌ **1.67x slower** |
 
 #### Windows GCC vs C# Comparison
 
 | C++ Method (GCC)  | GCC Time | C# Method         | C# Time (Win) | GCC vs C# (Windows) | Performance Notes                 |
 | :---------------- | :------- | :---------------- | :------------ | :------------------ | :-------------------------------- |
-| **fullTraversal** | 326 ms   | **FullTraversal** | 135.3 ms      | ❌ **2.4x slower**  | **C# still significantly faster** |
+| **fullTraversal** | 326 ms   | **FullTraversal** | 135.3 ms      | ❌ **2.4x slower**  | **C# faster than both compilers** |
 
 #### Detailed C++ Results
 
@@ -518,7 +518,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark         | Time   | CPU    | Iterations |
 | :---------------- | :----- | :----- | :--------- |
-| **FullTraversal** | 291 ms | 282 ms | 49         |
+| **FullTraversal** | 212 ms | 211 ms | 66         |
 
 ##### Linux Platform
 
@@ -546,13 +546,13 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Operation        | Windows C++ (MSVC) | Linux C++ (Clang) | Performance Ratio | Status |
 | :--------------- | :----------------- | :---------------- | :---------------- | :----: |
-| **Convert Path** | 8.70 μs            | 4.22 μs           | **2.06x slower**  |   ✅   |
+| **Convert Path** | 8.48 μs            | 4.22 μs           | **2.01x slower**  |   ✅   |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation        | MSVC 2022 | GCC 14.2.0  | GCC vs MSVC     | Performance Notes      |
-| :--------------- | :-------- | :---------- | :-------------- | :--------------------- |
-| **Convert Path** | 8.70 μs   | **6.57 μs** | **1.3x faster** | **Modest improvement** |
+| Operation        | MSVC 17.14.10 | GCC 14.2.0  | GCC vs MSVC     |
+| :--------------- | :------------ | :---------- | :-------------- |
+| **Convert Path** | 8.48 μs       | **6.57 μs** | **1.3x faster** |
 
 ### GMOD Versioning Path Conversion Performance Comparison
 
@@ -560,13 +560,13 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | C++ Method      | Windows Time (MSVC) | Linux Time (Clang) | Performance Ratio | C# Method (Win) | C# Time (Win) | C# Method (Linux) | C# Time (Linux) | MSVC vs C# (Windows) | C++ vs C# (Linux)   |
 | :-------------- | :------------------ | :----------------- | :---------------- | :-------------- | :------------ | :---------------- | :-------------- | :------------------- | :------------------ |
-| **convertPath** | 8.70 μs             | 4.22 μs            | **2.06x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **5.84x slower**  | ❌ **2.88x slower** |
+| **convertPath** | 8.45 μs             | 4.22 μs            | **2.00x slower**  | **ConvertPath** | 1.489 μs      | **ConvertPath**   | 1.464 μs        | ❌ **5.68x slower**  | ❌ **2.88x slower** |
 
 #### Windows GCC vs C# Comparison
 
-| C++ Method (GCC) | GCC Time | C# Method       | C# Time (Win) | GCC vs C# (Windows) | Performance Notes        |
-| :--------------- | :------- | :-------------- | :------------ | :------------------ | :----------------------- |
-| **convertPath**  | 6.57 μs  | **ConvertPath** | 1.489 μs      | ❌ **4.4x slower**  | **C# still much faster** |
+| C++ Method (GCC) | GCC Time | C# Method       | C# Time (Win) | GCC vs C# (Windows) |
+| :--------------- | :------- | :-------------- | :------------ | :------------------ |
+| **convertPath**  | 6.57 μs  | **ConvertPath** | 1.489 μs      | ❌ **4.4x slower**  |
 
 #### Detailed C++ Results
 
@@ -574,7 +574,7 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark       | Time    | CPU     | Iterations |
 | :-------------- | :------ | :------ | :--------- |
-| **convertPath** | 8.70 μs | 8.56 μs | 1.62M      |
+| **convertPath** | 8.45 μs | 8.41 μs | 1.67M      |
 
 ##### Linux Platform
 
@@ -615,18 +615,18 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation         | MSVC 2022   | GCC 14.2.0   | GCC vs MSVC     | Status | Notes                     |
-| :---------------- | :---------- | :----------- | :-------------- | :----: | :------------------------ |
-| **bcl (400)**     | **1.23 ns** | 2.90 ns      | **2.4x slower** |   ❌   | **GCC BCL slower**        |
-| **bcl (H346)**    | **2.68 ns** | 2.95 ns      | **1.1x slower** |   ⚠️   | **Slight regression**     |
-| **bclOrd (400)**  | 1.87 ns     | **0.877 ns** | **2.1x faster** |   ✅   | **GCC BclOrd excellent**  |
-| **bclOrd (H346)** | 3.19 ns     | **2.32 ns**  | **1.4x faster** |   ✅   | **Good improvement**      |
-| **Larson (400)**  | 1.84 ns     | **1.44 ns**  | **1.3x faster** |   ✅   | **Moderate improvement**  |
-| **Larson (H346)** | **4.94 ns** | 6.04 ns      | **1.2x slower** |   ❌   | **GCC Larson regression** |
-| **crc32 (400)**   | 1.51 ns     | **1.36 ns**  | **1.1x faster** |   ✅   | **Slight improvement**    |
-| **crc32 (H346)**  | 4.66 ns     | **4.35 ns**  | **1.1x faster** |   ✅   | **Minor improvement**     |
-| **fnv (400)**     | 1.52 ns     | **1.18 ns**  | **1.3x faster** |   ✅   | **Good improvement**      |
-| **fnv (H346)**    | 3.43 ns     | **2.53 ns**  | **1.4x faster** |   ✅   | **Notable improvement**   |
+| Operation         | MSVC 17.14.10 | GCC 14.2.0   | GCC vs MSVC     | Status | Notes                     |
+| :---------------- | :------------ | :----------- | :-------------- | :----: | :------------------------ |
+| **bcl (400)**     | **1.23 ns**   | 2.90 ns      | **2.4x slower** |   ❌   | **GCC BCL slower**        |
+| **bcl (H346)**    | **2.68 ns**   | 2.95 ns      | **1.1x slower** |   ⚠️   | **Slight regression**     |
+| **bclOrd (400)**  | 1.87 ns       | **0.877 ns** | **2.1x faster** |   ✅   | **GCC BclOrd excellent**  |
+| **bclOrd (H346)** | 3.19 ns       | **2.32 ns**  | **1.4x faster** |   ✅   | **Good improvement**      |
+| **Larson (400)**  | 1.84 ns       | **1.44 ns**  | **1.3x faster** |   ✅   | **Moderate improvement**  |
+| **Larson (H346)** | **4.94 ns**   | 6.04 ns      | **1.2x slower** |   ❌   | **GCC Larson regression** |
+| **crc32 (400)**   | 1.51 ns       | **1.36 ns**  | **1.1x faster** |   ✅   | **Slight improvement**    |
+| **crc32 (H346)**  | 4.66 ns       | **4.35 ns**  | **1.1x faster** |   ✅   | **Minor improvement**     |
+| **fnv (400)**     | 1.52 ns       | **1.18 ns**  | **1.3x faster** |   ✅   | **Good improvement**      |
+| **fnv (H346)**    | 3.43 ns       | **2.53 ns**  | **1.4x faster** |   ✅   | **Notable improvement**   |
 
 ### Short String Hashing Performance Comparison
 
@@ -634,16 +634,16 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Algorithm         | Windows Time | Linux Time | Performance Ratio | C# Baseline (Win) | C# Baseline (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
 | :---------------- | :----------- | :--------- | :---------------- | :---------------- | :------------------ | :------------------ | :------------------ |
-| **bcl (400)**     | 1.23 ns      | 2.72 ns    | **2.21x slower**  | 1.135 ns          | 1.214 ns            | ❌ **1.08x slower** | ❌ **2.24x slower** |
-| **bcl (H346)**    | 2.68 ns      | 2.52 ns    | **1.06x faster**  | 4.551 ns          | 4.560 ns            | ✅ **1.70x faster** | ✅ **1.81x faster** |
-| **bclOrd (400)**  | 1.87 ns      | 0.931 ns   | **2.01x faster**  | 1.514 ns          | 1.368 ns            | ❌ **1.24x slower** | ✅ **1.47x faster** |
-| **bclOrd (H346)** | 3.19 ns      | 2.02 ns    | **1.58x faster**  | 3.127 ns          | 2.340 ns            | ❌ **1.02x slower** | ✅ **1.16x faster** |
-| **Larson (400)**  | 1.84 ns      | 1.60 ns    | **1.15x faster**  | 1.219 ns          | 1.244 ns            | ❌ **1.51x slower** | ❌ **1.29x slower** |
-| **Larson (H346)** | 4.94 ns      | 3.43 ns    | **1.44x faster**  | 3.349 ns          | 3.494 ns            | ❌ **1.48x slower** | ✅ **1.02x faster** |
-| **crc32 (400)**   | 1.51 ns      | 1.38 ns    | **1.09x faster**  | 1.215 ns          | 1.235 ns            | ❌ **1.24x slower** | ❌ **1.12x slower** |
-| **crc32 (H346)**  | 4.66 ns      | 4.22 ns    | **1.10x faster**  | 3.259 ns          | 3.441 ns            | ❌ **1.43x slower** | ❌ **1.23x slower** |
-| **fnv (400)**     | 1.52 ns      | 1.17 ns    | **1.30x faster**  | 1.205 ns          | 1.291 ns            | ❌ **1.26x slower** | ✅ **1.10x faster** |
-| **fnv (H346)**    | 3.43 ns      | 2.61 ns    | **1.31x faster**  | 3.337 ns          | 3.741 ns            | ❌ **1.03x slower** | ✅ **1.43x faster** |
+| **bcl (400)**     | 1.21 ns      | 2.72 ns    | **2.25x slower**  | 1.135 ns          | 1.214 ns            | ❌ **1.07x slower** | ❌ **2.24x slower** |
+| **bcl (H346)**    | 2.63 ns      | 2.52 ns    | **1.04x faster**  | 4.551 ns          | 4.560 ns            | ✅ **1.73x faster** | ✅ **1.81x faster** |
+| **bclOrd (400)**  | 1.83 ns      | 0.931 ns   | **1.96x faster**  | 1.514 ns          | 1.368 ns            | ❌ **1.21x slower** | ✅ **1.47x faster** |
+| **bclOrd (H346)** | 3.13 ns      | 2.02 ns    | **1.55x faster**  | 3.127 ns          | 2.340 ns            | ❌ **1.00x equal**  | ✅ **1.16x faster** |
+| **Larson (400)**  | 1.81 ns      | 1.60 ns    | **1.13x faster**  | 1.219 ns          | 1.244 ns            | ❌ **1.48x slower** | ❌ **1.29x slower** |
+| **Larson (H346)** | 4.85 ns      | 3.43 ns    | **1.41x faster**  | 3.349 ns          | 3.494 ns            | ❌ **1.45x slower** | ✅ **1.02x faster** |
+| **crc32 (400)**   | 1.46 ns      | 1.38 ns    | **1.06x faster**  | 1.215 ns          | 1.235 ns            | ❌ **1.20x slower** | ❌ **1.12x slower** |
+| **crc32 (H346)**  | 4.56 ns      | 4.22 ns    | **1.08x faster**  | 3.259 ns          | 3.441 ns            | ❌ **1.40x slower** | ❌ **1.23x slower** |
+| **fnv (400)**     | 1.48 ns      | 1.17 ns    | **1.26x faster**  | 1.205 ns          | 1.291 ns            | ❌ **1.23x slower** | ✅ **1.10x faster** |
+| **fnv (H346)**    | 3.36 ns      | 2.61 ns    | **1.29x faster**  | 3.337 ns          | 3.741 ns            | ❌ **1.01x equal**  | ✅ **1.43x faster** |
 
 #### Detailed C++ Results
 
@@ -651,16 +651,16 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 | Benchmark               | Input      | Time    | CPU     | Iterations |
 | :---------------------- | :--------- | :------ | :------ | :--------- |
-| **bcl_400**             | 400        | 1.23 ns | 1.22 ns | 11.6B      |
-| **bcl_H346_11112**      | H346.11112 | 2.68 ns | 2.67 ns | 5.30B      |
-| **bclOrd_400**          | 400        | 1.87 ns | 1.87 ns | 7.53B      |
-| **bclOrd_H346_11112**   | H346.11112 | 3.19 ns | 3.17 ns | 4.33B      |
-| **Larson_400**          | 400        | 1.84 ns | 1.83 ns | 7.47B      |
-| **Larson_H346_11112**   | H346.11112 | 4.94 ns | 4.91 ns | 2.91B      |
-| **crc32Intrinsic_400**  | 400        | 1.51 ns | 1.50 ns | 9.14B      |
-| **crc32Intrinsic_H346** | H346.11112 | 4.66 ns | 4.63 ns | 3.04B      |
-| **fnv_400**             | 400        | 1.52 ns | 1.51 ns | 9.14B      |
-| **fnv_H346_11112**      | H346.11112 | 3.43 ns | 3.42 ns | 4.09B      |
+| **bcl_400**             | 400        | 1.21 ns | 1.20 ns | 11.5B      |
+| **bcl_H346_11112**      | H346.11112 | 2.63 ns | 2.60 ns | 5.24B      |
+| **bclOrd_400**          | 400        | 1.83 ns | 1.82 ns | 7.79B      |
+| **bclOrd_H346_11112**   | H346.11112 | 3.13 ns | 3.09 ns | 4.53B      |
+| **Larson_400**          | 400        | 1.81 ns | 1.80 ns | 7.86B      |
+| **Larson_H346_11112**   | H346.11112 | 4.85 ns | 4.79 ns | 2.98B      |
+| **crc32Intrinsic_400**  | 400        | 1.46 ns | 1.45 ns | 9.53B      |
+| **crc32Intrinsic_H346** | H346.11112 | 4.56 ns | 4.51 ns | 3.05B      |
+| **fnv_400**             | 400        | 1.48 ns | 1.47 ns | 9.33B      |
+| **fnv_H346_11112**      | H346.11112 | 3.36 ns | 3.34 ns | 4.17B      |
 
 ##### Linux Platform
 
@@ -710,4 +710,4 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ---
 
-_Last updated: July 28, 2025_
+_Last updated: July 29, 2025_

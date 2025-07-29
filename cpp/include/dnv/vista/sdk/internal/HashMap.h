@@ -31,7 +31,7 @@ namespace dnv::vista::sdk::internal
 			TKey key{};
 			TValue value{};
 			std::uint32_t hash = 0;
-			std::uint32_t distance = 0;
+			std::uint16_t distance = 0;
 			bool occupied = false;
 		};
 
@@ -77,33 +77,37 @@ namespace dnv::vista::sdk::internal
 		//----------------------------------------------
 
 		/**
-		 * @brief Fast lookup with optional heterogeneous key types
+		 * @brief Fast lookup with heterogeneous key types
 		 * @param key The key to search for
-		 * @param outValue Reference to pointer that will point to the value if found
-		 * @return true if key exists, false otherwise
+		 * @return Pointer to the value if found, nullptr otherwise
 		 */
 		template <typename KeyType = TKey>
-		VISTA_SDK_CPP_FORCE_INLINE bool tryGetValue( const KeyType& key, TValue*& outValue ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE const TValue* tryGetValue( const KeyType& key ) const noexcept
 		{
 			const std::uint32_t hash = static_cast<std::uint32_t>( m_hasher( key ) );
 			if ( hash == EMPTY_HASH )
-				return false;
-
-			size_t pos = hash & m_mask;
-			std::uint32_t distance = 0;
-
-			while ( distance <= m_buckets[pos].distance && m_buckets[pos].occupied )
 			{
-				if ( m_buckets[pos].hash == hash && keysEqual( m_buckets[pos].key, key ) )
-				{
-					outValue = &m_buckets[pos].value;
-					return true;
-				}
-				pos = ( pos + 1 ) & m_mask;
-				++distance;
+				return nullptr;
 			}
 
-			return false;
+			size_t pos = hash & m_mask;
+
+			for ( std::uint16_t distance = 0;; ++distance, pos = ( pos + 1 ) & m_mask )
+			{
+				const Bucket& bucket = m_buckets[pos];
+
+				/* Check Robin Hood invariant and occupancy in single condition */
+				if ( !bucket.occupied || distance > bucket.distance )
+				{
+					return nullptr;
+				}
+
+				/* Hot path: hash comparison first, then key equality */
+				if ( bucket.hash == hash && keysEqual( bucket.key, key ) )
+				{
+					return &bucket.value;
+				}
+			}
 		}
 
 		/**
@@ -128,11 +132,80 @@ namespace dnv::vista::sdk::internal
 		[[nodiscard]] size_t capacity() const noexcept { return m_capacity; }
 		[[nodiscard]] bool empty() const noexcept { return m_size == 0; }
 
+		/**
+		 * @brief Reserve capacity for at least the specified number of elements
+		 * @param minCapacity Minimum capacity to reserve
+		 */
+		VISTA_SDK_CPP_FORCE_INLINE void reserve( size_t minCapacity )
+		{
+			if ( minCapacity > m_capacity )
+			{
+				size_t newCapacity = 1;
+				while ( newCapacity < minCapacity )
+				{
+					newCapacity <<= 1;
+				}
+
+				if ( newCapacity > m_capacity )
+				{
+					std::vector<Bucket> oldBuckets = std::move( m_buckets );
+					const size_t oldCapacity = m_capacity;
+
+					m_capacity = newCapacity;
+					m_mask = newCapacity - 1;
+					m_buckets.clear();
+					m_buckets.resize( newCapacity );
+					m_size = 0;
+
+					for ( size_t i = 0; i < oldCapacity; ++i )
+					{
+						if ( oldBuckets[i].occupied )
+						{
+							insertOrAssignInternal( std::move( oldBuckets[i].key ), std::move( oldBuckets[i].value ) );
+						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * @brief Remove a key-value pair from the map
+		 * @param key The key to remove
+		 * @return true if the key was found and removed, false otherwise
+		 */
+		template <typename KeyType = TKey>
+		VISTA_SDK_CPP_FORCE_INLINE bool erase( const KeyType& key ) noexcept
+		{
+			const std::uint32_t hash = static_cast<std::uint32_t>( m_hasher( key ) );
+			if ( hash == EMPTY_HASH )
+				return false;
+
+			size_t pos = hash & m_mask;
+			std::uint16_t distance = 0;
+
+			while ( distance <= m_buckets[pos].distance && m_buckets[pos].occupied )
+			{
+				if ( m_buckets[pos].hash == hash && keysEqual( m_buckets[pos].key, key ) )
+				{
+					eraseAtPosition( pos );
+					--m_size;
+					return true;
+				}
+				pos = ( pos + 1 ) & m_mask;
+				++distance;
+			}
+
+			return false;
+		}
+
 	private:
 		//----------------------------------------------
 		// Internal implementation
 		//----------------------------------------------
 
+		/**
+		 * @brief Internal insert or assign implementation with perfect forwarding
+		 */
 		template <typename ValueType>
 		VISTA_SDK_CPP_FORCE_INLINE void insertOrAssignInternal( const TKey& key, ValueType&& value )
 		{
@@ -173,11 +246,17 @@ namespace dnv::vista::sdk::internal
 			}
 		}
 
+		/**
+		 * @brief Check if resize is needed based on load factor
+		 */
 		VISTA_SDK_CPP_FORCE_INLINE bool shouldResize() const noexcept
 		{
 			return ( m_size * 100 ) >= ( m_capacity * MAX_LOAD_FACTOR_PERCENT );
 		}
 
+		/**
+		 * @brief Resize hash table to double capacity and rehash all elements
+		 */
 		void resize()
 		{
 			const size_t oldCapacity = m_capacity;
@@ -198,6 +277,27 @@ namespace dnv::vista::sdk::internal
 			}
 		}
 
+		/**
+		 * @brief Erase element at specific position using backward shift deletion
+		 */
+		VISTA_SDK_CPP_FORCE_INLINE void eraseAtPosition( size_t pos ) noexcept
+		{
+			size_t nextPos = ( pos + 1 ) & m_mask;
+
+			while ( m_buckets[nextPos].occupied && m_buckets[nextPos].distance > 0 )
+			{
+				m_buckets[pos] = std::move( m_buckets[nextPos] );
+				--m_buckets[pos].distance;
+				pos = nextPos;
+				nextPos = ( nextPos + 1 ) & m_mask;
+			}
+
+			m_buckets[pos] = Bucket{};
+		}
+
+		/**
+		 * @brief Compare keys with heterogeneous lookup support for string types
+		 */
 		template <typename KeyType1, typename KeyType2>
 		VISTA_SDK_CPP_FORCE_INLINE bool keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept
 		{

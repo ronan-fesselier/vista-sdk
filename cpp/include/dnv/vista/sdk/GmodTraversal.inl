@@ -9,6 +9,9 @@ namespace dnv::vista::sdk
 	{
 		namespace detail
 		{
+			/**
+			 * @brief Initialize parent stack with optimized capacity
+			 */
 			inline Parents::Parents( size_t maxOccurrence )
 				: m_maxTraversalOccurrence{ maxOccurrence }
 			{
@@ -20,21 +23,27 @@ namespace dnv::vista::sdk
 				}
 			}
 
+			/**
+			 * @brief Push parent node and update occurrence tracking
+			 */
 			inline void Parents::push( const GmodNode* parent )
 			{
 				m_parents.emplace_back( parent );
 
-				const std::string& key = parent->code();
-				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				const std::string_view key = parent->code();
+				if ( const size_t* count = m_occurrences.tryGetValue( key ) )
 				{
-					++it->second;
+					++( const_cast<size_t&>( *count ) );
 				}
 				else
 				{
-					m_occurrences[key] = 1;
+					m_occurrences.insertOrAssign( std::string{ key }, 1 );
 				}
 			}
 
+			/**
+			 * @brief Pop parent node and update occurrence tracking
+			 */
 			inline void Parents::pop()
 			{
 				if ( m_parents.empty() )
@@ -45,41 +54,53 @@ namespace dnv::vista::sdk
 				const GmodNode* parent = m_parents.back();
 				m_parents.pop_back();
 
-				const std::string& key = parent->code();
-				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				const std::string_view key = parent->code();
+				if ( const size_t* count = m_occurrences.tryGetValue( key ) )
 				{
-					if ( it->second == 1 )
+					if ( *count == 1 )
 					{
-						m_occurrences.erase( it );
+						m_occurrences.erase( key );
 					}
 					else
 					{
-						--it->second;
+						--( const_cast<size_t&>( *count ) );
 					}
 				}
 			}
 
+			/**
+			 * @brief Get occurrence count for specific node
+			 */
 			inline size_t Parents::occurrences( const GmodNode& node ) const noexcept
 			{
-				const std::string& key = node.code();
-				if ( auto it = m_occurrences.find( key ); it != m_occurrences.end() )
+				const std::string_view key = node.code();
+				if ( const size_t* count = m_occurrences.tryGetValue( key ) )
 				{
-					return it->second;
+					return *count;
 				}
 
 				return 0;
 			}
 
+			/**
+			 * @brief Get last parent node or nullptr if empty
+			 */
 			inline const GmodNode* Parents::lastOrDefault() const noexcept
 			{
 				return m_parents.empty() ? nullptr : m_parents.back();
 			}
 
+			/**
+			 * @brief Get complete parent chain as vector
+			 */
 			inline const std::vector<const GmodNode*>& Parents::asList() const noexcept
 			{
 				return m_parents;
 			}
 
+			/**
+			 * @brief Core recursive traversal implementation with cycle detection
+			 */
 			template <typename TState>
 			inline TraversalHandlerResult traverseNode( TraversalContext<TState>& context, const GmodNode& node )
 			{
@@ -134,6 +155,9 @@ namespace dnv::vista::sdk
 			}
 		}
 
+		/**
+		 * @brief Traverse GMOD from root with stateful handler
+		 */
 		template <typename TState>
 		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, const Gmod& gmodInstance, TraverseHandlerWithState<TState> handler, const TraversalOptions& options )
 		{
