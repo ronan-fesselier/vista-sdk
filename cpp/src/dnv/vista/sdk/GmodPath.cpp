@@ -179,7 +179,7 @@ namespace dnv::vista::sdk
 		std::vector<GmodIndividualizableSet> result;
 		result.reserve( 8 );
 
-		internal::LocationSetsVisitor visitor;
+		internal::LocationSetsVisitor locationSetsVisitor;
 		std::vector<GmodNode*> tempParents;
 		tempParents.reserve( m_parents.size() );
 
@@ -192,7 +192,7 @@ namespace dnv::vista::sdk
 		{
 			const GmodNode& node = ( i < m_parents.size() ) ? m_parents[i] : *m_node;
 
-			auto set = visitor.visit( node, i, tempParents, *m_node );
+			auto set = locationSetsVisitor.visit( node, i, tempParents, *m_node );
 			if ( !set.has_value() )
 			{
 				continue;
@@ -370,7 +370,7 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		internal::LocationSetsVisitor visitor;
+		internal::LocationSetsVisitor locationSetsVisitor;
 		std::vector<GmodNode*> tempParents;
 		tempParents.reserve( m_parents.size() );
 
@@ -383,7 +383,7 @@ namespace dnv::vista::sdk
 		{
 			const GmodNode& node = ( i < m_parents.size() ) ? m_parents[i] : *m_node;
 
-			auto set = visitor.visit( node, i, tempParents, *m_node );
+			auto set = locationSetsVisitor.visit( node, i, tempParents, *m_node );
 			if ( set.has_value() )
 			{
 				return true;
@@ -484,25 +484,27 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error( "Sequence of nodes are invalid" );
 		}
 
-		internal::LocationSetsVisitor visitor;
+		internal::LocationSetsVisitor locationSetsVisitor;
 		std::optional<size_t> prevNonNullLocation;
 
 		constexpr size_t MAX_SETS = 16;
 		std::pair<size_t, size_t> sets[MAX_SETS];
 		size_t setCounter = 0;
 
+		std::vector<GmodNode*> tempParents;
+		tempParents.reserve( nodes.size() );
+
 		for ( size_t i = 0; i < nodes.size() + 1; ++i )
 		{
 			const GmodNode& n = ( i < nodes.size() ) ? nodes[i] : endNode;
 
-			std::vector<GmodNode*> tempParents;
-			tempParents.reserve( nodes.size() );
+			tempParents.clear();
 			for ( auto& node : nodes )
 			{
 				tempParents.push_back( &node );
 			}
 
-			auto set = visitor.visit( n, i, tempParents, endNode );
+			auto set = locationSetsVisitor.visit( n, i, tempParents, endNode );
 			if ( !set.has_value() )
 			{
 				if ( !prevNonNullLocation.has_value() && n.location().has_value() )
