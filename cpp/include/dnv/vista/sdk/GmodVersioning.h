@@ -187,7 +187,7 @@ namespace dnv::vista::sdk
 			GmodVersioningNode& operator=( const GmodVersioningNode& ) = default;
 
 			/** @brief Move assignment operator */
-			GmodVersioningNode& operator=( GmodVersioningNode&& ) noexcept = delete;
+			GmodVersioningNode& operator=( GmodVersioningNode&& ) noexcept = default;
 
 			//----------------------------
 			// Accessors
@@ -216,7 +216,7 @@ namespace dnv::vista::sdk
 		// Private member variables
 		//----------------------------------------------
 
-		std::unordered_map<VisVersion, GmodVersioningNode> m_versioningsMap;
+		internal::HashMap<VisVersion, GmodVersioningNode> m_versioningsMap;
 
 		//----------------------------------------------
 		// Private helper methods

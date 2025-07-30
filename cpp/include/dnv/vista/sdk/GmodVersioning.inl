@@ -54,16 +54,8 @@ namespace dnv::vista::sdk
 		VisVersion visVersion,
 		const GmodVersioningNode*& versioningNode ) const
 	{
-		auto it = m_versioningsMap.find( visVersion );
-		if ( it != m_versioningsMap.end() )
-		{
-			versioningNode = &it->second;
-
-			return true;
-		}
-		versioningNode = nullptr;
-
-		return false;
+		versioningNode = m_versioningsMap.tryGetValue( visVersion );
+		return versioningNode != nullptr;
 	}
 
 	//----------------------------------------------

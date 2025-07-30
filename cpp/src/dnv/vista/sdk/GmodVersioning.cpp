@@ -119,7 +119,7 @@ namespace dnv::vista::sdk
 		{
 			VisVersion version = VisVersionExtensions::parse( versionStr );
 
-			m_versioningsMap.emplace( version, GmodVersioningNode( version, versioningDto.items() ) );
+			m_versioningsMap.insertOrAssign( version, GmodVersioningNode( version, versioningDto.items() ) );
 		}
 	}
 
