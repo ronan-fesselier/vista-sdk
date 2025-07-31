@@ -432,24 +432,21 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error( fmt::format( "Path must start with {}", gmod.rootNode().code() ) );
 		}
 
-		const size_t estimatedSegments = item.length() / 3;
-		std::vector<GmodNode> nodes;
-		nodes.reserve( estimatedSegments );
+		constexpr size_t MAX_NODES = 24;
+		std::array<GmodNode, MAX_NODES> nodeArray;
+		size_t nodeCount = 0;
 
-		size_t start = 0;
-		while ( start < item.length() )
+		utils::StringViewSplitter splitter( item, '/' );
+		for ( const auto& segment : splitter )
 		{
-			size_t end = item.find( '/', start );
-			if ( end == std::string_view::npos )
-			{
-				end = item.length();
-			}
-
-			const std::string_view segment = item.substr( start, end - start );
 			if ( segment.empty() )
 			{
-				start = end + 1;
 				continue;
+			}
+
+			if ( nodeCount >= MAX_NODES )
+			{
+				return GmodParsePathResult::Error( "Too many nodes in path" );
 			}
 
 			const auto dashPos = segment.find( '-' );
@@ -471,7 +468,7 @@ namespace dnv::vista::sdk
 					return GmodParsePathResult::Error( "Location parse failed" );
 				}
 
-				nodes.emplace_back( nodePtr->withLocation( parsedLocation ) );
+				nodeArray[nodeCount++] = nodePtr->withLocation( parsedLocation );
 			}
 			else
 			{
@@ -481,61 +478,58 @@ namespace dnv::vista::sdk
 					return GmodParsePathResult::Error( "Node lookup failed" );
 				}
 
-				nodes.emplace_back( *nodePtr );
+				nodeArray[nodeCount++] = *nodePtr;
 			}
-
-			start = end + 1;
 		}
 
-		if ( nodes.empty() )
+		if ( nodeCount == 0 )
 		{
 			return GmodParsePathResult::Error( "No nodes found" );
 		}
 
-		GmodNode endNode = std::move( nodes.back() );
-		nodes.pop_back();
+		GmodNode endNode = std::move( nodeArray[nodeCount - 1] );
+		--nodeCount;
+
+		std::vector<GmodNode> nodes( nodeArray.begin(), nodeArray.begin() + nodeCount );
 
 		if ( !nodes.empty() && !nodes[0].isRoot() )
 		{
 			return GmodParsePathResult::Error( "Sequence of nodes are invalid" );
 		}
 
+		constexpr size_t MAX_SETS = 8;
+		std::array<std::pair<size_t, size_t>, MAX_SETS> sets;
+		size_t setCounter = 0;
+
 		internal::LocationSetsVisitor locationSetsVisitor;
 		std::optional<size_t> prevNonNullLocation;
 
-		constexpr size_t MAX_SETS = 16;
-		std::pair<size_t, size_t> sets[MAX_SETS];
-		size_t setCounter = 0;
+		const size_t nodesCount = nodes.size();
+		const size_t totalNodes = nodesCount + 1;
 
-		constexpr size_t MAX_PARENTS = 16;
-		GmodNode* tempParents[MAX_PARENTS];
-		size_t tempParentsSize = 0;
-
-		thread_local std::vector<GmodNode*> tempParentsView;
-
-		for ( size_t i = 0; i < nodes.size() + 1; ++i )
+		std::array<GmodNode*, 24> nodePointerArray;
+		if ( nodesCount > 24 )
 		{
-			const GmodNode& n = ( i < nodes.size() ) ? nodes[i] : endNode;
+			return GmodParsePathResult::Error( "Too many nodes in path" );
+		}
 
-			tempParentsSize = 0;
-			for ( auto& node : nodes )
-			{
-				if ( tempParentsSize < MAX_PARENTS )
-				{
-					tempParents[tempParentsSize++] = &node;
-				}
-			}
+		for ( size_t i = 0; i < nodesCount; ++i )
+		{
+			nodePointerArray[i] = &nodes[i];
+		}
 
-			tempParentsView.clear();
-			tempParentsView.assign( tempParents, tempParents + tempParentsSize );
-			auto set = locationSetsVisitor.visit( n, i, tempParentsView, endNode );
+		for ( size_t i = 0; i < totalNodes; ++i )
+		{
+			const GmodNode& n = ( i < nodesCount ) ? nodes[i] : endNode;
+
+			std::vector<GmodNode*> tempView( nodePointerArray.data(), nodePointerArray.data() + nodesCount );
+			auto set = locationSetsVisitor.visit( n, i, tempView, endNode );
 			if ( !set.has_value() )
 			{
 				if ( !prevNonNullLocation.has_value() && n.location().has_value() )
 				{
 					prevNonNullLocation = i;
 				}
-
 				continue;
 			}
 
@@ -543,9 +537,10 @@ namespace dnv::vista::sdk
 
 			if ( prevNonNullLocation.has_value() )
 			{
-				for ( size_t j = prevNonNullLocation.value(); j < setStart; ++j )
+				const size_t startJ = prevNonNullLocation.value();
+				for ( size_t j = startJ; j < setStart; ++j )
 				{
-					const GmodNode& pn = ( j < nodes.size() ) ? nodes[j] : endNode;
+					const GmodNode& pn = ( j < nodesCount ) ? nodes[j] : endNode;
 					if ( pn.location().has_value() )
 					{
 						return GmodParsePathResult::Error( "Expected all nodes in the set to be without individualization" );
@@ -566,7 +561,7 @@ namespace dnv::vista::sdk
 
 			for ( size_t j = setStart; j <= setEnd; ++j )
 			{
-				if ( j < nodes.size() )
+				if ( j < nodesCount )
 				{
 					nodes[j] = nodes[j].tryWithLocation( location );
 				}
@@ -580,17 +575,19 @@ namespace dnv::vista::sdk
 		std::pair<size_t, size_t> currentSet = { SIZE_MAX, SIZE_MAX };
 		size_t currentSetIndex = 0;
 
-		for ( size_t i = 0; i < nodes.size() + 1; ++i )
+		for ( size_t i = 0; i < totalNodes; ++i )
 		{
 			while ( currentSetIndex < setCounter && ( currentSet.second == SIZE_MAX || currentSet.second < i ) )
+			{
 				currentSet = sets[currentSetIndex++];
+			}
 
-			bool insideSet = ( currentSet.first != SIZE_MAX && i >= currentSet.first && i <= currentSet.second );
-			const GmodNode& n = ( i < nodes.size() ) ? nodes[i] : endNode;
+			const bool insideSet = ( currentSet.first != SIZE_MAX && i >= currentSet.first && i <= currentSet.second );
+			const GmodNode& n = ( i < nodesCount ) ? nodes[i] : endNode;
 
 			if ( insideSet )
 			{
-				const GmodNode& expectedLocationNode = ( currentSet.second < nodes.size() ) ? nodes[currentSet.second] : endNode;
+				const GmodNode& expectedLocationNode = ( currentSet.second < nodesCount ) ? nodes[currentSet.second] : endNode;
 				if ( n.location() != expectedLocationNode.location() )
 				{
 					return GmodParsePathResult::Error( "Expected all nodes in the set to be individualized the same" );
@@ -629,7 +626,9 @@ namespace dnv::vista::sdk
 		size_t end = item.find_last_not_of( constants::NULL_OR_WHITESPACE ) + 1;
 
 		if ( start < end && item[start] == '/' )
+		{
 			++start;
+		}
 
 		if ( start >= end )
 		{
@@ -647,22 +646,14 @@ namespace dnv::vista::sdk
 		thread_local PathNode pathNodes[32];
 		size_t nodeCount = 0;
 
-		size_t pos = 0;
-		while ( pos < item.length() && nodeCount < 32 )
+		utils::StringViewSplitter splitter( item, '/' );
+		for ( const auto& segment : splitter )
 		{
-			size_t segmentStart = pos;
-			size_t segmentEnd = item.find( '/', pos );
-			if ( segmentEnd == std::string_view::npos )
+			if ( segment.empty() || nodeCount >= 32 )
 			{
-				segmentEnd = item.length();
+				break;
 			}
 
-			if ( segmentEnd == segmentStart )
-			{
-				return GmodParsePathResult::Error( "Failed find any parts" );
-			}
-
-			const std::string_view segment = item.substr( segmentStart, segmentEnd - segmentStart );
 			const size_t dashPos = segment.find( '-' );
 
 			if ( dashPos != std::string_view::npos )
@@ -694,8 +685,6 @@ namespace dnv::vista::sdk
 
 				pathNodes[nodeCount++] = PathNode{ segment, std::nullopt };
 			}
-
-			pos = segmentEnd + 1;
 		}
 
 		if ( nodeCount == 0 )
