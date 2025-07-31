@@ -24,6 +24,9 @@ namespace dnv::vista::sdk
 	// Static helper functions
 	//=====================================================================
 
+	thread_local static std::vector<const GmodNode*> t_currentParentsBuffer;
+	thread_local static std::vector<const GmodNode*> t_remainingBuffer;
+
 	static void addToPath( const Gmod& gmod, std::vector<GmodNode>& path, const GmodNode& node )
 	{
 		if ( !path.empty() )
@@ -35,24 +38,23 @@ namespace dnv::vista::sdk
 				{
 					const GmodNode& parent = path[static_cast<size_t>( j )];
 
-					std::vector<const GmodNode*> currentParents;
+					t_currentParentsBuffer.clear();
 					const size_t currentParentsCount = static_cast<size_t>( j + 1 );
-
-					currentParents.reserve( currentParentsCount );
+					t_currentParentsBuffer.reserve( currentParentsCount );
 
 					for ( size_t k = 0; k < currentParentsCount; ++k )
 					{
-						currentParents.push_back( &path[k] );
+						t_currentParentsBuffer.push_back( &path[k] );
 					}
 
-					std::vector<const GmodNode*> remaining;
-					remaining.reserve( 16 );
+					t_remainingBuffer.clear();
+					t_remainingBuffer.reserve( 16 );
 
-					if ( !GmodTraversal::pathExistsBetween( gmod, currentParents, node, remaining ) )
+					if ( !GmodTraversal::pathExistsBetween( gmod, t_currentParentsBuffer, node, t_remainingBuffer ) )
 					{
 						bool hasOtherAssetFunction = false;
 						const std::string_view parentCode = parent.code();
-						for ( const GmodNode* pathNode : currentParents )
+						for ( const GmodNode* pathNode : t_currentParentsBuffer )
 						{
 							if ( pathNode->isAssetFunctionNode() && pathNode->code() != parentCode )
 							{
@@ -72,9 +74,9 @@ namespace dnv::vista::sdk
 						const auto nodeLocation = node.location();
 						if ( nodeLocation.has_value() )
 						{
-							path.reserve( path.size() + remaining.size() );
+							path.reserve( path.size() + t_remainingBuffer.size() );
 
-							for ( const GmodNode* n : remaining )
+							for ( const GmodNode* n : t_remainingBuffer )
 							{
 								if ( n->isIndividualizable( false, true ) )
 								{
@@ -88,8 +90,8 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							path.reserve( path.size() + remaining.size() );
-							for ( const GmodNode* n : remaining )
+							path.reserve( path.size() + t_remainingBuffer.size() );
+							for ( const GmodNode* n : t_remainingBuffer )
 							{
 								path.emplace_back( *n );
 							}
@@ -243,23 +245,34 @@ namespace dnv::vista::sdk
 		}
 
 		std::vector<std::pair<const GmodNode*, GmodNode>> qualifyingNodes;
-		qualifyingNodes.reserve( sourcePath.length() );
 
-		for ( size_t i = 0; i < sourcePath.length(); ++i )
+		auto fullPathEnumerator = sourcePath.fullPath();
+		std::vector<std::pair<size_t, const GmodNode*>> fullPathNodes;
+
+		while ( fullPathEnumerator.next() )
 		{
-			const GmodNode& originalNodeInPath = sourcePath[i];
+			const auto& [depth, nodePtr] = fullPathEnumerator.current();
+			if ( nodePtr )
+			{
+				fullPathNodes.emplace_back( depth, nodePtr );
+			}
+		}
 
-			std::optional<GmodNode> convertedNodeOpt = convertNode( sourceVersion, originalNodeInPath, targetVersion, targetGmod );
+		qualifyingNodes.reserve( fullPathNodes.size() );
+
+		for ( const auto& [depth, nodePtr] : fullPathNodes )
+		{
+			std::optional<GmodNode> convertedNodeOpt = convertNode( sourceVersion, *nodePtr, targetVersion, targetGmod );
 			if ( !convertedNodeOpt.has_value() )
 			{
 				throw std::runtime_error( "Could not convert node forward" );
 			}
 
-			qualifyingNodes.emplace_back( &originalNodeInPath, std::move( *convertedNodeOpt ) );
+			qualifyingNodes.emplace_back( nodePtr, std::move( *convertedNodeOpt ) );
 		}
 
 		std::vector<GmodNode> potentialParents;
-		potentialParents.reserve( qualifyingNodes.size() );
+		potentialParents.reserve( qualifyingNodes.size() > 0 ? qualifyingNodes.size() - 1 : 0 );
 
 		for ( size_t i = 0; i < qualifyingNodes.size() - 1; ++i )
 		{
@@ -268,8 +281,10 @@ namespace dnv::vista::sdk
 
 		std::vector<GmodNode*> potentialParentPtrs;
 		potentialParentPtrs.reserve( potentialParents.size() );
-		std::transform( potentialParents.begin(), potentialParents.end(), std::back_inserter( potentialParentPtrs ),
-			[]( GmodNode& parent ) noexcept { return &parent; } );
+		for ( auto& parent : potentialParents )
+		{
+			potentialParentPtrs.push_back( &parent );
+		}
 
 		if ( GmodPath::isValid( potentialParentPtrs, *targetEndNode ) )
 		{
@@ -287,14 +302,14 @@ namespace dnv::vista::sdk
 			if ( i > 0 )
 			{
 				const std::string_view prevCode = qualifyingNodes[i - 1].second.code();
-				if ( currentCode == prevCode )
+				if ( currentCode.data() == prevCode.data() || currentCode == prevCode )
 				{
 					continue;
 				}
 			}
 
 			const std::string_view sourceCode = qualifyingNode.first->code();
-			const bool codeChanged = sourceCode != currentCode;
+			const bool codeChanged = sourceCode.data() != currentCode.data() && sourceCode != currentCode;
 
 			const std::optional<GmodNode> sourceNormalAssignment = qualifyingNode.first->productType();
 			const std::optional<GmodNode> targetNormalAssignment = qualifyingNode.second.productType();
@@ -359,9 +374,14 @@ namespace dnv::vista::sdk
 				addToPath( targetGmod, path, qualifyingNode.second );
 			}
 
-			if ( !path.empty() && std::string_view( path.back().code() ) == targetEndNode->code() )
+			if ( !path.empty() )
 			{
-				break;
+				const std::string_view lastCode = path.back().code();
+				const std::string_view endCode = targetEndNode->code();
+				if ( lastCode.data() == endCode.data() || lastCode == endCode )
+				{
+					break;
+				}
 			}
 		}
 
@@ -370,14 +390,17 @@ namespace dnv::vista::sdk
 			throw std::runtime_error( "Path reconstruction resulted in an empty path" );
 		}
 
-		std::vector<GmodNode> potentialParentsFromPath;
-		potentialParentsFromPath.reserve( path.size() > 0 ? path.size() - 1 : 0 );
-
-		if ( path.size() > 1 )
+		if ( path.size() == 1 )
 		{
-			potentialParentsFromPath.insert( potentialParentsFromPath.end(),
-				std::make_move_iterator( path.begin() ),
-				std::make_move_iterator( path.end() - 1 ) );
+			return GmodPath( targetGmod, std::move( path[0] ), {} );
+		}
+
+		std::vector<GmodNode> potentialParentsFromPath;
+		potentialParentsFromPath.reserve( path.size() - 1 );
+
+		for ( size_t i = 0; i < path.size() - 1; ++i )
+		{
+			potentialParentsFromPath.emplace_back( std::move( path[i] ) );
 		}
 
 		GmodNode targetEndNodeFromPath = std::move( path.back() );
