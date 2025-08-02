@@ -3,11 +3,14 @@
  * @brief Inline implementations for performance-critical GmodPath operations
  */
 
+#pragma once
+
 #include "Gmod.h"
 #include "Locations.h"
 #include "VIS.h"
 #include "VISVersion.h"
 #include "utils/StringBuilderPool.h"
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -456,7 +459,7 @@ namespace dnv::vista::sdk
 	// Inline parsing methods
 	//----------------------------------------------
 
-	inline GmodPath GmodPath::parse( std::string_view item, VisVersion visVersion )
+	VISTA_SDK_CPP_FORCE_INLINE GmodPath GmodPath::parse( std::string_view item, VisVersion visVersion )
 	{
 		std::optional<GmodPath> path{};
 		if ( !tryParse( item, visVersion, path ) )
@@ -469,7 +472,7 @@ namespace dnv::vista::sdk
 		return std::move( path.value() );
 	}
 
-	inline GmodPath GmodPath::parse( std::string_view item, const Gmod& gmod, const Locations& locations )
+	VISTA_SDK_CPP_FORCE_INLINE GmodPath GmodPath::parse( std::string_view item, const Gmod& gmod, const Locations& locations )
 	{
 		GmodParsePathResult result = parseInternal( item, gmod, locations );
 
@@ -483,7 +486,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	inline GmodPath GmodPath::parseFullPath( std::string_view item, VisVersion visVersion )
+	VISTA_SDK_CPP_FORCE_INLINE GmodPath GmodPath::parseFullPath( std::string_view item, VisVersion visVersion )
 	{
 		VIS& vis = VIS::instance();
 		const Gmod& gmod = vis.gmod( visVersion );
@@ -500,7 +503,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	inline bool GmodPath::tryParse( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath )
+	VISTA_SDK_CPP_FORCE_INLINE bool GmodPath::tryParse( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath )
 	{
 		outPath.reset();
 
@@ -511,7 +514,7 @@ namespace dnv::vista::sdk
 		return tryParse( item, gmod, locations, outPath );
 	}
 
-	inline bool GmodPath::tryParse( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath )
+	VISTA_SDK_CPP_FORCE_INLINE bool GmodPath::tryParse( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath )
 	{
 		GmodParsePathResult result = parseInternal( item, gmod, locations );
 		outPath.reset();
@@ -525,7 +528,7 @@ namespace dnv::vista::sdk
 		return false;
 	}
 
-	inline bool GmodPath::tryParseFullPath( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath )
+	VISTA_SDK_CPP_FORCE_INLINE bool GmodPath::tryParseFullPath( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath )
 	{
 		outPath.reset();
 
@@ -536,7 +539,7 @@ namespace dnv::vista::sdk
 		return tryParseFullPath( item, gmod, locations, outPath );
 	}
 
-	inline bool GmodPath::tryParseFullPath( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath )
+	VISTA_SDK_CPP_FORCE_INLINE bool GmodPath::tryParseFullPath( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath )
 	{
 		GmodParsePathResult result = parseFullPathInternal( item, gmod, locations );
 

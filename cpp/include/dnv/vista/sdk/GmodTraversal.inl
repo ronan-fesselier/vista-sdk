@@ -140,7 +140,6 @@ namespace dnv::vista::sdk
 					result = traverseNode( context, child );
 					if ( result == TraversalHandlerResult::Stop )
 					{
-						context.parents.pop();
 						return TraversalHandlerResult::Stop;
 					}
 					else if ( result == TraversalHandlerResult::SkipSubtree )
@@ -174,6 +173,30 @@ namespace dnv::vista::sdk
 			detail::TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
 
 			return detail::traverseNode( context, rootNode ) == TraversalHandlerResult::Continue;
+		}
+
+		//=====================================================================
+		// Public API
+		//=====================================================================
+
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( const Gmod& gmodInstance, TraverseHandler handler, const TraversalOptions& options )
+		{
+			TraverseHandler capturedHandler = handler;
+			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
+				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
+				-> TraversalHandlerResult { return h( parents, node ); };
+
+			return traverse( capturedHandler, gmodInstance, wrapperHandler, options );
+		}
+
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( const GmodNode& rootNode, TraverseHandler handler, const TraversalOptions& options )
+		{
+			TraverseHandler capturedHandler = handler;
+			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
+				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
+				-> TraversalHandlerResult { return h( parents, node ); };
+
+			return traverse( capturedHandler, rootNode, wrapperHandler, options );
 		}
 	}
 }

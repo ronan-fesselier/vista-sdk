@@ -5,9 +5,11 @@
  *          along with helper classes for parsing, validation, iteration, and modification of path segments.
  */
 
+#pragma once
+
 #include "GmodNode.h"
 
-#pragma once
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -263,9 +265,9 @@ namespace dnv::vista::sdk
 		 * @return Parsed GmodPath instance
 		 * @throws std::invalid_argument if parsing fails
 		 */
-		[[nodiscard]] static GmodPath parse( std::string_view item, VisVersion visVersion );
-		[[nodiscard]] static GmodPath parse( std::string_view item, const Gmod& gmod, const Locations& locations );
-		[[nodiscard]] static GmodPath parseFullPath( std::string_view item, VisVersion visVersion );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static GmodPath parse( std::string_view item, VisVersion visVersion );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static GmodPath parse( std::string_view item, const Gmod& gmod, const Locations& locations );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static GmodPath parseFullPath( std::string_view item, VisVersion visVersion );
 
 		/**
 		 * @brief Attempts to parse a path string, returning success/failure
@@ -274,11 +276,11 @@ namespace dnv::vista::sdk
 		 * @param outPath [out] The parsed path if successful
 		 * @return True if parsing succeeded, false otherwise
 		 */
-		[[nodiscard]] static bool tryParse( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
-		[[nodiscard]] static bool tryParse( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParse( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParse( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
 
-		[[nodiscard]] static bool tryParseFullPath( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
-		[[nodiscard]] static bool tryParseFullPath( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParseFullPath( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParseFullPath( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
 
 		//----------------------------------------------
 		// Enumeration

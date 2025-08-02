@@ -127,8 +127,7 @@ namespace dnv::vista::sdk::utils
 	 */
 	[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool startsWith( std::string_view str, std::string_view prefix ) noexcept
 	{
-		return str.size() >= prefix.size() &&
-			   str.compare( 0, prefix.size(), prefix ) == 0;
+		return str.size() >= prefix.size() && str.compare( 0, prefix.size(), prefix ) == 0;
 	}
 
 	/**

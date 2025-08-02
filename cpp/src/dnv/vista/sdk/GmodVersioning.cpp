@@ -247,21 +247,16 @@ namespace dnv::vista::sdk
 		std::vector<std::pair<const GmodNode*, GmodNode>> qualifyingNodes;
 
 		auto fullPathEnumerator = sourcePath.fullPath();
-		std::vector<std::pair<size_t, const GmodNode*>> fullPathNodes;
+		qualifyingNodes.reserve( 16 );
 
 		while ( fullPathEnumerator.next() )
 		{
 			const auto& [depth, nodePtr] = fullPathEnumerator.current();
-			if ( nodePtr )
+			if ( !nodePtr )
 			{
-				fullPathNodes.emplace_back( depth, nodePtr );
+				continue;
 			}
-		}
 
-		qualifyingNodes.reserve( fullPathNodes.size() );
-
-		for ( const auto& [depth, nodePtr] : fullPathNodes )
-		{
 			std::optional<GmodNode> convertedNodeOpt = convertNode( sourceVersion, *nodePtr, targetVersion, targetGmod );
 			if ( !convertedNodeOpt.has_value() )
 			{
@@ -298,18 +293,12 @@ namespace dnv::vista::sdk
 		{
 			const auto& qualifyingNode = qualifyingNodes[i];
 
-			const std::string_view currentCode = qualifyingNode.second.code();
-			if ( i > 0 )
+			if ( i > 0 && qualifyingNode.second.code() == qualifyingNodes[i - 1].second.code() )
 			{
-				const std::string_view prevCode = qualifyingNodes[i - 1].second.code();
-				if ( currentCode.data() == prevCode.data() || currentCode == prevCode )
-				{
-					continue;
-				}
+				continue;
 			}
 
-			const std::string_view sourceCode = qualifyingNode.first->code();
-			const bool codeChanged = sourceCode.data() != currentCode.data() && sourceCode != currentCode;
+			const bool codeChanged = qualifyingNode.first->code() != qualifyingNode.second.code();
 
 			const std::optional<GmodNode> sourceNormalAssignment = qualifyingNode.first->productType();
 			const std::optional<GmodNode> targetNormalAssignment = qualifyingNode.second.productType();
@@ -327,6 +316,8 @@ namespace dnv::vista::sdk
 			}
 			else if ( normalAssignmentChanged )
 			{
+				/* SC || SN || SD */
+
 				bool wasDeleted = sourceNormalAssignment.has_value() && !targetNormalAssignment.has_value();
 
 				if ( !codeChanged )
@@ -349,7 +340,7 @@ namespace dnv::vista::sdk
 					}
 					continue;
 				}
-				else if ( currentCode != targetEndNode->code() )
+				else if ( qualifyingNode.second.code() != targetEndNode->code() )
 				{
 					if ( targetNormalAssignment.has_value() )
 					{
@@ -359,6 +350,7 @@ namespace dnv::vista::sdk
 							targetNormalAssignmentVal = targetNormalAssignmentVal.tryWithLocation( *qualifyingNode.second.location() );
 						}
 						addToPath( targetGmod, path, targetNormalAssignmentVal );
+
 						++i;
 					}
 				}
@@ -374,14 +366,9 @@ namespace dnv::vista::sdk
 				addToPath( targetGmod, path, qualifyingNode.second );
 			}
 
-			if ( !path.empty() )
+			if ( !path.empty() && path.back().code() == targetEndNode->code() )
 			{
-				const std::string_view lastCode = path.back().code();
-				const std::string_view endCode = targetEndNode->code();
-				if ( lastCode.data() == endCode.data() || lastCode == endCode )
-				{
-					break;
-				}
+				break;
 			}
 		}
 

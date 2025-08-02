@@ -43,26 +43,6 @@ namespace dnv::vista::sdk
 		// Public API
 		//=====================================================================
 
-		bool traverse( const Gmod& gmodInstance, TraverseHandler handler, const TraversalOptions& options )
-		{
-			TraverseHandler capturedHandler = handler;
-			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-				-> TraversalHandlerResult { return h( parents, node ); };
-
-			return traverse( capturedHandler, gmodInstance, wrapperHandler, options );
-		}
-
-		bool traverse( const GmodNode& rootNode, TraverseHandler handler, const TraversalOptions& options )
-		{
-			TraverseHandler capturedHandler = handler;
-			TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-				[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-				-> TraversalHandlerResult { return h( parents, node ); };
-
-			return traverse( capturedHandler, rootNode, wrapperHandler, options );
-		}
-
 		bool pathExistsBetween(
 			const Gmod& gmodInstance,
 			const std::vector<const GmodNode*>& fromPath,

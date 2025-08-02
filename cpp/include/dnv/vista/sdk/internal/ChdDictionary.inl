@@ -347,6 +347,7 @@ namespace dnv::vista::sdk::internal
 		if ( key.empty() )
 		{
 			outValue = nullptr;
+
 			return false;
 		}
 
@@ -368,6 +369,7 @@ namespace dnv::vista::sdk::internal
 		}
 
 		outValue = nullptr;
+
 		return false;
 	}
 
