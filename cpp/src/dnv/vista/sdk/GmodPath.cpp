@@ -138,6 +138,169 @@ namespace dnv::vista::sdk
 				return std::nullopt;
 			}
 		};
+
+		struct PathNode
+		{
+			std::string_view code;
+			std::optional<Location> location;
+
+			PathNode( std::string_view c )
+				: code{ c },
+				  location{ std::nullopt }
+			{
+			}
+
+			PathNode( std::string_view c, const Location& loc )
+				: code{ c },
+				  location{ loc }
+			{
+			}
+		};
+
+		struct ParseContext
+		{
+			std::queue<PathNode> parts;
+			PathNode toFind;
+			std::optional<utils::StringMap<Location>> locations;
+			std::optional<GmodPath> path;
+			const Gmod* gmod;
+
+			ParseContext( std::queue<PathNode>&& p, PathNode&& t, std::optional<utils::StringMap<Location>>&& l, std::optional<GmodPath>&& path, const Gmod& g )
+				: parts{ std::move( p ) },
+				  toFind{ std::move( t ) },
+				  locations{ std::move( l ) },
+				  path{ std::move( path ) },
+				  gmod{ &g }
+			{
+			}
+		};
+
+		static inline TraversalHandlerResult parseInternalHandler(
+			ParseContext& context,
+			const std::vector<const GmodNode*>& parents,
+			const GmodNode& current )
+		{
+			PathNode& toFind = context.toFind;
+			bool found = ( current.code() == toFind.code );
+
+			if ( !found && Gmod::isLeafNode( current.metadata() ) )
+			{
+				return TraversalHandlerResult::SkipSubtree;
+			}
+
+			if ( !found )
+			{
+				return TraversalHandlerResult::Continue;
+			}
+
+			if ( toFind.location.has_value() )
+			{
+				if ( !context.locations.has_value() )
+				{
+					context.locations = utils::StringMap<Location>{};
+				}
+				context.locations->emplace( toFind.code, toFind.location.value() );
+			}
+
+			if ( !context.parts.empty() )
+			{
+				toFind = context.parts.front();
+				context.parts.pop();
+				return TraversalHandlerResult::Continue;
+			}
+
+			std::vector<GmodNode> pathParents;
+			pathParents.reserve( parents.size() + 1 );
+
+			for ( const GmodNode* parent : parents )
+			{
+				if ( context.locations.has_value() )
+				{
+					auto locationIt = context.locations->find( parent->code() );
+					if ( locationIt != context.locations->end() )
+					{
+						pathParents.emplace_back( parent->withLocation( locationIt->second ) );
+						continue;
+					}
+				}
+				pathParents.emplace_back( *parent );
+			}
+
+			GmodNode endNode = toFind.location.has_value() ? current.withLocation( toFind.location.value() ) : current;
+
+			const GmodNode* startNode = nullptr;
+			if ( !pathParents.empty() && pathParents[0].parents().size() == 1 )
+			{
+				startNode = pathParents[0].parents()[0];
+			}
+			else if ( endNode.parents().size() == 1 )
+			{
+				startNode = endNode.parents()[0];
+			}
+
+			if ( startNode == nullptr || startNode->parents().size() > 1 )
+			{
+				return TraversalHandlerResult::Stop;
+			}
+
+			while ( startNode->parents().size() == 1 )
+			{
+				pathParents.insert( pathParents.begin(), *startNode );
+				startNode = startNode->parents()[0];
+				if ( startNode->parents().size() > 1 )
+				{
+					return TraversalHandlerResult::Stop;
+				}
+			}
+
+			pathParents.insert( pathParents.begin(), context.gmod->rootNode() );
+
+			internal::LocationSetsVisitor visitor;
+			std::vector<GmodNode*> tempParentsView;
+			tempParentsView.reserve( pathParents.size() + 1 );
+
+			for ( size_t i = 0; i < pathParents.size() + 1; ++i )
+			{
+				GmodNode& n = ( i < pathParents.size() ) ? pathParents[i] : endNode;
+
+				tempParentsView.clear();
+				for ( auto& p : pathParents )
+				{
+					tempParentsView.push_back( &p );
+				}
+
+				auto set = visitor.visit( n, i, tempParentsView, endNode );
+				if ( !set.has_value() )
+				{
+					if ( n.location().has_value() )
+					{
+						return TraversalHandlerResult::Stop;
+					}
+					continue;
+				}
+
+				const auto& [setStart, setEnd, location] = set.value();
+				if ( setStart == setEnd )
+				{
+					continue;
+				}
+
+				for ( size_t j = setStart; j <= setEnd; ++j )
+				{
+					if ( j < pathParents.size() )
+					{
+						pathParents[j] = pathParents[j].tryWithLocation( location );
+					}
+					else
+					{
+						endNode = endNode.tryWithLocation( location );
+					}
+				}
+			}
+
+			context.path = GmodPath( *context.gmod, std::move( endNode ), std::move( pathParents ), true );
+			return TraversalHandlerResult::Stop;
+		}
 	}
 
 	//=====================================================================
@@ -659,33 +822,23 @@ namespace dnv::vista::sdk
 			item = item.substr( 1 );
 		}
 
-		struct PathNode
-		{
-			std::string_view code;
-			std::optional<Location> location;
-		};
+		std::queue<internal::PathNode> parts;
 
-		thread_local PathNode pathNodes[32];
-		size_t pathNodeCount = 0;
-
-		for ( const auto& segment : utils::splitView( item, '/' ) )
+		for ( const auto& partStr : utils::splitView( item, '/' ) )
 		{
-			if ( segment.empty() || pathNodeCount >= 32 )
-			{
+			if ( partStr.empty() )
 				continue;
-			}
 
-			const size_t dashPos = segment.find( '-' );
-
-			if ( dashPos != std::string_view::npos )
+			if ( partStr.find( '-' ) != std::string_view::npos )
 			{
-				const std::string_view codePart = segment.substr( 0, dashPos );
-				const std::string_view locationPart = segment.substr( dashPos + 1 );
+				const size_t dashPos = partStr.find( '-' );
+				const std::string_view codePart = partStr.substr( 0, dashPos );
+				const std::string_view locationPart = partStr.substr( dashPos + 1 );
 
 				const GmodNode* tempNode = nullptr;
 				if ( !gmod.tryGetNode( codePart, tempNode ) || !tempNode )
 				{
-					return GmodParsePathResult::Error{ "Failed to get GmodNode for " + std::string{ segment } };
+					return GmodParsePathResult::Error{ "Failed to get GmodNode for " + std::string{ partStr } };
 				}
 
 				Location parsedLocation;
@@ -694,27 +847,27 @@ namespace dnv::vista::sdk
 					return GmodParsePathResult::Error{ "Failed to parse location " + std::string{ locationPart } };
 				}
 
-				pathNodes[pathNodeCount++] = PathNode{ codePart, parsedLocation };
+				parts.emplace( codePart, parsedLocation );
 			}
 			else
 			{
 				const GmodNode* tempNode = nullptr;
-				if ( !gmod.tryGetNode( segment, tempNode ) || !tempNode )
+				if ( !gmod.tryGetNode( partStr, tempNode ) || !tempNode )
 				{
-					return GmodParsePathResult::Error{ "Failed to get GmodNode for " + std::string{ segment } };
+					return GmodParsePathResult::Error{ "Failed to get GmodNode for " + std::string{ partStr } };
 				}
 
-				pathNodes[pathNodeCount++] = PathNode{ segment, std::nullopt };
+				parts.emplace( partStr );
 			}
 		}
 
-		if ( pathNodeCount == 0 )
+		if ( parts.empty() )
 		{
 			return GmodParsePathResult::Error{ "Failed find any parts" };
 		}
 
-		const PathNode& toFind = pathNodes[0];
-		size_t currentIndex = 1;
+		internal::PathNode toFind = parts.front();
+		parts.pop();
 
 		const GmodNode* baseNode = nullptr;
 		if ( !gmod.tryGetNode( toFind.code, baseNode ) || !baseNode )
@@ -722,153 +875,9 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error{ "Failed to find base node" };
 		}
 
-		struct ParseContext
-		{
-			const PathNode* pathNodes;
-			size_t pathNodeCount;
-			size_t currentIndex;
-			std::string_view currentCode;
-			std::optional<Location> currentLocation;
-			std::optional<utils::StringMap<Location>> locations;
-			std::optional<GmodPath> path;
-			const Gmod* gmod;
-		};
+		internal::ParseContext context( std::move( parts ), std::move( toFind ), std::nullopt, std::nullopt, gmod );
 
-		ParseContext context{
-			pathNodes,
-			pathNodeCount,
-			currentIndex,
-			toFind.code,
-			toFind.location,
-			std::nullopt,
-			std::nullopt,
-			&gmod };
-
-		TraverseHandlerWithState<ParseContext> handler = []( ParseContext& ctx, const std::vector<const GmodNode*>& parents, const GmodNode& current ) -> TraversalHandlerResult {
-			bool found = ( current.code() == ctx.currentCode );
-
-			if ( !found && Gmod::isLeafNode( current.metadata() ) )
-			{
-				return TraversalHandlerResult::SkipSubtree;
-			}
-
-			if ( !found )
-			{
-				return TraversalHandlerResult::Continue;
-			}
-
-			if ( ctx.currentLocation.has_value() )
-			{
-				if ( !ctx.locations.has_value() )
-				{
-					ctx.locations = utils::StringMap<Location>{};
-				}
-				ctx.locations->emplace( std::string{ ctx.currentCode }, ctx.currentLocation.value() );
-			}
-
-			if ( ctx.currentIndex < ctx.pathNodeCount )
-			{
-				const PathNode& nextNode = ctx.pathNodes[ctx.currentIndex++];
-				ctx.currentCode = nextNode.code;
-				ctx.currentLocation = nextNode.location;
-
-				return TraversalHandlerResult::Continue;
-			}
-
-			std::vector<GmodNode> pathParents;
-			pathParents.reserve( parents.size() );
-
-			for ( const GmodNode* parent : parents )
-			{
-				if ( ctx.locations.has_value() )
-				{
-					auto locationIt = ctx.locations->find( std::string{ parent->code() } );
-					if ( locationIt != ctx.locations->end() )
-					{
-						pathParents.emplace_back( parent->withLocation( locationIt->second ) );
-
-						continue;
-					}
-				}
-				pathParents.emplace_back( *parent );
-			}
-
-			GmodNode endNode = ctx.currentLocation.has_value() ? current.withLocation( ctx.currentLocation.value() ) : current;
-
-			const GmodNode* startNode = nullptr;
-			if ( !pathParents.empty() && pathParents[0].parents().size() == 1 )
-			{
-				startNode = pathParents[0].parents()[0];
-			}
-			else if ( endNode.parents().size() == 1 )
-			{
-				startNode = endNode.parents()[0];
-			}
-
-			if ( startNode == nullptr || startNode->parents().size() > 1 )
-			{
-				return TraversalHandlerResult::Stop;
-			}
-
-			while ( startNode->parents().size() == 1 )
-			{
-				pathParents.insert( pathParents.begin(), *startNode );
-				startNode = startNode->parents()[0];
-				if ( startNode->parents().size() > 1 )
-				{
-					return TraversalHandlerResult::Stop;
-				}
-			}
-
-			pathParents.insert( pathParents.begin(), ctx.gmod->rootNode() );
-
-			internal::LocationSetsVisitor visitor;
-			for ( size_t i = 0; i < pathParents.size() + 1; ++i )
-			{
-				GmodNode& n = ( i < pathParents.size() ) ? pathParents[i] : endNode;
-
-				std::vector<GmodNode*> tempParentsView;
-				tempParentsView.reserve( pathParents.size() );
-				for ( auto& p : pathParents )
-				{
-					tempParentsView.push_back( &p );
-				}
-
-				auto set = visitor.visit( n, i, tempParentsView, endNode );
-				if ( !set.has_value() )
-				{
-					if ( n.location().has_value() )
-					{
-						return TraversalHandlerResult::Stop;
-					}
-
-					continue;
-				}
-
-				const auto& [setStart, setEnd, location] = set.value();
-				if ( setStart == setEnd )
-				{
-					continue;
-				}
-
-				for ( size_t j = setStart; j <= setEnd; ++j )
-				{
-					if ( j < pathParents.size() )
-					{
-						pathParents[j] = pathParents[j].tryWithLocation( location );
-					}
-					else
-					{
-						endNode = endNode.tryWithLocation( location );
-					}
-				}
-			}
-
-			ctx.path = GmodPath( *ctx.gmod, std::move( endNode ), std::move( pathParents ), true );
-			return TraversalHandlerResult::Stop;
-		};
-
-		GmodTraversal::traverse( context, *baseNode, handler );
+		GmodTraversal::traverse( context, *baseNode, internal::parseInternalHandler );
 
 		if ( !context.path.has_value() )
 		{

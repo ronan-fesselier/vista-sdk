@@ -286,5 +286,4 @@ namespace dnv::vista::sdk::utils
 	{
 		return StringViewSplitter( str, delimiter );
 	}
-
 }
