@@ -436,19 +436,10 @@ namespace dnv::vista::sdk
 		std::vector<GmodNode> nodes;
 		nodes.reserve( estimatedSegments );
 
-		size_t start = 0;
-		while ( start < item.length() )
+		for ( const auto& segment : utils::splitView( item, '/' ) )
 		{
-			size_t end = item.find( '/', start );
-			if ( end == std::string_view::npos )
-			{
-				end = item.length();
-			}
-
-			const std::string_view segment = item.substr( start, end - start );
 			if ( segment.empty() )
 			{
-				start = end + 1;
 				continue;
 			}
 
@@ -483,8 +474,6 @@ namespace dnv::vista::sdk
 
 				nodes.emplace_back( *nodePtr );
 			}
-
-			start = end + 1;
 		}
 
 		if ( nodes.empty() )
@@ -647,22 +636,18 @@ namespace dnv::vista::sdk
 		thread_local PathNode pathNodes[32];
 		size_t nodeCount = 0;
 
-		size_t pos = 0;
-		while ( pos < item.length() && nodeCount < 32 )
+		for ( const auto& segment : utils::splitView( item, '/' ) )
 		{
-			size_t segmentStart = pos;
-			size_t segmentEnd = item.find( '/', pos );
-			if ( segmentEnd == std::string_view::npos )
+			if ( nodeCount >= 32 )
 			{
-				segmentEnd = item.length();
+				break;
 			}
 
-			if ( segmentEnd == segmentStart )
+			if ( segment.empty() )
 			{
 				return GmodParsePathResult::Error( "Failed find any parts" );
 			}
 
-			const std::string_view segment = item.substr( segmentStart, segmentEnd - segmentStart );
 			const size_t dashPos = segment.find( '-' );
 
 			if ( dashPos != std::string_view::npos )
@@ -694,8 +679,6 @@ namespace dnv::vista::sdk
 
 				pathNodes[nodeCount++] = PathNode{ segment, std::nullopt };
 			}
-
-			pos = segmentEnd + 1;
 		}
 
 		if ( nodeCount == 0 )

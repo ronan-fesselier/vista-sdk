@@ -26,17 +26,17 @@ namespace dnv::vista::sdk::utils
 
 		static constexpr std::hash<std::string_view> s_hasher{};
 
-		[[nodiscard]] inline size_t operator()( std::string_view sv ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t operator()( std::string_view sv ) const noexcept
 		{
 			return s_hasher( sv );
 		}
 
-		[[nodiscard]] inline size_t operator()( const std::string& s ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t operator()( const std::string& s ) const noexcept
 		{
 			return s_hasher( std::string_view{ s.data(), s.size() } );
 		}
 
-		[[nodiscard]] inline size_t operator()( const char* s ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t operator()( const char* s ) const noexcept
 		{
 			return s_hasher( std::string_view{ s } );
 		}
@@ -83,19 +83,19 @@ namespace dnv::vista::sdk::utils
 			return lhs.size() == rhs_view.size() && lhs == rhs_view;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( const char* lhs, std::string_view rhs ) const noexcept
+		[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool operator()( const char* lhs, std::string_view rhs ) const noexcept
 		{
 			std::string_view lhs_view{ lhs };
 			return lhs_view.size() == rhs.size() && lhs_view == rhs;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( std::string_view lhs, const char* rhs ) const noexcept
+		[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool operator()( std::string_view lhs, const char* rhs ) const noexcept
 		{
 			std::string_view rhs_view{ rhs };
 			return lhs.size() == rhs_view.size() && lhs == rhs_view;
 		}
 
-		[[nodiscard]] constexpr inline bool operator()( const char* lhs, const char* rhs ) const noexcept
+		[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool operator()( const char* lhs, const char* rhs ) const noexcept
 		{
 			std::string_view lhs_view{ lhs };
 			std::string_view rhs_view{ rhs };
@@ -113,7 +113,7 @@ namespace dnv::vista::sdk::utils
 	 * @param suffix Suffix to find
 	 * @return True if str ends with suffix
 	 */
-	[[nodiscard]] constexpr inline bool endsWith( std::string_view str, std::string_view suffix ) noexcept
+	[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool endsWith( std::string_view str, std::string_view suffix ) noexcept
 	{
 		return str.size() >= suffix.size() &&
 			   str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
@@ -125,7 +125,7 @@ namespace dnv::vista::sdk::utils
 	 * @param prefix Prefix to find
 	 * @return True if str starts with prefix
 	 */
-	[[nodiscard]] constexpr inline bool startsWith( std::string_view str, std::string_view prefix ) noexcept
+	[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool startsWith( std::string_view str, std::string_view prefix ) noexcept
 	{
 		return str.size() >= prefix.size() &&
 			   str.compare( 0, prefix.size(), prefix ) == 0;
@@ -137,7 +137,7 @@ namespace dnv::vista::sdk::utils
 	 * @param substr Substring to find
 	 * @return True if str contains substr
 	 */
-	[[nodiscard]] constexpr inline bool contains( std::string_view str, std::string_view substr ) noexcept
+	[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool contains( std::string_view str, std::string_view substr ) noexcept
 	{
 		return str.find( substr ) != std::string_view::npos;
 	}
@@ -148,7 +148,7 @@ namespace dnv::vista::sdk::utils
 	 * @param rhs Second string
 	 * @return True if strings are exactly equal
 	 */
-	[[nodiscard]] constexpr inline bool equals( std::string_view lhs, std::string_view rhs ) noexcept
+	[[nodiscard]] constexpr VISTA_SDK_CPP_FORCE_INLINE bool equals( std::string_view lhs, std::string_view rhs ) noexcept
 	{
 		return lhs == rhs;
 	}
@@ -159,7 +159,7 @@ namespace dnv::vista::sdk::utils
 	 * @param rhs Second string
 	 * @return True if strings are equal (case-insensitive)
 	 */
-	[[nodiscard]] inline bool iequals( std::string_view lhs, std::string_view rhs ) noexcept
+	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE bool iequals( std::string_view lhs, std::string_view rhs ) noexcept
 	{
 		if ( lhs.size() != rhs.size() )
 		{
@@ -189,7 +189,7 @@ namespace dnv::vista::sdk::utils
 		size_t m_pos;
 
 	public:
-		explicit StringViewSplitter( std::string_view str, char delimiter ) noexcept
+		VISTA_SDK_CPP_FORCE_INLINE explicit StringViewSplitter( std::string_view str, char delimiter ) noexcept
 			: m_str{ str },
 			  m_delimiter{ delimiter },
 			  m_pos{ 0 }
@@ -211,7 +211,7 @@ namespace dnv::vista::sdk::utils
 			/**
 			 * @brief Constructs iterator at beginning or end position
 			 */
-			explicit Iterator( const StringViewSplitter* splitter, bool at_end = false ) noexcept
+			VISTA_SDK_CPP_FORCE_INLINE explicit Iterator( const StringViewSplitter* splitter, bool at_end = false ) noexcept
 				: m_splitter{ splitter },
 				  m_currentPos{ 0 },
 				  m_isAtEnd{ at_end }
@@ -225,9 +225,9 @@ namespace dnv::vista::sdk::utils
 			/**
 			 * @brief Dereferences iterator to get current string segment
 			 */
-			inline std::string_view operator*() const noexcept { return m_currentSegment; }
+			VISTA_SDK_CPP_FORCE_INLINE std::string_view operator*() const noexcept { return m_currentSegment; }
 
-			inline Iterator& operator++() noexcept
+			VISTA_SDK_CPP_FORCE_INLINE Iterator& operator++() noexcept
 			{
 				advance();
 				return *this;
@@ -236,7 +236,7 @@ namespace dnv::vista::sdk::utils
 			/**
 			 * @brief Compares iterators for range-based loops
 			 */
-			inline bool operator!=( const Iterator& other ) const noexcept
+			VISTA_SDK_CPP_FORCE_INLINE bool operator!=( const Iterator& other ) const noexcept
 			{
 				return m_isAtEnd != other.m_isAtEnd;
 			}
@@ -245,7 +245,7 @@ namespace dnv::vista::sdk::utils
 			/**
 			 * @brief Advances to next segment using efficient string_view operations
 			 */
-			inline void advance() noexcept
+			VISTA_SDK_CPP_FORCE_INLINE void advance() noexcept
 			{
 				if ( m_currentPos >= m_splitter->m_str.length() )
 				{
@@ -272,18 +272,18 @@ namespace dnv::vista::sdk::utils
 		/**
 		 * @brief Returns iterator to first segment
 		 */
-		inline Iterator begin() const noexcept { return Iterator( this ); }
+		VISTA_SDK_CPP_FORCE_INLINE Iterator begin() const noexcept { return Iterator( this ); }
 
 		/**
 		 * @brief Returns end iterator for range-based loops
 		 */
-		inline Iterator end() const noexcept { return Iterator( this, true ); }
+		VISTA_SDK_CPP_FORCE_INLINE Iterator end() const noexcept { return Iterator( this, true ); }
 	};
 
 	/**
 	 * @brief Factory function for zero-copy string splitting
 	 */
-	[[nodiscard]] inline StringViewSplitter splitView( std::string_view str, char delimiter ) noexcept
+	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE StringViewSplitter splitView( std::string_view str, char delimiter ) noexcept
 	{
 		return StringViewSplitter( str, delimiter );
 	}
