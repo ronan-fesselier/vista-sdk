@@ -9,91 +9,11 @@
 
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VISVersion.h"
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/internal/HashMap.h"
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Static helper methods
-	//=====================================================================
-
-	template <typename T>
-	LocationBuilder withValueInternal( const LocationBuilder& builder, LocationGroup group, T value )
-	{
-		if constexpr ( std::is_same_v<T, int> )
-		{
-			if ( group != LocationGroup::Number )
-			{
-				throw std::invalid_argument( "Value should be number" );
-			}
-			if ( value < 1 )
-			{
-				throw std::invalid_argument( "Value should be greater than 0" );
-			}
-
-			LocationBuilder result = builder;
-			result.m_number = value;
-			return result;
-		}
-		else if constexpr ( std::is_same_v<T, char> )
-		{
-			if ( group == LocationGroup::Number )
-			{
-				throw std::invalid_argument( "Value should be a character" );
-			}
-
-			auto it = builder.m_reversedGroups.find( value );
-			if ( it == builder.m_reversedGroups.end() || it->second != group )
-			{
-				std::string groupName;
-				switch ( group )
-				{
-					case LocationGroup::Side:
-						groupName = "Side";
-						break;
-					case LocationGroup::Vertical:
-						groupName = "Vertical";
-						break;
-					case LocationGroup::Transverse:
-						groupName = "Transverse";
-						break;
-					case LocationGroup::Longitudinal:
-						groupName = "Longitudinal";
-						break;
-					default:
-						groupName = "Unknown";
-						break;
-				}
-				throw std::invalid_argument(
-					"The value '" + std::string{ 1, value } + "' is an invalid " + groupName + " value" );
-			}
-
-			LocationBuilder result = builder;
-			switch ( group )
-			{
-				case LocationGroup::Side:
-					result.m_side = value;
-					break;
-				case LocationGroup::Vertical:
-					result.m_vertical = value;
-					break;
-				case LocationGroup::Transverse:
-					result.m_transverse = value;
-					break;
-				case LocationGroup::Longitudinal:
-					result.m_longitudinal = value;
-					break;
-				default:
-					throw std::invalid_argument( "Unsupported LocationGroup" );
-			}
-			return result;
-		}
-		else
-		{
-			static_assert( std::is_same_v<T, int> || std::is_same_v<T, char>,
-				"withValueInternal only supports int and char types" );
-		}
-	}
-
 	//=====================================================================
 	// LocationBuilder class
 	//=====================================================================
@@ -102,9 +22,9 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	LocationBuilder::LocationBuilder( VisVersion visVersion, const std::map<char, LocationGroup>& reversedGroups )
+	LocationBuilder::LocationBuilder( VisVersion visVersion, std::shared_ptr<const internal::HashMap<char, LocationGroup>> reversedGroups )
 		: m_visVersion{ visVersion },
-		  m_reversedGroups{ reversedGroups }
+		  m_reversedGroups{ std::move( reversedGroups ) }
 	{
 	}
 
@@ -114,37 +34,32 @@ namespace dnv::vista::sdk
 
 	std::string LocationBuilder::toString() const
 	{
-		std::vector<char> items;
-
-		if ( m_side.has_value() )
-		{
-			items.push_back( m_side.value() );
-		}
-		if ( m_vertical.has_value() )
-		{
-			items.push_back( m_vertical.value() );
-		}
-		if ( m_transverse.has_value() )
-		{
-			items.push_back( m_transverse.value() );
-		}
-		if ( m_longitudinal.has_value() )
-		{
-			items.push_back( m_longitudinal.value() );
-		}
-
-		std::string result;
+		auto lease = utils::StringBuilderPool::instance();
+		auto builder = lease.Builder();
 
 		if ( m_number.has_value() )
 		{
-			result += std::to_string( m_number.value() );
+			builder.append( std::to_string( m_number.value() ) );
 		}
 
-		for ( char item : items )
+		if ( m_side.has_value() )
 		{
-			result += item;
+			builder.push_back( m_side.value() );
+		}
+		if ( m_vertical.has_value() )
+		{
+			builder.push_back( m_vertical.value() );
+		}
+		if ( m_transverse.has_value() )
+		{
+			builder.push_back( m_transverse.value() );
+		}
+		if ( m_longitudinal.has_value() )
+		{
+			builder.push_back( m_longitudinal.value() );
 		}
 
+		std::string result = lease.toString();
 		std::sort( result.begin(), result.end() );
 
 		return result;
@@ -156,7 +71,15 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::create( const Locations& locations )
 	{
-		return LocationBuilder( locations.visVersion(), locations.reversedGroups() );
+		auto hashMap = std::make_shared<internal::HashMap<char, LocationGroup>>();
+
+		const auto& originalMap = locations.reversedGroups();
+		for ( const auto& [key, value] : originalMap )
+		{
+			hashMap->insertOrAssign( key, value );
+		}
+
+		return LocationBuilder( locations.visVersion(), hashMap );
 	}
 
 	//----------------------------------------------
@@ -248,10 +171,10 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::withSide( char side ) const
 	{
-		auto it = m_reversedGroups.find( side );
-		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Side )
+		const auto* group = m_reversedGroups->tryGetValue( side );
+		if ( !group || *group != LocationGroup::Side )
 		{
-			throw std::invalid_argument(
+			throw std::runtime_error(
 				"The value '" + std::string{ 1, side } + "' is an invalid Side value" );
 		}
 
@@ -275,10 +198,10 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::withVertical( char vertical ) const
 	{
-		auto it = m_reversedGroups.find( vertical );
-		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Vertical )
+		const auto* group = m_reversedGroups->tryGetValue( vertical );
+		if ( !group || *group != LocationGroup::Vertical )
 		{
-			throw std::invalid_argument(
+			throw std::runtime_error(
 				"The value '" + std::string{ 1, vertical } + "' is an invalid Vertical value" );
 		}
 
@@ -302,10 +225,10 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::withTransverse( char transverse ) const
 	{
-		auto it = m_reversedGroups.find( transverse );
-		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Transverse )
+		const auto* group = m_reversedGroups->tryGetValue( transverse );
+		if ( !group || *group != LocationGroup::Transverse )
 		{
-			throw std::invalid_argument(
+			throw std::runtime_error(
 				"The value '" + std::string{ 1, transverse } + "' is an invalid Transverse value" );
 		}
 
@@ -329,10 +252,10 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::withLongitudinal( char longitudinal ) const
 	{
-		auto it = m_reversedGroups.find( longitudinal );
-		if ( it == m_reversedGroups.end() || it->second != LocationGroup::Longitudinal )
+		const auto* group = m_reversedGroups->tryGetValue( longitudinal );
+		if ( !group || *group != LocationGroup::Longitudinal )
 		{
-			throw std::invalid_argument(
+			throw std::runtime_error(
 				"The value '" + std::string{ 1, longitudinal } + "' is an invalid Longitudinal value" );
 		}
 
@@ -361,28 +284,43 @@ namespace dnv::vista::sdk
 
 	LocationBuilder LocationBuilder::withValue( char value ) const
 	{
-		auto it = m_reversedGroups.find( value );
-		if ( it == m_reversedGroups.end() )
+		const auto* group = m_reversedGroups->tryGetValue( value );
+		if ( !group )
 		{
-			throw std::invalid_argument( "The value '" + std::string{ 1, value } + "' is an invalid Locations value" );
+			throw std::runtime_error( "The value '" + std::string{ 1, value } + "' is an invalid Locations value" );
 		}
 
-		LocationGroup group = it->second;
-
-		switch ( group )
+		LocationBuilder result = *this;
+		switch ( *group )
 		{
 			case LocationGroup::Side:
-				return withSide( value );
+			{
+				result.m_side = value;
+				return result;
+			}
 			case LocationGroup::Vertical:
-				return withVertical( value );
+			{
+				result.m_vertical = value;
+				return result;
+			}
 			case LocationGroup::Transverse:
-				return withTransverse( value );
+			{
+				result.m_transverse = value;
+				return result;
+			}
 			case LocationGroup::Longitudinal:
-				return withLongitudinal( value );
+			{
+				result.m_longitudinal = value;
+				return result;
+			}
 			case LocationGroup::Number:
+			{
 				throw std::invalid_argument( "Number group should not contain character values" );
+			}
 			default:
+			{
 				throw std::invalid_argument( "Unsupported LocationGroup" );
+			}
 		}
 	}
 
@@ -391,17 +329,29 @@ namespace dnv::vista::sdk
 		switch ( group )
 		{
 			case LocationGroup::Number:
+			{
 				return withoutNumber();
+			}
 			case LocationGroup::Side:
+			{
 				return withoutSide();
+			}
 			case LocationGroup::Vertical:
+			{
 				return withoutVertical();
+			}
 			case LocationGroup::Transverse:
+			{
 				return withoutTransverse();
+			}
 			case LocationGroup::Longitudinal:
+			{
 				return withoutLongitudinal();
+			}
 			default:
+			{
 				throw std::invalid_argument( "Unsupported LocationGroup" );
+			}
 		}
 	}
 }

@@ -322,11 +322,11 @@ namespace dnv::vista::sdk::tests
 		ASSERT_EQ( 'I', builder.transverse().value() );
 		ASSERT_EQ( 'F', builder.longitudinal().value() );
 
-		ASSERT_THROW( builder = builder.withValue( 'X' ), std::invalid_argument );
+		ASSERT_THROW( builder = builder.withValue( 'X' ), std::runtime_error );
 		ASSERT_THROW( builder = builder.withNumber( -1 ), std::invalid_argument );
 		ASSERT_THROW( builder = builder.withNumber( 0 ), std::invalid_argument );
-		ASSERT_THROW( builder = builder.withSide( 'A' ), std::invalid_argument );
-		ASSERT_THROW( builder = builder.withValue( 'a' ), std::invalid_argument );
+		ASSERT_THROW( builder = builder.withSide( 'A' ), std::runtime_error );
+		ASSERT_THROW( builder = builder.withValue( 'a' ), std::runtime_error );
 
 		ASSERT_EQ( location, builder.build() );
 

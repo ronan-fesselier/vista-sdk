@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "dnv/vista/sdk/internal/HashMap.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -33,9 +35,6 @@ namespace dnv::vista::sdk
 	 */
 	class LocationBuilder final
 	{
-		template <typename T>
-		friend LocationBuilder withValueInternal( const LocationBuilder& builder, LocationGroup group, T value );
-
 		//----------------------------------------------
 		// Construction
 		//----------------------------------------------
@@ -43,9 +42,9 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Private constructor for internal use.
 		 * @param visVersion The VIS version.
-		 * @param reversedGroups Map from characters to their location groups.
+		 * @param reversedGroups Shared map from characters to their location groups.
 		 */
-		explicit LocationBuilder( VisVersion visVersion, const std::map<char, LocationGroup>& reversedGroups );
+		explicit LocationBuilder( VisVersion visVersion, std::shared_ptr<const internal::HashMap<char, LocationGroup>> reversedGroups );
 
 	protected:
 		/** @brief Default constructor. */
@@ -190,7 +189,7 @@ namespace dnv::vista::sdk
 		 * @brief Sets the side component.
 		 * @param side The side character (e.g., 'P', 'C', 'S').
 		 * @return A new LocationBuilder instance with the updated side.
-		 * @throws std::invalid_argument If the character is not a valid side value.
+		 * @throws std::runtime_error If the character is not a valid side value.
 		 */
 		[[nodiscard]] LocationBuilder withSide( char side ) const;
 
@@ -208,7 +207,7 @@ namespace dnv::vista::sdk
 		 * @brief Sets the vertical component.
 		 * @param vertical The vertical character (e.g., 'U', 'M', 'L').
 		 * @return A new LocationBuilder instance with the updated vertical.
-		 * @throws std::invalid_argument If the character is not a valid vertical value.
+		 * @throws std::runtime_error If the character is not a valid vertical value.
 		 */
 		[[nodiscard]] LocationBuilder withVertical( char vertical ) const;
 
@@ -226,7 +225,7 @@ namespace dnv::vista::sdk
 		 * @brief Sets the transverse component.
 		 * @param transverse The transverse character (e.g., 'I', 'O').
 		 * @return A new LocationBuilder instance with the updated transverse.
-		 * @throws std::invalid_argument If the character is not a valid transverse value.
+		 * @throws std::runtime_error If the character is not a valid transverse value.
 		 */
 		[[nodiscard]] LocationBuilder withTransverse( char transverse ) const;
 
@@ -244,7 +243,7 @@ namespace dnv::vista::sdk
 		 * @brief Sets the longitudinal component.
 		 * @param longitudinal The longitudinal character (e.g., 'F', 'A').
 		 * @return A new LocationBuilder instance with the updated longitudinal.
-		 * @throws std::invalid_argument If the character is not a valid longitudinal value.
+		 * @throws std::runtime_error If the character is not a valid longitudinal value.
 		 */
 		[[nodiscard]] LocationBuilder withLongitudinal( char longitudinal ) const;
 
@@ -304,8 +303,8 @@ namespace dnv::vista::sdk
 		/** @brief The VIS version this builder is configured for. */
 		VisVersion m_visVersion;
 
-		/** @brief Map from character codes to their LocationGroup for validation. */
-		std::map<char, LocationGroup> m_reversedGroups;
+		/** @brief Shared map from character codes to their LocationGroup for validation. */
+		std::shared_ptr<const internal::HashMap<char, LocationGroup>> m_reversedGroups;
 	};
 }
 
