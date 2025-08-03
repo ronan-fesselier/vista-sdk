@@ -10,8 +10,8 @@
 #include "dnv/vista/sdk/CodebooksDto.h"
 #include "dnv/vista/sdk/GmodDto.h"
 #include "dnv/vista/sdk/GmodVersioningDto.h"
-#include "dnv/vista/sdk/ISO19848Dtos.h"
 #include "dnv/vista/sdk/LocationsDto.h"
+#include "dnv/vista/sdk/Transport/ISO19848Dtos.h"
 
 namespace dnv::vista::sdk
 {
@@ -22,6 +22,7 @@ namespace dnv::vista::sdk
 		//=====================================================================
 
 		static inline constexpr std::string_view VIS_RELEASE_KEY = "visRelease";
+		static inline constexpr std::string_view RESOURCES_DIR = "resources";
 
 		static constexpr size_t CHUNK_IN_SIZE = 65536;
 		static constexpr size_t CHUNK_OUT_SIZE = 131072;
@@ -178,9 +179,6 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> EmbeddedResource::gmod( std::string_view visVersion )
 	{
-		using dnv::vista::sdk::utils::contains;
-		using dnv::vista::sdk::utils::endsWith;
-
 		static std::mutex gmodCacheMutex;
 
 		static utils::StringMap<std::optional<GmodDto>> gmodCache;
@@ -198,10 +196,10 @@ namespace dnv::vista::sdk
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
-				return contains( name, "gmod" ) &&
-					   contains( name, visVersion ) &&
-					   endsWith( name, ".json.gz" ) &&
-					   !contains( name, "versioning" );
+				return utils::contains( name, "gmod" ) &&
+					   utils::contains( name, visVersion ) &&
+					   utils::endsWith( name, ".json.gz" ) &&
+					   !utils::contains( name, "versioning" );
 			} );
 
 		if ( it == names.end() )
@@ -245,9 +243,6 @@ namespace dnv::vista::sdk
 
 	std::optional<CodebooksDto> EmbeddedResource::codebooks( std::string_view visVersion )
 	{
-		using dnv::vista::sdk::utils::contains;
-		using dnv::vista::sdk::utils::endsWith;
-
 		static std::mutex codebooksCacheMutex;
 
 		static utils::StringMap<std::optional<CodebooksDto>> codebooksCache;
@@ -265,9 +260,9 @@ namespace dnv::vista::sdk
 
 		auto it = std::find_if( names.begin(), names.end(),
 			[&visVersion]( const std::string& name ) {
-				return contains( name, "codebooks" ) &&
-					   contains( name, visVersion ) &&
-					   endsWith( name, ".json.gz" );
+				return utils::contains( name, "codebooks" ) &&
+					   utils::contains( name, visVersion ) &&
+					   utils::endsWith( name, ".json.gz" );
 			} );
 
 		if ( it == names.end() )
@@ -500,7 +495,6 @@ namespace dnv::vista::sdk
 	{
 		static std::mutex cacheMutex;
 		static std::vector<std::string> cachedResourceNames;
-		static std::optional<std::filesystem::path> successfulDir;
 		static bool initialized = false;
 
 		{
@@ -511,61 +505,38 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		std::vector<std::filesystem::path> possibleDirs;
-
-		if ( successfulDir )
-		{
-			possibleDirs.push_back( *successfulDir );
-		}
-
-		/* TODO: resources will always be at the same location in the future */
-		possibleDirs.push_back( std::filesystem::current_path() / "resources" );
-		possibleDirs.push_back( std::filesystem::current_path() / "../resources" );
-		possibleDirs.push_back( std::filesystem::current_path() / "../../resources" );
-		possibleDirs.push_back( std::filesystem::current_path() );
+		const auto resourcesDir = std::filesystem::current_path() / RESOURCES_DIR;
 
 		std::vector<std::string> foundNames;
 		foundNames.reserve( 50 );
 
-		for ( const auto& dir : possibleDirs )
+		try
 		{
-			try
+			if ( !std::filesystem::exists( resourcesDir ) || !std::filesystem::is_directory( resourcesDir ) )
 			{
-				if ( !std::filesystem::exists( dir ) || !std::filesystem::is_directory( dir ) )
-				{
-					continue;
-				}
+				throw std::runtime_error( fmt::format( "Resources directory not found: {}", resourcesDir.string() ) );
+			}
 
-				for ( const auto& entry : std::filesystem::directory_iterator( dir ) )
+			for ( const auto& entry : std::filesystem::directory_iterator( resourcesDir ) )
+			{
+				if ( entry.is_regular_file() && utils::endsWith( entry.path().filename().string(), ".json.gz" ) )
 				{
-					if ( entry.is_regular_file() )
-					{
-						if ( dnv::vista::sdk::endsWith( entry.path().filename().string(), ".json.gz" ) )
-						{
-							foundNames.emplace_back( entry.path().filename().string() );
-						}
-					}
-				}
-
-				if ( !foundNames.empty() )
-				{
-					successfulDir = dir;
-					break;
+					foundNames.emplace_back( entry.path().filename().string() );
 				}
 			}
-			catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
+
+			if ( foundNames.empty() )
 			{
-				fmt::print( stderr, "ERROR: Filesystem error scanning directory {}: {}\n", dir.string(), ex.what() );
-			}
-			catch ( [[maybe_unused]] const std::exception& ex )
-			{
-				fmt::print( stderr, "ERROR: Error scanning directory {}: {}\n", dir.string(), ex.what() );
+				fmt::print( stderr, "WARN: No embedded resource files (.json.gz) found in resources directory: {}\n", resourcesDir.string() );
 			}
 		}
-
-		if ( foundNames.empty() )
+		catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
 		{
-			fmt::print( stderr, "WARN: No embedded resource files (.json.gz) found in search paths.\n" );
+			throw std::runtime_error( fmt::format( "Filesystem error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			throw std::runtime_error( fmt::format( "Error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
 		}
 
 		{
@@ -661,9 +632,6 @@ namespace dnv::vista::sdk
 	{
 		static std::mutex pathCacheMutex;
 		static PathCache resourcePathCache;
-		static std::optional<std::filesystem::path> lastSuccessfulBaseDir;
-		static size_t cacheHits = 0;
-		static size_t cacheMisses = 0;
 
 		{
 			std::lock_guard<std::mutex> lock( pathCacheMutex );
@@ -677,15 +645,6 @@ namespace dnv::vista::sdk
 					auto fileStream = std::make_shared<std::ifstream>( it->second, std::ios::binary );
 					if ( fileStream->is_open() )
 					{
-						cacheHits++;
-						fmt::print( "DEBUG: Resource path cache hit: '{}' -> '{}'\n", resourceName, it->second.string() );
-						if ( ( cacheHits + cacheMisses ) % 50 == 0 && ( cacheHits + cacheMisses ) > 0 )
-						{
-							fmt::print( "DEBUG: Path Cache effectiveness: {:.1f}% hit rate ({} hits, {} misses)\n",
-								( static_cast<double>( cacheHits ) * 100.0 ) / static_cast<double>( cacheHits + cacheMisses ),
-								cacheHits, cacheMisses );
-						}
-
 						return fileStream;
 					}
 				}
@@ -693,78 +652,39 @@ namespace dnv::vista::sdk
 					it->second.string(), resourceName );
 				resourcePathCache.erase( it );
 			}
-			cacheMisses++;
 		}
 
-		std::vector<std::filesystem::path> possiblePaths;
-		possiblePaths.reserve( 5 );
+		const auto resourcePath = std::filesystem::current_path() / RESOURCES_DIR / resourceName;
 
-		if ( lastSuccessfulBaseDir )
+		try
 		{
-			possiblePaths.push_back( *lastSuccessfulBaseDir / resourceName );
-		}
-
-		/* TODO: resources will always be at the same location in the future */
-		possiblePaths.push_back( std::filesystem::current_path() / "resources" / resourceName );
-		possiblePaths.push_back( std::filesystem::current_path() / "../resources" / resourceName );
-		possiblePaths.push_back( std::filesystem::current_path() / "../../resources" / resourceName );
-
-		if ( !lastSuccessfulBaseDir || *lastSuccessfulBaseDir != std::filesystem::current_path() )
-		{
-			possiblePaths.push_back( std::filesystem::current_path() / resourceName );
-		}
-
-		std::ostringstream attemptedPaths;
-		for ( const auto& path : possiblePaths )
-		{
-			if ( attemptedPaths.tellp() > 0 )
+			if ( std::filesystem::exists( resourcePath ) && std::filesystem::is_regular_file( resourcePath ) )
 			{
-				attemptedPaths << ", ";
-			}
-
-			attemptedPaths << "'" << path.string() << "'";
-		}
-		std::string attemptedPathsStr = attemptedPaths.str();
-
-		for ( const auto& path : possiblePaths )
-		{
-			try
-			{
-				if ( std::filesystem::exists( path ) && std::filesystem::is_regular_file( path ) )
+				auto fileStream = std::make_shared<std::ifstream>( resourcePath, std::ios::binary );
+				if ( fileStream->is_open() )
 				{
-					auto fileStream = std::make_shared<std::ifstream>( path, std::ios::binary );
-					if ( fileStream->is_open() )
 					{
-						{
-							std::lock_guard<std::mutex> lock( pathCacheMutex );
-
-							resourcePathCache.emplace( std::string{ resourceName }, path );
-
-							if ( path.has_parent_path() )
-							{
-								lastSuccessfulBaseDir = path.parent_path();
-							}
-						}
-
-						return fileStream;
+						std::lock_guard<std::mutex> lock( pathCacheMutex );
+						resourcePathCache.emplace( std::string{ resourceName }, resourcePath );
 					}
-					else
-					{
-						fmt::print( stderr, "WARN: Found file '{}' but failed to open stream.\n", path.string() );
-					}
+
+					return fileStream;
+				}
+				else
+				{
+					throw std::runtime_error( fmt::format( "Found resource '{}' but failed to open stream", resourcePath.string() ) );
 				}
 			}
-			catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
-			{
-				fmt::print( stderr, "ERROR: Filesystem error accessing path '{}': {}\n", path.string(), ex.what() );
-			}
-			catch ( [[maybe_unused]] const std::exception& ex )
-			{
-				fmt::print( stderr, "ERROR: Error checking/opening path '{}': {}\n", path.string(), ex.what() );
-			}
+		}
+		catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
+		{
+			throw std::runtime_error( fmt::format( "Filesystem error accessing resource '{}': {}", resourcePath.string(), ex.what() ) );
+		}
+		catch ( [[maybe_unused]] const std::exception& ex )
+		{
+			throw std::runtime_error( fmt::format( "Error accessing resource '{}': {}", resourcePath.string(), ex.what() ) );
 		}
 
-		throw std::runtime_error( fmt::format( "Failed to find or open resource file: {}. Attempted paths: [{}]",
-			resourceName, attemptedPathsStr ) );
+		throw std::runtime_error( fmt::format( "Resource file not found: {}", resourcePath.string() ) );
 	}
 }

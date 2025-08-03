@@ -51,7 +51,7 @@ namespace dnv::vista::sdk
 		 * @details Defines the standard prefix "/dnv-v2" used in VIS Local ID format.
 		 * @note Used during parsing and string generation for validation.
 		 */
-		inline static const std::string namingRule = "dnv-v2";
+		inline static constexpr std::string_view namingRule = "dnv-v2";
 
 		/** @brief List of standard `CodebookName` values used directly within the LocalId structure. */
 		static const std::vector<CodebookName> usedCodebooks;
@@ -162,7 +162,7 @@ namespace dnv::vista::sdk
 		 * @return A `size_t` hash code.
 		 * @see equals
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods

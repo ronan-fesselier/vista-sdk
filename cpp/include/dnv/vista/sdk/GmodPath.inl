@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/AlgorithmConstants.h"
+
 #include "Gmod.h"
 #include "Locations.h"
 #include "VIS.h"
@@ -217,11 +219,11 @@ namespace dnv::vista::sdk
 		for ( const auto& parent : m_parents )
 		{
 			size_t nodeHash = parent.hashCode();
-			hash ^= nodeHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= nodeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 		}
 
 		size_t nodeHash = m_node->hashCode();
-		hash ^= nodeHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+		hash ^= nodeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 
 		m_cachedHashCode = hash;
 

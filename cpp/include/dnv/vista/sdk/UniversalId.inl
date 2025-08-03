@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/AlgorithmConstants.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -49,8 +51,8 @@ namespace dnv::vista::sdk
 	{
 		size_t hash = 0;
 
-		hash ^= m_imoNumber.hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
-		hash ^= m_localId.hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+		hash ^= m_imoNumber.hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
+		hash ^= m_localId.hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 
 		return hash;
 	}

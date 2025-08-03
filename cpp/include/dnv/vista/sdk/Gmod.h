@@ -64,6 +64,7 @@ namespace dnv::vista::sdk
 	struct TraversalOptions
 	{
 		static constexpr size_t DEFAULT_MAX_TRAVERSAL_OCCURRENCE = 1;
+		constexpr TraversalOptions() = default;
 		size_t maxTraversalOccurrence = DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
 	};
 
@@ -120,7 +121,7 @@ namespace dnv::vista::sdk
 		Gmod() = delete;
 
 		/** @brief Copy constructor */
-		Gmod( const Gmod& ) = default;
+		Gmod( const Gmod& );
 
 		/** @brief Move constructor */
 		Gmod( Gmod&& ) noexcept = default;
@@ -283,7 +284,7 @@ namespace dnv::vista::sdk
 		 * @param type The node type string (e.g., "SYS", "E", "VE").
 		 * @return True if the type suggests it can be a parent, false otherwise.
 		 */
-		inline static bool isPotentialParent( std::string_view type ) noexcept;
+		inline static constexpr bool isPotentialParent( std::string_view type ) noexcept;
 
 		/**
 		 * @brief Checks if a GMOD node, based on its metadata, is a leaf node.

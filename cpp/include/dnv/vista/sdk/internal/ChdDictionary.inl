@@ -24,7 +24,6 @@ namespace dnv::vista::sdk::internal
 		{
 			static thread_local const bool s_hasSSE42 = []() {
 				bool hasSupport = false;
-
 #if defined( _MSC_VER )
 				std::array<int, 4> cpuInfo{};
 				__cpuid( cpuInfo.data(), 1 );
@@ -36,7 +35,6 @@ namespace dnv::vista::sdk::internal
 					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
 				}
 #endif
-
 				return hasSupport;
 			}();
 
@@ -264,8 +262,6 @@ namespace dnv::vista::sdk::internal
 	template <typename TValue>
 	VISTA_SDK_CPP_FORCE_INLINE TValue& ChdDictionary<TValue>::operator[]( std::string_view key )
 	{
-		using dnv::vista::sdk::utils::equals;
-
 		if ( isEmpty() )
 		{
 			ThrowHelper::throwKeyNotFoundException( key );
@@ -288,7 +284,7 @@ namespace dnv::vista::sdk::internal
 
 		const auto& kvp = m_table[finalIndex];
 
-		if ( equals( key, kvp.first ) )
+		if ( utils::equals( key, kvp.first ) )
 		{
 			return const_cast<TValue&>( kvp.second );
 		}
@@ -362,9 +358,10 @@ namespace dnv::vista::sdk::internal
 		const size_t keyLen = key.size();
 		const size_t storedLen = kvp.first.size();
 
-		if ( keyLen == storedLen && ( keyLen == 0 || std::memcmp( key.data(), kvp.first.data(), keyLen ) == 0 ) )
+		if ( keyLen == storedLen && ( keyLen == 0 || dnv::vista::sdk::utils::equals( key, kvp.first ) ) )
 		{
 			outValue = &kvp.second;
+
 			return true;
 		}
 
@@ -477,6 +474,7 @@ namespace dnv::vista::sdk::internal
 				"Iterator: Dereference out of bounds (index: {}, table size: {})",
 				m_index, m_table->size() ) );
 		}
+
 		return ( *m_table )[m_index];
 	}
 
@@ -489,6 +487,7 @@ namespace dnv::vista::sdk::internal
 				"Iterator: Arrow operator out of bounds (index: {}, table size: {})",
 				m_index, m_table->size() ) );
 		}
+
 		return &( ( *m_table )[m_index] );
 	}
 

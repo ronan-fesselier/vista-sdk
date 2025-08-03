@@ -12,9 +12,6 @@
 
 namespace dnv::vista::sdk
 {
-	using dnv::vista::sdk::utils::contains;
-	using dnv::vista::sdk::utils::equals;
-
 	//=====================================================================
 	// Gmod class
 	//=====================================================================
@@ -67,72 +64,82 @@ namespace dnv::vista::sdk
 	// Static state inspection methods
 	//----------------------------------------------
 
-	inline bool Gmod::isPotentialParent( std::string_view type ) noexcept
+	inline constexpr bool Gmod::isPotentialParent( std::string_view type ) noexcept
 	{
 		switch ( type.length() )
 		{
 			case 4:
-				return equals( type, gmod::GMODNODE_TYPE_LEAF );
+			{
+				return utils::equals( type, gmod::GMODNODE_TYPE_LEAF );
+			}
 			case 5:
-				return equals( type, gmod::GMODNODE_TYPE_GROUP );
+			{
+				return utils::equals( type, gmod::GMODNODE_TYPE_GROUP );
+			}
 			case 9:
-				return equals( type, gmod::GMODNODE_TYPE_SELECTION );
+			{
+				return utils::equals( type, gmod::GMODNODE_TYPE_SELECTION );
+			}
 			default:
+			{
 				return false;
+			}
 		}
 	}
 
 	inline bool Gmod::isLeafNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& fullType = metadata.fullType();
-		return equals( fullType, gmod::GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
-			   equals( fullType, gmod::GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
+		return utils::equals( fullType, gmod::GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
+			   utils::equals( fullType, gmod::GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
 	}
 
 	inline bool Gmod::isFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& category = metadata.category();
 
-		return !equals( category, gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   !equals( category, gmod::GMODNODE_CATEGORY_ASSET );
+		return !utils::equals( category, gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   !utils::equals( category, gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isProductSelection( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   equals( metadata.type(), gmod::GMODNODE_TYPE_SELECTION );
+		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   utils::equals( metadata.type(), gmod::GMODNODE_TYPE_SELECTION );
 	}
 
 	inline bool Gmod::isProductType( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   equals( metadata.type(), gmod::GMODNODE_TYPE_TYPE );
+		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   utils::equals( metadata.type(), gmod::GMODNODE_TYPE_TYPE );
 	}
 
 	inline bool Gmod::isAsset( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET );
+		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isAssetFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET_FUNCTION );
+		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET_FUNCTION );
 	}
 
 	inline bool Gmod::isProductTypeAssignment( const GmodNode* parent, const GmodNode* child ) noexcept
 	{
 		if ( !parent || !child )
+		{
 			return false;
+		}
 
 		const auto& parentCategory = parent->metadata().category();
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, gmod::GMODNODE_TYPE_TYPE ) )
+		if ( !utils::equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !utils::equals( childType, gmod::GMODNODE_TYPE_TYPE ) )
 		{
 			return false;
 		}
@@ -151,11 +158,11 @@ namespace dnv::vista::sdk
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !equals( childType, gmod::GMODNODE_TYPE_SELECTION ) )
+		if ( !utils::equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !utils::equals( childType, gmod::GMODNODE_TYPE_SELECTION ) )
 		{
 			return false;
 		}
@@ -257,46 +264,44 @@ namespace dnv::vista::sdk
 	VISTA_SDK_CPP_FORCE_INLINE void Gmod::Parents::push( const GmodNode* parent )
 	{
 		m_parents.push_back( parent );
-		const std::string key{ parent->code() };
-
-		const auto* countPtr = m_occurrences.tryGetValue( key );
+		const auto* countPtr = m_occurrences.tryGetValue( parent->code() );
 		if ( countPtr )
 		{
-			m_occurrences.insertOrAssign( key, *countPtr + 1 );
+			m_occurrences.insertOrAssign( std::string{ parent->code() }, *countPtr + 1 );
 		}
 		else
 		{
-			m_occurrences.insertOrAssign( key, 1 );
+			m_occurrences.insertOrAssign( std::string{ parent->code() }, 1 );
 		}
 	}
 
 	VISTA_SDK_CPP_FORCE_INLINE void Gmod::Parents::pop()
 	{
 		if ( m_parents.empty() )
+		{
 			return;
+		}
 
 		const GmodNode* parent = m_parents.back();
 		m_parents.pop_back();
 
-		const std::string key{ parent->code() };
-		const auto* countPtr = m_occurrences.tryGetValue( key );
+		const auto* countPtr = m_occurrences.tryGetValue( parent->code() );
 		if ( countPtr )
 		{
 			if ( *countPtr == 1 )
 			{
-				m_occurrences.erase( key );
+				m_occurrences.erase( parent->code() );
 			}
 			else
 			{
-				m_occurrences.insertOrAssign( key, *countPtr - 1 );
+				m_occurrences.insertOrAssign( std::string{ parent->code() }, *countPtr - 1 );
 			}
 		}
 	}
 
 	inline size_t Gmod::Parents::occurrences( const GmodNode& node ) const noexcept
 	{
-		const std::string key{ node.code() };
-		const auto* countPtr = m_occurrences.tryGetValue( key );
+		const auto* countPtr = m_occurrences.tryGetValue( node.code() );
 		if ( countPtr )
 		{
 			return *countPtr;
@@ -367,6 +372,7 @@ namespace dnv::vista::sdk
 		}
 
 		context.parents.pop();
+
 		return TraversalHandlerResult::Continue;
 	}
 

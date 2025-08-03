@@ -3,6 +3,8 @@
  * @brief Inline implementation of Codebooks class methods
  */
 
+#pragma once
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -13,7 +15,7 @@ namespace dnv::vista::sdk
 	// Lookup operators
 	//----------------------------------------------
 
-	inline const Codebook& Codebooks::operator[]( CodebookName name ) const noexcept
+	inline constexpr const Codebook& Codebooks::operator[]( CodebookName name ) const noexcept
 	{
 		return m_codebooks[static_cast<size_t>( name ) - 1];
 	}

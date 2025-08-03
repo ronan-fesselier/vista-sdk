@@ -11,7 +11,7 @@
 
 namespace dnv::vista::sdk
 {
-	namespace
+	namespace GmodVersioningDtoInternal
 	{
 		//=====================================================================
 		// JSON parsing helper functions
@@ -24,6 +24,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ) && json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
 					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -42,6 +43,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) && json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 				{
 					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -60,6 +62,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_SOURCE ) && json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
 				{
 					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -82,7 +85,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto oldAssignmentHint = extractOldAssignmentHint( json );
+		[[maybe_unused]] const auto oldAssignmentHint = GmodVersioningDtoInternal::extractOldAssignmentHint( json );
 
 		try
 		{
@@ -94,6 +97,7 @@ namespace dnv::vista::sdk
 			}
 
 			GmodVersioningAssignmentChangeDto dto = json.get<GmodVersioningAssignmentChangeDto>();
+
 			return std::optional<GmodVersioningAssignmentChangeDto>{ std::move( dto ) };
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
@@ -114,12 +118,14 @@ namespace dnv::vista::sdk
 
 	GmodVersioningAssignmentChangeDto GmodVersioningAssignmentChangeDto::fromJson( const nlohmann::json& json )
 	{
-		const auto oldAssignmentHint = extractOldAssignmentHint( json );
+		const auto oldAssignmentHint = GmodVersioningDtoInternal::extractOldAssignmentHint( json );
 		auto dtoOpt = GmodVersioningAssignmentChangeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodVersioningAssignmentChangeDto from JSON (hint: oldAssignment='{}')",
-				oldAssignmentHint ) );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize GmodVersioningAssignmentChangeDto from JSON (hint: oldAssignment='{}')",
+					oldAssignmentHint ) );
 		}
 
 		return dtoOpt.value();
@@ -188,7 +194,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto sourceHint = extractSourceHint( json );
+		[[maybe_unused]] const auto sourceHint = GmodVersioningDtoInternal::extractSourceHint( json );
 
 		try
 		{
@@ -220,12 +226,14 @@ namespace dnv::vista::sdk
 
 	GmodNodeConversionDto GmodNodeConversionDto::fromJson( const nlohmann::json& json )
 	{
-		const auto sourceHint = extractSourceHint( json );
+		const auto sourceHint = GmodVersioningDtoInternal::extractSourceHint( json );
 		auto dtoOpt = GmodNodeConversionDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodNodeConversionDto from JSON (hint: source='{}')",
-				sourceHint ) );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize GmodNodeConversionDto from JSON (hint: source='{}')",
+					sourceHint ) );
 		}
 
 		return dtoOpt.value();
@@ -249,7 +257,12 @@ namespace dnv::vista::sdk
 		{
 			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS ).is_array() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not an array", dto::GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not an array",
+						dto::GMODVERSIONING_DTO_KEY_OPERATIONS ),
+					nullptr );
 			}
 			dto.m_operations.clear();
 			const auto& opsArray = j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
@@ -259,7 +272,12 @@ namespace dnv::vista::sdk
 			{
 				if ( !op.is_string() )
 				{
-					throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' contains non-string element", dto::GMODVERSIONING_DTO_KEY_OPERATIONS ), nullptr );
+					throw nlohmann::json::type_error::create(
+						302,
+						fmt::format(
+							"GmodNodeConversionDto JSON field '{}' contains non-string element",
+							dto::GMODVERSIONING_DTO_KEY_OPERATIONS ),
+						nullptr );
 				}
 				dto.m_operations.insert( op.get<std::string>() );
 			}
@@ -274,7 +292,12 @@ namespace dnv::vista::sdk
 		{
 			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_SOURCE ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not a string",
+						dto::GMODVERSIONING_DTO_KEY_SOURCE ),
+					nullptr );
 			}
 			dto.m_source = j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get<std::string>();
 		}
@@ -288,7 +311,12 @@ namespace dnv::vista::sdk
 		{
 			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302, fmt::format( "GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_TARGET ), nullptr );
+				throw nlohmann::json::type_error::create(
+					302,
+					fmt::format(
+						"GmodNodeConversionDto JSON field '{}' is not a string",
+						dto::GMODVERSIONING_DTO_KEY_TARGET ),
+					nullptr );
 			}
 			dto.m_target = j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).get<std::string>();
 		}
@@ -302,7 +330,8 @@ namespace dnv::vista::sdk
 		{
 			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
 			{
-				throw nlohmann::json::type_error::create( 302,
+				throw nlohmann::json::type_error::create(
+					302,
 					fmt::format(
 						"GmodNodeConversionDto JSON field '{}' is not a string",
 						dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ),
@@ -381,7 +410,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningDto> GmodVersioningDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = GmodVersioningDtoInternal::extractVisHint( json );
 
 		try
 		{
@@ -413,7 +442,7 @@ namespace dnv::vista::sdk
 
 	GmodVersioningDto GmodVersioningDto::fromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		const auto visHint = GmodVersioningDtoInternal::extractVisHint( json );
 		auto dtoOpt = GmodVersioningDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{

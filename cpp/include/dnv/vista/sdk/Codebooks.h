@@ -98,7 +98,7 @@ namespace dnv::vista::sdk
 		 *       Use codebook() if you need bounds checking.
 		 * @warning Undefined behavior if name is invalid
 		 */
-		[[nodiscard]] inline const Codebook& operator[]( CodebookName name ) const noexcept;
+		[[nodiscard]] inline constexpr const Codebook& operator[]( CodebookName name ) const noexcept;
 
 		//----------------------------------------------
 		// Accessors

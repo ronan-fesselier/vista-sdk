@@ -3,6 +3,8 @@
  * @brief Inline implementations for performance-critical VISVersion operations
  */
 
+#pragma once
+
 #include "utils/StringMap.h"
 
 namespace dnv::vista::sdk

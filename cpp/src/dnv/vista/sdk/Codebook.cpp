@@ -114,13 +114,14 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		/** @brief Standard whitespace characters for string trimming operations. */
-		static constexpr std::string_view WHITESPACE = constants::NULL_OR_WHITESPACE;
-
+		/**
+		 * @brief Cache-aligned lookup table for whitespace character detection
+		 * @details Uses constexpr lambda initialization for compile-time optimization.
+		 *          Aligned to 64-byte boundary for optimal cache line utilization.
+		 */
 		alignas( 64 ) constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
-			constexpr std::string_view whitespace = WHITESPACE;
-			for ( char c : whitespace )
+			for ( char c : constants::NULL_OR_WHITESPACE )
 			{
 				lookup[static_cast<unsigned char>( c )] = true;
 			}

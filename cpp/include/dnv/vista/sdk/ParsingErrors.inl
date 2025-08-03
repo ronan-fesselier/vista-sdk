@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/AlgorithmConstants.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -70,8 +72,8 @@ namespace dnv::vista::sdk
 			size_t typeHash = stringHasher( error.type );
 			size_t messageHash = stringHasher( error.message );
 
-			hash ^= typeHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
-			hash ^= messageHash + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= typeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= messageHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 		}
 
 		return hash;

@@ -3,6 +3,9 @@
  * @brief Inline implementations for performance-critical GmodNode operations
  */
 
+#pragma once
+
+#include "config/AlgorithmConstants.h"
 #include "config/GmodConstants.h"
 #include "config/Platform.h"
 #include "utils/StringBuilderPool.h"
@@ -15,15 +18,13 @@ namespace dnv::vista::sdk
 
 	namespace
 	{
-		using dnv::vista::sdk::utils::contains;
-
 		static constexpr size_t estimateChildrenCount( std::string_view category, std::string_view type ) noexcept
 		{
 			if ( category == gmod::GMODNODE_CATEGORY_PRODUCT && type == gmod::GMODNODE_TYPE_TYPE )
 			{
 				return 0;
 			}
-			if ( contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+			if ( utils::contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 			{
 				return 16;
 			}
@@ -40,7 +41,7 @@ namespace dnv::vista::sdk
 			{
 				return 1;
 			}
-			if ( contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+			if ( utils::contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
 			{
 				return 2;
 			}
@@ -310,11 +311,17 @@ namespace dnv::vista::sdk
 
 	inline size_t GmodNode::hashCode() const noexcept
 	{
-		size_t hash = std::hash<std::string>{}( m_code );
+		size_t hash = constants::FNV_OFFSET_BASIS;
+
+		auto addToHash = [&hash]( size_t value ) {
+			hash = hash * 31 + value;
+		};
+
+		addToHash( std::hash<std::string>{}( m_code ) );
 
 		if ( m_location.has_value() )
 		{
-			hash ^= ( std::hash<std::string>{}( m_location->toString() ) ) + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( std::hash<std::string>{}( m_location->toString() ) );
 		}
 
 		return hash;
@@ -341,7 +348,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return std::nullopt;
 		}
@@ -372,7 +379,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return std::nullopt;
 		}
@@ -383,7 +390,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !contains( child->m_metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) )
+		if ( !utils::contains( child->m_metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) )
 		{
 			return std::nullopt;
 		}

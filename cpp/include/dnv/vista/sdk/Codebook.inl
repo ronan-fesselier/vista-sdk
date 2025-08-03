@@ -3,6 +3,8 @@
  * @brief Inline implementations for performance-critical codebook operations
  */
 
+#pragma once
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================

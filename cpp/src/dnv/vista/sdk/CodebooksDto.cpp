@@ -11,7 +11,7 @@
 
 namespace dnv::vista::sdk
 {
-	namespace
+	namespace CodebooksDtoInternal
 	{
 		//=====================================================================
 		// JSON parsing helper functions
@@ -24,6 +24,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::CODEBOOK_DTO_KEY_NAME ) && json.at( dto::CODEBOOK_DTO_KEY_NAME ).is_string() )
 				{
 					const auto& str = json.at( dto::CODEBOOK_DTO_KEY_NAME ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -42,6 +43,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ) && json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
 					const auto& str = json.at( dto::CODEBOOK_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -64,7 +66,7 @@ namespace dnv::vista::sdk
 
 	std::optional<CodebookDto> CodebookDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto nameHint = extractNameHint( json );
+		[[maybe_unused]] const auto nameHint = CodebooksDtoInternal::extractNameHint( json );
 
 		try
 		{
@@ -148,7 +150,7 @@ namespace dnv::vista::sdk
 
 	CodebookDto CodebookDto::fromJson( const nlohmann::json& json )
 	{
-		const auto nameHint = extractNameHint( json );
+		const auto nameHint = CodebooksDtoInternal::extractNameHint( json );
 		auto dtoOpt = CodebookDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
@@ -215,7 +217,7 @@ namespace dnv::vista::sdk
 
 	std::optional<CodebooksDto> CodebooksDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = CodebooksDtoInternal::extractVisHint( json );
 
 		try
 		{
@@ -302,7 +304,7 @@ namespace dnv::vista::sdk
 
 	CodebooksDto CodebooksDto::fromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		const auto visHint = CodebooksDtoInternal::extractVisHint( json );
 		auto dtoOpt = CodebooksDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{

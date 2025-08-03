@@ -73,8 +73,11 @@ namespace dnv::vista::sdk
 		LocalId& operator=( LocalId&& other ) noexcept = default;
 
 		//----------------------------------------------
-		// Lookup operators
+		// Equality operators
 		//----------------------------------------------
+
+		[[nodiscard]] inline bool operator==( const LocalId& other ) const noexcept;
+		[[nodiscard]] inline bool operator!=( const LocalId& other ) const noexcept;
 
 		/**
 		 * @brief Performs deep equality comparison.

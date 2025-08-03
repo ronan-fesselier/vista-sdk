@@ -11,29 +11,11 @@
 
 namespace dnv::vista::sdk
 {
-	namespace
+	namespace GmodDtoInternal
 	{
 		//=====================================================================
 		// JSON parsing helper functions
 		//=====================================================================
-
-		std::string_view extractNameHint( const nlohmann::json& json ) noexcept
-		{
-			try
-			{
-				if ( json.contains( dto::GMOD_DTO_KEY_CODE ) && json.at( dto::GMOD_DTO_KEY_CODE ).is_string() )
-				{
-					const auto& str = json.at( dto::GMOD_DTO_KEY_CODE ).get_ref<const std::string&>();
-					return std::string_view{ str };
-				}
-
-				return dto::GMOD_DTO_UNKNOWN_CODE;
-			}
-			catch ( ... )
-			{
-				return dto::GMOD_DTO_UNKNOWN_CODE;
-			}
-		}
 
 		std::string_view extractVisHint( const nlohmann::json& json ) noexcept
 		{
@@ -42,6 +24,7 @@ namespace dnv::vista::sdk
 				if ( json.contains( dto::GMOD_DTO_KEY_VIS_RELEASE ) && json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
 				{
 					const auto& str = json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+
 					return std::string_view{ str };
 				}
 
@@ -50,6 +33,25 @@ namespace dnv::vista::sdk
 			catch ( ... )
 			{
 				return dto::GMOD_DTO_UNKNOWN_VERSION;
+			}
+		}
+
+		std::string_view extractNameHint( const nlohmann::json& json ) noexcept
+		{
+			try
+			{
+				if ( json.contains( dto::GMOD_DTO_KEY_CODE ) && json.at( dto::GMOD_DTO_KEY_CODE ).is_string() )
+				{
+					const auto& str = json.at( dto::GMOD_DTO_KEY_CODE ).get_ref<const std::string&>();
+
+					return std::string_view{ str };
+				}
+
+				return dto::GMOD_DTO_UNKNOWN_CODE;
+			}
+			catch ( ... )
+			{
+				return dto::GMOD_DTO_UNKNOWN_CODE;
 			}
 		}
 	}
@@ -64,7 +66,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeDto> GmodNodeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto codeHint = extractNameHint( json );
+		[[maybe_unused]] const auto codeHint = GmodDtoInternal::extractNameHint( json );
 
 		try
 		{
@@ -248,7 +250,7 @@ namespace dnv::vista::sdk
 
 	GmodNodeDto GmodNodeDto::fromJson( const nlohmann::json& json )
 	{
-		const auto codeHint = extractNameHint( json );
+		const auto codeHint = GmodDtoInternal::extractNameHint( json );
 		auto dtoOpt = GmodNodeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
@@ -467,7 +469,7 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> GmodDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto visHint = extractVisHint( json );
+		[[maybe_unused]] const auto visHint = GmodDtoInternal::extractVisHint( json );
 
 		try
 		{
@@ -623,12 +625,14 @@ namespace dnv::vista::sdk
 
 	GmodDto GmodDto::fromJson( const nlohmann::json& json )
 	{
-		const auto visHint = extractVisHint( json );
+		const auto visHint = GmodDtoInternal::extractVisHint( json );
 		auto dtoOpt = GmodDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize GmodDto from JSON (hint: visRelease='{}')",
-				visHint ) );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize GmodDto from JSON (hint: visRelease='{}')",
+					visHint ) );
 		}
 
 		return std::move( dtoOpt.value() );

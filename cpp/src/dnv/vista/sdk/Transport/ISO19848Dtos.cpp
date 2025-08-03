@@ -3,15 +3,14 @@
  * @brief Implementation of ISO 19848 data transfer objects
  */
 
-#include "pch.h"
+#include "dnv/vista/sdk/pch.h"
 
-#include "dnv/vista/sdk/ISO19848Dtos.h"
-
+#include "dnv/vista/sdk/Transport/ISO19848Dtos.h"
 #include "dnv/vista/sdk/config/DtoKeys.h"
 
 namespace dnv::vista::sdk
 {
-	namespace
+	namespace ISO19848DtosInternal
 	{
 		//=====================================================================
 		// JSON parsing helper functions
@@ -47,7 +46,7 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto typeHint = extractTypeHint( json );
+		[[maybe_unused]] const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 
 		try
 		{
@@ -80,12 +79,14 @@ namespace dnv::vista::sdk
 
 	DataChannelTypeNameDto DataChannelTypeNameDto::fromJson( const nlohmann::json& json )
 	{
-		const auto typeHint = extractTypeHint( json );
+		const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 		auto dtoOpt = DataChannelTypeNameDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument( fmt::format( "Failed to deserialize DataChannelTypeNameDto from JSON (hint: type='{}')",
-				typeHint ) );
+			throw std::invalid_argument(
+				fmt::format(
+					"Failed to deserialize DataChannelTypeNameDto from JSON (hint: type='{}')",
+					typeHint ) );
 		}
 
 		return std::move( dtoOpt ).value();
@@ -278,7 +279,7 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto typeHint = extractTypeHint( json );
+		[[maybe_unused]] const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 
 		try
 		{
@@ -311,7 +312,7 @@ namespace dnv::vista::sdk
 
 	FormatDataTypeDto FormatDataTypeDto::fromJson( const nlohmann::json& json )
 	{
-		const auto typeHint = extractTypeHint( json );
+		const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 		auto dtoOpt = FormatDataTypeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{

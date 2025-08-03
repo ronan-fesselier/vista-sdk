@@ -130,50 +130,53 @@ namespace dnv::vista::sdk
 		return tags;
 	}
 
-	inline size_t LocalIdBuilder::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE size_t LocalIdBuilder::hashCode() const noexcept
 	{
-		size_t hash = 0;
+		size_t hash = constants::FNV_OFFSET_BASIS;
+
+		auto addToHash = [&hash]( size_t value ) {
+			hash = hash * 31 + value;
+		};
 
 		if ( m_items.primaryItem().has_value() )
 		{
-			hash ^= m_items.primaryItem()->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_items.primaryItem()->hashCode() );
 		}
 		if ( m_items.secondaryItem().has_value() )
 		{
-			hash ^= m_items.secondaryItem()->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_items.secondaryItem()->hashCode() );
 		}
 		if ( m_quantity.has_value() )
 		{
-			hash ^= m_quantity->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_quantity->hashCode() );
 		}
 		if ( m_calculation.has_value() )
 		{
-			hash ^= m_calculation->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_calculation->hashCode() );
 		}
 		if ( m_content.has_value() )
 		{
-			hash ^= m_content->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_content->hashCode() );
 		}
 		if ( m_position.has_value() )
 		{
-			hash ^= m_position->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_position->hashCode() );
 		}
 		if ( m_state.has_value() )
 		{
-			hash ^= m_state->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_state->hashCode() );
 		}
-
 		if ( m_command.has_value() )
 		{
-			hash ^= m_command->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_command->hashCode() );
 		}
 		if ( m_type.has_value() )
 		{
-			hash ^= m_type->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_type->hashCode() );
 		}
 		if ( m_detail.has_value() )
 		{
-			hash ^= m_detail->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			addToHash( m_detail->hashCode() );
 		}
 
 		return hash;

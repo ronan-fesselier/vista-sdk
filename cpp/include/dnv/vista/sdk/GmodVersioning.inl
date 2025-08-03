@@ -3,6 +3,8 @@
  * @brief Inline implementations for performance-critical GmodVersioning operations
  */
 
+#pragma once
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -55,6 +57,7 @@ namespace dnv::vista::sdk
 		const GmodVersioningNode*& versioningNode ) const
 	{
 		versioningNode = m_versioningsMap.tryGetValue( visVersion );
+
 		return versioningNode != nullptr;
 	}
 

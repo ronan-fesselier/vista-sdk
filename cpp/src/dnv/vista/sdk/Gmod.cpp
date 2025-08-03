@@ -74,6 +74,13 @@ namespace dnv::vista::sdk
 		m_rootNode = const_cast<GmodNode*>( &m_nodeMap["VE"] );
 	}
 
+	Gmod::Gmod( const Gmod& other )
+		: m_visVersion{ other.m_visVersion },
+		  m_nodeMap{ other.m_nodeMap }
+	{
+		m_rootNode = const_cast<GmodNode*>( &m_nodeMap["VE"] );
+	}
+
 	//----------------------------------------------
 	// Path parsing & navigation
 	//----------------------------------------------

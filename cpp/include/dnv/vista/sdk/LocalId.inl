@@ -12,8 +12,18 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
-	// Lookup operators
+	// Equality operators
 	//----------------------------------------------
+
+	inline bool LocalId::operator==( const LocalId& other ) const noexcept
+	{
+		return equals( other );
+	}
+
+	inline bool LocalId::operator!=( const LocalId& other ) const noexcept
+	{
+		return !equals( other );
+	}
 
 	inline bool LocalId::equals( const LocalId& other ) const noexcept
 	{

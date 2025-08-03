@@ -7,18 +7,14 @@
 
 namespace dnv::vista::sdk
 {
-	using dnv::vista::sdk::utils::contains;
-	using dnv::vista::sdk::utils::equals;
-	using dnv::vista::sdk::utils::endsWith;
-
 	/**
 	 * @brief Fast check if filename is a GMOD resource (without versioning)
 	 */
 	inline bool isGmodResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "gmod" ) &&
-			   !contains( filename, "versioning" ) &&
-			   endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "gmod" ) &&
+			   !utils::contains( filename, "versioning" ) &&
+			   utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -26,9 +22,9 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isGmodVersioningResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "gmod" ) &&
-			   contains( filename, "versioning" ) &&
-			   endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "gmod" ) &&
+			   utils::contains( filename, "versioning" ) &&
+			   utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -36,7 +32,7 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isCodebooksResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "codebooks" ) && endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "codebooks" ) && utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -44,7 +40,7 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isLocationsResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "locations" ) && endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "locations" ) && utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -52,7 +48,7 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isISO19848Resource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "iso19848" ) && endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "iso19848" ) && utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -60,7 +56,7 @@ namespace dnv::vista::sdk
 	 */
 	inline bool containsVersion( std::string_view filename, std::string_view version ) noexcept
 	{
-		return contains( filename, version );
+		return utils::contains( filename, version );
 	}
 
 	/**
@@ -68,9 +64,9 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isDataChannelTypeNamesResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "data-channel-type-names" ) &&
-			   contains( filename, "iso19848" ) &&
-			   endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "data-channel-type-names" ) &&
+			   utils::contains( filename, "iso19848" ) &&
+			   utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -78,9 +74,9 @@ namespace dnv::vista::sdk
 	 */
 	inline bool isFormatDataTypesResource( std::string_view filename ) noexcept
 	{
-		return contains( filename, "format-data-types" ) &&
-			   contains( filename, "iso19848" ) &&
-			   endsWith( filename, ".json.gz" );
+		return utils::contains( filename, "format-data-types" ) &&
+			   utils::contains( filename, "iso19848" ) &&
+			   utils::endsWith( filename, ".json.gz" );
 	}
 
 	/**
@@ -88,6 +84,6 @@ namespace dnv::vista::sdk
 	 */
 	inline bool matchesVersion( std::string_view filename, std::string_view version ) noexcept
 	{
-		return contains( filename, version );
+		return utils::contains( filename, version );
 	}
 }

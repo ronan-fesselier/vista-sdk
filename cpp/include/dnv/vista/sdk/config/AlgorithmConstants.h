@@ -19,6 +19,14 @@ namespace dnv::vista::sdk::constants
 	/** @brief FNV prime constant for hash calculations. */
 	inline constexpr uint32_t FNV_PRIME{ 0x01000193 };
 
+	/** @brief Golden ratio constants. */
+	/** @todo THIS IS TEMPORARY */
+	inline constexpr size_t HASH_PRIME = 31;
+
+	/** @brief Golden ratio constants. */
+	/** @todo THIS IS TEMPORARY */
+	inline constexpr size_t HASH_MAGIC = 0x9e3779b9;
+
 	//=====================================================================
 	// CHD dictionary configuration
 	//=====================================================================

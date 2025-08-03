@@ -50,12 +50,12 @@ namespace dnv::vista::sdk
 
 		if ( m_imoNumber.has_value() )
 		{
-			hash ^= m_imoNumber->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= m_imoNumber->hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 		}
 
 		if ( m_localIdBuilder.has_value() )
 		{
-			hash ^= m_localIdBuilder->hashCode() + 0x9e3779b9 + ( hash << 6 ) + ( hash >> 2 );
+			hash ^= m_localIdBuilder->hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
 		}
 
 		return hash;

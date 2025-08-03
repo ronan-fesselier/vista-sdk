@@ -10,7 +10,7 @@
 
 namespace dnv::vista::sdk
 {
-	namespace
+	namespace internal
 	{
 		//=====================================================================
 		// Prefix-to-CodebookName mapping table
@@ -51,7 +51,7 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Prefix cannot be empty." );
 		}
 
-		for ( const auto& mapping : s_prefixMappings )
+		for ( const auto& mapping : internal::s_prefixMappings )
 		{
 			if ( mapping.prefix == prefix )
 			{
