@@ -99,20 +99,108 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Gmod::Enumerator class
+	// Traversal methods
 	//----------------------------------------------
 
-	//-----------------------------
-	// Construction
-	//-----------------------------
-
-	Gmod::Enumerator::Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept
-		: m_sourceMapPtr{ map },
-		  m_isInitialState{ true }
+	bool Gmod::pathExistsBetween( const std::vector<const GmodNode*>& fromPath, const GmodNode& to, std::vector<const GmodNode*>& remainingParents ) const
 	{
-		if ( m_sourceMapPtr )
+		remainingParents.clear();
+
+		const GmodNode* lastAssetFunction = nullptr;
+		size_t assetFunctionIndex = SIZE_MAX;
+		for ( size_t i = fromPath.size(); i > 0; --i )
 		{
-			m_currentMapIterator = m_sourceMapPtr->begin();
+			size_t idx = i - 1;
+			if ( fromPath[idx]->isAssetFunctionNode() )
+			{
+				lastAssetFunction = fromPath[idx];
+				assetFunctionIndex = idx;
+				break;
+			}
 		}
+
+		const GmodNode& startNode = lastAssetFunction ? *lastAssetFunction : rootNode();
+
+		struct PathExistsState
+		{
+			const GmodNode& targetNode;
+			const std::vector<const GmodNode*>& fromPath;
+			std::vector<const GmodNode*>& remainingParents;
+			size_t assetFunctionIndex;
+			bool found = false;
+
+			PathExistsState( const GmodNode& target, const std::vector<const GmodNode*>& from, std::vector<const GmodNode*>& remaining, size_t afIndex )
+				: targetNode( target ), fromPath( from ), remainingParents( remaining ), assetFunctionIndex( afIndex ) {}
+
+			PathExistsState( const PathExistsState& ) = delete;
+			PathExistsState( PathExistsState&& ) = delete;
+			PathExistsState& operator=( const PathExistsState& ) = delete;
+			PathExistsState& operator=( PathExistsState&& ) = delete;
+		};
+
+		PathExistsState state( to, fromPath, remainingParents, assetFunctionIndex );
+
+		auto handler = +[]( PathExistsState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			if ( node.code() != state.targetNode.code() )
+			{
+				return TraversalHandlerResult::Continue;
+			}
+
+			std::vector<const GmodNode*> completePath;
+			completePath.reserve( parents.size() );
+
+			for ( const GmodNode* parent : parents )
+			{
+				if ( !parent->isRoot() )
+				{
+					completePath.push_back( parent );
+				}
+			}
+
+			size_t startIndex = 0;
+
+			if ( state.assetFunctionIndex != SIZE_MAX )
+			{
+				startIndex = state.assetFunctionIndex;
+			}
+
+			size_t requiredNodes = state.fromPath.size() - startIndex;
+			if ( completePath.size() < requiredNodes )
+			{
+				return TraversalHandlerResult::Continue;
+			}
+
+			bool match = true;
+			for ( size_t i = 0; i < requiredNodes; ++i )
+			{
+				size_t fromPathIdx = startIndex + i;
+				if ( fromPathIdx >= state.fromPath.size() || i >= completePath.size() )
+				{
+					match = false;
+					break;
+				}
+				if ( completePath[i]->code() != state.fromPath[fromPathIdx]->code() )
+				{
+					match = false;
+					break;
+				}
+			}
+
+			if ( match )
+			{
+				for ( size_t i = requiredNodes; i < completePath.size(); ++i )
+				{
+					state.remainingParents.push_back( completePath[i] );
+				}
+				state.found = true;
+				return TraversalHandlerResult::Stop;
+			}
+
+			return TraversalHandlerResult::Continue;
+		};
+
+		traverse( state, startNode, handler );
+
+		return state.found;
 	}
 }

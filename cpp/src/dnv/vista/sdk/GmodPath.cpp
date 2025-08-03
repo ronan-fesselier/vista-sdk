@@ -10,7 +10,6 @@
 #include "dnv/vista/sdk/utils/StringUtils.h"
 #include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VIS.h"
 
@@ -877,7 +876,8 @@ namespace dnv::vista::sdk
 
 		internal::ParseContext context( std::move( parts ), std::move( toFind ), std::nullopt, std::nullopt, gmod );
 
-		GmodTraversal::traverse( context, *baseNode, internal::parseInternalHandler );
+		TraverseHandlerWithState<internal::ParseContext> handler = internal::parseInternalHandler;
+		gmod.traverse( context, *baseNode, handler );
 
 		if ( !context.path.has_value() )
 		{

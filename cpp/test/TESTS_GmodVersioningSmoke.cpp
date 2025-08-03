@@ -5,7 +5,6 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodVersioning.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
@@ -159,7 +158,7 @@ namespace dnv::vista::sdk::tests
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool completed = GmodTraversal::traverse( state, sourceGmod, handler );
+			bool completed = sourceGmod.traverse( state, handler );
 			ASSERT_TRUE( completed );
 			context.channel.writer().complete();
 			auto counter = context.counter.load();

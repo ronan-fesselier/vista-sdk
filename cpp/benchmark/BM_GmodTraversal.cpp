@@ -5,7 +5,6 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/VIS.h"
 
 using namespace dnv::vista::sdk;
@@ -44,7 +43,7 @@ namespace dnv::vista::sdk::benchmarks
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool result = dnv::vista::sdk::GmodTraversal::traverse( benchState, *g_gmod, handler );
+			bool result = g_gmod->traverse( benchState, handler );
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( benchState.nodeCount );

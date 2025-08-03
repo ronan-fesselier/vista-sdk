@@ -9,7 +9,6 @@
 
 #include "TestDataLoader.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodVersioning.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
@@ -138,7 +137,7 @@ namespace dnv::vista::sdk::tests
 			return TraversalHandlerResult::Continue;
 		};
 
-		auto completed = GmodTraversal::traverse( state, gmod, handler );
+		auto completed = gmod.traverse( state, handler );
 
 		ASSERT_FALSE( completed );
 	}
@@ -380,7 +379,7 @@ namespace dnv::vista::sdk::tests
 			return TraversalHandlerResult::Continue;
 		};
 
-		GmodTraversal::traverse( state, targetGmod, handler );
+		targetGmod.traverse( state, handler );
 		EXPECT_TRUE( state.allNodesHaveNullLocation ) << "Some nodes in target GMOD have non-null location";
 
 		ASSERT_TRUE( sourcePathOpt.has_value() );

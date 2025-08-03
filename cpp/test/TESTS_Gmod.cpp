@@ -7,7 +7,6 @@
 
 #include "dnv/vista/sdk/utils/StringUtils.h"
 
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
 
@@ -214,7 +213,7 @@ namespace dnv::vista::sdk::tests
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool completed = GmodTraversal::traverse( traversalState, gmod, handler );
+			bool completed = gmod.traverse( traversalState, handler );
 
 			EXPECT_EQ( maxExpected, traversalState.maxOccurrence );
 			EXPECT_TRUE( completed );
@@ -257,7 +256,7 @@ namespace dnv::vista::sdk::tests
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool completed = GmodTraversal::traverse( state, gmod, handler, options );
+			bool completed = gmod.traverse( state, handler, options );
 
 			EXPECT_EQ( maxExpected, state.maxOccurrence );
 			EXPECT_TRUE( completed );
@@ -284,7 +283,7 @@ namespace dnv::vista::sdk::tests
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool completed = GmodTraversal::traverse( state, gmod, handler );
+			bool completed = gmod.traverse( state, handler );
 
 			EXPECT_EQ( state.stopAfter, state.nodeCount );
 			EXPECT_FALSE( completed );
@@ -311,7 +310,7 @@ namespace dnv::vista::sdk::tests
 				return TraversalHandlerResult::Continue;
 			};
 
-			bool completed = GmodTraversal::traverse( state, startNode, handler );
+			bool completed = gmod.traverse( state, startNode, handler );
 
 			EXPECT_TRUE( completed );
 		}

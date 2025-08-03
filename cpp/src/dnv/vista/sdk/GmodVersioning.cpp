@@ -11,7 +11,6 @@
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/GmodNode.h"
 #include "dnv/vista/sdk/GmodPath.h"
-#include "dnv/vista/sdk/GmodTraversal.h"
 #include "dnv/vista/sdk/LocalId.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/MetadataTag.h"
@@ -50,7 +49,7 @@ namespace dnv::vista::sdk
 					t_remainingBuffer.clear();
 					t_remainingBuffer.reserve( 16 );
 
-					if ( !GmodTraversal::pathExistsBetween( gmod, t_currentParentsBuffer, node, t_remainingBuffer ) )
+					if ( !gmod.pathExistsBetween( t_currentParentsBuffer, node, t_remainingBuffer ) )
 					{
 						bool hasOtherAssetFunction = false;
 						const std::string_view parentCode = parent.code();

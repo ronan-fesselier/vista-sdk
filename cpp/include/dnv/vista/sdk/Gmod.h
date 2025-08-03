@@ -11,6 +11,7 @@
 #pragma once
 
 #include "internal/ChdDictionary.h"
+#include "internal/HashMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -23,6 +24,48 @@ namespace dnv::vista::sdk
 	class GmodNode;
 	class GmodNodeMetadata;
 	class GmodPath;
+
+	//=====================================================================
+	// Traversal
+	//=====================================================================
+
+	//----------------------------------------------
+	// Traversal handler
+	//----------------------------------------------
+
+	/**
+	 * @enum TraversalHandlerResult
+	 * @brief Controls traversal flow
+	 */
+	enum class TraversalHandlerResult
+	{
+		Stop = 0,
+		SkipSubtree,
+		Continue,
+	};
+
+	/**
+	 * @typedef TraverseHandler
+	 * @brief Function pointer for stateless traversal
+	 */
+	using TraverseHandler = TraversalHandlerResult ( * )( const std::vector<const GmodNode*>& parents, const GmodNode& node );
+
+	/**
+	 * @typedef TraverseHandlerWithState
+	 * @brief Function pointer for stateful traversal
+	 */
+	template <typename TState>
+	using TraverseHandlerWithState = TraversalHandlerResult ( * )( TState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node );
+
+	/**
+	 * @struct TraversalOptions
+	 * @brief Traversal configuration
+	 */
+	struct TraversalOptions
+	{
+		static constexpr size_t DEFAULT_MAX_TRAVERSAL_OCCURRENCE = 1;
+		size_t maxTraversalOccurrence = DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
+	};
 
 	//=====================================================================
 	// Gmod class
@@ -39,6 +82,10 @@ namespace dnv::vista::sdk
 	class Gmod final
 	{
 	public:
+		//----------------------------------------------
+		// Forward declarations
+		//----------------------------------------------
+
 		class Enumerator;
 
 	public:
@@ -175,6 +222,59 @@ namespace dnv::vista::sdk
 		bool tryParseFromFullPath( std::string_view item, std::optional<GmodPath>& path ) const noexcept;
 
 		//----------------------------------------------
+		// Traversal methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Traverse GMOD tree with handler
+		 * @param handler Function to call for each node
+		 * @param options Traversal configuration
+		 * @return true if completed, false if stopped early
+		 */
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TraverseHandler handler, const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Traverse GMOD tree with stateful handler
+		 * @tparam TState User-defined state type
+		 * @param state User state reference
+		 * @param handler Stateful handler function
+		 * @param options Traversal configuration
+		 * @return true if completed, false if stopped early
+		 */
+		template <typename TState>
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Traverse from specific root node
+		 * @param rootNode Starting node
+		 * @param handler Function to call for each node
+		 * @param options Traversal configuration
+		 * @return true if completed, false if stopped early
+		 */
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( const GmodNode& rootNode, TraverseHandler handler, const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Traverse from specific root with stateful handler
+		 * @tparam TState User-defined state type
+		 * @param state User state reference
+		 * @param rootNode Starting node
+		 * @param handler Stateful handler function
+		 * @param options Traversal configuration
+		 * @return true if completed, false if stopped early
+		 */
+		template <typename TState>
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} ) const;
+
+		/**
+		 * @brief Checks if a traversal path exists between given parents and target node
+		 * @param fromPath Vector of parent nodes representing the starting path
+		 * @param to Target node to find
+		 * @param remainingParents Output vector for additional parents not in fromPath
+		 * @return true if path exists, false otherwise
+		 */
+		bool pathExistsBetween( const std::vector<const GmodNode*>& fromPath, const GmodNode& to, std::vector<const GmodNode*>& remainingParents ) const;
+
+		//----------------------------------------------
 		// Static state inspection methods
 		//----------------------------------------------
 
@@ -275,7 +375,7 @@ namespace dnv::vista::sdk
 			 * @brief Private constructor, typically called by Gmod::enumerator().
 			 * @param map Pointer to the ChdDictionary of GmodNodes to iterate over.
 			 */
-			Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept;
+			VISTA_SDK_CPP_FORCE_INLINE Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept;
 
 		public:
 			/** @brief Default constructor. */
@@ -307,20 +407,20 @@ namespace dnv::vista::sdk
 			 * @throws std::runtime_error If called when the enumerator is in an invalid state
 			 *                            (e.g., before the first moveNext() or after iteration has ended).
 			 */
-			[[nodiscard]] inline const GmodNode& current() const;
+			[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE const GmodNode& current() const;
 
 			/**
 			 * @brief Advances the enumerator to the next GmodNode in the collection.
 			 * @return True if the enumerator was successfully advanced to the next node;
 			 *         false if the end of the collection has been passed.
 			 */
-			bool inline next() noexcept;
+			bool VISTA_SDK_CPP_FORCE_INLINE next() noexcept;
 
 			/**
 			 * @brief Resets the enumerator to its initial state, positioned before the first node.
 			 * @details After calling reset, next() must be called to access the first node.
 			 */
-			void inline reset() noexcept;
+			void VISTA_SDK_CPP_FORCE_INLINE reset() noexcept;
 
 			//-----------------------------
 			// Private member variables
@@ -332,6 +432,55 @@ namespace dnv::vista::sdk
 		};
 
 	private:
+		//----------------------------------------------
+		// Private traversal implementation
+		//----------------------------------------------
+
+		/**
+		 * @class Parents
+		 * @brief Parent stack with occurrence tracking
+		 */
+		class Parents
+		{
+		public:
+			VISTA_SDK_CPP_FORCE_INLINE Parents();
+			VISTA_SDK_CPP_FORCE_INLINE void push( const GmodNode* parent );
+			VISTA_SDK_CPP_FORCE_INLINE void pop();
+			[[nodiscard]] inline size_t occurrences( const GmodNode& node ) const noexcept;
+			[[nodiscard]] inline const GmodNode* lastOrDefault() const noexcept;
+			[[nodiscard]] inline const std::vector<const GmodNode*>& asList() const noexcept;
+
+		private:
+			internal::HashMap<std::string, size_t> m_occurrences;
+			std::vector<const GmodNode*> m_parents;
+		};
+
+		/**
+		 * @struct TraversalContext
+		 */
+		template <typename TState>
+		struct TraversalContext
+		{
+			Parents& parents;
+			TraverseHandlerWithState<TState> handler;
+			TState& state;
+			size_t maxTraversalOccurrence;
+
+			TraversalContext( Parents& p, TraverseHandlerWithState<TState> h, TState& s, size_t maxOcc )
+				: parents( p ), handler( h ), state( s ), maxTraversalOccurrence( maxOcc ) {}
+
+			TraversalContext( const TraversalContext& ) = delete;
+			TraversalContext( TraversalContext&& ) = delete;
+			TraversalContext& operator=( const TraversalContext& ) = delete;
+			TraversalContext& operator=( TraversalContext&& ) = delete;
+		};
+
+		/**
+		 * @brief Core traversal implementation
+		 */
+		template <typename TState>
+		[[nodiscard]] inline TraversalHandlerResult traverseNode( TraversalContext<TState>& context, const GmodNode& node ) const;
+
 		//----------------------------------------------
 		// Private member variables
 		//----------------------------------------------
