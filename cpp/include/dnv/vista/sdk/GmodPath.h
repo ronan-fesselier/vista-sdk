@@ -11,6 +11,7 @@
 
 #include "config/Platform.h"
 #include "utils/Hashing.h"
+#include "utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -189,14 +190,11 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline std::string toString() const;
 
 		/**
-		 * @brief Writes the path's string representation to a generic output iterator.
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to write to.
+		 * @brief Writes the path's string representation to a StringBuilder.
+		 * @param builder The StringBuilder to write to.
 		 * @param separator Character to use between path segments (default: '/').
-		 * @return An iterator pointing to the end of the written output.
 		 */
-		template <typename OutputIt>
-		inline OutputIt toString( OutputIt out, char separator = '/' ) const;
+		inline void toString( utils::StringBuilderWrapper& builder, char separator = '/' ) const;
 
 		/**
 		 * @brief Converts the path to full hierarchical string representation
@@ -205,13 +203,10 @@ namespace dnv::vista::sdk
 		[[nodiscard]] std::string toFullPathString() const;
 
 		/**
-		 * @brief Writes the path's full hierarchical string representation to a generic output iterator.
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to write to.
-		 * @return An iterator pointing to the end of the written output.
+		 * @brief Writes the path's full hierarchical string representation to a StringBuilder.
+		 * @param builder The StringBuilder to write to.
 		 */
-		template <typename OutputIt>
-		inline OutputIt toFullPathString( OutputIt out ) const;
+		inline void toFullPathString( utils::StringBuilderWrapper& builder ) const;
 
 		/**
 		 * @brief Creates detailed debug representation of the path
@@ -220,13 +215,10 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline std::string toStringDump() const;
 
 		/**
-		 * @brief Writes the path's detailed debug representation to a generic output iterator.
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to write to.
-		 * @return An iterator pointing to the end of the written output.
+		 * @brief Writes the path's detailed debug representation to a StringBuilder.
+		 * @param builder The StringBuilder to write to.
 		 */
-		template <typename OutputIt>
-		inline OutputIt toStringDump( OutputIt out ) const;
+		inline void toStringDump( utils::StringBuilderWrapper& builder ) const;
 
 		//----------------------------------------------
 		// Path manipulation methods

@@ -6,9 +6,6 @@
 
 #include "dnv/vista/sdk/LocalIdItems.h"
 
-#include "dnv/vista/sdk/GmodNode.h"
-#include "dnv/vista/sdk/VIS.h"
-
 namespace dnv::vista::sdk
 {
 	//=====================================================================

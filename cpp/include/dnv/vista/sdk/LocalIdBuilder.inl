@@ -306,7 +306,7 @@ namespace dnv::vista::sdk
 		builder.append( "/" );
 
 		/* Items section: primary item [+ secondary item] [+ description] */
-		m_items.append( std::back_inserter( builder ), m_verboseMode );
+		m_items.append( builder, m_verboseMode );
 
 		/* Metadata section prefix: "/meta" */
 		builder.append( "meta/" );

@@ -12,6 +12,7 @@
 
 #include "utils/StringMap.h"
 #include "utils/Hashing.h"
+#include "utils/StringBuilderPool.h"
 
 #include "GmodDto.h"
 #include "Locations.h"
@@ -505,13 +506,10 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline std::string toString() const noexcept;
 
 		/**
-		 * @brief Appends the node's string representation to a generic output iterator.
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to write to.
-		 * @return The iterator pointing to the end of the written output.
+		 * @brief Appends the node's string representation to a StringBuilder.
+		 * @param builder The StringBuilder to write to.
 		 */
-		template <typename OutputIt>
-		inline OutputIt toString( OutputIt out ) const noexcept;
+		inline void toString( utils::StringBuilderWrapper& builder ) const noexcept;
 
 	private:
 		//----------------------------------------------

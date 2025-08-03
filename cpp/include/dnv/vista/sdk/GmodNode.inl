@@ -500,16 +500,14 @@ namespace dnv::vista::sdk
 		return lease.toString();
 	}
 
-	template <typename OutputIt>
-	inline OutputIt GmodNode::toString( OutputIt out ) const noexcept
+	inline void GmodNode::toString( utils::StringBuilderWrapper& builder ) const noexcept
 	{
-		out = fmt::format_to( out, "{}", m_code );
+		builder.append( m_code );
 		if ( m_location.has_value() )
 		{
-			out = fmt::format_to( out, "-{}", m_location->toString() );
+			builder.push_back( '-' );
+			builder.append( m_location->toString() );
 		}
-
-		return out;
 	}
 
 	//----------------------------------------------

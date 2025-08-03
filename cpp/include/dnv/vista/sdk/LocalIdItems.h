@@ -5,6 +5,7 @@
 #pragma once
 
 #include "GmodPath.h"
+#include "utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -132,39 +133,15 @@ namespace dnv::vista::sdk
 		// Public methods
 		//----------------------------------------------
 
-		/**
-		 * @brief Appends the string representation of the items to a generic output iterator.
-		 *
-		 * Formats and appends the primary and secondary items according to LocalId
-		 * formatting rules. Includes verbose common name details if requested.
-		 *
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to append to.
-		 * @param verboseMode If true, appends verbose common name information.
-		 * @return The iterator pointing to the end of the written output.
-		 */
-		template <typename OutputIt>
-		inline OutputIt append( OutputIt out, bool verboseMode ) const;
+		inline void append( utils::StringBuilderWrapper& builder, bool verboseMode ) const;
 
 	private:
 		//----------------------------------------------
 		// Private helper methods
 		//----------------------------------------------
 
-		/**
-		 * @brief Appends a formatted common name with optional location to a generic output iterator.
-		 *
-		 * Helper method used by `append` during verbose string formatting.
-		 *
-		 * @tparam OutputIt The type of the output iterator.
-		 * @param out The output iterator to append to.
-		 * @param commonName The common name string_view to format and append.
-		 * @param location An optional location string to append if present.
-		 * @return The iterator pointing to the end of the written output.
-		 */
-		template <typename OutputIt>
-		inline static OutputIt appendCommonName(
-			OutputIt out,
+		inline static void appendCommonName(
+			utils::StringBuilderWrapper& builder,
 			std::string_view commonName,
 			const std::optional<std::string>& location );
 

@@ -5,10 +5,20 @@
 
 #pragma once
 
-#include "VIS.h"
-
 namespace dnv::vista::sdk
 {
+	namespace
+	{
+		/** @brief Secondary item prefix */
+		constexpr std::string_view SEC_PREFIX = "sec/";
+
+		/** @brief Initial secondary verbose prefix */
+		constexpr std::string_view FOR_PREFIX = "~for.";
+
+		/** @brief Subsequent secondary verbose prefix */
+		constexpr std::string_view TILDE_PREFIX = "~";
+	}
+
 	//=====================================================================
 	// LocalIdItems class
 	//=====================================================================
@@ -47,28 +57,28 @@ namespace dnv::vista::sdk
 	}
 
 	//=====================================================================
-	// Template method implementations
+	//=====================================================================
+	// Method implementations
 	//=====================================================================
 
-	template <typename OutputIt>
-	inline OutputIt LocalIdItems::append( OutputIt out, bool verboseMode ) const
+	inline void LocalIdItems::append( utils::StringBuilderWrapper& builder, bool verboseMode ) const
 	{
 		if ( !m_primaryItem && !m_secondaryItem )
 		{
-			return out;
+			return;
 		}
 
 		if ( m_primaryItem )
 		{
-			out = m_primaryItem->toString( out );
-			*out++ = '/';
+			m_primaryItem->toString( builder );
+			builder.push_back( '/' );
 		}
 
 		if ( m_secondaryItem )
 		{
-			out = fmt::format_to( out, "sec/" );
-			out = m_secondaryItem->toString( out );
-			*out++ = '/';
+			builder.append( SEC_PREFIX );
+			m_secondaryItem->toString( builder );
+			builder.push_back( '/' );
 		}
 
 		if ( verboseMode )
@@ -77,35 +87,54 @@ namespace dnv::vista::sdk
 			{
 				for ( const auto& [depth, name] : m_primaryItem->commonNames() )
 				{
-					*out++ = '~';
+					builder.push_back( '~' );
 					const GmodNode& nodeRef = ( *m_primaryItem )[depth];
-					auto locationStr = nodeRef.location().has_value() ? std::optional( nodeRef.location()->toString() ) : std::nullopt;
-					out = appendCommonName( out, name, locationStr );
-					*out++ = '/';
+					if ( nodeRef.location().has_value() )
+					{
+						const auto locationStr = nodeRef.location()->toString();
+						appendCommonName( builder, name, std::optional<std::string>( locationStr ) );
+					}
+					else
+					{
+						appendCommonName( builder, name, std::nullopt );
+					}
+					builder.push_back( '/' );
 				}
 			}
 
 			if ( m_secondaryItem )
 			{
-				std::string_view prefix = "~for.";
+				bool isFirstSecondary = true;
 				for ( const auto& [depth, name] : m_secondaryItem->commonNames() )
 				{
-					out = fmt::format_to( out, "{}", prefix );
-					if ( prefix.size() > 1 )
-						prefix = "~";
+					if ( isFirstSecondary )
+					{
+						builder.append( FOR_PREFIX );
+						isFirstSecondary = false;
+					}
+					else
+					{
+						builder.append( TILDE_PREFIX );
+					}
+
 					const GmodNode& nodeRef = ( *m_secondaryItem )[depth];
-					auto locationStr = nodeRef.location().has_value() ? std::optional( nodeRef.location()->toString() ) : std::nullopt;
-					out = appendCommonName( out, name, locationStr );
-					*out++ = '/';
+					if ( nodeRef.location().has_value() )
+					{
+						const auto locationStr = nodeRef.location()->toString();
+						appendCommonName( builder, name, std::optional<std::string>( locationStr ) );
+					}
+					else
+					{
+						appendCommonName( builder, name, std::nullopt );
+					}
+					builder.push_back( '/' );
 				}
 			}
 		}
-		return out;
 	}
 
-	template <typename OutputIt>
-	inline OutputIt LocalIdItems::appendCommonName(
-		OutputIt out,
+	inline void LocalIdItems::appendCommonName(
+		utils::StringBuilderWrapper& builder,
 		std::string_view commonName,
 		const std::optional<std::string>& location )
 	{
@@ -113,7 +142,9 @@ namespace dnv::vista::sdk
 		for ( const char ch : commonName )
 		{
 			if ( ch == '/' || ( prev == ' ' && ch == ' ' ) )
+			{
 				continue;
+			}
 
 			char current;
 			if ( ch == ' ' )
@@ -132,15 +163,14 @@ namespace dnv::vista::sdk
 			if ( current == '.' && prev == '.' )
 				continue;
 
-			*out++ = current;
+			builder.push_back( current );
 			prev = current;
 		}
 
 		if ( location.has_value() && !location->empty() )
 		{
-			*out++ = '.';
-			out = fmt::format_to( out, "{}", *location );
+			builder.push_back( '.' );
+			builder.append( *location );
 		}
-		return out;
 	}
 }

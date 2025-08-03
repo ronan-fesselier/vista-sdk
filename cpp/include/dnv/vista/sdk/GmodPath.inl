@@ -325,8 +325,7 @@ namespace dnv::vista::sdk
 		return lease.toString();
 	}
 
-	template <typename OutputIt>
-	inline OutputIt GmodPath::toString( OutputIt out, char separator ) const
+	inline void GmodPath::toString( utils::StringBuilderWrapper& builder, char separator ) const
 	{
 		bool first = true;
 		for ( const auto& parent : m_parents )
@@ -337,9 +336,9 @@ namespace dnv::vista::sdk
 			}
 			if ( !first )
 			{
-				*out++ = separator;
+				builder.push_back( separator );
 			}
-			out = parent.toString( out );
+			parent.toString( builder );
 			first = false;
 		}
 
@@ -347,31 +346,27 @@ namespace dnv::vista::sdk
 		{
 			if ( !first )
 			{
-				*out++ = separator;
+				builder.push_back( separator );
 			}
-			out = m_node->toString( out );
+			m_node->toString( builder );
 		}
-		return out;
 	}
 
-	template <typename OutputIt>
-	inline OutputIt GmodPath::toFullPathString( OutputIt out ) const
+	inline void GmodPath::toFullPathString( utils::StringBuilderWrapper& builder ) const
 	{
 		auto enumerator = this->fullPath();
 		while ( enumerator.next() )
 		{
 			const auto& [depth, pathNode] = enumerator.current();
-			out = pathNode->toString( out );
+			pathNode->toString( builder );
 			if ( depth != ( length() - 1 ) )
 			{
-				*out++ = '/';
+				builder.push_back( '/' );
 			}
 		}
-		return out;
 	}
 
-	template <typename OutputIt>
-	inline OutputIt GmodPath::toStringDump( OutputIt out ) const
+	inline void GmodPath::toStringDump( utils::StringBuilderWrapper& builder ) const
 	{
 		auto enumerator = this->fullPath();
 		while ( enumerator.next() )
@@ -385,30 +380,32 @@ namespace dnv::vista::sdk
 
 			if ( depth != 1 )
 			{
-				out = fmt::format_to( out, " | " );
+				builder.append( " | " );
 			}
 
-			out = fmt::format_to( out, "{}", pathNode->code() );
+			builder.append( pathNode->code() );
 
 			const auto& name = pathNode->metadata().name();
 			if ( !name.empty() )
 			{
-				out = fmt::format_to( out, "/N:{}", name );
+				builder.append( "/N:" );
+				builder.append( name );
 			}
 
 			const auto& commonName = pathNode->metadata().commonName();
 			if ( commonName.has_value() && !commonName->empty() )
 			{
-				out = fmt::format_to( out, "/CN:{}", *commonName );
+				builder.append( "/CN:" );
+				builder.append( *commonName );
 			}
 
 			auto normalAssignment = normalAssignmentName( depth );
 			if ( normalAssignment && !normalAssignment->empty() )
 			{
-				out = fmt::format_to( out, "/NAN:{}", *normalAssignment );
+				builder.append( "/NAN:" );
+				builder.append( *normalAssignment );
 			}
 		}
-		return out;
 	}
 
 	//----------------------------------------------
