@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "config/AlgorithmConstants.h"
 #include "config/GmodConstants.h"
 #include "config/Platform.h"
 #include "utils/StringBuilderPool.h"
@@ -309,22 +308,9 @@ namespace dnv::vista::sdk
 		return m_metadata;
 	}
 
-	inline size_t GmodNode::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int GmodNode::hashCode() const noexcept
 	{
-		size_t hash = constants::FNV_OFFSET_BASIS;
-
-		auto addToHash = [&hash]( size_t value ) {
-			hash = hash * 31 + value;
-		};
-
-		addToHash( std::hash<std::string>{}( m_code ) );
-
-		if ( m_location.has_value() )
-		{
-			addToHash( std::hash<std::string>{}( m_location->toString() ) );
-		}
-
-		return hash;
+		return utils::Hash::combine( m_code, m_location );
 	}
 
 	//----------------------------------------------

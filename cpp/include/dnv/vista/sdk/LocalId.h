@@ -128,7 +128,7 @@ namespace dnv::vista::sdk
 		 * @brief Calculates hash code for container use.
 		 * @return Hash value suitable for std::unordered_set/map.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// Metadata accessors

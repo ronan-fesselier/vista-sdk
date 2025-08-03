@@ -7,6 +7,7 @@
 
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/internal/ChdDictionary.h"
+#include "dnv/vista/sdk/utils/Hashing.h"
 
 using namespace dnv::vista::sdk;
 
@@ -235,6 +236,30 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
+	static void BM_HashCode_400( benchmark::State& state )
+	{
+		initializeData();
+
+		const std::string input = "400";
+		for ( auto _ : state )
+		{
+			auto result = utils::Hash::combine( std::string_view{ input } );
+			benchmark::DoNotOptimize( result );
+		}
+	}
+
+	static void BM_HashCode_H346_11112( benchmark::State& state )
+	{
+		initializeData();
+
+		const std::string input = "H346.11112";
+		for ( auto _ : state )
+		{
+			auto result = utils::Hash::combine( std::string_view{ input } );
+			benchmark::DoNotOptimize( result );
+		}
+	}
+
 	BENCHMARK( BM_bcl_400 )
 		->MinTime( 10.0 )
 		->Unit( benchmark::kNanosecond );
@@ -272,6 +297,14 @@ namespace dnv::vista::sdk::benchmarks
 		->Unit( benchmark::kNanosecond );
 
 	BENCHMARK( BM_fnv_H346_11112 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_HashCode_400 )
+		->MinTime( 10.0 )
+		->Unit( benchmark::kNanosecond );
+
+	BENCHMARK( BM_HashCode_H346_11112 )
 		->MinTime( 10.0 )
 		->Unit( benchmark::kNanosecond );
 }

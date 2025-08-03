@@ -11,6 +11,7 @@
 
 #include "LocalIdItems.h"
 #include "MetadataTag.h"
+#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -162,7 +163,7 @@ namespace dnv::vista::sdk
 		 * @return A `size_t` hash code.
 		 * @see equals
 		 */
-		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods

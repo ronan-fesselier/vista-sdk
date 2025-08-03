@@ -23,10 +23,11 @@
 #include "dnv/vista/sdk/CodebookName.h"
 #include "dnv/vista/sdk/internal/ChdDictionary.h"
 #include "dnv/vista/sdk/VIS.h"
+#include "dnv/vista/sdk/utils/Hashing.h"
 
 using namespace dnv::vista::sdk;
 
-// Hash specialization for CodebookName to enable std::unordered_map
+/* Optimized hash specialization for CodebookName using Vista SDK Hash to enable std::unordered_map */
 namespace std
 {
 	template <>
@@ -34,7 +35,7 @@ namespace std
 	{
 		size_t operator()( dnv::vista::sdk::CodebookName key ) const noexcept
 		{
-			return std::hash<int>{}( static_cast<int>( key ) );
+			return static_cast<size_t>( utils::Hash::combine( static_cast<int>( key ) ) );
 		}
 	};
 }

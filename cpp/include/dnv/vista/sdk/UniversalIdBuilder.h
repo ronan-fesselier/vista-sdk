@@ -8,6 +8,7 @@
 
 #include "ImoNumber.h"
 #include "LocalIdBuilder.h"
+#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -127,7 +128,7 @@ namespace dnv::vista::sdk
 		 * @return Hash value combining IMO number and Local ID builder.
 		 * @note This method is guaranteed not to throw (noexcept).
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods

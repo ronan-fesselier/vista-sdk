@@ -602,50 +602,56 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ### Cross-Platform Performance Comparison (MSVC vs Linux Clang)
 
-| Operation         | Windows C++ (MSVC) | Linux C++ (Clang) | Performance Ratio | Status | Notes                      |
-| :---------------- | :----------------- | :---------------- | :---------------- | :----: | :------------------------- |
-| **bcl (400)**     | 1.23 ns            | 2.72 ns           | **2.21x slower**  |   ✅   | Linux significantly slower |
-| **bcl (H346)**    | 2.68 ns            | 2.52 ns           | **1.06x faster**  |   ✅   | Similar performance        |
-| **bclOrd (400)**  | 1.87 ns            | 0.931 ns          | **2.01x faster**  |   ✅   | Linux advantage            |
-| **bclOrd (H346)** | 3.19 ns            | 2.02 ns           | **1.58x faster**  |   ✅   | Strong Linux performance   |
-| **Larson (400)**  | 1.84 ns            | 1.60 ns           | **1.15x faster**  |   ✅   | Slight Windows advantage   |
-| **Larson (H346)** | 4.94 ns            | 3.43 ns           | **1.44x faster**  |   ✅   | Linux improvement          |
-| **crc32 (400)**   | 1.51 ns            | 1.38 ns           | **1.09x faster**  |   ✅   | Slight Linux advantage     |
-| **crc32 (H346)**  | 4.66 ns            | 4.22 ns           | **1.10x faster**  |   ✅   | Marginal improvement       |
-| **fnv (400)**     | 1.52 ns            | 1.17 ns           | **1.30x faster**  |   ✅   | Linux faster               |
-| **fnv (H346)**    | 3.43 ns            | 2.61 ns           | **1.31x faster**  |   ✅   | Good Linux performance     |
+| Operation                 | Windows C++ (MSVC) | Linux C++ (Clang) | Performance Ratio | Status |
+| :------------------------ | :----------------- | :---------------- | :---------------- | :----: |
+| **bcl (400)**             | 1.23 ns            | 2.72 ns           | **2.21x slower**  |   ✅   |
+| **bcl (H346)**            | 2.68 ns            | 2.52 ns           | **1.06x faster**  |   ✅   |
+| **bclOrd (400)**          | 1.87 ns            | 0.931 ns          | **2.01x faster**  |   ✅   |
+| **bclOrd (H346)**         | 3.19 ns            | 2.02 ns           | **1.58x faster**  |   ✅   |
+| **Larson (400)**          | 1.84 ns            | 1.60 ns           | **1.15x faster**  |   ✅   |
+| **Larson (H346)**         | 4.94 ns            | 3.43 ns           | **1.44x faster**  |   ✅   |
+| **crc32 (400)**           | 1.51 ns            | 1.38 ns           | **1.09x faster**  |   ✅   |
+| **crc32 (H346)**          | 4.66 ns            | 4.22 ns           | **1.10x faster**  |   ✅   |
+| **fnv (400)**             | 1.52 ns            | 1.17 ns           | **1.30x faster**  |   ✅   |
+| **fnv (H346)**            | 3.43 ns            | 2.61 ns           | **1.31x faster**  |   ✅   |
+| **HashCode (400)**        | 1.54 ns            | -                 | -                 |   ✅   |
+| **HashCode (H346_11112)** | 3.32 ns            | -                 | -                 |   ✅   |
 
 ### Windows GCC vs MSVC Comparison
 
-| Operation         | MSVC 17.14.10 | GCC 14.2.0   | GCC vs MSVC     | Status | Notes                     |
-| :---------------- | :------------ | :----------- | :-------------- | :----: | :------------------------ |
-| **bcl (400)**     | **1.23 ns**   | 2.90 ns      | **2.4x slower** |   ❌   | **GCC BCL slower**        |
-| **bcl (H346)**    | **2.68 ns**   | 2.95 ns      | **1.1x slower** |   ⚠️   | **Slight regression**     |
-| **bclOrd (400)**  | 1.87 ns       | **0.877 ns** | **2.1x faster** |   ✅   | **GCC BclOrd excellent**  |
-| **bclOrd (H346)** | 3.19 ns       | **2.32 ns**  | **1.4x faster** |   ✅   | **Good improvement**      |
-| **Larson (400)**  | 1.84 ns       | **1.44 ns**  | **1.3x faster** |   ✅   | **Moderate improvement**  |
-| **Larson (H346)** | **4.94 ns**   | 6.04 ns      | **1.2x slower** |   ❌   | **GCC Larson regression** |
-| **crc32 (400)**   | 1.51 ns       | **1.36 ns**  | **1.1x faster** |   ✅   | **Slight improvement**    |
-| **crc32 (H346)**  | 4.66 ns       | **4.35 ns**  | **1.1x faster** |   ✅   | **Minor improvement**     |
-| **fnv (400)**     | 1.52 ns       | **1.18 ns**  | **1.3x faster** |   ✅   | **Good improvement**      |
-| **fnv (H346)**    | 3.43 ns       | **2.53 ns**  | **1.4x faster** |   ✅   | **Notable improvement**   |
+| Operation                  | MSVC 17.14.10 | GCC 14.2.0   | GCC vs MSVC     | Status |
+| :------------------------- | :------------ | :----------- | :-------------- | :----: |
+| **bcl (400)**              | **1.23 ns**   | 2.90 ns      | **2.4x slower** |   ❌   |
+| **bcl (H346)**             | **2.68 ns**   | 2.95 ns      | **1.1x slower** |   ⚠️   |
+| **bclOrd (400)**           | 1.87 ns       | **0.877 ns** | **2.1x faster** |   ✅   |
+| **bclOrd (H346)**          | 3.19 ns       | **2.32 ns**  | **1.4x faster** |   ✅   |
+| **Larson (400)**           | 1.84 ns       | **1.44 ns**  | **1.3x faster** |   ✅   |
+| **Larson (H346)**          | **4.94 ns**   | 6.04 ns      | **1.2x slower** |   ❌   |
+| **crc32 (400)**            | 1.51 ns       | **1.36 ns**  | **1.1x faster** |   ✅   |
+| **crc32 (H346)**           | 4.66 ns       | **4.35 ns**  | **1.1x faster** |   ✅   |
+| **fnv (400)**              | 1.52 ns       | **1.18 ns**  | **1.3x faster** |   ✅   |
+| **fnv (H346)**             | 3.43 ns       | **2.53 ns**  | **1.4x faster** |   ✅   |
+| **BM_HashCode_400**        | 1.54 ns       |              |                 |        |
+| **BM_HashCode_H346_11112** | 3.32 ns       |              |                 |        |
 
 ### Short String Hashing Performance Comparison
 
 #### Cross-Platform C++ Results
 
-| Algorithm         | Windows Time | Linux Time | Performance Ratio | C# Baseline (Win) | C# Baseline (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
-| :---------------- | :----------- | :--------- | :---------------- | :---------------- | :------------------ | :------------------ | :------------------ |
-| **bcl (400)**     | 1.21 ns      | 2.72 ns    | **2.25x slower**  | 1.135 ns          | 1.214 ns            | ❌ **1.07x slower** | ❌ **2.24x slower** |
-| **bcl (H346)**    | 2.63 ns      | 2.52 ns    | **1.04x faster**  | 4.551 ns          | 4.560 ns            | ✅ **1.73x faster** | ✅ **1.81x faster** |
-| **bclOrd (400)**  | 1.83 ns      | 0.931 ns   | **1.96x faster**  | 1.514 ns          | 1.368 ns            | ❌ **1.21x slower** | ✅ **1.47x faster** |
-| **bclOrd (H346)** | 3.13 ns      | 2.02 ns    | **1.55x faster**  | 3.127 ns          | 2.340 ns            | ❌ **1.00x equal**  | ✅ **1.16x faster** |
-| **Larson (400)**  | 1.81 ns      | 1.60 ns    | **1.13x faster**  | 1.219 ns          | 1.244 ns            | ❌ **1.48x slower** | ❌ **1.29x slower** |
-| **Larson (H346)** | 4.85 ns      | 3.43 ns    | **1.41x faster**  | 3.349 ns          | 3.494 ns            | ❌ **1.45x slower** | ✅ **1.02x faster** |
-| **crc32 (400)**   | 1.46 ns      | 1.38 ns    | **1.06x faster**  | 1.215 ns          | 1.235 ns            | ❌ **1.20x slower** | ❌ **1.12x slower** |
-| **crc32 (H346)**  | 4.56 ns      | 4.22 ns    | **1.08x faster**  | 3.259 ns          | 3.441 ns            | ❌ **1.40x slower** | ❌ **1.23x slower** |
-| **fnv (400)**     | 1.48 ns      | 1.17 ns    | **1.26x faster**  | 1.205 ns          | 1.291 ns            | ❌ **1.23x slower** | ✅ **1.10x faster** |
-| **fnv (H346)**    | 3.36 ns      | 2.61 ns    | **1.29x faster**  | 3.337 ns          | 3.741 ns            | ❌ **1.01x equal**  | ✅ **1.43x faster** |
+| Algorithm           | Windows Time | Linux Time | Performance Ratio | C# Baseline (Win) | C# Baseline (Linux) | C++ vs C# (Windows) | C++ vs C# (Linux)   |
+| :------------------ | :----------- | :--------- | :---------------- | :---------------- | :------------------ | :------------------ | :------------------ |
+| **bcl (400)**       | 1.21 ns      | 2.72 ns    | **2.25x slower**  | 1.135 ns          | 1.214 ns            | ❌ **1.07x slower** | ❌ **2.24x slower** |
+| **bcl (H346)**      | 2.63 ns      | 2.52 ns    | **1.04x faster**  | 4.551 ns          | 4.560 ns            | ✅ **1.73x faster** | ✅ **1.81x faster** |
+| **bclOrd (400)**    | 1.83 ns      | 0.931 ns   | **1.96x faster**  | 1.514 ns          | 1.368 ns            | ❌ **1.21x slower** | ✅ **1.47x faster** |
+| **bclOrd (H346)**   | 3.13 ns      | 2.02 ns    | **1.55x faster**  | 3.127 ns          | 2.340 ns            | ❌ **1.00x equal**  | ✅ **1.16x faster** |
+| **Larson (400)**    | 1.81 ns      | 1.60 ns    | **1.13x faster**  | 1.219 ns          | 1.244 ns            | ❌ **1.48x slower** | ❌ **1.29x slower** |
+| **Larson (H346)**   | 4.85 ns      | 3.43 ns    | **1.41x faster**  | 3.349 ns          | 3.494 ns            | ❌ **1.45x slower** | ✅ **1.02x faster** |
+| **crc32 (400)**     | 1.46 ns      | 1.38 ns    | **1.06x faster**  | 1.215 ns          | 1.235 ns            | ❌ **1.20x slower** | ❌ **1.12x slower** |
+| **crc32 (H346)**    | 4.56 ns      | 4.22 ns    | **1.08x faster**  | 3.259 ns          | 3.441 ns            | ❌ **1.40x slower** | ❌ **1.23x slower** |
+| **fnv (400)**       | 1.48 ns      | 1.17 ns    | **1.26x faster**  | 1.205 ns          | 1.291 ns            | ❌ **1.23x slower** | ✅ **1.10x faster** |
+| **fnv (H346)**      | 3.36 ns      | 2.61 ns    | **1.29x faster**  | 3.337 ns          | 3.741 ns            | ❌ **1.01x equal**  | ✅ **1.43x faster** |
+| **HashCode (400)**  | 1.54 ns      | -          | -                 | 1.135 ns          | 1.214 ns            | ❌ **4.24x slower** | ❌ **3.96x slower** |
+| **HashCode (H346)** | 3.32 ns      | -          | -                 | 4.551 ns          | 4.560 ns            | ❌ **3.71x slower** | ❌ **3.71x slower** |
 
 #### Detailed C++ Results
 
@@ -663,6 +669,8 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **crc32Intrinsic_H346** | H346.11112 | 4.56 ns | 4.51 ns | 3.05B      |
 | **fnv_400**             | 400        | 1.48 ns | 1.47 ns | 9.33B      |
 | **fnv_H346_11112**      | H346.11112 | 3.36 ns | 3.34 ns | 4.17B      |
+| **HashCode_400**        | 400        | 1.54 ns | 4.77 ns | 2.94B      |
+| **HashCode_H346_11112** | H346.11112 | 3.32 ns | 16.6 ns | 853M       |
 
 ##### Linux Platform
 
@@ -694,21 +702,23 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 | **Crc32Intrinsic_H346** | H346.11112 | 3.259 ns | 0.0093 ns | 0.0087 ns | 1.40x faster | 0.01x   | 4    | -         | NA          |
 | **Fnv_H346**            | H346.11112 | 3.337 ns | 0.0116 ns | 0.0108 ns | 1.36x faster | 0.01x   | 5    | -         | NA          |
 
-#### Detailed C# Results (Linux)
+#### Detailed C# Results (Windows)
 
 | Method             | Input      |     Mean |     Error |    StdDev |        Ratio | RatioSD | Rank | Allocated | Alloc Ratio |
 | :----------------- | :--------- | -------: | --------: | --------: | -----------: | ------: | ---: | --------: | ----------: |
-| **BclOrd**         | 400        | 1.368 ns | 0.0264 ns | 0.0234 ns | 1.13x slower |   0.03x |    4 |         - |          NA |
-| **Fnv**            | 400        | 1.291 ns | 0.0092 ns | 0.0077 ns | 1.06x slower |   0.01x |    3 |         - |          NA |
-| **Larsson**        | 400        | 1.244 ns | 0.0097 ns | 0.0091 ns | 1.03x slower |   0.01x |    2 |         - |          NA |
-| **Crc32Intrinsic** | 400        | 1.235 ns | 0.0053 ns | 0.0044 ns | 1.02x slower |   0.01x |    2 |         - |          NA |
-| **Bcl**            | 400        | 1.214 ns | 0.0146 ns | 0.0137 ns |     baseline |         |    1 |         - |          NA |
+| **HashCode**       | 400        | 4.316 ns | 0.0369 ns | 0.0345 ns | 3.58x slower |   0.06x |    6 |         - |          NA |
+| **BclOrd**         | 400        | 1.596 ns | 0.0185 ns | 0.0164 ns | 1.32x slower |   0.02x |    5 |         - |          NA |
+| **Fnv**            | 400        | 1.285 ns | 0.0263 ns | 0.0219 ns | 1.07x slower |   0.03x |    4 |         - |          NA |
+| **Larsson**        | 400        | 1.265 ns | 0.0195 ns | 0.0152 ns | 1.05x slower |   0.02x |    3 |         - |          NA |
+| **Crc32Intrinsic** | 400        | 1.221 ns | 0.0084 ns | 0.0079 ns | 1.01x slower |   0.02x |    2 |         - |          NA |
+| **Bcl**            | 400        | 1.205 ns | 0.0201 ns | 0.0178 ns |     baseline |         |    1 |         - |          NA |
 |                    |            |          |           |           |              |         |      |           |             |
-| **Bcl**            | H346.11112 | 4.560 ns | 0.0101 ns | 0.0079 ns |     baseline |         |    5 |         - |          NA |
-| **Fnv**            | H346.11112 | 3.741 ns | 0.1091 ns | 0.1633 ns | 1.26x faster |   0.03x |    4 |         - |          NA |
-| **Larsson**        | H346.11112 | 3.494 ns | 0.0172 ns | 0.0161 ns | 1.31x faster |   0.01x |    3 |         - |          NA |
-| **Crc32Intrinsic** | H346.11112 | 3.441 ns | 0.0109 ns | 0.0091 ns | 1.32x faster |   0.00x |    2 |         - |          NA |
-| **BclOrd**         | H346.11112 | 2.340 ns | 0.0407 ns | 0.0340 ns | 1.95x faster |   0.03x |    1 |         - |          NA |
+| **HashCode**       | H346.11112 | 7.438 ns | 0.0717 ns | 0.0598 ns | 1.62x slower |   0.02x |    6 |         - |          NA |
+| **Bcl**            | H346.11112 | 4.604 ns | 0.0232 ns | 0.0205 ns |     baseline |         |    5 |         - |          NA |
+| **Larsson**        | H346.11112 | 3.451 ns | 0.0233 ns | 0.0218 ns | 1.33x faster |   0.01x |    4 |         - |          NA |
+| **Fnv**            | H346.11112 | 3.381 ns | 0.0138 ns | 0.0122 ns | 1.36x faster |   0.01x |    3 |         - |          NA |
+| **Crc32Intrinsic** | H346.11112 | 3.323 ns | 0.0598 ns | 0.0499 ns | 1.39x faster |   0.02x |    2 |         - |          NA |
+| **BclOrd**         | H346.11112 | 3.203 ns | 0.0197 ns | 0.0165 ns | 1.44x faster |   0.01x |    1 |         - |          NA |
 
 ---
 

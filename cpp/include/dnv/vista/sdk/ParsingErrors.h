@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "config/Platform.h"
+#include "utils/Hashing.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -123,7 +126,7 @@ namespace dnv::vista::sdk
 		 * @brief Gets the hash code for this ParsingErrors object.
 		 * @return The hash code as an unsigned integer.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods

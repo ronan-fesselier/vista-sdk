@@ -6,6 +6,7 @@
 #pragma once
 
 #include "config/AlgorithmConstants.h"
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -47,13 +48,8 @@ namespace dnv::vista::sdk
 		return m_localId;
 	}
 
-	inline size_t UniversalId::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int UniversalId::hashCode() const noexcept
 	{
-		size_t hash = 0;
-
-		hash ^= m_imoNumber.hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-		hash ^= m_localId.hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-
-		return hash;
+		return utils::Hash::combine( m_imoNumber, m_localId );
 	}
 }

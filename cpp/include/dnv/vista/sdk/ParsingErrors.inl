@@ -6,6 +6,7 @@
 #pragma once
 
 #include "config/AlgorithmConstants.h"
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -46,7 +47,7 @@ namespace dnv::vista::sdk
 	// Public static members
 	//----------------------------------------------
 
-	const ParsingErrors& ParsingErrors::empty()
+	inline const ParsingErrors& ParsingErrors::empty()
 	{
 		static const ParsingErrors instance{};
 
@@ -57,26 +58,14 @@ namespace dnv::vista::sdk
 	// Accessors
 	//----------------------------------------------
 
-	size_t ParsingErrors::count() const noexcept
+	inline size_t ParsingErrors::count() const noexcept
 	{
 		return m_errors.size();
 	}
 
-	size_t ParsingErrors::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int ParsingErrors::hashCode() const noexcept
 	{
-		size_t hash = 0;
-		std::hash<std::string> stringHasher;
-
-		for ( const auto& error : m_errors )
-		{
-			size_t typeHash = stringHasher( error.type );
-			size_t messageHash = stringHasher( error.message );
-
-			hash ^= typeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-			hash ^= messageHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-		}
-
-		return hash;
+		return utils::Hash::hashContainer( m_errors );
 	}
 
 	//----------------------------------------------
@@ -134,12 +123,12 @@ namespace dnv::vista::sdk
 	// Operators
 	//----------------------------
 
-	bool inline ParsingErrors::ErrorEntry::operator==( const ErrorEntry & other ) const noexcept
+	inline bool ParsingErrors::ErrorEntry::operator==( const ErrorEntry& other ) const noexcept
 	{
 		return type == other.type && message == other.message;
 	}
 
-	bool inline ParsingErrors::ErrorEntry::operator!=( const ErrorEntry & other ) const noexcept
+	inline bool ParsingErrors::ErrorEntry::operator!=( const ErrorEntry& other ) const noexcept
 	{
 		return !( *this == other );
 	}

@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "config/Platform.h"
+#include "utils/Hashing.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -34,8 +37,8 @@ namespace dnv::vista::sdk
 	// Accessors
 	//----------------------------------------------
 
-	size_t ImoNumber::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int ImoNumber::hashCode() const noexcept
 	{
-		return static_cast<size_t>( static_cast<uint32_t>( m_value ) );
+		return utils::Hash::hash( m_value );
 	}
 }

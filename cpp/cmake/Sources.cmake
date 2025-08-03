@@ -10,6 +10,7 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/Platform.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h
 
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/Hashing.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringBuilderPool.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringMap.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h

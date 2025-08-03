@@ -7,6 +7,8 @@
 
 #include "CodebookName.h"
 #include "utils/StringBuilderPool.h"
+#include "config/AlgorithmConstants.h"
+#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -130,56 +132,19 @@ namespace dnv::vista::sdk
 		return tags;
 	}
 
-	VISTA_SDK_CPP_FORCE_INLINE size_t LocalIdBuilder::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int LocalIdBuilder::hashCode() const noexcept
 	{
-		size_t hash = constants::FNV_OFFSET_BASIS;
-
-		auto addToHash = [&hash]( size_t value ) {
-			hash = hash * 31 + value;
-		};
-
-		if ( m_items.primaryItem().has_value() )
-		{
-			addToHash( m_items.primaryItem()->hashCode() );
-		}
-		if ( m_items.secondaryItem().has_value() )
-		{
-			addToHash( m_items.secondaryItem()->hashCode() );
-		}
-		if ( m_quantity.has_value() )
-		{
-			addToHash( m_quantity->hashCode() );
-		}
-		if ( m_calculation.has_value() )
-		{
-			addToHash( m_calculation->hashCode() );
-		}
-		if ( m_content.has_value() )
-		{
-			addToHash( m_content->hashCode() );
-		}
-		if ( m_position.has_value() )
-		{
-			addToHash( m_position->hashCode() );
-		}
-		if ( m_state.has_value() )
-		{
-			addToHash( m_state->hashCode() );
-		}
-		if ( m_command.has_value() )
-		{
-			addToHash( m_command->hashCode() );
-		}
-		if ( m_type.has_value() )
-		{
-			addToHash( m_type->hashCode() );
-		}
-		if ( m_detail.has_value() )
-		{
-			addToHash( m_detail->hashCode() );
-		}
-
-		return hash;
+		return utils::Hash::combine(
+			m_items.primaryItem(),
+			m_items.secondaryItem(),
+			m_quantity,
+			m_calculation,
+			m_content,
+			m_position,
+			m_state,
+			m_command,
+			m_type,
+			m_detail );
 	}
 
 	//----------------------------------------------

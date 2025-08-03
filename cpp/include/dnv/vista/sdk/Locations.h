@@ -10,6 +10,9 @@
 
 #include "LocationsDto.h"
 
+#include "config/Platform.h"
+#include "utils/Hashing.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -125,7 +128,13 @@ namespace dnv::vista::sdk
 		 * @brief Gets the string value of the location.
 		 * @return A constant reference to the location string value.
 		 */
-		[[nodiscard]] const std::string& value() const noexcept;
+		[[nodiscard]] inline const std::string& value() const noexcept;
+
+		/**
+		 * @brief Gets the hash code of the location based on its string value.
+		 * @return The hash code.
+		 */
+		VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// Conversion
@@ -254,7 +263,7 @@ namespace dnv::vista::sdk
 		 * @brief Gets the hash code of the relative location, based on its `code`.
 		 * @return The hash code.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 	private:
 		//----------------------------------------------

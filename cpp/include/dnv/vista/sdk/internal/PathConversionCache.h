@@ -11,6 +11,7 @@
 
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VISVersion.h"
+#include "dnv/vista/sdk/utils/Hashing.h"
 
 namespace dnv::vista::sdk::internal
 {
@@ -44,13 +45,9 @@ namespace dnv::vista::sdk::internal
 	 */
 	struct PathConversionKeyHash
 	{
-		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE std::size_t operator()( const PathConversionKey& key ) const noexcept
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE size_t operator()( const PathConversionKey& key ) const noexcept
 		{
-			std::size_t h1 = std::hash<int>{}( static_cast<int>( key.sourceVersion ) );
-			std::size_t h2 = std::hash<int>{}( static_cast<int>( key.targetVersion ) );
-			std::size_t h3 = utils::StringViewHash{}( key.pathString );
-
-			return h1 ^ ( h2 << 1 ) ^ ( h3 << 2 );
+			return static_cast<size_t>( utils::Hash::combine( key.sourceVersion, key.targetVersion, key.pathString ) );
 		}
 	};
 

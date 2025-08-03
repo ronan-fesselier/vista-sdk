@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/Platform.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -59,7 +61,7 @@ namespace dnv::vista::sdk
 		return m_builder.metadataTags();
 	}
 
-	inline size_t LocalId::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int LocalId::hashCode() const noexcept
 	{
 		return m_builder.hashCode();
 	}

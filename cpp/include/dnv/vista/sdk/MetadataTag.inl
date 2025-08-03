@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/Platform.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -59,9 +61,9 @@ namespace dnv::vista::sdk
 		return m_custom ? '~' : '-';
 	}
 
-	inline size_t MetadataTag::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int MetadataTag::hashCode() const noexcept
 	{
-		return std::hash<std::string_view>{}( m_value );
+		return utils::Hash::combine( m_value );
 	}
 
 	//-------------------------------------------------------------------------

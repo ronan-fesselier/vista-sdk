@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "config/Platform.h"
+#include "utils/Hashing.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -122,7 +125,7 @@ namespace dnv::vista::sdk
 		 * The hash code is based solely on the tag's value.
 		 * @return The hash code of the tag's value.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//-------------------------------------------------------------------------
 		// State inspection methods

@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/Platform.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -44,21 +46,9 @@ namespace dnv::vista::sdk
 		return m_localIdBuilder;
 	}
 
-	inline size_t UniversalIdBuilder::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int UniversalIdBuilder::hashCode() const noexcept
 	{
-		size_t hash = 0;
-
-		if ( m_imoNumber.has_value() )
-		{
-			hash ^= m_imoNumber->hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-		}
-
-		if ( m_localIdBuilder.has_value() )
-		{
-			hash ^= m_localIdBuilder->hashCode() + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-		}
-
-		return hash;
+		return utils::Hash::combine( m_imoNumber, m_localIdBuilder );
 	}
 
 	//----------------------------------------------

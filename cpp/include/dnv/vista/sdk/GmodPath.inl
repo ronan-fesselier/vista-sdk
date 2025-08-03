@@ -6,6 +6,7 @@
 #pragma once
 
 #include "config/AlgorithmConstants.h"
+#include "config/Platform.h"
 
 #include "Gmod.h"
 #include "Locations.h"
@@ -201,33 +202,9 @@ namespace dnv::vista::sdk
 		return m_parents.size() + ( m_node.has_value() ? 1 : 0 );
 	}
 
-	inline size_t GmodPath::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int GmodPath::hashCode() const noexcept
 	{
-		if ( m_cachedHashCode.has_value() )
-		{
-			return m_cachedHashCode.value();
-		}
-
-		if ( !m_node.has_value() )
-		{
-			m_cachedHashCode = 0;
-
-			return 0;
-		}
-
-		size_t hash = 0;
-		for ( const auto& parent : m_parents )
-		{
-			size_t nodeHash = parent.hashCode();
-			hash ^= nodeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-		}
-
-		size_t nodeHash = m_node->hashCode();
-		hash ^= nodeHash + constants::HASH_MAGIC + ( hash << 6 ) + ( hash >> 2 );
-
-		m_cachedHashCode = hash;
-
-		return hash;
+		return utils::Hash::hashSequence( m_parents, m_node.value() );
 	}
 
 	//----------------------------------------------

@@ -10,6 +10,7 @@
 #include "GmodNode.h"
 
 #include "config/Platform.h"
+#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -142,7 +143,7 @@ namespace dnv::vista::sdk
 		 *          Paths that are equal according to `operator==` must produce the same hash code.
 		 * @return A `size_t` hash code value suitable for use in hash-based containers.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods
@@ -297,7 +298,6 @@ namespace dnv::vista::sdk
 		const Gmod* m_gmod;
 		std::optional<GmodNode> m_node;
 		std::vector<GmodNode> m_parents;
-		mutable std::optional<size_t> m_cachedHashCode;
 
 	private:
 		//----------------------------------------------

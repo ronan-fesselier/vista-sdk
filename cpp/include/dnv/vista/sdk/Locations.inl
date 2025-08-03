@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/Platform.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -41,6 +43,11 @@ namespace dnv::vista::sdk
 	const inline std::string& Location::value() const noexcept
 	{
 		return m_value;
+	}
+
+	VISTA_SDK_CPP_FORCE_INLINE int Location::hashCode() const noexcept
+	{
+		return utils::Hash::combine( m_value );
 	}
 
 	//=====================================================================
@@ -85,8 +92,8 @@ namespace dnv::vista::sdk
 		return m_location;
 	}
 
-	inline size_t RelativeLocation::hashCode() const noexcept
+	VISTA_SDK_CPP_FORCE_INLINE int RelativeLocation::hashCode() const noexcept
 	{
-		return std::hash<char>{}( m_code );
+		return utils::Hash::combine( m_code );
 	}
 }

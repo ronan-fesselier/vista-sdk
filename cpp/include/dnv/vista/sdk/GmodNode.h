@@ -11,6 +11,7 @@
 #pragma once
 
 #include "utils/StringMap.h"
+#include "utils/Hashing.h"
 
 #include "GmodDto.h"
 #include "Locations.h"
@@ -314,7 +315,7 @@ namespace dnv::vista::sdk
 		 *          Nodes that are equal according to `operator==` must produce the same hash code.
 		 * @return A `size_t` hash code value.
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// Relationship accessors

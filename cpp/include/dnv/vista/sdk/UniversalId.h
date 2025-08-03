@@ -8,6 +8,7 @@
 
 #include "ImoNumber.h"
 #include "LocalId.h"
+#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -116,7 +117,7 @@ namespace dnv::vista::sdk
 		 * @return Hash value suitable for std::unordered_set/map.
 		 * @note This method is guaranteed not to throw (noexcept).
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// String conversion

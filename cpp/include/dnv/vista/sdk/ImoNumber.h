@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "config/Platform.h"
+
 namespace dnv::vista::sdk
 {
 	//=====================================================================
@@ -112,7 +114,7 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Hash function for ImoNumber
 		 */
-		[[nodiscard]] inline size_t hashCode() const noexcept;
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
 
 		//----------------------------------------------
 		// String conversion
