@@ -212,9 +212,7 @@ namespace dnv::vista::sdk
 			m_errors.reserve( std::max( static_cast<size_t>( 8 ), m_errors.capacity() * 2 ) );
 		}
 
-		std::string_view message = predefinedErrorMessage( state );
-
-		m_errors.emplace_back( state, std::string{ message } );
+		m_errors.emplace_back( state, predefinedErrorMessage( state ) );
 
 		return *this;
 	}
@@ -230,19 +228,11 @@ namespace dnv::vista::sdk
 
 		if ( message.has_value() )
 		{
-			if ( !message->empty() )
-			{
-				m_errors.emplace_back( state, *message );
-			}
-			else
-			{
-				m_errors.emplace_back( state, std::string{} );
-			}
+			m_errors.emplace_back( state, *message );
 		}
 		else
 		{
-			std::string_view defaultMessage = predefinedErrorMessage( state );
-			m_errors.emplace_back( state, std::string{ defaultMessage } );
+			m_errors.emplace_back( state, predefinedErrorMessage( state ) );
 		}
 
 		return *this;
