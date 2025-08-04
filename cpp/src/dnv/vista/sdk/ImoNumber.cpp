@@ -37,17 +37,8 @@ namespace dnv::vista::sdk
 			throw std::invalid_argument( "Invalid IMO number: " + value );
 		}
 
-		m_value = static_cast<int>( *result );
+		m_value = result->m_value;
 	}
-
-	ImoNumber::ImoNumber( int value, [[maybe_unused]] bool bUnused ) noexcept
-		: m_value{ value }
-	{
-	}
-
-	ImoNumber::ImoNumber( const ImoNumber& ) = default; /* TODO - transfer in .h file later */
-
-	ImoNumber::ImoNumber( ImoNumber&& ) noexcept = default; /* TODO - transfer in .h file later */
 
 	//----------------------------------------------
 	// String conversion
@@ -74,35 +65,31 @@ namespace dnv::vista::sdk
 		For example, for IMO 9074729: (9×7) + (0×6) + (7×5) + (4×4) + (7×3) + (2×2) = 139
 		The rightmost digit (9) must equal checksum mod 10 (139 % 10 = 9)
 	*/
-	bool ImoNumber::isValid( int imoNumber )
+	bool ImoNumber::isValid( int imoNumber ) noexcept
 	{
 		if ( imoNumber < 1000000 || imoNumber > 9999999 )
 		{
-			fmt::print( stderr, "ERROR: IMO number outside valid range: {}\n", imoNumber );
-
 			return false;
 		}
 
 		int digits[7];
 		int temp = imoNumber;
-		for ( int i = 6; i >= 0; --i )
+		for ( int i = 0; i < 7; ++i )
 		{
 			digits[i] = temp % 10;
 			temp /= 10;
 		}
 
 		int checkSum = 0;
-		for ( int i = 0; i < 6; ++i )
+		for ( int i = 1; i < 7; ++i )
 		{
-			checkSum += digits[i] * ( 7 - i );
+			checkSum += digits[i] * ( i + 1 );
 		}
 
 		int calculatedCheckDigit = checkSum % 10;
-		int providedCheckDigit = digits[6];
+		int providedCheckDigit = digits[0];
 
-		bool isValid = ( providedCheckDigit == calculatedCheckDigit );
-
-		return isValid;
+		return ( providedCheckDigit == calculatedCheckDigit );
 	}
 
 	//----------------------------------------------
@@ -165,30 +152,20 @@ namespace dnv::vista::sdk
 			sv = sv.substr( 3 );
 		}
 
+		/* Parse the numeric part using std::from_chars for fast, locale-independent conversion */
 		int num = 0;
 		auto [ptr, ec] = std::from_chars( sv.data(), sv.data() + sv.length(), num );
 
 		if ( ec != std::errc() )
 		{
-			if ( ec == std::errc::invalid_argument )
-			{
-				fmt::print( stderr, "ERROR: Failed to convert '{}' to integer\n", fmt::string_view( sv.data(), sv.size() ) );
-			}
-			else if ( ec == std::errc::result_out_of_range )
-			{
-				fmt::print( stderr, "ERROR: IMO number out of valid integer range: '{}'\n", fmt::string_view( sv.data(), sv.size() ) );
-			}
-
 			return std::nullopt;
 		}
 
 		if ( num == 0 || !isValid( num ) )
 		{
-			fmt::print( stderr, "ERROR: Invalid IMO number format or checksum: {}\n", num );
-
 			return std::nullopt;
 		}
 
-		return ImoNumber( num, true );
+		return ImoNumber( num );
 	}
 }

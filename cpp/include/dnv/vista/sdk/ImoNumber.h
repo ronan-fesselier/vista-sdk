@@ -46,25 +46,14 @@ namespace dnv::vista::sdk
 		 */
 		explicit ImoNumber( const std::string& value );
 
-	private:
-		/**
-		 * @brief Private constructor for internal use, typically by tryParse.
-		 * Assumes the integer value has already been validated.
-		 * @param validatedValue The validated IMO number as an integer.
-		 * @param bUnused An unused parameter to differentiate this constructor
-		 *                from the public integer constructor.
-		 */
-		explicit ImoNumber( int value, bool bUnused ) noexcept;
-
-	public:
 		/** @brief Default constructor. */
 		ImoNumber() = delete;
 
 		/** @brief Copy constructor */
-		ImoNumber( const ImoNumber& );
+		ImoNumber( const ImoNumber& ) = default;
 
 		/** @brief Move constructor */
-		ImoNumber( ImoNumber&& ) noexcept;
+		ImoNumber( ImoNumber&& ) noexcept = default;
 
 		//----------------------------------------------
 		// Destruction
@@ -137,7 +126,7 @@ namespace dnv::vista::sdk
 		 * @param imoNumber The integer value to check (e.g., 9074729).
 		 * @return True if the integer is a valid IMO number, false otherwise.
 		 */
-		[[nodiscard]] static bool isValid( int imoNumber );
+		[[nodiscard]] static bool isValid( int imoNumber ) noexcept;
 
 		//----------------------------------------------
 		// Parsing
