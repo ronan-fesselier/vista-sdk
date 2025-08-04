@@ -166,17 +166,8 @@ namespace dnv::vista::sdk
 
 	LocalIdParsingErrorBuilder::LocalIdParsingErrorBuilder()
 	{
-		/* Memory: 8 × sizeof(std::pair<LocalIdParsingState, std::string>) = 8 × (4 + 32) = ~288 bytes */
+		/* 8 × sizeof(std::pair<LocalIdParsingState, std::string>) = 8 × (4 + 32) = ~288 bytes */
 		m_errors.reserve( 8 );
-	}
-
-	//----------------------------------------------
-	// Static factory method
-	//----------------------------------------------
-
-	LocalIdParsingErrorBuilder LocalIdParsingErrorBuilder::create()
-	{
-		return LocalIdParsingErrorBuilder{};
 	}
 
 	//----------------------------------------------
@@ -219,21 +210,15 @@ namespace dnv::vista::sdk
 
 	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError(
 		LocalIdParsingState state,
-		const std::optional<std::string>& message )
+		const std::string& message )
 	{
 		if ( m_errors.size() == m_errors.capacity() )
 		{
+			/* 8 × sizeof(std::pair<LocationValidationResult, std::string>) = 8 × (4 + 32) = ~288 bytes */
 			m_errors.reserve( std::max( static_cast<size_t>( 8 ), m_errors.capacity() * 2 ) );
 		}
 
-		if ( message.has_value() )
-		{
-			m_errors.emplace_back( state, *message );
-		}
-		else
-		{
-			m_errors.emplace_back( state, predefinedErrorMessage( state ) );
-		}
+		m_errors.emplace_back( state, message );
 
 		return *this;
 	}

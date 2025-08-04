@@ -251,7 +251,7 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		LocationParsingErrorBuilder errorBuilder;
+		internal::LocationParsingErrorBuilder errorBuilder;
 
 		return tryParseInternal( value.value(), value, location, errorBuilder );
 	}
@@ -260,9 +260,9 @@ namespace dnv::vista::sdk
 	{
 		if ( !value.has_value() )
 		{
-			LocationParsingErrorBuilder errorBuilder = LocationParsingErrorBuilder::create();
+			internal::LocationParsingErrorBuilder errorBuilder = internal::LocationParsingErrorBuilder::create();
 
-			errorBuilder.addError( LocationValidationResult::NullOrWhiteSpace, "Location is null" );
+			errorBuilder.addError( internal::LocationValidationResult::NullOrWhiteSpace, "Location is null" );
 
 			errors = errorBuilder.build();
 
@@ -271,7 +271,7 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		LocationParsingErrorBuilder errorBuilder = LocationParsingErrorBuilder::create();
+		internal::LocationParsingErrorBuilder errorBuilder = internal::LocationParsingErrorBuilder::create();
 
 		bool result = tryParseInternal( value.value(), value, location, errorBuilder );
 		errors = errorBuilder.build();
@@ -281,19 +281,21 @@ namespace dnv::vista::sdk
 
 	bool Locations::tryParse( std::string_view value, Location& location ) const
 	{
-		LocationParsingErrorBuilder errorBuilder;
+		internal::LocationParsingErrorBuilder errorBuilder;
 
 		return tryParseInternal( value, std::nullopt, location, errorBuilder );
 	}
 
 	bool Locations::tryParse( std::string_view value, Location& location, ParsingErrors& errors ) const
 	{
-		LocationParsingErrorBuilder errorBuilder;
+		internal::LocationParsingErrorBuilder errorBuilder;
+
 		bool result = tryParseInternal( value, std::nullopt, location, errorBuilder );
 		if ( !result )
 		{
 			errors = errorBuilder.build();
 		}
+
 		return result;
 	}
 
@@ -326,7 +328,7 @@ namespace dnv::vista::sdk
 	bool Locations::tryParseInternal( std::string_view span,
 		const std::optional<std::string>& originalStr,
 		Location& location,
-		LocationParsingErrorBuilder& errorBuilder ) const
+		internal::LocationParsingErrorBuilder& errorBuilder ) const
 	{
 		auto displayString = [&span, &originalStr]() -> std::string {
 			return originalStr.has_value() ? *originalStr : std::string{ span };
@@ -334,7 +336,7 @@ namespace dnv::vista::sdk
 
 		if ( span.empty() )
 		{
-			errorBuilder.addError( LocationValidationResult::NullOrWhiteSpace,
+			errorBuilder.addError( internal::LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 
 			return false;
@@ -344,7 +346,7 @@ namespace dnv::vista::sdk
 
 		if ( isOnlyWhitespace )
 		{
-			errorBuilder.addError( LocationValidationResult::NullOrWhiteSpace,
+			errorBuilder.addError( internal::LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 
 			return false;
@@ -365,7 +367,7 @@ namespace dnv::vista::sdk
 			{
 				if ( prevDigitIndex != -1 && prevDigitIndex != static_cast<int>( i ) - 1 )
 				{
-					errorBuilder.addError( LocationValidationResult::Invalid,
+					errorBuilder.addError( internal::LocationValidationResult::Invalid,
 						"Invalid location: cannot have multiple separated digits in location: '" + displayString() + "'" );
 
 					return false;
@@ -373,7 +375,7 @@ namespace dnv::vista::sdk
 
 				if ( charsStartIndex != -1 )
 				{
-					errorBuilder.addError( LocationValidationResult::InvalidOrder,
+					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder,
 						"Invalid location: numeric location should start before location code(s) in location: '" + displayString() + "'" );
 
 					return false;
@@ -425,7 +427,7 @@ namespace dnv::vista::sdk
 					}
 				}
 
-				errorBuilder.addError( LocationValidationResult::InvalidCode,
+				errorBuilder.addError( internal::LocationValidationResult::InvalidCode,
 					"Invalid location code: '" + displayString() + "' with invalid location code(s): " + invalidChars );
 
 				return false;
@@ -439,7 +441,7 @@ namespace dnv::vista::sdk
 				if ( !charDict.tryAdd( group, ch, existingValue ) )
 				{
 					std::string groupName = groupNameToString( group );
-					errorBuilder.addError( LocationValidationResult::Invalid,
+					errorBuilder.addError( internal::LocationValidationResult::Invalid,
 						"Invalid location: Multiple '" +
 							groupName +
 							"' values. Got both '" +
@@ -454,7 +456,7 @@ namespace dnv::vista::sdk
 				char prevCh = span[i - 1];
 				if ( !std::isdigit( prevCh ) && ch < prevCh )
 				{
-					errorBuilder.addError( LocationValidationResult::InvalidOrder,
+					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder,
 						"Invalid location: '" + displayString() + "' not alphabetically sorted" );
 
 					return false;

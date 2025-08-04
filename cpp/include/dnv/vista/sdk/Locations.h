@@ -21,7 +21,11 @@ namespace dnv::vista::sdk
 
 	enum class VisVersion;
 	class ParsingErrors;
-	class LocationParsingErrorBuilder;
+
+	namespace internal
+	{
+		class LocationParsingErrorBuilder;
+	}
 
 	//=====================================================================
 	// Enumerations
@@ -538,7 +542,7 @@ namespace dnv::vista::sdk
 		bool tryParseInternal( std::string_view span,
 			const std::optional<std::string>& originalStr,
 			Location& location,
-			LocationParsingErrorBuilder& errorBuilder ) const;
+			internal::LocationParsingErrorBuilder& errorBuilder ) const;
 
 		//----------------------------------------------
 		// Private member variables

@@ -9,7 +9,7 @@
 
 #include "dnv/vista/sdk/ParsingErrors.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	namespace
 	{
@@ -26,6 +26,7 @@ namespace dnv::vista::sdk
 		static constexpr std::string_view INVALID_ORDER_RESULT = "InvalidOrder";
 		static constexpr std::string_view NULL_OR_WHITESPACE_RESULT = "NullOrWhiteSpace";
 		static constexpr std::string_view VALID_RESULT = "Valid";
+		static constexpr std::string_view UNKNOWN_RESULT = "Unknown";
 
 		//----------------------------------------------
 		// Enum to string view conversion function
@@ -45,17 +46,29 @@ namespace dnv::vista::sdk
 			switch ( result )
 			{
 				case LocationValidationResult::Invalid:
+				{
 					return INVALID_RESULT;
+				}
 				case LocationValidationResult::InvalidCode:
+				{
 					return INVALID_CODE_RESULT;
+				}
 				case LocationValidationResult::InvalidOrder:
+				{
 					return INVALID_ORDER_RESULT;
+				}
 				case LocationValidationResult::NullOrWhiteSpace:
+				{
 					return NULL_OR_WHITESPACE_RESULT;
+				}
 				case LocationValidationResult::Valid:
+				{
 					return VALID_RESULT;
+				}
 				default:
-					return "Unknown";
+				{
+					return UNKNOWN_RESULT;
+				}
 			}
 		}
 	}
@@ -72,15 +85,6 @@ namespace dnv::vista::sdk
 	{
 		/* Memory: 8 × sizeof(std::pair<LocationValidationResult, std::string>) = 8 × (4 + 32) = ~288 bytes */
 		m_errors.reserve( 8 );
-	}
-
-	//----------------------------------------------
-	// Static factory method
-	//----------------------------------------------
-
-	LocationParsingErrorBuilder LocationParsingErrorBuilder::create()
-	{
-		return LocationParsingErrorBuilder();
 	}
 
 	//----------------------------------------------
@@ -111,7 +115,7 @@ namespace dnv::vista::sdk
 
 	LocationParsingErrorBuilder& LocationParsingErrorBuilder::addError(
 		LocationValidationResult validationResult,
-		const std::optional<std::string>& message )
+		const std::string& message )
 	{
 		if ( m_errors.size() == m_errors.capacity() )
 		{
@@ -119,21 +123,7 @@ namespace dnv::vista::sdk
 			m_errors.reserve( std::max( static_cast<size_t>( 8 ), m_errors.capacity() * 2 ) );
 		}
 
-		if ( message.has_value() )
-		{
-			if ( !message->empty() )
-			{
-				m_errors.emplace_back( validationResult, *message );
-			}
-			else
-			{
-				m_errors.emplace_back( validationResult, std::string{} );
-			}
-		}
-		else
-		{
-			m_errors.emplace_back( validationResult, std::string{} );
-		}
+		m_errors.emplace_back( validationResult, message );
 
 		return *this;
 	}

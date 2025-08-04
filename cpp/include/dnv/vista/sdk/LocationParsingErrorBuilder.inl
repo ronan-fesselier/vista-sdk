@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::internal
 {
 	//=====================================================================
 	// LocationParsingErrorBuilder class
@@ -15,8 +15,17 @@ namespace dnv::vista::sdk
 	// State inspection methods
 	//----------------------------------------------
 
-	inline bool LocationParsingErrorBuilder::hasError() const
+	inline bool LocationParsingErrorBuilder::hasError() const noexcept
 	{
 		return !m_errors.empty();
+	}
+
+	//----------------------------------------------
+	// Static factory method
+	//----------------------------------------------
+
+	inline LocationParsingErrorBuilder LocationParsingErrorBuilder::create()
+	{
+		return LocationParsingErrorBuilder();
 	}
 }

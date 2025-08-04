@@ -104,7 +104,7 @@ namespace dnv::vista::sdk
 		 * @brief Checks if any errors have been added to the builder.
 		 * @return `true` if at least one error has been added, `false` otherwise.
 		 */
-		[[nodiscard]] inline bool hasError() const;
+		[[nodiscard]] inline bool hasError() const noexcept;
 
 		//----------------------------------------------
 		// Static factory method
@@ -115,7 +115,7 @@ namespace dnv::vista::sdk
 		 * @details Provides a clear entry point for creating a builder.
 		 * @return A new instance of `LocalIdParsingErrorBuilder`.
 		 */
-		[[nodiscard]] static LocalIdParsingErrorBuilder create();
+		[[nodiscard]] inline static LocalIdParsingErrorBuilder create();
 
 		//----------------------------------------------
 		// ParsingErrors construction
@@ -142,13 +142,13 @@ namespace dnv::vista::sdk
 		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state );
 
 		/**
-		 * @brief Adds an error associated with a specific parsing state, with optional custom message.
-		 * @details If message has no value, falls back to predefined message for the state.
+		 * @brief Adds an error associated with a specific parsing state, with custom message.
+		 * @details Adds the provided custom message for the specified parsing state.
 		 * @param[in] state The `LocalIdParsingState` where the error occurred.
-		 * @param[in] message Optional custom error message. If nullopt, uses predefined message.
+		 * @param[in] message Custom error message to associate with the state.
 		 * @return A reference to this builder instance for method chaining.
 		 */
-		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state, const std::optional<std::string>& message );
+		LocalIdParsingErrorBuilder& addError( LocalIdParsingState state, const std::string& message );
 
 	private:
 		//----------------------------------------------

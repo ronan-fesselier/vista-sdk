@@ -15,8 +15,17 @@ namespace dnv::vista::sdk
 	// State inspection methods
 	//----------------------------------------------
 
-	inline bool LocalIdParsingErrorBuilder::hasError() const
+	inline bool LocalIdParsingErrorBuilder::hasError() const noexcept
 	{
 		return !m_errors.empty();
+	}
+
+	//----------------------------------------------
+	// Static factory method
+	//----------------------------------------------
+
+	inline LocalIdParsingErrorBuilder LocalIdParsingErrorBuilder::create()
+	{
+		return LocalIdParsingErrorBuilder{};
 	}
 }
