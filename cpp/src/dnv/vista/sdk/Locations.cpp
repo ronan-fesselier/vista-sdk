@@ -146,13 +146,11 @@ namespace dnv::vista::sdk
 		{
 			Location loc{ std::string{ 1, relLocDto.code() } };
 
-			RelativeLocation relLoc(
+			m_relativeLocations.emplace_back(
 				relLocDto.code(),
 				relLocDto.name(),
 				loc,
 				relLocDto.definition() );
-
-			m_relativeLocations.push_back( relLoc );
 
 			if ( relLocDto.code() == 'H' || relLocDto.code() == 'V' )
 			{
@@ -196,7 +194,11 @@ namespace dnv::vista::sdk
 			}
 
 			m_reversedGroups[relLocDto.code()] = key;
-			m_groups[key].push_back( relLoc );
+			m_groups[key].emplace_back(
+				relLocDto.code(),
+				relLocDto.name(),
+				loc,
+				relLocDto.definition() );
 		}
 	}
 
@@ -233,7 +235,7 @@ namespace dnv::vista::sdk
 		Location location;
 		if ( !tryParse( locationStr, location ) )
 		{
-			throw std::invalid_argument( fmt::format( "Invalid location: ", locationStr ) );
+			throw std::invalid_argument( fmt::format( "Invalid location: {}", locationStr ) );
 		}
 
 		return location;
@@ -411,7 +413,7 @@ namespace dnv::vista::sdk
 			if ( !valid )
 			{
 				std::string invalidChars;
-				std::string source = displayString();
+				const std::string& source = displayString();
 				bool first = true;
 
 				for ( char c : source )
@@ -423,7 +425,9 @@ namespace dnv::vista::sdk
 							invalidChars += ",";
 						}
 						first = false;
-						invalidChars += std::string{ "'" } + std::string( 1, c ) + std::string{ "'" };
+						invalidChars += "'";
+						invalidChars += c;
+						invalidChars += "'";
 					}
 				}
 
@@ -440,12 +444,18 @@ namespace dnv::vista::sdk
 
 				if ( !charDict.tryAdd( group, ch, existingValue ) )
 				{
-					std::string groupName = groupNameToString( group );
-					errorBuilder.addError( internal::LocationValidationResult::Invalid,
-						"Invalid location: Multiple '" +
-							groupName +
-							"' values. Got both '" +
-							std::string( 1, existingValue.value() ) + "' and '" + std::string( 1, ch ) + "' in '" + displayString() + "'" );
+					const std::string& groupName = groupNameToString( group );
+					std::string errorMsg = "Invalid location: Multiple '";
+					errorMsg += groupName;
+					errorMsg += "' values. Got both '";
+					errorMsg += existingValue.value();
+					errorMsg += "' and '";
+					errorMsg += ch;
+					errorMsg += "' in '";
+					errorMsg += displayString();
+					errorMsg += "'";
+
+					errorBuilder.addError( internal::LocationValidationResult::Invalid, errorMsg );
 
 					return false;
 				}

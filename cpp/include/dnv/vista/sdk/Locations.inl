@@ -1,6 +1,6 @@
 /**
- * @file UniversalIdBuilder.inl
- * @brief Inline implementations for performance-critical UniversalIdBuilder operations
+ * @file Locations.inl
+ * @brief Inline implementations for performance-critical Locations operations
  */
 
 #pragma once
