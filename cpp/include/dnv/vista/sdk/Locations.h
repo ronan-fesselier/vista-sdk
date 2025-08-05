@@ -454,6 +454,7 @@ namespace dnv::vista::sdk
 		 *         are their corresponding `LocationGroup` classifications.
 		 */
 		[[nodiscard]] const std::map<char, LocationGroup>& reversedGroups() const noexcept;
+
 		//----------------------------------------------
 		// Public methods - Parsing
 		//----------------------------------------------
@@ -548,8 +549,8 @@ namespace dnv::vista::sdk
 		// Private member variables
 		//----------------------------------------------
 
-		/** @brief A sorted list of all valid single character location codes for quick lookup. */
-		std::vector<char> m_locationCodes;
+		/** @brief A hash set of all valid single character location codes for O(1) lookup. */
+		std::unordered_set<char> m_locationCodes;
 
 		/** @brief A list of all defined `RelativeLocation` objects for this VIS version. */
 		std::vector<RelativeLocation> m_relativeLocations;

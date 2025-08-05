@@ -55,7 +55,8 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------------------------
 
-	Location::Location( std::string_view value ) : m_value{ value }
+	Location::Location( std::string_view value )
+		: m_value{ value }
 	{
 	}
 
@@ -138,7 +139,7 @@ namespace dnv::vista::sdk
 		m_locationCodes.reserve( dto.items().size() );
 		for ( const auto& item : dto.items() )
 		{
-			m_locationCodes.push_back( item.code() );
+			m_locationCodes.emplace( item.code() );
 		}
 
 		m_relativeLocations.reserve( dto.items().size() );
@@ -180,7 +181,7 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				throw std::invalid_argument( fmt::format( "Unsupported code: ", relLocDto.code() ) );
+				throw std::invalid_argument( fmt::format( "Unsupported code: {}", relLocDto.code() ) );
 			}
 
 			if ( m_groups.find( key ) == m_groups.end() )
@@ -400,15 +401,7 @@ namespace dnv::vista::sdk
 				charsStartIndex = static_cast<int>( i );
 			}
 
-			bool valid = false;
-			for ( char code : m_locationCodes )
-			{
-				if ( code == ch )
-				{
-					valid = true;
-					break;
-				}
-			}
+			bool valid = m_locationCodes.find( ch ) != m_locationCodes.end();
 
 			if ( !valid )
 			{
@@ -418,7 +411,7 @@ namespace dnv::vista::sdk
 
 				for ( char c : source )
 				{
-					if ( !std::isdigit( c ) && ( c == 'N' || std::find( m_locationCodes.begin(), m_locationCodes.end(), c ) == m_locationCodes.end() ) )
+					if ( !std::isdigit( c ) && ( c == 'N' || m_locationCodes.find( c ) == m_locationCodes.end() ) )
 					{
 						if ( !first )
 						{

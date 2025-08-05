@@ -42,9 +42,9 @@ namespace dnv::vista::sdk
 		/**
 		 * @brief Private constructor for internal use.
 		 * @param visVersion The VIS version.
-		 * @param reversedGroups Shared map from characters to their location groups.
+		 * @param reversedGroups Pointer to map from characters to their location groups.
 		 */
-		explicit LocationBuilder( VisVersion visVersion, std::shared_ptr<const internal::HashMap<char, LocationGroup>> reversedGroups );
+		explicit LocationBuilder( VisVersion visVersion, const std::map<char, LocationGroup>* reversedGroups );
 
 	protected:
 		/** @brief Default constructor. */
@@ -282,6 +282,28 @@ namespace dnv::vista::sdk
 
 	private:
 		//----------------------------------------------
+		// Private helper methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Internal method for setting integer values with validation.
+		 * @param group The LocationGroup to validate against.
+		 * @param value The integer value to set.
+		 * @return A new LocationBuilder instance with the updated component.
+		 * @throws std::invalid_argument If validation fails.
+		 */
+		[[nodiscard]] LocationBuilder withValueInternal( LocationGroup group, int value ) const;
+
+		/**
+		 * @brief Internal method for setting character values with validation.
+		 * @param group The LocationGroup to validate against.
+		 * @param value The character value to set.
+		 * @return A new LocationBuilder instance with the updated component.
+		 * @throws std::invalid_argument If validation fails.
+		 */
+		[[nodiscard]] LocationBuilder withValueInternal( LocationGroup group, char value ) const;
+
+		//----------------------------------------------
 		// Private member variables
 		//----------------------------------------------
 
@@ -303,8 +325,8 @@ namespace dnv::vista::sdk
 		/** @brief The VIS version this builder is configured for. */
 		VisVersion m_visVersion;
 
-		/** @brief Shared map from character codes to their LocationGroup for validation. */
-		std::shared_ptr<const internal::HashMap<char, LocationGroup>> m_reversedGroups;
+		/** @brief Pointer to map from character codes to their LocationGroup for validation. */
+		const std::map<char, LocationGroup>* m_reversedGroups;
 	};
 }
 

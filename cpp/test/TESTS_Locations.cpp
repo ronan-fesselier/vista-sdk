@@ -13,6 +13,7 @@
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VIS.h"
 #include "dnv/vista/sdk/VISVersion.h"
+#include "dnv/vista/sdk/Exceptions.h"
 
 namespace dnv::vista::sdk::tests
 {
@@ -322,11 +323,11 @@ namespace dnv::vista::sdk::tests
 		ASSERT_EQ( 'I', builder.transverse().value() );
 		ASSERT_EQ( 'F', builder.longitudinal().value() );
 
-		ASSERT_THROW( builder = builder.withValue( 'X' ), std::runtime_error );
-		ASSERT_THROW( builder = builder.withNumber( -1 ), std::invalid_argument );
-		ASSERT_THROW( builder = builder.withNumber( 0 ), std::invalid_argument );
-		ASSERT_THROW( builder = builder.withSide( 'A' ), std::runtime_error );
-		ASSERT_THROW( builder = builder.withValue( 'a' ), std::runtime_error );
+		ASSERT_THROW( builder = builder.withValue( 'X' ), ValidationException );
+		ASSERT_THROW( builder = builder.withNumber( -1 ), ValidationException );
+		ASSERT_THROW( builder = builder.withNumber( 0 ), ValidationException );
+		ASSERT_THROW( builder = builder.withSide( 'A' ), ValidationException );
+		ASSERT_THROW( builder = builder.withValue( 'a' ), ValidationException );
 
 		ASSERT_EQ( location, builder.build() );
 
