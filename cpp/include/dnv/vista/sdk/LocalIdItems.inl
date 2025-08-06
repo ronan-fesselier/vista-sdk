@@ -5,20 +5,10 @@
 
 #pragma once
 
+#include "dnv/vista/sdk/config/LocalIdConstants.h"
+
 namespace dnv::vista::sdk
 {
-	namespace
-	{
-		/** @brief Secondary item prefix */
-		constexpr std::string_view SEC_PREFIX = "sec/";
-
-		/** @brief Initial secondary verbose prefix */
-		constexpr std::string_view FOR_PREFIX = "~for.";
-
-		/** @brief Subsequent secondary verbose prefix */
-		constexpr std::string_view TILDE_PREFIX = "~";
-	}
-
 	//=====================================================================
 	// LocalIdItems class
 	//=====================================================================
@@ -76,7 +66,8 @@ namespace dnv::vista::sdk
 
 		if ( m_secondaryItem )
 		{
-			builder.append( SEC_PREFIX );
+			builder.append( localId::PREFIX_SEC );
+			builder.push_back( '/' );
 			m_secondaryItem->toString( builder );
 			builder.push_back( '/' );
 		}
@@ -109,12 +100,12 @@ namespace dnv::vista::sdk
 				{
 					if ( isFirstSecondary )
 					{
-						builder.append( FOR_PREFIX );
+						builder.append( localId::PREFIX_FOR );
 						isFirstSecondary = false;
 					}
 					else
 					{
-						builder.append( TILDE_PREFIX );
+						builder.append( localId::PREFIX_TILDE );
 					}
 
 					const GmodNode& nodeRef = ( *m_secondaryItem )[depth];
