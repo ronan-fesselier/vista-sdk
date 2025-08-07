@@ -105,14 +105,14 @@ namespace dnv::vista::sdk
 		 * @param other The other Location to compare.
 		 * @return True if the location values are equal, false otherwise.
 		 */
-		inline bool operator==( const Location& other ) const;
+		[[nodiscard]] inline bool operator==( const Location& other ) const;
 
 		/**
 		 * @brief Inequality operator. Compares this Location with another.
 		 * @param other The other Location to compare.
 		 * @return True if the location values are not equal, false otherwise.
 		 */
-		inline bool operator!=( const Location& other ) const;
+		[[nodiscard]] inline bool operator!=( const Location& other ) const;
 
 		//----------------------------------------------
 		// Conversion Operators
@@ -128,6 +128,16 @@ namespace dnv::vista::sdk
 		// Accessors
 		//----------------------------------------------
 
+		/*
+		 * TODO: DO WE REALLY NEED 3 SIMILAR STRING ACCESS?
+		 *
+		 * C# has: Value property, ToString() method, implicit operator
+		 * C++ has: value(), toString(), operator std::string() - for strict mapping
+		 *
+		 * All return the same string data. Is this redundancy worth maintaining
+		 * for API compatibility, or should we simplify to just one or two methods?
+		 */
+
 		/**
 		 * @brief Gets the string value of the location.
 		 * @return A constant reference to the location string value.
@@ -135,21 +145,16 @@ namespace dnv::vista::sdk
 		[[nodiscard]] inline const std::string& value() const noexcept;
 
 		/**
+		 * @brief Gets the string value of the location.
+		 * @return A constant reference to the location string value.
+		 */
+		[[nodiscard]] inline const std::string& toString() const noexcept;
+
+		/**
 		 * @brief Gets the hash code of the location based on its string value.
 		 * @return The hash code.
 		 */
 		VISTA_SDK_CPP_FORCE_INLINE int hashCode() const noexcept;
-
-		//----------------------------------------------
-		// Conversion
-		//----------------------------------------------
-
-		/**
-		 * @brief Converts the location to its string representation.
-		 * Equivalent to calling `value()` or the implicit string conversion.
-		 * @return The string representation of the location.
-		 */
-		[[nodiscard]] std::string toString() const noexcept;
 
 	private:
 		//----------------------------------------------
@@ -226,14 +231,14 @@ namespace dnv::vista::sdk
 		 * @param other The other RelativeLocation to compare.
 		 * @return True if the codes are equal, false otherwise.
 		 */
-		inline bool operator==( const RelativeLocation& other ) const;
+		[[nodiscard]] inline bool operator==( const RelativeLocation& other ) const;
 
 		/**
 		 * @brief Inequality operator. Compares based on the `code` member.
 		 * @param other The other RelativeLocation to compare.
 		 * @return True if the codes are not equal, false otherwise.
 		 */
-		inline bool operator!=( const RelativeLocation& other ) const;
+		[[nodiscard]] inline bool operator!=( const RelativeLocation& other ) const;
 
 		//----------------------------------------------
 		// Accessors
@@ -354,7 +359,7 @@ namespace dnv::vista::sdk
 		 * @param existingValue Output parameter for the existing value, if any
 		 * @return True if the value was added, false otherwise
 		 */
-		bool tryAdd( LocationGroup key, char value, std::optional<char>& existingValue );
+		[[nodiscard]] bool tryAdd( LocationGroup key, char value, std::optional<char>& existingValue );
 
 	private:
 		//----------------------------------------------
@@ -474,7 +479,7 @@ namespace dnv::vista::sdk
 		 *                 The state of `location` is undefined if parsing fails.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		bool tryParse( const std::string& value, Location& location ) const;
+		[[nodiscard]] bool tryParse( const std::string& value, Location& location ) const;
 
 		/**
 		 * @brief Tries to parse a location string.
@@ -483,7 +488,7 @@ namespace dnv::vista::sdk
 		 *                 The state of `location` is undefined if parsing fails.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		bool tryParse( const std::optional<std::string>& value, Location& location ) const;
+		[[nodiscard]] bool tryParse( const std::optional<std::string>& value, Location& location ) const;
 
 		/**
 		 * @brief Tries to parse a location string, providing detailed error information.
@@ -493,7 +498,7 @@ namespace dnv::vista::sdk
 		 * @return True if parsing succeeded (even if `errors` object indicates warnings or non-critical issues,
 		 *         as long as a valid `Location` could be formed), false if a fundamental parsing error occurred.
 		 */
-		bool tryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors ) const;
+		[[nodiscard]] bool tryParse( const std::optional<std::string>& value, Location& location, ParsingErrors& errors ) const;
 
 		/**
 		 * @brief Tries to parse a location string (represented by a string_view).
@@ -501,7 +506,7 @@ namespace dnv::vista::sdk
 		 * @param location Output parameter: if parsing succeeds, this is set to the parsed `Location`.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		bool tryParse( std::string_view value, Location& location ) const;
+		[[nodiscard]] bool tryParse( std::string_view value, Location& location ) const;
 
 		/**
 		 * @brief Tries to parse a location string (represented by a string_view), providing detailed error information.
@@ -510,7 +515,7 @@ namespace dnv::vista::sdk
 		 * @param errors Output parameter: populated with any parsing errors encountered.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		bool tryParse( std::string_view value, Location& location, ParsingErrors& errors ) const;
+		[[nodiscard]] bool tryParse( std::string_view value, Location& location, ParsingErrors& errors ) const;
 
 	public:
 		//----------------------------------------------
@@ -525,7 +530,7 @@ namespace dnv::vista::sdk
 		 * @param number Output parameter: if parsing succeeds, this is set to the parsed integer.
 		 * @return True if parsing succeeded, false otherwise.
 		 */
-		static bool tryParseInt( std::string_view span, int start, int length, int& number );
+		[[nodiscard]] static VISTA_SDK_CPP_FORCE_INLINE bool tryParseInt( std::string_view span, int start, int length, int& number );
 
 	private:
 		//----------------------------------------------
@@ -540,7 +545,7 @@ namespace dnv::vista::sdk
 		 * @param errorBuilder The `LocationParsingErrorBuilder` to accumulate errors.
 		 * @return True if parsing was successful to the point of forming a valid `Location`, false otherwise.
 		 */
-		bool tryParseInternal( std::string_view span,
+		[[nodiscard]] bool tryParseInternal( std::string_view span,
 			const std::optional<std::string>& originalStr,
 			Location& location,
 			internal::LocationParsingErrorBuilder& errorBuilder ) const;

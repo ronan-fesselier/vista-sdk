@@ -7,6 +7,8 @@
 
 #include "dnv/vista/sdk/LocationBuilder.h"
 
+#include "dnv/vista/sdk/config/LocationsConstants.h"
+
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VISVersion.h"
 #include "dnv/vista/sdk/utils/StringBuilderPool.h"
@@ -94,7 +96,7 @@ namespace dnv::vista::sdk
 	LocationBuilder LocationBuilder::withLocation( const Location& location ) const
 	{
 		LocationBuilder builder{ m_visVersion, m_reversedGroups };
-		
+
 		std::string locationStr = location.toString();
 		std::string_view span = locationStr;
 		std::optional<int> number;
@@ -107,6 +109,8 @@ namespace dnv::vista::sdk
 			{
 				if ( !number.has_value() )
 				{
+					/* Convert ASCII digit character to numeric value: '0'=48, '1'=49, ..., '9'=57
+					 * Subtracting '0' (ASCII 48) gives: '0'-'0'=0, '1'-'0'=1, ..., '9'-'0'=9 */
 					number = ch - '0';
 				}
 				else
@@ -234,32 +238,32 @@ namespace dnv::vista::sdk
 		const auto it = m_reversedGroups->find( value );
 		if ( it == m_reversedGroups->end() || it->second != group )
 		{
-			const char* groupName = [group]() {
+			const std::string_view groupName = [group]() {
 				switch ( group )
 				{
 					case LocationGroup::Side:
 					{
-						return "Side";
+						return locations::GROUP_NAME_SIDE;
 					}
 					case LocationGroup::Vertical:
 					{
-						return "Vertical";
+						return locations::GROUP_NAME_VERTICAL;
 					}
 					case LocationGroup::Transverse:
 					{
-						return "Transverse";
+						return locations::GROUP_NAME_TRANSVERSE;
 					}
 					case LocationGroup::Longitudinal:
 					{
-						return "Longitudinal";
+						return locations::GROUP_NAME_LONGITUDINAL;
 					}
 					case LocationGroup::Number:
 					{
-						return "Number";
+						return locations::GROUP_NAME_NUMBER;
 					}
 					default:
 					{
-						return "Unknown";
+						return locations::GROUP_NAME_UNKNOWN;
 					}
 				}
 			}();

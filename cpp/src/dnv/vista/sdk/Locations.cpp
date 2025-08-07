@@ -7,41 +7,45 @@
 
 #include "dnv/vista/sdk/Locations.h"
 
+#include "dnv/vista/sdk/config/LocationsConstants.h"
+
 #include "dnv/vista/sdk/LocationParsingErrorBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VISVersion.h"
+
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
 	namespace
 	{
-		static std::string groupNameToString( LocationGroup group )
+		static constexpr std::string_view groupNameToString( LocationGroup group )
 		{
 			switch ( group )
 			{
 				case LocationGroup::Number:
 				{
-					return "Number";
+					return locations::GROUP_NAME_NUMBER;
 				}
 				case LocationGroup::Side:
 				{
-					return "Side";
+					return locations::GROUP_NAME_SIDE;
 				}
 				case LocationGroup::Vertical:
 				{
-					return "Vertical";
+					return locations::GROUP_NAME_VERTICAL;
 				}
 				case LocationGroup::Transverse:
 				{
-					return "Transverse";
+					return locations::GROUP_NAME_TRANSVERSE;
 				}
 				case LocationGroup::Longitudinal:
 				{
-					return "Longitudinal";
+					return locations::GROUP_NAME_LONGITUDINAL;
 				}
 				default:
 				{
-					return "Unknown";
+					return locations::GROUP_NAME_UNKNOWN;
 				}
 			}
 		}
@@ -58,15 +62,6 @@ namespace dnv::vista::sdk
 	Location::Location( std::string_view value )
 		: m_value{ value }
 	{
-	}
-
-	//----------------------------------------------
-	// Conversion
-	//----------------------------------------------
-
-	std::string Location::toString() const noexcept
-	{
-		return m_value;
 	}
 
 	//=====================================================================
@@ -97,13 +92,23 @@ namespace dnv::vista::sdk
 	{
 		if ( static_cast<int>( key ) <= 0 )
 		{
-			throw std::runtime_error( "Unsupported code: " + std::to_string( static_cast<int>( key ) ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.Builder();
+			builder.append( "Unsupported code: " );
+			builder.append( std::to_string( static_cast<int>( key ) ) );
+
+			throw std::runtime_error( lease.toString() );
 		}
 
 		auto index{ static_cast<size_t>( key ) - 1 };
 		if ( index >= m_table.size() )
 		{
-			throw std::runtime_error( "Unsupported code: " + std::to_string( static_cast<int>( key ) ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.Builder();
+			builder.append( "Unsupported code: " );
+			builder.append( std::to_string( static_cast<int>( key ) ) );
+
+			throw std::runtime_error( lease.toString() );
 		}
 
 		return m_table[index];
@@ -145,43 +150,48 @@ namespace dnv::vista::sdk
 		m_relativeLocations.reserve( dto.items().size() );
 		for ( const auto& relLocDto : dto.items() )
 		{
-			Location loc{ std::string{ 1, relLocDto.code() } };
+			auto code = relLocDto.code();
+			Location loc{ std::string{ 1, code } };
 
 			m_relativeLocations.emplace_back(
-				relLocDto.code(),
+				code,
 				relLocDto.name(),
 				loc,
 				relLocDto.definition() );
 
-			if ( relLocDto.code() == 'H' || relLocDto.code() == 'V' )
+			if ( code == locations::CHAR_HORIZONTAL || code == locations::CHAR_VERTICAL )
 			{
 				continue;
 			}
 
 			LocationGroup key;
-			if ( relLocDto.code() == 'N' )
+			if ( code == locations::CHAR_NUMBER )
 			{
 				key = LocationGroup::Number;
 			}
-			else if ( relLocDto.code() == 'P' || relLocDto.code() == 'C' || relLocDto.code() == 'S' )
+			else if ( code == locations::CHAR_PORT || code == locations::CHAR_CENTER || code == locations::CHAR_STARBOARD )
 			{
 				key = LocationGroup::Side;
 			}
-			else if ( relLocDto.code() == 'U' || relLocDto.code() == 'M' || relLocDto.code() == 'L' )
+			else if ( code == locations::CHAR_UPPER || code == locations::CHAR_MIDDLE || code == locations::CHAR_LOWER )
 			{
 				key = LocationGroup::Vertical;
 			}
-			else if ( relLocDto.code() == 'I' || relLocDto.code() == 'O' )
+			else if ( code == locations::CHAR_INBOARD || code == locations::CHAR_OUTBOARD )
 			{
 				key = LocationGroup::Transverse;
 			}
-			else if ( relLocDto.code() == 'F' || relLocDto.code() == 'A' )
+			else if ( code == locations::CHAR_FORWARD || code == locations::CHAR_AFT )
 			{
 				key = LocationGroup::Longitudinal;
 			}
 			else
 			{
-				throw std::invalid_argument( fmt::format( "Unsupported code: {}", relLocDto.code() ) );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.Builder();
+				builder.append( "Unsupported code: " );
+				builder.append( std::string_view{ &code, 1 } );
+				throw std::invalid_argument( lease.toString() );
 			}
 
 			if ( m_groups.find( key ) == m_groups.end() )
@@ -194,9 +204,9 @@ namespace dnv::vista::sdk
 				continue;
 			}
 
-			m_reversedGroups[relLocDto.code()] = key;
+			m_reversedGroups[code] = key;
 			m_groups[key].emplace_back(
-				relLocDto.code(),
+				code,
 				relLocDto.name(),
 				loc,
 				relLocDto.definition() );
@@ -236,7 +246,11 @@ namespace dnv::vista::sdk
 		Location location;
 		if ( !tryParse( locationStr, location ) )
 		{
-			throw std::invalid_argument( fmt::format( "Invalid location: {}", locationStr ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.Builder();
+			builder.append( "Invalid location: " );
+			builder.append( locationStr );
+			throw std::invalid_argument( lease.toString() );
 		}
 
 		return location;
@@ -303,28 +317,6 @@ namespace dnv::vista::sdk
 	}
 
 	//----------------------------------------------
-	// Public static helper methods
-	//----------------------------------------------
-
-	bool Locations::tryParseInt( std::string_view span, int start, int length, int& number )
-	{
-		if ( start < 0 || length <= 0 || static_cast<size_t>( start + length ) > span.length() )
-		{
-			return false;
-		}
-
-		const char* begin = span.data() + start;
-		const char* end = begin + length;
-		auto result = std::from_chars( begin, end, number );
-		if ( result.ec == std::errc() && result.ptr == end )
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	//----------------------------------------------
 	// Private Methods
 	//----------------------------------------------
 
@@ -370,16 +362,26 @@ namespace dnv::vista::sdk
 			{
 				if ( prevDigitIndex != -1 && prevDigitIndex != static_cast<int>( i ) - 1 )
 				{
-					errorBuilder.addError( internal::LocationValidationResult::Invalid,
-						"Invalid location: cannot have multiple separated digits in location: '" + displayString() + "'" );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.Builder();
+					builder.append( "Invalid location: cannot have multiple separated digits in location: '" );
+					builder.append( displayString() );
+					builder.append( "'" );
+
+					errorBuilder.addError( internal::LocationValidationResult::Invalid, lease.toString() );
 
 					return false;
 				}
 
 				if ( charsStartIndex != -1 )
 				{
-					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder,
-						"Invalid location: numeric location should start before location code(s) in location: '" + displayString() + "'" );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.Builder();
+					builder.append( "Invalid location: numeric location should start before location code(s) in location: '" );
+					builder.append( displayString() );
+					builder.append( "'" );
+
+					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder, lease.toString() );
 
 					return false;
 				}
@@ -405,27 +407,34 @@ namespace dnv::vista::sdk
 
 			if ( !valid )
 			{
-				std::string invalidChars;
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.Builder();
 				const std::string& source = displayString();
 				bool first = true;
 
 				for ( char c : source )
 				{
-					if ( !std::isdigit( c ) && ( c == 'N' || m_locationCodes.find( c ) == m_locationCodes.end() ) )
+					if ( !std::isdigit( c ) && ( c == locations::CHAR_NUMBER || m_locationCodes.find( c ) == m_locationCodes.end() ) )
 					{
 						if ( !first )
 						{
-							invalidChars += ",";
+							builder.append( "," );
 						}
 						first = false;
-						invalidChars += "'";
-						invalidChars += c;
-						invalidChars += "'";
+						builder.append( "'" );
+						builder.append( std::string_view{ &c, 1 } );
+						builder.append( "'" );
 					}
 				}
 
-				errorBuilder.addError( internal::LocationValidationResult::InvalidCode,
-					"Invalid location code: '" + displayString() + "' with invalid location code(s): " + invalidChars );
+				auto errorLease = utils::StringBuilderPool::instance();
+				auto errorMsgBuilder = errorLease.Builder();
+				errorMsgBuilder.append( "Invalid location code: '" );
+				errorMsgBuilder.append( displayString() );
+				errorMsgBuilder.append( "' with invalid location code(s): " );
+				errorMsgBuilder.append( lease.toString() );
+
+				errorBuilder.addError( internal::LocationValidationResult::InvalidCode, errorLease.toString() );
 
 				return false;
 			}
@@ -437,18 +446,20 @@ namespace dnv::vista::sdk
 
 				if ( !charDict.tryAdd( group, ch, existingValue ) )
 				{
-					const std::string& groupName = groupNameToString( group );
-					std::string errorMsg = "Invalid location: Multiple '";
-					errorMsg += groupName;
-					errorMsg += "' values. Got both '";
-					errorMsg += existingValue.value();
-					errorMsg += "' and '";
-					errorMsg += ch;
-					errorMsg += "' in '";
-					errorMsg += displayString();
-					errorMsg += "'";
+					const std::string_view groupName = groupNameToString( group );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.Builder();
+					builder.append( "Invalid location: Multiple '" );
+					builder.append( groupName );
+					builder.append( "' values. Got both '" );
+					builder.append( std::string_view{ &existingValue.value(), 1 } );
+					builder.append( "' and '" );
+					builder.append( std::string_view{ &ch, 1 } );
+					builder.append( "' in '" );
+					builder.append( displayString() );
+					builder.append( "'" );
 
-					errorBuilder.addError( internal::LocationValidationResult::Invalid, errorMsg );
+					errorBuilder.addError( internal::LocationValidationResult::Invalid, lease.toString() );
 
 					return false;
 				}
@@ -459,8 +470,13 @@ namespace dnv::vista::sdk
 				char prevCh = span[i - 1];
 				if ( !std::isdigit( prevCh ) && ch < prevCh )
 				{
-					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder,
-						"Invalid location: '" + displayString() + "' not alphabetically sorted" );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.Builder();
+					builder.append( "Invalid location: '" );
+					builder.append( displayString() );
+					builder.append( "' not alphabetically sorted" );
+
+					errorBuilder.addError( internal::LocationValidationResult::InvalidOrder, lease.toString() );
 
 					return false;
 				}

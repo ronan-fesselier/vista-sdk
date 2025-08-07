@@ -8,6 +8,7 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/DtoKeys.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/GmodConstants.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/LocalIdConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/LocationsConstants.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/Platform.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h
 

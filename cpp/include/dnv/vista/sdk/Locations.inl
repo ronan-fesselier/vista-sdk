@@ -45,9 +45,36 @@ namespace dnv::vista::sdk
 		return m_value;
 	}
 
+	const inline std::string& Location::toString() const noexcept
+	{
+		return m_value;
+	}
+
 	VISTA_SDK_CPP_FORCE_INLINE int Location::hashCode() const noexcept
 	{
 		return utils::Hash::combine( m_value );
+	}
+
+	//----------------------------------------------
+	// Public static helper methods
+	//----------------------------------------------
+
+	VISTA_SDK_CPP_FORCE_INLINE bool Locations::tryParseInt( std::string_view span, int start, int length, int& number )
+	{
+		if ( start < 0 || length <= 0 || static_cast<size_t>( start + length ) > span.length() )
+		{
+			return false;
+		}
+
+		const char* begin = span.data() + start;
+		const char* end = begin + length;
+		auto result = std::from_chars( begin, end, number );
+		if ( result.ec == std::errc() && result.ptr == end )
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	//=====================================================================

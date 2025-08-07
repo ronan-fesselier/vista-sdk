@@ -175,6 +175,12 @@ The C++ implementation includes a perfect hashing system (as well as c# version)
     -   Move private headers to private implementation directories to improve encapsulation.
     -   Consider implementing PIMPL idiom for core classes to hide implementation details, reduce header dependencies, and improve compilation times.
 
+-   **API Design Decisions:**
+
+    -   **Location API Redundancy**: Evaluate whether maintaining 3 functionally equivalent string access methods (`value()`, `toString()`, `operator std::string()`) in the `Location` class is justified for C# API compatibility, or if the API should be simplified to reduce redundancy while maintaining clarity.
+
+    -   **Codebook Name String Conversion**: Implement a dedicated function for error messages that returns singular, capitalized codebook names (e.g., "Content", "Quantity", "FunctionalServices") to match C# enum string interpolation behavior, instead of using internal plural, lowercase forms (e.g., "contents", "quantities", "functional_services").
+
 -   **Query Systems:**
 
     -   Implement `GmodPathQuery` for advanced path querying and filtering capabilities.
