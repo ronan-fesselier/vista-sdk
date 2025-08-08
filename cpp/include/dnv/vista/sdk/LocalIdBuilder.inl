@@ -281,7 +281,7 @@ namespace dnv::vista::sdk
 	{
 		/* LocalId format: /dnv-v2/vis-{version}/{primary-item}[/sec/{secondary-item}][~{description}]/meta/{metadata-tags} */
 		auto lease = utils::StringBuilderPool::instance();
-		auto builder = lease.Builder();
+		auto builder = lease.builder();
 
 		toString( builder );
 

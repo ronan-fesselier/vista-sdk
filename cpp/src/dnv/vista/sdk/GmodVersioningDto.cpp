@@ -8,6 +8,7 @@
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 
 #include "dnv/vista/sdk/config/DtoKeys.h"
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -21,9 +22,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ) && json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+				const auto it = json.find( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE );
+				if ( it != json.end() && it->is_string() )
 				{
-					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					const auto& str = it->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -40,9 +42,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) && json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+				const auto it = json.find( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT );
+				if ( it != json.end() && it->is_string() )
 				{
-					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get_ref<const std::string&>();
+					const auto& str = it->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -59,9 +62,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::GMODVERSIONING_DTO_KEY_SOURCE ) && json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
+				const auto it = json.find( dto::GMODVERSIONING_DTO_KEY_SOURCE );
+				if ( it != json.end() && it->is_string() )
 				{
-					const auto& str = json.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get_ref<const std::string&>();
+					const auto& str = it->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -85,13 +89,16 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningAssignmentChangeDto> GmodVersioningAssignmentChangeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto oldAssignmentHint = GmodVersioningDtoInternal::extractOldAssignmentHint( json );
+		const auto oldAssignmentHint = GmodVersioningDtoInternal::extractOldAssignmentHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for GmodVersioningAssignmentChangeDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				lease.builder().append( "ERROR: JSON value for GmodVersioningAssignmentChangeDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
@@ -100,17 +107,31 @@ namespace dnv::vista::sdk
 
 			return std::optional<GmodVersioningAssignmentChangeDto>{ std::move( dto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}\n",
-				oldAssignmentHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='" );
+			builder.append( oldAssignmentHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='{}'): {}\n",
-				oldAssignmentHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during GmodVersioningAssignmentChangeDto parsing (hint: oldAssignment='" );
+			builder.append( oldAssignmentHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -145,7 +166,8 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodVersioningAssignmentChangeDto& dto )
 	{
-		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) || !j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+		const auto oldAssignmentIt = j.find( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT );
+		if ( oldAssignmentIt == j.end() || !oldAssignmentIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create(
 				101, 0u,
@@ -154,7 +176,9 @@ namespace dnv::vista::sdk
 					dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ),
 				nullptr );
 		}
-		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ) || !j.at( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).is_string() )
+
+		const auto currentAssignmentIt = j.find( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT );
+		if ( currentAssignmentIt == j.end() || !currentAssignmentIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create(
 				101, 0u,
@@ -164,16 +188,22 @@ namespace dnv::vista::sdk
 				nullptr );
 		}
 
-		dto.m_oldAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
-		dto.m_currentAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_CURRENT_ASSIGNMENT ).get<std::string>();
+		dto.m_oldAssignment = oldAssignmentIt->get<std::string>();
+		dto.m_currentAssignment = currentAssignmentIt->get<std::string>();
 
 		if ( dto.m_oldAssignment.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'oldAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			lease.builder().append( "WARN: Empty 'oldAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 		if ( dto.m_currentAssignment.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'currentAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			lease.builder().append( "WARN: Empty 'currentAssignment' field found in GmodVersioningAssignmentChangeDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 	}
 
@@ -194,13 +224,16 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeConversionDto> GmodNodeConversionDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto sourceHint = GmodVersioningDtoInternal::extractSourceHint( json );
+		const auto sourceHint = GmodVersioningDtoInternal::extractSourceHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for GmodNodeConversionDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				lease.builder().append( "ERROR: JSON value for GmodNodeConversionDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
@@ -208,17 +241,31 @@ namespace dnv::vista::sdk
 			GmodNodeConversionDto dto = json.get<GmodNodeConversionDto>();
 			return std::optional<GmodNodeConversionDto>{ std::move( dto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during GmodNodeConversionDto parsing (hint: source='{}'): {}\n",
-				sourceHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during GmodNodeConversionDto parsing (hint: source='" );
+			builder.append( sourceHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during GmodNodeConversionDto parsing (hint: source='{}'): {}\n",
-				sourceHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during GmodNodeConversionDto parsing (hint: source='" );
+			builder.append( sourceHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -253,9 +300,11 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodNodeConversionDto& dto )
 	{
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_OPERATIONS ) )
+
+		const auto opsIt = j.find( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
+		if ( opsIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS ).is_array() )
+			if ( !opsIt->is_array() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -265,7 +314,7 @@ namespace dnv::vista::sdk
 					nullptr );
 			}
 			dto.m_operations.clear();
-			const auto& opsArray = j.at( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
+			const auto& opsArray = *opsIt;
 
 			dto.m_operations.reserve( opsArray.size() + opsArray.size() / 8 );
 			for ( const auto& op : opsArray )
@@ -285,12 +334,19 @@ namespace dnv::vista::sdk
 		else
 		{
 			dto.m_operations.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: GmodNodeConversionDto JSON missing optional '" );
+			builder.append( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
+			builder.append( "' field\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_SOURCE ) )
+		const auto sourceIt = j.find( dto::GMODVERSIONING_DTO_KEY_SOURCE );
+		if ( sourceIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).is_string() )
+			if ( !sourceIt->is_string() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -299,17 +355,24 @@ namespace dnv::vista::sdk
 						dto::GMODVERSIONING_DTO_KEY_SOURCE ),
 					nullptr );
 			}
-			dto.m_source = j.at( dto::GMODVERSIONING_DTO_KEY_SOURCE ).get<std::string>();
+			dto.m_source = sourceIt->get<std::string>();
 		}
 		else
 		{
 			dto.m_source.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_SOURCE );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: GmodNodeConversionDto JSON missing optional '" );
+			builder.append( dto::GMODVERSIONING_DTO_KEY_SOURCE );
+			builder.append( "' field\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_TARGET ) )
+		const auto targetIt = j.find( dto::GMODVERSIONING_DTO_KEY_TARGET );
+		if ( targetIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).is_string() )
+			if ( !targetIt->is_string() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -318,17 +381,24 @@ namespace dnv::vista::sdk
 						dto::GMODVERSIONING_DTO_KEY_TARGET ),
 					nullptr );
 			}
-			dto.m_target = j.at( dto::GMODVERSIONING_DTO_KEY_TARGET ).get<std::string>();
+			dto.m_target = targetIt->get<std::string>();
 		}
 		else
 		{
 			dto.m_target.clear();
-			fmt::print( stderr, "WARN: GmodNodeConversionDto JSON missing optional '{}' field\n", dto::GMODVERSIONING_DTO_KEY_TARGET );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: GmodNodeConversionDto JSON missing optional '" );
+			builder.append( dto::GMODVERSIONING_DTO_KEY_TARGET );
+			builder.append( "' field\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ) )
+		const auto oldAssignmentIt = j.find( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT );
+		if ( oldAssignmentIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).is_string() )
+			if ( !oldAssignmentIt->is_string() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -337,16 +407,17 @@ namespace dnv::vista::sdk
 						dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ),
 					nullptr );
 			}
-			dto.m_oldAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_OLD_ASSIGNMENT ).get<std::string>();
+			dto.m_oldAssignment = oldAssignmentIt->get<std::string>();
 		}
 		else
 		{
 			dto.m_oldAssignment.clear();
 		}
 
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ) )
+		const auto newAssignmentIt = j.find( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT );
+		if ( newAssignmentIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).is_string() )
+			if ( !newAssignmentIt->is_string() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -354,16 +425,17 @@ namespace dnv::vista::sdk
 						"GmodNodeConversionDto JSON field '{}' is not a string", dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ),
 					nullptr );
 			}
-			dto.m_newAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_NEW_ASSIGNMENT ).get<std::string>();
+			dto.m_newAssignment = newAssignmentIt->get<std::string>();
 		}
 		else
 		{
 			dto.m_newAssignment.clear();
 		}
 
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ) )
+		const auto deleteAssignmentIt = j.find( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT );
+		if ( deleteAssignmentIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).is_boolean() )
+			if ( !deleteAssignmentIt->is_boolean() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -372,7 +444,7 @@ namespace dnv::vista::sdk
 						dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ),
 					nullptr );
 			}
-			dto.m_deleteAssignment = j.at( dto::GMODVERSIONING_DTO_KEY_DELETE_ASSIGNMENT ).get<bool>();
+			dto.m_deleteAssignment = deleteAssignmentIt->get<bool>();
 		}
 		else
 		{
@@ -381,11 +453,22 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_operations.empty() )
 		{
-			fmt::print( stderr, "WARN: Node conversion has no operations: source={}, target={}\n", dto.m_source, dto.m_target );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: Node conversion has no operations: source=" );
+			builder.append( dto.m_source );
+			builder.append( ", target=" );
+			builder.append( dto.m_target );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 		if ( dto.m_source.empty() && dto.m_target.empty() )
 		{
-			fmt::print( stderr, "WARN: Node conversion has empty source and target\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			lease.builder().append( "WARN: Node conversion has empty source and target\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 	}
 
@@ -410,13 +493,17 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodVersioningDto> GmodVersioningDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto visHint = GmodVersioningDtoInternal::extractVisHint( json );
+		const auto visHint = GmodVersioningDtoInternal::extractVisHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for GmodVersioningDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				lease.builder().append( "ERROR: JSON value for GmodVersioningDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
+
 				return std::nullopt;
 			}
 
@@ -424,17 +511,31 @@ namespace dnv::vista::sdk
 
 			return std::optional<GmodVersioningDto>{ std::move( dto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}\n",
-				visHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during GmodVersioningDto parsing (hint: visRelease='" );
+			builder.append( visHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during GmodVersioningDto parsing (hint: visRelease='{}'): {}\n",
-				visHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during GmodVersioningDto parsing (hint: visRelease='" );
+			builder.append( visHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -467,7 +568,9 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodVersioningDto& dto )
 	{
-		if ( !j.contains( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ) || !j.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).is_string() )
+
+		const auto visReleaseIt = j.find( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE );
+		if ( visReleaseIt == j.end() || !visReleaseIt->is_string() )
 		{
 			throw nlohmann::json::parse_error::create(
 				101, 0u,
@@ -476,12 +579,13 @@ namespace dnv::vista::sdk
 					dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ),
 				nullptr );
 		}
-		dto.m_visVersion = j.at( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE ).get<std::string>();
+		dto.m_visVersion = visReleaseIt->get<std::string>();
 
 		dto.m_items.clear();
-		if ( j.contains( dto::GMODVERSIONING_DTO_KEY_ITEMS ) )
+		const auto itemsIt = j.find( dto::GMODVERSIONING_DTO_KEY_ITEMS );
+		if ( itemsIt != j.end() )
 		{
-			if ( !j.at( dto::GMODVERSIONING_DTO_KEY_ITEMS ).is_object() )
+			if ( !itemsIt->is_object() )
 			{
 				throw nlohmann::json::type_error::create(
 					302,
@@ -491,7 +595,7 @@ namespace dnv::vista::sdk
 					nullptr );
 			}
 
-			const auto& itemsObj = j.at( dto::GMODVERSIONING_DTO_KEY_ITEMS );
+			const auto& itemsObj = *itemsIt;
 			size_t itemCount = itemsObj.size();
 
 			if ( itemCount > 10000 )
@@ -511,13 +615,29 @@ namespace dnv::vista::sdk
 					dto.m_items.emplace( key, std::move( nodeDto ) );
 					successCount++;
 				}
-				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+				catch ( const nlohmann::json::exception& ex )
 				{
-					fmt::print( stderr, "ERROR: Error parsing conversion item '{}': {}\n", key, ex.what() );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "ERROR: Error parsing conversion item '" );
+					builder.append( key );
+					builder.append( "': " );
+					builder.append( ex.what() );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
-				catch ( [[maybe_unused]] const std::exception& ex )
+				catch ( const std::exception& ex )
 				{
-					fmt::print( stderr, "ERROR: Standard exception parsing conversion item '{}': {}\n", key, ex.what() );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "ERROR: Standard exception parsing conversion item '" );
+					builder.append( key );
+					builder.append( "': " );
+					builder.append( ex.what() );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
@@ -535,10 +655,15 @@ namespace dnv::vista::sdk
 		}
 		else
 		{
-			fmt::print(
-				stderr,
-				"WARN: No '{}' object found in GMOD versioning data for VIS version {}\n",
-				dto::GMODVERSIONING_DTO_KEY_ITEMS, dto.m_visVersion );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: No '" );
+			builder.append( dto::GMODVERSIONING_DTO_KEY_ITEMS );
+			builder.append( "' object found in GMOD versioning data for VIS version " );
+			builder.append( dto.m_visVersion );
+			builder.append( "'\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 	}
 
@@ -560,10 +685,13 @@ namespace dnv::vista::sdk
 			}
 			if ( emptyOperationsCount > 0 )
 			{
-				fmt::print(
-					stderr,
-					"WARN: {} nodes have no operations defined during serialization\n",
-					emptyOperationsCount );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: " );
+				builder.append( std::to_string( emptyOperationsCount ) );
+				builder.append( " nodes have no operations defined during serialization\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 		else

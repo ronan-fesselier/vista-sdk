@@ -433,7 +433,7 @@ namespace dnv::vista::sdk
 		if ( !succeeded )
 		{
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 			builder.append( "Invalid metadata codebook name: " );
 			builder.append( CodebookNames::toPrefix( metadataTag.name() ) );
 			throw std::invalid_argument( lease.toString() );
@@ -733,7 +733,7 @@ namespace dnv::vista::sdk
 		if ( !tryParse( localIdStr, errors, localId ) )
 		{
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 			builder.append( "Couldn't parse local ID from: '" );
 			builder.append( localIdStr );
 			builder.append( "'. " );
@@ -895,7 +895,7 @@ namespace dnv::vista::sdk
 							if ( !parsedPath )
 							{
 								auto lease = utils::StringBuilderPool::instance();
-								auto builder = lease.Builder();
+								auto builder = lease.builder();
 								builder.append( "Invalid GmodPath in Primary item: " );
 								builder.append( path );
 								errorBuilder.addError( LocalIdParsingState::PrimaryItem, lease.toString() );
@@ -931,7 +931,7 @@ namespace dnv::vista::sdk
 						if ( !gmod->tryGetNode( code, nodePtr ) )
 						{
 							auto lease = utils::StringBuilderPool::instance();
-							auto builder = lease.Builder();
+							auto builder = lease.builder();
 							builder.append( "Invalid start GmodNode in Primary item: " );
 							builder.append( code );
 							errorBuilder.addError( LocalIdParsingState::PrimaryItem, lease.toString() );
@@ -968,7 +968,7 @@ namespace dnv::vista::sdk
 							if ( !parsedPath )
 							{
 								auto lease = utils::StringBuilderPool::instance();
-								auto builder = lease.Builder();
+								auto builder = lease.builder();
 								builder.append( "Invalid GmodPath in Primary item: " );
 								builder.append( path );
 								errorBuilder.addError( LocalIdParsingState::PrimaryItem, lease.toString() );
@@ -998,7 +998,7 @@ namespace dnv::vista::sdk
 						if ( !gmod->tryGetNode( code, nodePtr ) )
 						{
 							auto lease = utils::StringBuilderPool::instance();
-							auto builder = lease.Builder();
+							auto builder = lease.builder();
 							builder.append( "Invalid GmodNode in Primary item: " );
 							builder.append( code );
 							errorBuilder.addError( LocalIdParsingState::PrimaryItem, lease.toString() );
@@ -1030,7 +1030,7 @@ namespace dnv::vista::sdk
 
 							std::string_view invalidPrimaryItemPath = span.substr( i, nextStateIndex - i );
 							auto lease2 = utils::StringBuilderPool::instance();
-							auto builder2 = lease2.Builder();
+							auto builder2 = lease2.builder();
 							builder2.append( "Invalid GmodPath: Last part in Primary item: " );
 							builder2.append( invalidPrimaryItemPath );
 							errorBuilder.addError( LocalIdParsingState::PrimaryItem, lease2.toString() );
@@ -1066,7 +1066,7 @@ namespace dnv::vista::sdk
 						if ( !gmod->tryGetNode( code, nodePtr ) )
 						{
 							auto lease = utils::StringBuilderPool::instance();
-							auto builder = lease.Builder();
+							auto builder = lease.builder();
 							builder.append( "Invalid start GmodNode in Secondary item: " );
 							builder.append( code );
 							errorBuilder.addError( LocalIdParsingState::SecondaryItem, lease.toString() );
@@ -1100,7 +1100,7 @@ namespace dnv::vista::sdk
 							{
 								invalidSecondaryItem = true;
 								auto lease = utils::StringBuilderPool::instance();
-								auto builder = lease.Builder();
+								auto builder = lease.builder();
 								builder.append( "Invalid GmodPath in Secondary item: " );
 								builder.append( path );
 								errorBuilder.addError( LocalIdParsingState::SecondaryItem, lease.toString() );
@@ -1132,7 +1132,7 @@ namespace dnv::vista::sdk
 						{
 							invalidSecondaryItem = true;
 							auto lease = utils::StringBuilderPool::instance();
-							auto builder = lease.Builder();
+							auto builder = lease.builder();
 							builder.append( "Invalid GmodNode in Secondary item: " );
 							builder.append( code );
 							errorBuilder.addError( LocalIdParsingState::SecondaryItem, lease.toString() );
@@ -1159,7 +1159,7 @@ namespace dnv::vista::sdk
 
 							std::string_view invalidSecondaryItemPath = span.substr( i, nextStateIndex - i );
 							auto lease2 = utils::StringBuilderPool::instance();
-							auto builder2 = lease2.Builder();
+							auto builder2 = lease2.builder();
 							builder2.append( "Invalid GmodPath: Last part in Secondary item: " );
 							builder2.append( invalidSecondaryItemPath );
 							errorBuilder.addError( LocalIdParsingState::SecondaryItem, lease2.toString() );
@@ -1517,7 +1517,7 @@ namespace dnv::vista::sdk
 		if ( prefixIndex == std::string_view::npos )
 		{
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 
 			builder.append( "Invalid metadata tag: missing prefix '" );
 			builder.append( localId::PREFIX_DASH );
@@ -1538,7 +1538,7 @@ namespace dnv::vista::sdk
 		if ( !actualState.has_value() || actualState.value() < state )
 		{
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 			builder.append( "Invalid metadata tag: unknown prefix " );
 			builder.append( actualPrefix );
 			errorBuilder.addError( state, lease.toString() );
@@ -1569,7 +1569,7 @@ namespace dnv::vista::sdk
 		{
 			auto codebookStr = codebookNametoString( codebookName );
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 
 			if ( prefixIndex == tildeIndex )
 			{
@@ -1597,7 +1597,7 @@ namespace dnv::vista::sdk
 		{
 			auto codebookStr = codebookNametoString( codebookName );
 			auto lease = utils::StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 			builder.append( "Invalid " );
 			builder.append( codebookStr );
 			builder.append( " metadata tag: '" );

@@ -14,7 +14,7 @@ namespace dnv::vista::sdk::utils
 	{
 		auto lease = StringBuilderPool::instance();
 
-		lease.Builder().append( "1" );
+		lease.builder().append( "1" );
 
 		ASSERT_EQ( "1", lease.toString() );
 	}
@@ -25,23 +25,23 @@ namespace dnv::vista::sdk::utils
 		auto movedLease = std::move( lease );
 
 		ASSERT_THROW( [[maybe_unused]] auto result = lease.toString(), std::runtime_error );
-		ASSERT_THROW( [[maybe_unused]] auto builder = lease.Builder(), std::runtime_error );
+		ASSERT_THROW( [[maybe_unused]] auto builder = lease.builder(), std::runtime_error );
 
-		ASSERT_NO_THROW( [[maybe_unused]] auto validBuilder = movedLease.Builder() );
+		ASSERT_NO_THROW( [[maybe_unused]] auto validBuilder = movedLease.builder() );
 	}
 
 	TEST( StringBuilderPoolTests, Test_Builder_Is_Cleaned )
 	{
 		{
 			auto lease = StringBuilderPool::instance();
-			auto builder = lease.Builder();
+			auto builder = lease.builder();
 			builder.append( "a" );
 			ASSERT_EQ( 1U, builder.length() );
 		}
 
 		{
 			auto newLease = StringBuilderPool::instance();
-			auto newBuilder = newLease.Builder();
+			auto newBuilder = newLease.builder();
 
 			ASSERT_EQ( 0U, newBuilder.length() );
 		}

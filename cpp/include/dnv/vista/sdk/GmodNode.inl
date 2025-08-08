@@ -490,11 +490,11 @@ namespace dnv::vista::sdk
 	inline std::string GmodNode::toString() const noexcept
 	{
 		auto lease = utils::StringBuilderPool::instance();
-		lease.Builder().append( m_code );
+		lease.builder().append( m_code );
 		if ( m_location.has_value() )
 		{
-			lease.Builder().push_back( '-' );
-			lease.Builder().append( m_location->toString() );
+			lease.builder().push_back( '-' );
+			lease.builder().append( m_location->toString() );
 		}
 
 		return lease.toString();

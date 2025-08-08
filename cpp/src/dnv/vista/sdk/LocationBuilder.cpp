@@ -37,7 +37,7 @@ namespace dnv::vista::sdk
 	std::string LocationBuilder::toString() const
 	{
 		auto lease = utils::StringBuilderPool::instance();
-		auto builder = lease.Builder();
+		auto builder = lease.builder();
 
 		if ( m_number.has_value() )
 		{

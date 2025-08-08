@@ -245,9 +245,9 @@ namespace dnv::vista::sdk
 			}
 			if ( !first )
 			{
-				lease.Builder().push_back( '/' );
+				lease.builder().push_back( '/' );
 			}
-			lease.Builder().append( parent.toString() );
+			lease.builder().append( parent.toString() );
 			first = false;
 		}
 
@@ -255,9 +255,9 @@ namespace dnv::vista::sdk
 		{
 			if ( !first )
 			{
-				lease.Builder().push_back( '/' );
+				lease.builder().push_back( '/' );
 			}
-			lease.Builder().append( m_node->toString() );
+			lease.builder().append( m_node->toString() );
 		}
 
 		return lease.toString();
@@ -270,10 +270,10 @@ namespace dnv::vista::sdk
 		while ( enumerator.next() )
 		{
 			const auto& [depth, pathNode] = enumerator.current();
-			lease.Builder().append( pathNode->toString() );
+			lease.builder().append( pathNode->toString() );
 			if ( depth != ( length() - 1 ) )
 			{
-				lease.Builder().push_back( '/' );
+				lease.builder().push_back( '/' );
 			}
 		}
 
@@ -295,30 +295,30 @@ namespace dnv::vista::sdk
 
 			if ( depth != 1 )
 			{
-				lease.Builder().append( " | " );
+				lease.builder().append( " | " );
 			}
 
-			lease.Builder().append( pathNode->code() );
+			lease.builder().append( pathNode->code() );
 
 			const auto& name = pathNode->metadata().name();
 			if ( !name.empty() )
 			{
-				lease.Builder().append( "/N:" );
-				lease.Builder().append( name );
+				lease.builder().append( "/N:" );
+				lease.builder().append( name );
 			}
 
 			const auto& commonName = pathNode->metadata().commonName();
 			if ( commonName.has_value() && !commonName->empty() )
 			{
-				lease.Builder().append( "/CN:" );
-				lease.Builder().append( *commonName );
+				lease.builder().append( "/CN:" );
+				lease.builder().append( *commonName );
 			}
 
 			auto normalAssignment = normalAssignmentName( depth );
 			if ( normalAssignment && !normalAssignment->empty() )
 			{
-				lease.Builder().append( "/NAN:" );
-				lease.Builder().append( *normalAssignment );
+				lease.builder().append( "/NAN:" );
+				lease.builder().append( *normalAssignment );
 			}
 		}
 

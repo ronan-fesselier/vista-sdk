@@ -8,6 +8,7 @@
 #include "dnv/vista/sdk/GmodDto.h"
 
 #include "dnv/vista/sdk/config/DtoKeys.h"
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -21,9 +22,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::GMOD_DTO_KEY_VIS_RELEASE ) && json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
+				const auto visIt = json.find( dto::GMOD_DTO_KEY_VIS_RELEASE );
+				if ( visIt != json.end() && visIt->is_string() )
 				{
-					const auto& str = json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).get_ref<const std::string&>();
+					const auto& str = visIt->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -40,9 +42,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::GMOD_DTO_KEY_CODE ) && json.at( dto::GMOD_DTO_KEY_CODE ).is_string() )
+				const auto codeIt = json.find( dto::GMOD_DTO_KEY_CODE );
+				if ( codeIt != json.end() && codeIt->is_string() )
 				{
-					const auto& str = json.at( dto::GMOD_DTO_KEY_CODE ).get_ref<const std::string&>();
+					const auto& str = codeIt->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -66,155 +69,258 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodNodeDto> GmodNodeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto codeHint = GmodDtoInternal::extractNameHint( json );
+		const auto codeHint = GmodDtoInternal::extractNameHint( json );
 
 		try
 		{
-			if ( !json.contains( dto::GMOD_DTO_KEY_CODE ) || !json.at( dto::GMOD_DTO_KEY_CODE ).is_string() )
+			const auto codeIt = json.find( dto::GMOD_DTO_KEY_CODE );
+			if ( codeIt == json.end() || !codeIt->is_string() )
 			{
-				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
-					dto::GMOD_DTO_KEY_CODE );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: GMOD Node JSON missing required '" );
+				builder.append( dto::GMOD_DTO_KEY_CODE );
+				builder.append( "' field or not a string\n" );
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
-			if ( !json.contains( dto::GMOD_DTO_KEY_CATEGORY ) || !json.at( dto::GMOD_DTO_KEY_CATEGORY ).is_string() )
+			const auto categoryIt = json.find( dto::GMOD_DTO_KEY_CATEGORY );
+			if ( categoryIt == json.end() || !categoryIt->is_string() )
 			{
-				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
-					dto::GMOD_DTO_KEY_CATEGORY );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: GMOD Node JSON missing required '" );
+				builder.append( dto::GMOD_DTO_KEY_CATEGORY );
+				builder.append( "' field or not a string\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
-			if ( !json.contains( dto::GMOD_DTO_KEY_TYPE ) || !json.at( dto::GMOD_DTO_KEY_TYPE ).is_string() )
+			const auto typeIt = json.find( dto::GMOD_DTO_KEY_TYPE );
+			if ( typeIt == json.end() || !typeIt->is_string() )
 			{
-				fmt::print( stderr, "ERROR: GMOD Node JSON missing required '{}' field or not a string\n",
-					dto::GMOD_DTO_KEY_TYPE );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: GMOD Node JSON missing required '" );
+				builder.append( dto::GMOD_DTO_KEY_TYPE );
+				builder.append( "' field or not a string\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			std::string tempCode = json.at( dto::GMOD_DTO_KEY_CODE ).get<std::string>();
-			std::string tempCategory = json.at( dto::GMOD_DTO_KEY_CATEGORY ).get<std::string>();
-			std::string tempType = json.at( dto::GMOD_DTO_KEY_TYPE ).get<std::string>();
+			std::string tempCode = codeIt->get<std::string>();
+			std::string tempCategory = categoryIt->get<std::string>();
+			std::string tempType = typeIt->get<std::string>();
 
 			std::string tempName;
-			if ( json.contains( dto::GMOD_DTO_KEY_NAME ) )
+			const auto nameIt = json.find( dto::GMOD_DTO_KEY_NAME );
+			if ( nameIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_NAME ).is_string() )
+				if ( nameIt->is_string() )
 				{
-					tempName = json.at( dto::GMOD_DTO_KEY_NAME ).get<std::string>();
+					tempName = nameIt->get<std::string>();
 				}
 				else
 				{
-					fmt::print( stderr, "ERROR: GMOD Node JSON (code='{}') field '{}' is present but not a string\n",
-						tempCode, dto::GMOD_DTO_KEY_NAME );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "ERROR: GMOD Node JSON (code='" );
+					builder.append( tempCode );
+					builder.append( "') field '" );
+					builder.append( dto::GMOD_DTO_KEY_NAME );
+					builder.append( "' is present but not a string\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 
 					return std::nullopt;
 				}
 			}
 			else
 			{
-				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.\n",
-					tempCode, dto::GMOD_DTO_KEY_NAME );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node JSON (code='" );
+				builder.append( tempCode );
+				builder.append( "') missing '" );
+				builder.append( dto::GMOD_DTO_KEY_NAME );
+				builder.append( "' field. Defaulting name to empty string.\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				tempName = "";
 			}
 
 			if ( tempCode.empty() )
 			{
-				fmt::print( stderr, "WARN: Empty code field found in GMOD node\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Empty code field found in GMOD node\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 			if ( tempCategory.empty() )
 			{
-				fmt::print( stderr, "WARN: Empty category field found in GMOD node code='{}'\n", tempCode );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Empty category field found in GMOD node code='" );
+				builder.append( tempCode );
+				builder.append( "'\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 			if ( tempType.empty() )
 			{
-				fmt::print( stderr, "WARN: Empty type field found in GMOD node code='{}'\n", tempCode );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Empty type field found in GMOD node code='" );
+				builder.append( tempCode );
+				builder.append( "'\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 			if ( tempName.empty() )
 			{
-				fmt::print( stderr, "WARN: Empty name field used for GMOD node code='{}'\n", tempCode );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Empty name field used for GMOD node code='" );
+				builder.append( tempCode );
+				builder.append( "'\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 
 			std::optional<std::string> tempCommonName = std::nullopt;
-			if ( json.contains( dto::GMOD_DTO_KEY_COMMON_NAME ) )
+			const auto commonNameIt = json.find( dto::GMOD_DTO_KEY_COMMON_NAME );
+			if ( commonNameIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_COMMON_NAME ).is_string() )
+				if ( commonNameIt->is_string() )
 				{
-					tempCommonName = json.at( dto::GMOD_DTO_KEY_COMMON_NAME ).get<std::string>();
+					tempCommonName = commonNameIt->get<std::string>();
 				}
-				else if ( !json.at( dto::GMOD_DTO_KEY_COMMON_NAME ).is_null() )
+				else if ( !commonNameIt->is_null() )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
-						tempCode, dto::GMOD_DTO_KEY_COMMON_NAME );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' has non-string '" );
+					builder.append( dto::GMOD_DTO_KEY_COMMON_NAME );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
 			std::optional<std::string> tempDefinition = std::nullopt;
-			if ( json.contains( dto::GMOD_DTO_KEY_DEFINITION ) )
+			const auto definitionIt = json.find( dto::GMOD_DTO_KEY_DEFINITION );
+			if ( definitionIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_DEFINITION ).is_string() )
+				if ( definitionIt->is_string() )
 				{
-					tempDefinition = json.at( dto::GMOD_DTO_KEY_DEFINITION ).get<std::string>();
+					tempDefinition = definitionIt->get<std::string>();
 				}
-				else if ( !json.at( dto::GMOD_DTO_KEY_DEFINITION ).is_null() )
+				else if ( !definitionIt->is_null() )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
-						tempCode, dto::GMOD_DTO_KEY_DEFINITION );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' has non-string '" );
+					builder.append( dto::GMOD_DTO_KEY_DEFINITION );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
 			std::optional<std::string> tempCommonDefinition = std::nullopt;
-			if ( json.contains( dto::GMOD_DTO_KEY_COMMON_DEFINITION ) )
+			const auto commonDefinitionIt = json.find( dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+			if ( commonDefinitionIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).is_string() )
+				if ( commonDefinitionIt->is_string() )
 				{
-					tempCommonDefinition = json.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).get<std::string>();
+					tempCommonDefinition = commonDefinitionIt->get<std::string>();
 				}
-				else if ( !json.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
+				else if ( !commonDefinitionIt->is_null() )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}'\n",
-						tempCode, dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' has non-string '" );
+					builder.append( dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
 			std::optional<bool> tempInstallSubstructure = std::nullopt;
-			if ( json.contains( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ) )
+			const auto installIt = json.find( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+			if ( installIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_boolean() )
+				if ( installIt->is_boolean() )
 				{
-					tempInstallSubstructure = json.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).get<bool>();
+					tempInstallSubstructure = installIt->get<bool>();
 				}
-				else if ( !json.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
+				else if ( !installIt->is_null() )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-bool '{}'\n",
-						tempCode, dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' has non-bool '" );
+					builder.append( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
 			std::optional<NormalAssignmentNamesMap> tempNormalAssignmentNames = std::nullopt;
-			if ( json.contains( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ) )
+			const auto assignmentIt = json.find( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+			if ( assignmentIt != json.end() )
 			{
-				if ( json.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_object() )
+				if ( assignmentIt->is_object() )
 				{
 					try
 					{
-						auto assignments = json.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).get<NormalAssignmentNamesMap>();
+						auto assignments = assignmentIt->get<NormalAssignmentNamesMap>();
 						if ( !assignments.empty() )
 						{
 							tempNormalAssignmentNames = std::move( assignments );
 						}
 					}
-					catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+					catch ( const nlohmann::json::exception& ex )
 					{
-						fmt::print( stderr, "WARN: GMOD Node code='{}' failed to parse '{}' object: {}\n",
-							tempCode, dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
+						auto lease = utils::StringBuilderPool::instance();
+						auto builder = lease.builder();
+						builder.append( "WARN: GMOD Node code='" );
+						builder.append( tempCode );
+						builder.append( "' failed to parse '" );
+						builder.append( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+						builder.append( "' object: " );
+						builder.append( ex.what() );
+						builder.append( "\n" );
+
+						fmt::print( stderr, "{}", lease.toString() );
 					}
 				}
-				else if ( !json.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
+				else if ( !assignmentIt->is_null() )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' has non-object '{}'\n",
-						tempCode, dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' has non-object '" );
+					builder.append( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+					builder.append( "'\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
@@ -232,17 +338,31 @@ namespace dnv::vista::sdk
 
 			return result;
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during GmodNodeDto parsing (hint: code='{}'): {}\n",
-				codeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during GmodNodeDto parsing (hint: code='" );
+			builder.append( codeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during GmodNodeDto parsing (hint: code='{}'): {}\n",
-				codeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during GmodNodeDto parsing (hint: code='" );
+			builder.append( codeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -254,10 +374,13 @@ namespace dnv::vista::sdk
 		auto dtoOpt = GmodNodeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument(
-				fmt::format(
-					"Failed to deserialize GmodNodeDto from JSON (hint: code='{}')",
-					codeHint ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "Failed to deserialize GmodNodeDto from JSON (hint: code='" );
+			builder.append( codeHint );
+			builder.append( "')" );
+
+			throw std::invalid_argument( lease.toString() );
 		}
 
 		return std::move( dtoOpt.value() );
@@ -278,141 +401,224 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, GmodNodeDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		if ( !j.contains( dto::GMOD_DTO_KEY_CATEGORY ) || !j.at( dto::GMOD_DTO_KEY_CATEGORY ).is_string() )
+		const auto categoryIt = j.find( dto::GMOD_DTO_KEY_CATEGORY );
+		if ( categoryIt == j.end() || !categoryIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
-					dto::GMOD_DTO_KEY_CATEGORY ),
-				&j );
-		}
-		if ( !j.contains( dto::GMOD_DTO_KEY_TYPE ) || !j.at( dto::GMOD_DTO_KEY_TYPE ).is_string() )
-		{
-			throw nlohmann::json::parse_error::create( 102, 0u,
-				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
-					dto::GMOD_DTO_KEY_TYPE ),
-				&j );
-		}
-		if ( !j.contains( dto::GMOD_DTO_KEY_CODE ) || !j.at( dto::GMOD_DTO_KEY_CODE ).is_string() )
-		{
-			throw nlohmann::json::parse_error::create( 103, 0u,
-				fmt::format( "GMOD Node JSON missing required '{}' field or not a string",
-					dto::GMOD_DTO_KEY_CODE ),
-				&j );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD Node JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_CATEGORY );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), &j );
 		}
 
-		/* Extract required fields with temporary variables */
-		std::string tempCategory = j.at( dto::GMOD_DTO_KEY_CATEGORY ).get<std::string>();
-		std::string tempType = j.at( dto::GMOD_DTO_KEY_TYPE ).get<std::string>();
-		std::string tempCode = j.at( dto::GMOD_DTO_KEY_CODE ).get<std::string>();
+		const auto typeIt = j.find( dto::GMOD_DTO_KEY_TYPE );
+		if ( typeIt == j.end() || !typeIt->is_string() )
+		{
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD Node JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_TYPE );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 102, 0u, lease.toString(), &j );
+		}
+
+		const auto codeIt = j.find( dto::GMOD_DTO_KEY_CODE );
+		if ( codeIt == j.end() || !codeIt->is_string() )
+		{
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD Node JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_CODE );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 103, 0u, lease.toString(), &j );
+		}
+
+		/* Extract required fields with cached iterators */
+		std::string tempCategory = categoryIt->get<std::string>();
+		std::string tempType = typeIt->get<std::string>();
+		std::string tempCode = codeIt->get<std::string>();
 
 		/* SPECIAL CASE: Name field handling - matches tryFromJson logic */
 		std::string tempName;
-		if ( j.contains( dto::GMOD_DTO_KEY_NAME ) )
+		const auto nameIt = j.find( dto::GMOD_DTO_KEY_NAME );
+		if ( nameIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_NAME ).is_string() )
+			if ( nameIt->is_string() )
 			{
-				tempName = j.at( dto::GMOD_DTO_KEY_NAME ).get<std::string>();
+				tempName = nameIt->get<std::string>();
 			}
-			else if ( j.at( dto::GMOD_DTO_KEY_NAME ).is_null() )
+			else if ( nameIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') has null '{}' field. Defaulting name to empty string.\n",
-					tempCode, dto::GMOD_DTO_KEY_NAME );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node JSON (code='" );
+				builder.append( tempCode );
+				builder.append( "') has null '" );
+				builder.append( dto::GMOD_DTO_KEY_NAME );
+				builder.append( "' field. Defaulting name to empty string.\n" );
+				fmt::print( stderr, "{}", lease.toString() );
 				tempName = "";
 			}
 			else
 			{
-				fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') has non-string '{}' field. Defaulting name to empty string.\n",
-					tempCode, dto::GMOD_DTO_KEY_NAME );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node JSON (code='" );
+				builder.append( tempCode );
+				builder.append( "') has non-string '" );
+				builder.append( dto::GMOD_DTO_KEY_NAME );
+				builder.append( "' field. Defaulting name to empty string.\n" );
+				fmt::print( stderr, "{}", lease.toString() );
 				tempName = "";
 			}
 		}
 		else
 		{
-			fmt::print( stderr, "WARN: GMOD Node JSON (code='{}') missing '{}' field. Defaulting name to empty string.\n",
-				tempCode, dto::GMOD_DTO_KEY_NAME );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: GMOD Node JSON (code='" );
+			builder.append( tempCode );
+			builder.append( "') missing '" );
+			builder.append( dto::GMOD_DTO_KEY_NAME );
+			builder.append( "' field. Defaulting name to empty string.\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 			tempName = "";
 		}
 
 		/* Optional fields with robust validation (matches tryFromJson pattern) */
 		std::optional<std::string> tempCommonName = std::nullopt;
-		if ( j.contains( dto::GMOD_DTO_KEY_COMMON_NAME ) )
+		const auto commonNameIt = j.find( dto::GMOD_DTO_KEY_COMMON_NAME );
+		if ( commonNameIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_COMMON_NAME ).is_string() )
+			if ( commonNameIt->is_string() )
 			{
-				tempCommonName = j.at( dto::GMOD_DTO_KEY_COMMON_NAME ).get<std::string>();
+				tempCommonName = commonNameIt->get<std::string>();
 			}
-			else if ( !j.at( dto::GMOD_DTO_KEY_COMMON_NAME ).is_null() )
+			else if ( !commonNameIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
-					tempCode, dto::GMOD_DTO_KEY_COMMON_NAME );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node code='" );
+				builder.append( tempCode );
+				builder.append( "' has non-string '" );
+				builder.append( dto::GMOD_DTO_KEY_COMMON_NAME );
+				builder.append( "' in from_json\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 
 		std::optional<std::string> tempDefinition = std::nullopt;
-		if ( j.contains( dto::GMOD_DTO_KEY_DEFINITION ) )
+		const auto definitionIt = j.find( dto::GMOD_DTO_KEY_DEFINITION );
+		if ( definitionIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_DEFINITION ).is_string() )
+			if ( definitionIt->is_string() )
 			{
-				tempDefinition = j.at( dto::GMOD_DTO_KEY_DEFINITION ).get<std::string>();
+				tempDefinition = definitionIt->get<std::string>();
 			}
-			else if ( !j.at( dto::GMOD_DTO_KEY_DEFINITION ).is_null() )
+			else if ( !definitionIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
-					tempCode, dto::GMOD_DTO_KEY_DEFINITION );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node code='" );
+				builder.append( tempCode );
+				builder.append( "' has non-string '" );
+				builder.append( dto::GMOD_DTO_KEY_DEFINITION );
+				builder.append( "' in from_json\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 
 		std::optional<std::string> tempCommonDefinition = std::nullopt;
-		if ( j.contains( dto::GMOD_DTO_KEY_COMMON_DEFINITION ) )
+		const auto commonDefinitionIt = j.find( dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+		if ( commonDefinitionIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).is_string() )
+			if ( commonDefinitionIt->is_string() )
 			{
-				tempCommonDefinition = j.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).get<std::string>();
+				tempCommonDefinition = commonDefinitionIt->get<std::string>();
 			}
-			else if ( !j.at( dto::GMOD_DTO_KEY_COMMON_DEFINITION ).is_null() )
+			else if ( !commonDefinitionIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-string '{}' in from_json\n",
-					tempCode, dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node code='" );
+				builder.append( tempCode );
+				builder.append( "' has non-string '" );
+				builder.append( dto::GMOD_DTO_KEY_COMMON_DEFINITION );
+				builder.append( "' in from_json\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 
 		std::optional<bool> tempInstallSubstructure = std::nullopt;
-		if ( j.contains( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ) )
+		const auto installIt = j.find( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+		if ( installIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_boolean() )
+			if ( installIt->is_boolean() )
 			{
-				tempInstallSubstructure = j.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).get<bool>();
+				tempInstallSubstructure = installIt->get<bool>();
 			}
-			else if ( !j.at( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE ).is_null() )
+			else if ( !installIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-bool '{}' in from_json\n",
-					tempCode, dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node code='" );
+				builder.append( tempCode );
+				builder.append( "' has non-bool '" );
+				builder.append( dto::GMOD_DTO_KEY_INSTALL_SUBSTRUCTURE );
+				builder.append( "' in from_json\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 
 		std::optional<GmodNodeDto::NormalAssignmentNamesMap> tempNormalAssignmentNames = std::nullopt;
-		if ( j.contains( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ) )
+		const auto assignmentIt = j.find( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+		if ( assignmentIt != j.end() )
 		{
-			if ( j.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_object() )
+			if ( assignmentIt->is_object() )
 			{
 				try
 				{
-					auto assignments = j.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).get<GmodNodeDto::NormalAssignmentNamesMap>();
+					auto assignments = assignmentIt->get<GmodNodeDto::NormalAssignmentNamesMap>();
 					if ( !assignments.empty() )
 					{
 						tempNormalAssignmentNames = std::move( assignments );
 					}
 				}
-				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+				catch ( const nlohmann::json::exception& ex )
 				{
-					fmt::print( stderr, "WARN: GMOD Node code='{}' failed to parse '{}' object in from_json: {}\n",
-						tempCode, dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES, ex.what() );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: GMOD Node code='" );
+					builder.append( tempCode );
+					builder.append( "' failed to parse '" );
+					builder.append( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+					builder.append( "' object in from_json: " );
+					builder.append( ex.what() );
+					builder.append( "\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
-			else if ( !j.at( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES ).is_null() )
+			else if ( !assignmentIt->is_null() )
 			{
-				fmt::print( stderr, "WARN: GMOD Node code='{}' has non-object '{}' in from_json\n",
-					tempCode, dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: GMOD Node code='" );
+				builder.append( tempCode );
+				builder.append( "' has non-object '" );
+				builder.append( dto::GMOD_DTO_KEY_NORMAL_ASSIGNMENT_NAMES );
+				builder.append( "' in from_json\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 		}
 
@@ -469,34 +675,48 @@ namespace dnv::vista::sdk
 
 	std::optional<GmodDto> GmodDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto visHint = GmodDtoInternal::extractVisHint( json );
+		const auto visHint = GmodDtoInternal::extractVisHint( json );
 
 		try
 		{
-			if ( !json.contains( dto::GMOD_DTO_KEY_VIS_RELEASE ) || !json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
+			const auto visReleaseIt = json.find( dto::GMOD_DTO_KEY_VIS_RELEASE );
+			if ( visReleaseIt == json.end() || !visReleaseIt->is_string() )
 			{
-				fmt::print( stderr, "ERROR: GMOD JSON missing required '{}' field or not a string\n",
-					dto::GMOD_DTO_KEY_VIS_RELEASE );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: GMOD JSON missing required '" );
+				builder.append( dto::GMOD_DTO_KEY_VIS_RELEASE );
+				builder.append( "' field or not a string\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			std::string tempVisVersion = json.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).get<std::string>();
+			std::string tempVisVersion = visReleaseIt->get<std::string>();
 
 			Items tempItems;
 			size_t totalItems = 0;
 			size_t successCount = 0;
 
-			if ( json.contains( dto::GMOD_DTO_KEY_ITEMS ) )
+			const auto itemsIt = json.find( dto::GMOD_DTO_KEY_ITEMS );
+			if ( itemsIt != json.end() )
 			{
-				if ( !json.at( dto::GMOD_DTO_KEY_ITEMS ).is_array() )
+				if ( !itemsIt->is_array() )
 				{
-					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
-						dto::GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: '" );
+					builder.append( dto::GMOD_DTO_KEY_ITEMS );
+					builder.append( "' field is not an array for VIS version " );
+					builder.append( tempVisVersion );
+					builder.append( "\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 				else
 				{
-					const auto& itemsArray = json.at( dto::GMOD_DTO_KEY_ITEMS );
+					const auto& itemsArray = *itemsIt;
 					totalItems = itemsArray.size();
 					tempItems.reserve( totalItems + totalItems / 8 );
 
@@ -510,8 +730,12 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							fmt::print( stderr, "WARN: Skipping malformed GMOD node during GmodDto parsing for VIS version {}\n",
-								std::string_view{ tempVisVersion } );
+							auto lease = utils::StringBuilderPool::instance();
+							auto builder = lease.builder();
+							builder.append( "WARN: Skipping malformed GMOD node during GmodDto parsing for VIS version " );
+							builder.append( tempVisVersion );
+							builder.append( "\n" );
+							fmt::print( stderr, "{}", lease.toString() );
 						}
 					}
 
@@ -527,24 +751,39 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				fmt::print( stderr, "WARN: No '{}' array found in GmodDto for VIS version {}\n",
-					dto::GMOD_DTO_KEY_ITEMS, std::string_view{ tempVisVersion } );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: No '" );
+				builder.append( dto::GMOD_DTO_KEY_ITEMS );
+				builder.append( "' array found in GmodDto for VIS version " );
+				builder.append( tempVisVersion );
+				builder.append( "\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 
 			Relations tempRelations;
 			size_t relationCount = 0;
 			size_t validRelationCount = 0;
 
-			if ( json.contains( dto::GMOD_DTO_KEY_RELATIONS ) )
+			const auto relationsIt = json.find( dto::GMOD_DTO_KEY_RELATIONS );
+			if ( relationsIt != json.end() )
 			{
-				if ( !json.at( dto::GMOD_DTO_KEY_RELATIONS ).is_array() )
+				if ( !relationsIt->is_array() )
 				{
-					fmt::print( stderr, "WARN: '{}' field is not an array for VIS version {}\n",
-						dto::GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: '" );
+					builder.append( dto::GMOD_DTO_KEY_RELATIONS );
+					builder.append( "' field is not an array for VIS version " );
+					builder.append( tempVisVersion );
+					builder.append( "\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 				else
 				{
-					const auto& relationsArray = json.at( dto::GMOD_DTO_KEY_RELATIONS );
+					const auto& relationsArray = *relationsIt;
 					relationCount = relationsArray.size();
 					tempRelations.reserve( relationCount + relationCount / 8 );
 
@@ -564,8 +803,13 @@ namespace dnv::vista::sdk
 								}
 								else
 								{
-									fmt::print( stderr, "WARN: Non-string value found in relation entry for VIS version {}\n",
-										std::string_view{ tempVisVersion } );
+									auto lease = utils::StringBuilderPool::instance();
+									auto builder = lease.builder();
+									builder.append( "WARN: Non-string value found in relation entry for VIS version " );
+									builder.append( tempVisVersion );
+									builder.append( "\n" );
+
+									fmt::print( stderr, "{}", lease.toString() );
 									validPair = false;
 									break;
 								}
@@ -579,8 +823,15 @@ namespace dnv::vista::sdk
 						}
 						else
 						{
-							fmt::print( stderr, "WARN: Non-array entry found in '{}' array for VIS version {}\n",
-								dto::GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
+							auto lease = utils::StringBuilderPool::instance();
+							auto builder = lease.builder();
+							builder.append( "WARN: Non-array entry found in '" );
+							builder.append( dto::GMOD_DTO_KEY_RELATIONS );
+							builder.append( "' array for VIS version " );
+							builder.append( tempVisVersion );
+							builder.append( "\n" );
+
+							fmt::print( stderr, "{}", lease.toString() );
 						}
 					}
 
@@ -596,8 +847,15 @@ namespace dnv::vista::sdk
 			}
 			else
 			{
-				fmt::print( stderr, "WARN: No '{}' array found in GmodDto for VIS version {}\n",
-					dto::GMOD_DTO_KEY_RELATIONS, std::string_view{ tempVisVersion } );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: No '" );
+				builder.append( dto::GMOD_DTO_KEY_RELATIONS );
+				builder.append( "' array found in GmodDto for VIS version " );
+				builder.append( tempVisVersion );
+				builder.append( "\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 			}
 
 			if ( tempItems.size() > 10000 )
@@ -609,16 +867,32 @@ namespace dnv::vista::sdk
 
 			return resultDto;
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during GmodDto parsing (hint: visRelease='{}'): {}\n",
-				visHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during GmodDto parsing (hint: visRelease='" );
+			builder.append( visHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
+
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during GmodDto parsing (hint: visRelease='{}'): {}\n",
-				visHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during GmodDto parsing (hint: visRelease='" );
+			builder.append( visHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
+
 			return std::nullopt;
 		}
 	}
@@ -629,10 +903,13 @@ namespace dnv::vista::sdk
 		auto dtoOpt = GmodDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument(
-				fmt::format(
-					"Failed to deserialize GmodDto from JSON (hint: visRelease='{}')",
-					visHint ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "Failed to deserialize GmodDto from JSON (hint: visRelease='" );
+			builder.append( visHint );
+			builder.append( "')" );
+
+			throw std::invalid_argument( lease.toString() );
 		}
 
 		return std::move( dtoOpt.value() );
@@ -653,41 +930,105 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, GmodDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		if ( !j.contains( dto::GMOD_DTO_KEY_VIS_RELEASE ) || !j.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).is_string() )
+		const auto visIt = j.find( dto::GMOD_DTO_KEY_VIS_RELEASE );
+		if ( visIt == j.end() || !visIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 201, 0u,
-				fmt::format( "GMOD JSON missing required '{}' field or not a string",
-					dto::GMOD_DTO_KEY_VIS_RELEASE ),
-				&j );
-		}
-		if ( !j.contains( dto::GMOD_DTO_KEY_ITEMS ) || !j.at( dto::GMOD_DTO_KEY_ITEMS ).is_array() )
-		{
-			throw nlohmann::json::parse_error::create( 202, 0u,
-				fmt::format( "GMOD JSON missing required '{}' field or not an array",
-					dto::GMOD_DTO_KEY_ITEMS ),
-				&j );
-		}
-		if ( !j.contains( dto::GMOD_DTO_KEY_RELATIONS ) || !j.at( dto::GMOD_DTO_KEY_RELATIONS ).is_array() )
-		{
-			throw nlohmann::json::parse_error::create( 203, 0u,
-				fmt::format( "GMOD JSON missing required '{}' field or not an array",
-					dto::GMOD_DTO_KEY_RELATIONS ),
-				&j );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_VIS_RELEASE );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 201, 0u, lease.toString(), &j );
 		}
 
-		/* Extract required fields with temporary variables */
-		std::string tempVisVersion = j.at( dto::GMOD_DTO_KEY_VIS_RELEASE ).get<std::string>();
+		const auto itemsIt = j.find( dto::GMOD_DTO_KEY_ITEMS );
+		if ( itemsIt == j.end() || !itemsIt->is_array() )
+		{
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_ITEMS );
+			builder.append( "' field or not an array" );
+
+			throw nlohmann::json::parse_error::create( 202, 0u, lease.toString(), &j );
+		}
+
+		const auto relationsIt = j.find( dto::GMOD_DTO_KEY_RELATIONS );
+		if ( relationsIt == j.end() || !relationsIt->is_array() )
+		{
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "GMOD JSON missing required '" );
+			builder.append( dto::GMOD_DTO_KEY_RELATIONS );
+			builder.append( "' field or not an array" );
+
+			throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &j );
+		}
+
+		/* Extract required fields with cached iterators */
+		std::string tempVisVersion = visIt->get<std::string>();
 
 		GmodDto::Items tempItems;
-		if ( j.contains( dto::GMOD_DTO_KEY_ITEMS ) && j.at( dto::GMOD_DTO_KEY_ITEMS ).is_array() )
+		if ( itemsIt != j.end() && itemsIt->is_array() )
 		{
-			tempItems = j.at( dto::GMOD_DTO_KEY_ITEMS ).get<GmodDto::Items>();
+			const auto& itemsArray = *itemsIt;
+			tempItems.reserve( itemsArray.size() );
+
+			for ( const auto& itemJson : itemsArray )
+			{
+				auto itemDtoOpt = GmodNodeDto::tryFromJson( itemJson );
+				if ( itemDtoOpt.has_value() )
+				{
+					tempItems.emplace_back( std::move( itemDtoOpt.value() ) );
+				}
+				else
+				{
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "ERROR: Failed to parse GMOD item in collection during from_json" );
+
+					throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &itemJson );
+				}
+			}
+			tempItems.shrink_to_fit();
 		}
 
 		GmodDto::Relations tempRelations;
-		if ( j.contains( dto::GMOD_DTO_KEY_RELATIONS ) && j.at( dto::GMOD_DTO_KEY_RELATIONS ).is_array() )
+		if ( relationsIt != j.end() && relationsIt->is_array() )
 		{
-			tempRelations = j.at( dto::GMOD_DTO_KEY_RELATIONS ).get<GmodDto::Relations>();
+			const auto& relationsArray = *relationsIt;
+			tempRelations.reserve( relationsArray.size() );
+
+			for ( const auto& relationJson : relationsArray )
+			{
+				if ( relationJson.is_array() )
+				{
+					try
+					{
+						GmodDto::Relation relation = relationJson.get<GmodDto::Relation>();
+						tempRelations.emplace_back( std::move( relation ) );
+					}
+					catch ( const nlohmann::json::exception& ex )
+					{
+						auto lease = utils::StringBuilderPool::instance();
+						auto builder = lease.builder();
+						builder.append( "ERROR: Failed to parse GMOD relation in collection during from_json: " );
+						builder.append( ex.what() );
+						
+						throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &relationJson );
+					}
+				}
+				else
+				{
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "ERROR: GMOD relation must be an array during from_json" );
+					
+					throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &relationJson );
+				}
+			}
+			tempRelations.shrink_to_fit();
 		}
 
 		/* Assign all fields to DTO using successfully parsed data */

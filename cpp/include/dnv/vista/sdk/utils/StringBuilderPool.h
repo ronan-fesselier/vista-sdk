@@ -223,7 +223,7 @@ namespace dnv::vista::sdk::utils
 
 		~StringBuilderLease() { dispose(); }
 
-		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE StringBuilderWrapper Builder()
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE StringBuilderWrapper builder()
 		{
 			if ( !m_valid )
 			{

@@ -7,6 +7,7 @@
 
 #include "dnv/vista/sdk/Transport/ISO19848Dtos.h"
 #include "dnv/vista/sdk/config/DtoKeys.h"
+#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -20,9 +21,10 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				if ( json.contains( dto::ISO19848_DTO_KEY_TYPE ) && json.at( dto::ISO19848_DTO_KEY_TYPE ).is_string() )
+				const auto typeIt = json.find( dto::ISO19848_DTO_KEY_TYPE );
+				if ( typeIt != json.end() && typeIt->is_string() )
 				{
-					const auto& str = json.at( dto::ISO19848_DTO_KEY_TYPE ).get_ref<const std::string&>();
+					const auto& str = typeIt->get_ref<const std::string&>();
 
 					return std::string_view{ str };
 				}
@@ -46,13 +48,17 @@ namespace dnv::vista::sdk
 
 	std::optional<DataChannelTypeNameDto> DataChannelTypeNameDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
+		const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for DataChannelTypeNameDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: JSON value for DataChannelTypeNameDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
@@ -61,17 +67,31 @@ namespace dnv::vista::sdk
 
 			return std::optional<DataChannelTypeNameDto>{ std::move( dto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}\n",
-				typeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during DataChannelTypeNameDto parsing (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during DataChannelTypeNameDto parsing (hint: type='{}'): {}\n",
-				typeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during DataChannelTypeNameDto parsing (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -83,10 +103,13 @@ namespace dnv::vista::sdk
 		auto dtoOpt = DataChannelTypeNameDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument(
-				fmt::format(
-					"Failed to deserialize DataChannelTypeNameDto from JSON (hint: type='{}')",
-					typeHint ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "Failed to deserialize DataChannelTypeNameDto from JSON (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "')" );
+
+			throw std::invalid_argument( lease.toString() );
 		}
 
 		return std::move( dtoOpt ).value();
@@ -111,20 +134,23 @@ namespace dnv::vista::sdk
 
 		if ( typeIt == j.end() || !typeIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format(
-					"DataChannelTypeNameDto JSON missing required '{}' field or not a string",
-					dto::ISO19848_DTO_KEY_TYPE ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "DataChannelTypeNameDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_TYPE );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 		if ( descIt == j.end() || !descIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create(
-				101, 0u,
-				fmt::format(
-					"DataChannelTypeNameDto JSON missing required '{}' field or not a string",
-					dto::ISO19848_DTO_KEY_DESCRIPTION ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "DataChannelTypeNameDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_DESCRIPTION );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 
 		dto.m_type = typeIt->get<std::string>();
@@ -132,11 +158,19 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_type.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'type' field found in DataChannelTypeNameDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: Empty 'type' field found in DataChannelTypeNameDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 		if ( dto.m_description.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'description' field found in DataChannelTypeNameDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: Empty 'description' field found in DataChannelTypeNameDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 	}
 
@@ -161,22 +195,30 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for DataChannelTypeNamesDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: JSON value for DataChannelTypeNamesDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			if ( !json.contains( dto::ISO19848_DTO_KEY_VALUES ) || !json.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
+			const auto valuesIt = json.find( dto::ISO19848_DTO_KEY_VALUES );
+			if ( valuesIt == json.end() || !valuesIt->is_array() )
 			{
-				fmt::print(
-					stderr,
-					"ERROR: DataChannelTypeNamesDto JSON missing required '{}' array\n",
-					dto::ISO19848_DTO_KEY_VALUES );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: DataChannelTypeNamesDto JSON missing required '" );
+				builder.append( dto::ISO19848_DTO_KEY_VALUES );
+				builder.append( "' array\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			const auto& valuesArray = json.at( dto::ISO19848_DTO_KEY_VALUES );
+			const auto& valuesArray = *valuesIt;
 			size_t totalItems = valuesArray.size();
 			size_t successCount = 0;
 
@@ -196,7 +238,11 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					fmt::print( stderr, "WARN: Skipping invalid DataChannelTypeNameDto item during parsing\n" );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: Skipping invalid DataChannelTypeNameDto item during parsing\n" );
+
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
@@ -212,15 +258,27 @@ namespace dnv::vista::sdk
 			DataChannelTypeNamesDto resultDto( std::move( tempValues ) );
 			return std::optional<DataChannelTypeNamesDto>{ std::move( resultDto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during DataChannelTypeNamesDto parsing: {}\n", ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during DataChannelTypeNamesDto parsing: " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during DataChannelTypeNamesDto parsing: {}\n", ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during DataChannelTypeNamesDto parsing: " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -251,17 +309,54 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, DataChannelTypeNamesDto& dto )
 	{
-		if ( !j.contains( dto::ISO19848_DTO_KEY_VALUES ) || !j.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
+		const auto valuesIt = j.find( dto::ISO19848_DTO_KEY_VALUES );
+		if ( valuesIt == j.end() || !valuesIt->is_array() )
 		{
-			throw nlohmann::json::parse_error::create(
-				101, 0u,
-				fmt::format(
-					"DataChannelTypeNamesDto JSON missing required '{}' array",
-					dto::ISO19848_DTO_KEY_VALUES ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "DataChannelTypeNamesDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_VALUES );
+			builder.append( "' array" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 
-		dto.m_values = j.at( dto::ISO19848_DTO_KEY_VALUES ).get<std::vector<DataChannelTypeNameDto>>();
+		const auto& valuesArray = *valuesIt;
+		const size_t totalItems = valuesArray.size();
+		size_t successCount = 0;
+
+		dto.m_values.clear();
+		const size_t reserveSize = totalItems < 1000
+									   ? totalItems + totalItems / 4
+									   : totalItems + totalItems / 16;
+		dto.m_values.reserve( reserveSize );
+
+		for ( const auto& itemJson : valuesArray )
+		{
+			auto itemOpt = DataChannelTypeNameDto::tryFromJson( itemJson );
+			if ( itemOpt.has_value() )
+			{
+				dto.m_values.emplace_back( std::move( *itemOpt ) );
+				successCount++;
+			}
+			else
+			{
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Skipping invalid DataChannelTypeNameDto item during ADL parsing\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
+			}
+		}
+
+		/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
+		if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
+		{
+			if ( dto.m_values.capacity() > dto.m_values.size() * 4 / 3 )
+			{
+				dto.m_values.shrink_to_fit();
+			}
+		}
 	}
 
 	void to_json( nlohmann::json& j, const DataChannelTypeNamesDto& dto )
@@ -279,13 +374,17 @@ namespace dnv::vista::sdk
 
 	std::optional<FormatDataTypeDto> FormatDataTypeDto::tryFromJson( const nlohmann::json& json )
 	{
-		[[maybe_unused]] const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
+		const auto typeHint = ISO19848DtosInternal::extractTypeHint( json );
 
 		try
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for FormatDataTypeDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: JSON value for FormatDataTypeDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
@@ -294,17 +393,31 @@ namespace dnv::vista::sdk
 
 			return std::optional<FormatDataTypeDto>{ std::move( dto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during FormatDataTypeDto parsing (hint: type='{}'): {}\n",
-				typeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during FormatDataTypeDto parsing (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during FormatDataTypeDto parsing (hint: type='{}'): {}\n",
-				typeHint, ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during FormatDataTypeDto parsing (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "'): " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -316,10 +429,13 @@ namespace dnv::vista::sdk
 		auto dtoOpt = FormatDataTypeDto::tryFromJson( json );
 		if ( !dtoOpt.has_value() )
 		{
-			throw std::invalid_argument(
-				fmt::format(
-					"Failed to deserialize FormatDataTypeDto from JSON (hint: type='{}')",
-					typeHint ) );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "Failed to deserialize FormatDataTypeDto from JSON (hint: type='" );
+			builder.append( typeHint );
+			builder.append( "')" );
+
+			throw std::invalid_argument( lease.toString() );
 		}
 
 		return std::move( dtoOpt ).value();
@@ -344,19 +460,23 @@ namespace dnv::vista::sdk
 
 		if ( typeIt == j.end() || !typeIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format(
-					"FormatDataTypeDto JSON missing required '{}' field or not a string",
-					dto::ISO19848_DTO_KEY_TYPE ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "FormatDataTypeDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_TYPE );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 		if ( descIt == j.end() || !descIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format(
-					"FormatDataTypeDto JSON missing required '{}' field or not a string",
-					dto::ISO19848_DTO_KEY_DESCRIPTION ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "FormatDataTypeDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_DESCRIPTION );
+			builder.append( "' field or not a string" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 
 		dto.m_type = typeIt->get<std::string>();
@@ -364,11 +484,19 @@ namespace dnv::vista::sdk
 
 		if ( dto.m_type.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'type' field found in FormatDataTypeDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: Empty 'type' field found in FormatDataTypeDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 		if ( dto.m_description.empty() )
 		{
-			fmt::print( stderr, "WARN: Empty 'description' field found in FormatDataTypeDto\n" );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "WARN: Empty 'description' field found in FormatDataTypeDto\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 		}
 	}
 	void to_json( nlohmann::json& j, const FormatDataTypeDto& dto )
@@ -392,29 +520,32 @@ namespace dnv::vista::sdk
 		{
 			if ( !json.is_object() )
 			{
-				fmt::print( stderr, "ERROR: JSON value for FormatDataTypesDto is not an object\n" );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: JSON value for FormatDataTypesDto is not an object\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			if ( !json.contains( dto::ISO19848_DTO_KEY_VALUES ) || !json.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
+			const auto valuesIt = json.find( dto::ISO19848_DTO_KEY_VALUES );
+			if ( valuesIt == json.end() || !valuesIt->is_array() )
 			{
-				fmt::print(
-					stderr,
-					"ERROR: FormatDataTypesDto JSON missing required '{}' array\n",
-					dto::ISO19848_DTO_KEY_VALUES );
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "ERROR: FormatDataTypesDto JSON missing required '" );
+				builder.append( dto::ISO19848_DTO_KEY_VALUES );
+				builder.append( "' array\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
 
 				return std::nullopt;
 			}
 
-			const auto& valuesArray = json.at( dto::ISO19848_DTO_KEY_VALUES );
+			const auto& valuesArray = *valuesIt;
 			size_t totalItems = valuesArray.size();
 			size_t successCount = 0;
-
-			if ( totalItems > 10000 )
-			{
-				[[maybe_unused]] const size_t approxMemoryUsage = ( totalItems * sizeof( FormatDataTypeDto ) ) / ( 1024 * 1024 );
-			}
 
 			std::vector<FormatDataTypeDto> tempValues;
 			const size_t reserveSize = totalItems < 1000
@@ -432,7 +563,10 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					fmt::print( stderr, "WARN: Skipping invalid FormatDataTypeDto item during parsing\n" );
+					auto lease = utils::StringBuilderPool::instance();
+					auto builder = lease.builder();
+					builder.append( "WARN: Skipping invalid FormatDataTypeDto item during parsing\n" );
+					fmt::print( stderr, "{}", lease.toString() );
 				}
 			}
 
@@ -449,15 +583,27 @@ namespace dnv::vista::sdk
 
 			return std::optional<FormatDataTypesDto>{ std::move( resultDto ) };
 		}
-		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
+		catch ( const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON exception during FormatDataTypesDto parsing: {}\n", ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: JSON exception during FormatDataTypesDto parsing: " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
-		catch ( [[maybe_unused]] const std::exception& ex )
+		catch ( const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Standard exception during FormatDataTypesDto parsing: {}\n", ex.what() );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "ERROR: Standard exception during FormatDataTypesDto parsing: " );
+			builder.append( ex.what() );
+			builder.append( "\n" );
+
+			fmt::print( stderr, "{}", lease.toString() );
 
 			return std::nullopt;
 		}
@@ -488,17 +634,55 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, FormatDataTypesDto& dto )
 	{
-		if ( !j.contains( dto::ISO19848_DTO_KEY_VALUES ) || !j.at( dto::ISO19848_DTO_KEY_VALUES ).is_array() )
+		const auto valuesIt = j.find( dto::ISO19848_DTO_KEY_VALUES );
+		if ( valuesIt == j.end() || !valuesIt->is_array() )
 		{
-			throw nlohmann::json::parse_error::create(
-				101, 0u,
-				fmt::format(
-					"FormatDataTypesDto JSON missing required '{}' array",
-					dto::ISO19848_DTO_KEY_VALUES ),
-				nullptr );
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "FormatDataTypesDto JSON missing required '" );
+			builder.append( dto::ISO19848_DTO_KEY_VALUES );
+			builder.append( "' array" );
+
+			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
 		}
 
-		dto.m_values = j.at( dto::ISO19848_DTO_KEY_VALUES ).get<std::vector<FormatDataTypeDto>>();
+		const auto& valuesArray = *valuesIt;
+		const size_t totalItems = valuesArray.size();
+		size_t successCount = 0;
+
+		dto.m_values.clear();
+
+		const size_t reserveSize = totalItems < 1000
+									   ? totalItems + totalItems / 4
+									   : totalItems + totalItems / 16;
+		dto.m_values.reserve( reserveSize );
+
+		for ( const auto& itemJson : valuesArray )
+		{
+			auto itemOpt = FormatDataTypeDto::tryFromJson( itemJson );
+			if ( itemOpt.has_value() )
+			{
+				dto.m_values.emplace_back( std::move( *itemOpt ) );
+				successCount++;
+			}
+			else
+			{
+				auto lease = utils::StringBuilderPool::instance();
+				auto builder = lease.builder();
+				builder.append( "WARN: Skipping invalid FormatDataTypeDto item during ADL parsing\n" );
+
+				fmt::print( stderr, "{}", lease.toString() );
+			}
+		}
+
+		/* If parsing failed for more than 10% of items, shrink the vector to potentially save memory */
+		if ( totalItems > 0 && successCount < totalItems * 9 / 10 )
+		{
+			if ( dto.m_values.capacity() > dto.m_values.size() * 4 / 3 )
+			{
+				dto.m_values.shrink_to_fit();
+			}
+		}
 	}
 
 	void to_json( nlohmann::json& j, const FormatDataTypesDto& dto )

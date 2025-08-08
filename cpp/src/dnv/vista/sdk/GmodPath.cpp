@@ -1061,10 +1061,10 @@ namespace dnv::vista::sdk
 			{
 				if ( firstNodeAppended )
 				{
-					lease.Builder().push_back( '/' );
+					lease.builder().push_back( '/' );
 				}
 
-				lease.Builder().append( currentNode.toString() );
+				lease.builder().append( currentNode.toString() );
 				firstNodeAppended = true;
 			}
 		}
