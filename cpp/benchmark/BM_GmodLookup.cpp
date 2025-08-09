@@ -3,15 +3,11 @@
  * @brief GMOD node lookup comparison between CHD Dictionary and std::unordered_map
  */
 
-#include "pch.h"
-
-#include "dnv/vista/sdk/internal/HashMap.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Internal/HashMap.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/VIS.h"
-
-using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -59,11 +55,10 @@ namespace dnv::vista::sdk::benchmarks
 			auto it3 = g_dict.find( "400" );
 			auto it4 = g_dict.find( "H346.11112" );
 
-			bool result =
-				( it1 != g_dict.end() && ( node1 = it1->second ) ) &&
-				( it2 != g_dict.end() && ( node2 = it2->second ) ) &&
-				( it3 != g_dict.end() && ( node3 = it3->second ) ) &&
-				( it4 != g_dict.end() && ( node4 = it4->second ) );
+			bool result = ( it1 != g_dict.end() && ( node1 = it1->second ) ) &&
+						  ( it2 != g_dict.end() && ( node2 = it2->second ) ) &&
+						  ( it3 != g_dict.end() && ( node3 = it3->second ) ) &&
+						  ( it4 != g_dict.end() && ( node4 = it4->second ) );
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( node1 );
@@ -89,11 +84,10 @@ namespace dnv::vista::sdk::benchmarks
 			auto it3 = g_frozenDict.find( "400" );
 			auto it4 = g_frozenDict.find( "H346.11112" );
 
-			bool result =
-				( it1 != g_frozenDict.end() && ( node1 = it1->second ) ) &&
-				( it2 != g_frozenDict.end() && ( node2 = it2->second ) ) &&
-				( it3 != g_frozenDict.end() && ( node3 = it3->second ) ) &&
-				( it4 != g_frozenDict.end() && ( node4 = it4->second ) );
+			bool result = ( it1 != g_frozenDict.end() && ( node1 = it1->second ) ) &&
+						  ( it2 != g_frozenDict.end() && ( node2 = it2->second ) ) &&
+						  ( it3 != g_frozenDict.end() && ( node3 = it3->second ) ) &&
+						  ( it4 != g_frozenDict.end() && ( node4 = it4->second ) );
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( node1 );
@@ -136,31 +130,19 @@ namespace dnv::vista::sdk::benchmarks
 		for ( auto _ : state )
 		{
 			const GmodNode* node;
-			bool result =
-				g_gmod->tryGetNode( "VE", node ) &&
-				g_gmod->tryGetNode( "400a", node ) &&
-				g_gmod->tryGetNode( "400", node ) &&
-				g_gmod->tryGetNode( "H346.11112", node );
+			bool result = g_gmod->tryGetNode( "VE", node ) &&
+						  g_gmod->tryGetNode( "400a", node ) &&
+						  g_gmod->tryGetNode( "400", node ) &&
+						  g_gmod->tryGetNode( "H346.11112", node );
 
 			benchmark::DoNotOptimize( result );
 		}
 	}
 
-	BENCHMARK( BM_dict )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_frozenDict )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_dictionary )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_gmod )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_dict )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_frozenDict )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_dictionary )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_gmod )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
 }
 
 BENCHMARK_MAIN();

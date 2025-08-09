@@ -39,9 +39,8 @@ namespace dnv::vista::sdk
 
 		if ( m_name == CodebookName::Position )
 		{
-			constexpr auto isDigit = []( char c ) noexcept {
-				return static_cast<unsigned char>( c - '0' ) <= 9u;
-			};
+			constexpr auto isDigit = []( char c ) noexcept { return static_cast<unsigned char>( c - '0' ) <= 9u; };
+
 			return !tagValue.empty() && std::all_of( tagValue.begin(), tagValue.end(), isDigit );
 		}
 

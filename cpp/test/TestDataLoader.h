@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	const nlohmann::json& loadTestData( const char* testDataPath );
 }

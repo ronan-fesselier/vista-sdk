@@ -113,9 +113,7 @@ namespace dnv::vista::sdk::internal
 	// Error addition
 	//----------------------------------------------
 
-	LocationParsingErrorBuilder& LocationParsingErrorBuilder::addError(
-		LocationValidationResult validationResult,
-		const std::string& message )
+	LocationParsingErrorBuilder& LocationParsingErrorBuilder::addError( LocationValidationResult validationResult, const std::string& message )
 	{
 		if ( m_errors.size() == m_errors.capacity() )
 		{

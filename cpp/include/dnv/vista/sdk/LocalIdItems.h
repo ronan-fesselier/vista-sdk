@@ -4,8 +4,9 @@
  */
 #pragma once
 
+#include "Utils/StringBuilderPool.h"
+
 #include "GmodPath.h"
-#include "utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -36,7 +37,7 @@ namespace dnv::vista::sdk
 		 * @param primaryItem The primary GmodPath (moved into `m_primaryItem`).
 		 * @param secondaryItem The optional secondary GmodPath (moved into `m_secondaryItem`).
 		 */
-		LocalIdItems( GmodPath&& primaryItem, std::optional<GmodPath>&& secondaryItem );
+		inline LocalIdItems( GmodPath&& primaryItem, std::optional<GmodPath>&& secondaryItem );
 
 		/**
 		 * @brief Constructor to create a new instance by replacing the primary item.
@@ -46,7 +47,7 @@ namespace dnv::vista::sdk
 		 * @param other The existing LocalIdItems instance (moved from).
 		 * @param newPrimaryItem The new primary GmodPath (moved).
 		 */
-		LocalIdItems( LocalIdItems&& other, GmodPath&& newPrimaryItem );
+		inline LocalIdItems( LocalIdItems&& other, GmodPath&& newPrimaryItem );
 
 		/**
 		 * @brief Constructor to create a new instance by replacing the secondary item.
@@ -56,7 +57,7 @@ namespace dnv::vista::sdk
 		 * @param other The existing LocalIdItems instance (moved from).
 		 * @param newSecondaryItem The new optional secondary GmodPath (moved).
 		 */
-		LocalIdItems( LocalIdItems&& other, std::optional<GmodPath>&& newSecondaryItem );
+		inline LocalIdItems( LocalIdItems&& other, std::optional<GmodPath>&& newSecondaryItem );
 
 		/** @brief Default constructor */
 		LocalIdItems() = default;

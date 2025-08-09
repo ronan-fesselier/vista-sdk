@@ -3,12 +3,8 @@
  * @brief GMOD path parsing performance benchmarks comparing different parsing strategies
  */
 
-#include "pch.h"
-
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
-
-using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -48,9 +44,7 @@ namespace dnv::vista::sdk::benchmarks
 		for ( auto _ : state )
 		{
 			std::optional<GmodPath> outPath;
-			bool result = GmodPath::tryParseFullPath(
-				"VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101",
-				*g_gmod, *g_locations, outPath );
+			bool result = GmodPath::tryParseFullPath( "VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101", *g_gmod, *g_locations, outPath );
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
@@ -80,28 +74,19 @@ namespace dnv::vista::sdk::benchmarks
 			std::optional<GmodPath> outPath;
 			bool result = GmodPath::tryParseFullPath(
 				"VE/600a/610/612/612.2/612.2i/612.21-1/CS10/C701/C701.1/C701.13/S93",
-				*g_gmod, *g_locations, outPath );
+				*g_gmod,
+				*g_locations,
+				outPath );
 
 			benchmark::DoNotOptimize( result );
 			benchmark::DoNotOptimize( outPath );
 		}
 	}
 
-	BENCHMARK( BM_tryParse )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMicrosecond );
-
-	BENCHMARK( BM_tryParseFullPath )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMicrosecond );
-
-	BENCHMARK( BM_tryParseIndividualized )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMicrosecond );
-
-	BENCHMARK( BM_tryParseFullPathIndividualized )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMicrosecond );
+	BENCHMARK( BM_tryParse )->MinTime( 10.0 )->Unit( benchmark::kMicrosecond );
+	BENCHMARK( BM_tryParseFullPath )->MinTime( 10.0 )->Unit( benchmark::kMicrosecond );
+	BENCHMARK( BM_tryParseIndividualized )->MinTime( 10.0 )->Unit( benchmark::kMicrosecond );
+	BENCHMARK( BM_tryParseFullPathIndividualized )->MinTime( 10.0 )->Unit( benchmark::kMicrosecond );
 }
 
 BENCHMARK_MAIN();

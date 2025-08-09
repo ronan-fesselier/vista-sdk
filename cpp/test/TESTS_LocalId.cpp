@@ -107,12 +107,16 @@ namespace dnv::vista::sdk::tests
 	public:
 		static std::vector<std::pair<Input, std::string>> testData()
 		{
-			return {
-				{ Input{ "411.1/C101.31-2" }, "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta" },
-				{ Input{ "411.1/C101.31-2", "", "temperature", "exhaust.gas", "inlet" }, "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet" },
-				{ Input{ "411.1/C101.63/S206", "", "temperature", "exhaust.gas", "inlet", VisVersion::v3_4a, true }, "/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet" },
-				{ Input{ "411.1/C101.63/S206", "411.1/C101.31-5", "temperature", "exhaust.gas", "inlet", VisVersion::v3_4a, true }, "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet" },
-				{ Input{ "511.11/C101.67/S208", "", "pressure", "starting.air", "inlet", VisVersion::v3_6a, true }, "/dnv-v2/vis-3-6a/511.11/C101.67/S208/~main.generator.engine/~starting.system.pneumatic/meta/qty-pressure/cnt-starting.air/pos-inlet" } };
+			return { { Input{ "411.1/C101.31-2" }, "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta" },
+				{ Input{ "411.1/C101.31-2", "", "temperature", "exhaust.gas", "inlet" },
+					"/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet" },
+				{ Input{ "411.1/C101.63/S206", "", "temperature", "exhaust.gas", "inlet", VisVersion::v3_4a, true },
+					"/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet" },
+				{ Input{ "411.1/C101.63/S206", "411.1/C101.31-5", "temperature", "exhaust.gas", "inlet", VisVersion::v3_4a, true },
+					"/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/"
+					"qty-temperature/cnt-exhaust.gas/pos-inlet" },
+				{ Input{ "511.11/C101.67/S208", "", "pressure", "starting.air", "inlet", VisVersion::v3_6a, true },
+					"/dnv-v2/vis-3-6a/511.11/C101.67/S208/~main.generator.engine/~starting.system.pneumatic/meta/qty-pressure/cnt-starting.air/pos-inlet" } };
 		}
 	};
 
@@ -151,10 +155,7 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( expectedOutput, localIdStr );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ValidCases,
-		LocalIdValidTest,
-		::testing::ValuesIn( LocalIdValidTest::testData() ) );
+	INSTANTIATE_TEST_SUITE_P( ValidCases, LocalIdValidTest, ::testing::ValuesIn( LocalIdValidTest::testData() ) );
 
 	//----------------------------------------------
 	// Test_LocalId_Build_AllWithout
@@ -184,14 +185,8 @@ namespace dnv::vista::sdk::tests
 
 		EXPECT_TRUE( localId.isValid() );
 
-		auto allWithout = localId
-							  .withoutPrimaryItem()
-							  .withoutSecondaryItem()
-							  .withoutQuantity()
-							  .withoutPosition()
-							  .withoutState()
-							  .withoutContent()
-							  .withoutCalculation();
+		auto allWithout =
+			localId.withoutPrimaryItem().withoutSecondaryItem().withoutQuantity().withoutPosition().withoutState().withoutContent().withoutCalculation();
 
 		EXPECT_TRUE( allWithout.isEmpty() );
 	}
@@ -242,12 +237,13 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( localId1, localId2 );
 		EXPECT_TRUE( localId1.equals( localId2 ) );
 
-		auto modifiedLocalId = LocalIdBuilder::create( visVersion )
-								   .withPrimaryItem( gmod.parsePath( input.primaryItem ) )
-								   .tryWithSecondaryItem( !input.secondaryItem.empty() ? std::make_optional( gmod.parsePath( input.secondaryItem ) ) : std::nullopt )
-								   .tryWithMetadataTag( codebooks.tryCreateTag( CodebookName::Quantity, input.quantity ) )
-								   .tryWithMetadataTag( codebooks.tryCreateTag( CodebookName::Content, input.content ) )
-								   .tryWithMetadataTag( codebooks.createTag( CodebookName::Position, "eqtestvalue" ) );
+		auto modifiedLocalId =
+			LocalIdBuilder::create( visVersion )
+				.withPrimaryItem( gmod.parsePath( input.primaryItem ) )
+				.tryWithSecondaryItem( !input.secondaryItem.empty() ? std::make_optional( gmod.parsePath( input.secondaryItem ) ) : std::nullopt )
+				.tryWithMetadataTag( codebooks.tryCreateTag( CodebookName::Quantity, input.quantity ) )
+				.tryWithMetadataTag( codebooks.tryCreateTag( CodebookName::Content, input.content ) )
+				.tryWithMetadataTag( codebooks.createTag( CodebookName::Position, "eqtestvalue" ) );
 
 		EXPECT_NE( localId1, modifiedLocalId );
 		EXPECT_FALSE( localId1.equals( modifiedLocalId ) );
@@ -262,13 +258,12 @@ namespace dnv::vista::sdk::tests
 	public:
 		static std::vector<std::string> testData()
 		{
-			return {
-				"/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking",
-				"/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
+			return { "/dnv-v2/vis-3-4a/1031/meta/cnt-refrigerant/state-leaking", "/dnv-v2/vis-3-4a/1021.1i-6P/H123/meta/qty-volume/cnt-cargo/pos~percentage",
 				"/dnv-v2/vis-3-4a/652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened",
 				"/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
 				"/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
-				"/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
+				"/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/"
+				"qty-temperature/cnt-exhaust.gas/pos-inlet",
 				"/dnv-v2/vis-3-4a/511.11-21O/C101.67/S208/meta/qty-pressure/cnt-air/state-low" };
 		}
 	};
@@ -285,10 +280,7 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( localIdStr, localId->toString() );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ParsingCases,
-		LocalIdParsingTest,
-		::testing::ValuesIn( LocalIdParsingTest::testData() ) );
+	INSTANTIATE_TEST_SUITE_P( ParsingCases, LocalIdParsingTest, ::testing::ValuesIn( LocalIdParsingTest::testData() ) );
 
 	//----------------------------------------------
 	// SmokeTest_Parsing
@@ -385,14 +377,14 @@ namespace dnv::vista::sdk::tests
 	static std::vector<std::pair<std::string, std::vector<std::string>>> invalidLocalIdsData()
 	{
 		std::vector<std::pair<std::string, std::vector<std::string>>> data;
-		const nlohmann::json& jsonDataFromFile = loadTestData( INVALID_LOCAL_IDS_TEST_DATA_PATH );
+		const nlohmann::json& jsonDataFromFile = test::loadTestData( INVALID_LOCAL_IDS_TEST_DATA_PATH );
 
 		if ( jsonDataFromFile.contains( "InvalidLocalIds" ) && jsonDataFromFile["InvalidLocalIds"].is_array() )
 		{
 			for ( const auto& item : jsonDataFromFile["InvalidLocalIds"] )
 			{
-				if ( item.contains( "input" ) && item.contains( "expectedErrorMessages" ) &&
-					 item["input"].is_string() && item["expectedErrorMessages"].is_array() )
+				if ( item.contains( "input" ) && item.contains( "expectedErrorMessages" ) && item["input"].is_string() &&
+					 item["expectedErrorMessages"].is_array() )
 				{
 					std::string input = item["input"].get<std::string>();
 					std::vector<std::string> expectedMessages;
@@ -433,8 +425,5 @@ namespace dnv::vista::sdk::tests
 		EXPECT_FALSE( parsed );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ValidationCases,
-		LocalIdValidationTest,
-		::testing::ValuesIn( invalidLocalIdsData() ) );
+	INSTANTIATE_TEST_SUITE_P( ValidationCases, LocalIdValidationTest, ::testing::ValuesIn( invalidLocalIdsData() ) );
 }

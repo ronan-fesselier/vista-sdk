@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "config/AlgorithmConstants.h"
-#include "config/Platform.h"
+#include "Config/AlgorithmConstants.h"
+#include "Config/Platform.h"
 
 namespace dnv::vista::sdk
 {

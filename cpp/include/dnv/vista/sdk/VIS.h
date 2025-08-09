@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "internal/MemoryCache.h"
-#include "utils/StringUtils.h"
+#include "Internal/MemoryCache.h"
+#include "Utils/StringUtils.h"
 
 #include "Codebooks.h"
 #include "Gmod.h"

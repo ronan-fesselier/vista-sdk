@@ -15,8 +15,7 @@ namespace dnv::vista::sdk
 	// Private validation methods
 	//----------------------------------------------
 
-	inline void GmodVersioning::validateSourceAndTargetVersions(
-		VisVersion sourceVersion, VisVersion targetVersion ) const
+	inline void GmodVersioning::validateSourceAndTargetVersions( VisVersion sourceVersion, VisVersion targetVersion ) const
 	{
 		if ( sourceVersion == VisVersion::Unknown )
 		{
@@ -34,8 +33,7 @@ namespace dnv::vista::sdk
 		}
 	}
 
-	inline void GmodVersioning::validateSourceAndTargetVersionPair(
-		VisVersion sourceVersion, VisVersion targetVersion ) const
+	inline void GmodVersioning::validateSourceAndTargetVersionPair( VisVersion sourceVersion, VisVersion targetVersion ) const
 	{
 		if ( sourceVersion >= targetVersion )
 		{
@@ -52,9 +50,7 @@ namespace dnv::vista::sdk
 	// Private helper methods
 	//----------------------------------------------
 
-	inline bool GmodVersioning::tryGetVersioningNode(
-		VisVersion visVersion,
-		const GmodVersioningNode*& versioningNode ) const
+	inline bool GmodVersioning::tryGetVersioningNode( VisVersion visVersion, const GmodVersioningNode*& versioningNode ) const
 	{
 		versioningNode = m_versioningsMap.tryGetValue( visVersion );
 
@@ -105,7 +101,8 @@ namespace dnv::vista::sdk
 	}
 
 	inline bool GmodVersioning::GmodVersioningNode::tryGetCodeChanges(
-		std::string_view code, const GmodNodeConversion*& nodeChanges ) const
+		std::string_view code,
+		const GmodNodeConversion*& nodeChanges ) const
 	{
 		auto it = m_versioningNodeChanges.find( code );
 		if ( it != m_versioningNodeChanges.end() )

@@ -9,10 +9,10 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	namespace
 	{
@@ -116,7 +116,8 @@ namespace dnv::vista::sdk
 		std::cout << "Total Test Cases: " << totalTests << std::endl;
 		std::cout << "Tests Passed    : " << passedTests << std::endl;
 		std::cout << "Tests Failed    : " << ( totalTests - passedTests ) << std::endl;
-		std::cout << "Success Rate    : " << std::fixed << std::setprecision( 1 ) << ( 100.0 * static_cast<double>( passedTests ) / static_cast<double>( totalTests ) ) << "%" << std::endl;
+		std::cout << "Success Rate    : " << std::fixed << std::setprecision( 1 )
+				  << ( 100.0 * static_cast<double>( passedTests ) / static_cast<double>( totalTests ) ) << "%" << std::endl;
 
 		if ( failures.empty() )
 		{
@@ -138,8 +139,8 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		EXPECT_EQ( passedTests, totalTests ) << "Hash compatibility test failed: "
-											 << ( totalTests - passedTests ) << " out of " << totalTests << " tests failed";
+		EXPECT_EQ( passedTests, totalTests ) << "Hash compatibility test failed: " << ( totalTests - passedTests ) << " out of " << totalTests
+											 << " tests failed";
 	}
 
 	/**
@@ -154,16 +155,9 @@ namespace dnv::vista::sdk
 			std::string description;
 		};
 
-		std::vector<EdgeCase> edgeCases = {
-			{ "", 2166136261, "Empty string" },
-			{ "a", 1699757604, "Single character" },
-			{ "ab", 1740614250, "Two characters" },
-			{ "VE", 2850790297, "GMOD root node" },
-			{ "400a", 1015739484, "Common GMOD node" },
-			{ "test123", 1531475831, "Mixed alphanumeric" },
-			{ "SpecialChars-_.", 61049792, "Special characters" },
-			{ "UpperCASE", 2880575326, "Mixed case" },
-			{ "lowercase", 809876800, "All lowercase" },
+		std::vector<EdgeCase> edgeCases = { { "", 2166136261, "Empty string" }, { "a", 1699757604, "Single character" }, { "ab", 1740614250, "Two characters" },
+			{ "VE", 2850790297, "GMOD root node" }, { "400a", 1015739484, "Common GMOD node" }, { "test123", 1531475831, "Mixed alphanumeric" },
+			{ "SpecialChars-_.", 61049792, "Special characters" }, { "UpperCASE", 2880575326, "Mixed case" }, { "lowercase", 809876800, "All lowercase" },
 			{ "longerstringforhashingtesting", 61735282, "Long string" } };
 
 		std::cout << "\n=== Critical Edge Cases Test ===" << std::endl;
@@ -182,11 +176,8 @@ namespace dnv::vista::sdk
 
 			std::cout << status << " " << edgeCase.description << " - " << keyDisplay << " = " << actualHash << std::endl;
 
-			EXPECT_EQ( actualHash, edgeCase.expectedHash )
-				<< "Edge case failed: " << edgeCase.description
-				<< " (key: \"" << edgeCase.key << "\")"
-				<< " Expected: " << edgeCase.expectedHash
-				<< " Actual: " << actualHash;
+			EXPECT_EQ( actualHash, edgeCase.expectedHash ) << "Edge case failed: " << edgeCase.description << " (key: \"" << edgeCase.key << "\")"
+														   << " Expected: " << edgeCase.expectedHash << " Actual: " << actualHash;
 		}
 
 		std::cout << "\nEdge Cases Passed: " << passed << "/" << edgeCases.size() << "\n"

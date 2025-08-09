@@ -19,6 +19,12 @@ include(GoogleTest)
 
 # --- Tests source files ---
 set(TEST_SOURCES
+	DataTypes/TESTS_DateTime8601.cpp
+	DataTypes/TESTS_Decimal128.cpp
+	DataTypes/TESTS_Int128.cpp
+	Transport/TESTS_ISO19848.cpp
+	Utils/TESTS_StringBuilderPoolTests.cpp
+
 	TESTS_Codebook.cpp
 	TESTS_Codebooks.cpp
 	TESTS_Gmod.cpp
@@ -29,7 +35,6 @@ set(TEST_SOURCES
 	TESTS_ISOString.cpp
 	TESTS_LocalId.cpp
 	TESTS_Locations.cpp
-	TESTS_StringBuilderPoolTests.cpp
 	TESTS_UniversalId.cpp
 )
 

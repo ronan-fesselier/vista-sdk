@@ -27,8 +27,7 @@ namespace dnv::vista::sdk
 	{
 	}
 
-	ParsingErrors::ParsingErrors()
-		: m_errors{}
+	ParsingErrors::ParsingErrors() : m_errors{}
 	{
 	}
 
@@ -93,8 +92,7 @@ namespace dnv::vista::sdk
 	//----------------------------
 
 	ParsingErrors::Enumerator::Enumerator( const std::vector<ErrorEntry>* data )
-		: m_data{ data },
-		  m_index{ 0 }
+		: m_data{ data }, m_index{ 0 }
 	{
 	}
 
@@ -117,7 +115,8 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	ParsingErrors::ErrorEntry::ErrorEntry( std::string_view type, std::string_view message )
-		: type{ type }, message{ message }
+		: type{ type },
+		  message{ message }
 	{
 	}
 

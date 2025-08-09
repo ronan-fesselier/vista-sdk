@@ -9,9 +9,10 @@
 
 #pragma once
 
+#include "Utils/Hashing.h"
+
 #include "LocalIdItems.h"
 #include "MetadataTag.h"
-#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -43,20 +44,6 @@ namespace dnv::vista::sdk
 	class LocalIdBuilder final
 	{
 	public:
-		//----------------------------------------------
-		// Constants
-		//----------------------------------------------
-
-		/**
-		 * @brief Standard naming rule prefix expected for Local IDs.
-		 * @details Defines the standard prefix "/dnv-v2" used in VIS Local ID format.
-		 * @note Used during parsing and string generation for validation.
-		 */
-		inline static constexpr std::string_view namingRule = "dnv-v2";
-
-		/** @brief List of standard `CodebookName` values used directly within the LocalId structure. */
-		static const std::vector<CodebookName> usedCodebooks;
-
 		//----------------------------------------------
 		// Construction
 		//----------------------------------------------
@@ -786,10 +773,8 @@ namespace dnv::vista::sdk
 		 * @param[in,out] errorBuilder Used to record errors encountered during parsing.
 		 * @return True if the segment was successfully parsed as the expected tag, false otherwise.
 		 */
-		static bool parseMetaTag( CodebookName codebookName, LocalIdParsingState& state,
-			size_t& i, std::string_view segment, std::optional<MetadataTag>& tag,
-			const Codebooks* codebooks,
-			LocalIdParsingErrorBuilder& errorBuilder );
+		static bool parseMetaTag( CodebookName codebookName, LocalIdParsingState& state, size_t& i, std::string_view segment, std::optional<MetadataTag>& tag,
+			const Codebooks* codebooks, LocalIdParsingErrorBuilder& errorBuilder );
 
 	private:
 		//----------------------------------------------

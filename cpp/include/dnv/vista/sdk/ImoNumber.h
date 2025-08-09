@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "config/Platform.h"
+#include "Config/Platform.h"
 
 namespace dnv::vista::sdk
 {

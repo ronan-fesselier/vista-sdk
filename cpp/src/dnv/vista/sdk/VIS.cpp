@@ -7,6 +7,8 @@
 
 #include "dnv/vista/sdk/VIS.h"
 
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
+
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/CodebooksDto.h"
 #include "dnv/vista/sdk/EmbeddedResource.h"
@@ -17,6 +19,23 @@
 
 namespace dnv::vista::sdk
 {
+	namespace
+	{
+		//=====================================================================
+		// Helper functions
+		//=====================================================================
+
+		[[noreturn]] void throwInvalidVersionError( VisVersion version )
+		{
+			auto lease = utils::StringBuilderPool::instance();
+			auto builder = lease.builder();
+			builder.append( "Invalid VIS version provided: " );
+			builder.append( VisVersionExtensions::toVersionString( version ) );
+
+			throw std::invalid_argument( lease.toString() );
+		}
+	}
+
 	//=====================================================================
 	// VIS singleton
 	//=====================================================================
@@ -31,56 +50,49 @@ namespace dnv::vista::sdk
 
 	internal::MemoryCache<VisVersion, GmodDto>& VIS::gmodDtoCache()
 	{
-		static internal::MemoryCache<VisVersion, GmodDto> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, GmodDto> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<VisVersion, CodebooksDto>& VIS::codebooksDtoCache()
 	{
-		static internal::MemoryCache<VisVersion, CodebooksDto> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, CodebooksDto> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<VisVersion, LocationsDto>& VIS::locationsDtoCache()
 	{
-		static internal::MemoryCache<VisVersion, LocationsDto> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, LocationsDto> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<VisVersion, Codebooks>& VIS::codebooksCache()
 	{
-		static internal::MemoryCache<VisVersion, Codebooks> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Codebooks> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<VisVersion, Gmod>& VIS::gmodsCache()
 	{
-		static internal::MemoryCache<VisVersion, Gmod> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Gmod> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<VisVersion, Locations>& VIS::locationsCache()
 	{
-		static internal::MemoryCache<VisVersion, Locations> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<VisVersion, Locations> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
 
 	internal::MemoryCache<int, GmodVersioning>& VIS::gmodVersioningCache()
 	{
-		static internal::MemoryCache<int, GmodVersioning> cache{
-			internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
+		static internal::MemoryCache<int, GmodVersioning> cache{ internal::MemoryCacheOptions{ 10, std::chrono::hours( 0 ), std::chrono::hours( 1 ) } };
 
 		return cache;
 	}
@@ -111,7 +123,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !VisVersionExtensions::isValid( version ) )
 			{
-				throw std::invalid_argument( fmt::format( "Invalid VIS version provided: {}", VisVersionExtensions::toVersionString( version ) ) );
+				throwInvalidVersionError( version );
 			}
 
 			result.try_emplace( version, gmod( version ) );
@@ -129,7 +141,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !VisVersionExtensions::isValid( version ) )
 			{
-				throw std::invalid_argument( fmt::format( "Invalid VIS version provided: {}", VisVersionExtensions::toVersionString( version ) ) );
+				throwInvalidVersionError( version );
 			}
 
 			result.try_emplace( version, codebooks( version ) );
@@ -147,7 +159,7 @@ namespace dnv::vista::sdk
 		{
 			if ( !VisVersionExtensions::isValid( version ) )
 			{
-				throw std::invalid_argument( fmt::format( "Invalid VIS version provided: {}", VisVersionExtensions::toVersionString( version ) ) );
+				throwInvalidVersionError( version );
 			}
 
 			result.try_emplace( version, locations( version ) );
@@ -182,14 +194,12 @@ namespace dnv::vista::sdk
 	// GmodNode
 	//-----------------------------
 
-	std::optional<GmodNode> VIS::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
-		VisVersion targetVersion )
+	std::optional<GmodNode> VIS::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion )
 	{
 		return gmodVersioning().convertNode( sourceVersion, sourceNode, targetVersion );
 	}
 
-	std::optional<GmodNode> VIS::convertNode( const GmodNode& sourceNode, VisVersion targetVersion,
-		[[maybe_unused]] const GmodNode* sourceParent )
+	std::optional<GmodNode> VIS::convertNode( const GmodNode& sourceNode, VisVersion targetVersion, [[maybe_unused]] const GmodNode* sourceParent )
 	{
 		return convertNode( sourceNode.visVersion(), sourceNode, targetVersion );
 	}
@@ -198,8 +208,7 @@ namespace dnv::vista::sdk
 	// GmodPath
 	//-----------------------------
 
-	std::optional<GmodPath> VIS::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath,
-		VisVersion targetVersion )
+	std::optional<GmodPath> VIS::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion )
 	{
 		return gmodVersioning().convertPath( sourceVersion, sourcePath, targetVersion );
 	}
@@ -213,8 +222,7 @@ namespace dnv::vista::sdk
 	// LocalId
 	//-----------------------------
 
-	std::optional<LocalIdBuilder> VIS::convertLocalId( const LocalIdBuilder& sourceLocalId,
-		VisVersion targetVersion )
+	std::optional<LocalIdBuilder> VIS::convertLocalId( const LocalIdBuilder& sourceLocalId, VisVersion targetVersion )
 	{
 		return gmodVersioning().convertLocalId( sourceLocalId, targetVersion );
 	}

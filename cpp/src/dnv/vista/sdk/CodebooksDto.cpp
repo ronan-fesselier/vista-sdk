@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/CodebooksDto.h"
 
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Config/DtoKeysConstants.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -22,7 +22,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				const auto nameIt = json.find( dto::CODEBOOK_DTO_KEY_NAME );
+				const auto nameIt = json.find( constants::dto::CODEBOOK_DTO_KEY_NAME );
 				if ( nameIt != json.end() && nameIt->is_string() )
 				{
 					const auto& str = nameIt->get_ref<const std::string&>();
@@ -30,11 +30,11 @@ namespace dnv::vista::sdk
 					return std::string_view{ str };
 				}
 
-				return dto::CODEBOOK_DTO_UNKNOWN_NAME;
+				return constants::dto::CODEBOOK_DTO_UNKNOWN_NAME;
 			}
 			catch ( ... )
 			{
-				return dto::CODEBOOK_DTO_UNKNOWN_NAME;
+				return constants::dto::CODEBOOK_DTO_UNKNOWN_NAME;
 			}
 		}
 
@@ -42,7 +42,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				const auto visIt = json.find( dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
+				const auto visIt = json.find( constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 				if ( visIt != json.end() && visIt->is_string() )
 				{
 					const auto& str = visIt->get_ref<const std::string&>();
@@ -50,11 +50,11 @@ namespace dnv::vista::sdk
 					return std::string_view{ str };
 				}
 
-				return dto::CODEBOOK_DTO_UNKNOWN_VERSION;
+				return constants::dto::CODEBOOK_DTO_UNKNOWN_VERSION;
 			}
 			catch ( ... )
 			{
-				return dto::CODEBOOK_DTO_UNKNOWN_VERSION;
+				return constants::dto::CODEBOOK_DTO_UNKNOWN_VERSION;
 			}
 		}
 	}
@@ -73,13 +73,13 @@ namespace dnv::vista::sdk
 
 		try
 		{
-			const auto nameIt = json.find( dto::CODEBOOK_DTO_KEY_NAME );
+			const auto nameIt = json.find( constants::dto::CODEBOOK_DTO_KEY_NAME );
 			if ( nameIt == json.end() || !nameIt->is_string() )
 			{
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: Codebook JSON missing required '" );
-				builder.append( dto::CODEBOOK_DTO_KEY_NAME );
+				builder.append( constants::dto::CODEBOOK_DTO_KEY_NAME );
 				builder.append( "' field or field is not a string\n" );
 
 				fmt::print( stderr, "{}", lease.toString() );
@@ -91,7 +91,7 @@ namespace dnv::vista::sdk
 
 			ValuesMap tempValues;
 
-			const auto valuesIt = json.find( dto::CODEBOOK_DTO_KEY_VALUES );
+			const auto valuesIt = json.find( constants::dto::CODEBOOK_DTO_KEY_VALUES );
 			if ( valuesIt != json.end() )
 			{
 				if ( !valuesIt->is_object() )
@@ -99,7 +99,7 @@ namespace dnv::vista::sdk
 					auto lease = utils::StringBuilderPool::instance();
 					auto builder = lease.builder();
 					builder.append( "WARN: No '" );
-					builder.append( dto::CODEBOOK_DTO_KEY_VALUES );
+					builder.append( constants::dto::CODEBOOK_DTO_KEY_VALUES );
 					builder.append( "' object found or not an object for codebook '" );
 					builder.append( std::string_view{ tempName } );
 					builder.append( "'\n" );
@@ -159,7 +159,7 @@ namespace dnv::vista::sdk
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "WARN: No '" );
-				builder.append( dto::CODEBOOK_DTO_KEY_VALUES );
+				builder.append( constants::dto::CODEBOOK_DTO_KEY_VALUES );
 				builder.append( "' object found for codebook '" );
 				builder.append( std::string_view{ tempName } );
 				builder.append( "'\n" );
@@ -235,13 +235,13 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, CodebookDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		const auto nameIt = j.find( dto::CODEBOOK_DTO_KEY_NAME );
+		const auto nameIt = j.find( constants::dto::CODEBOOK_DTO_KEY_NAME );
 		if ( nameIt == j.end() || !nameIt->is_string() )
 		{
 			auto lease = utils::StringBuilderPool::instance();
 			auto builder = lease.builder();
 			builder.append( "CodebookDto JSON missing required '" );
-			builder.append( dto::CODEBOOK_DTO_KEY_NAME );
+			builder.append( constants::dto::CODEBOOK_DTO_KEY_NAME );
 			builder.append( "' field or field is not a string" );
 
 			throw nlohmann::json::parse_error::create( 101, 0u, lease.toString(), nullptr );
@@ -259,7 +259,7 @@ namespace dnv::vista::sdk
 		}
 
 		CodebookDto::ValuesMap tempValues;
-		const auto valuesIt = j.find( dto::CODEBOOK_DTO_KEY_VALUES );
+		const auto valuesIt = j.find( constants::dto::CODEBOOK_DTO_KEY_VALUES );
 		if ( valuesIt != j.end() && valuesIt->is_object() )
 		{
 			tempValues = valuesIt->get<CodebookDto::ValuesMap>();
@@ -272,7 +272,8 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const CodebookDto& dto )
 	{
 		/* ADL hook for nlohmann::json serialization. */
-		j = nlohmann::json{ { dto::CODEBOOK_DTO_KEY_NAME, dto.name() }, { dto::CODEBOOK_DTO_KEY_VALUES, dto.values() } };
+		j = nlohmann::json{ { constants::dto::CODEBOOK_DTO_KEY_NAME, dto.name() },
+			{ constants::dto::CODEBOOK_DTO_KEY_VALUES, dto.values() } };
 	}
 
 	//=====================================================================
@@ -289,13 +290,13 @@ namespace dnv::vista::sdk
 
 		try
 		{
-			const auto visIt = json.find( dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
+			const auto visIt = json.find( constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 			if ( visIt == json.end() || !visIt->is_string() )
 			{
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: Codebooks JSON missing required '" );
-				builder.append( dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
+				builder.append( constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 				builder.append( "' field or field is not a string\n" );
 
 				fmt::print( stderr, "{}", lease.toString() );
@@ -309,7 +310,7 @@ namespace dnv::vista::sdk
 			size_t totalItems = 0;
 			size_t successCount = 0;
 
-			const auto itemsIt = json.find( dto::CODEBOOK_DTO_KEY_ITEMS );
+			const auto itemsIt = json.find( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 			if ( itemsIt != json.end() )
 			{
 				if ( !itemsIt->is_array() )
@@ -317,7 +318,7 @@ namespace dnv::vista::sdk
 					auto lease = utils::StringBuilderPool::instance();
 					auto builder = lease.builder();
 					builder.append( "WARN: '" );
-					builder.append( dto::CODEBOOK_DTO_KEY_ITEMS );
+					builder.append( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 					builder.append( "' field is not an array for VIS version " );
 					builder.append( std::string_view{ tempVisVersion } );
 					builder.append( "\n" );
@@ -367,7 +368,7 @@ namespace dnv::vista::sdk
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "WARN: No '" );
-				builder.append( dto::CODEBOOK_DTO_KEY_ITEMS );
+				builder.append( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 				builder.append( "' array found in CodebooksDto for VIS version " );
 				builder.append( std::string_view{ tempVisVersion } );
 				builder.append( "\n" );
@@ -443,25 +444,25 @@ namespace dnv::vista::sdk
 	void from_json( const nlohmann::json& j, CodebooksDto& dto )
 	{
 		/* ADL hook for nlohmann::json deserialization. */
-		const auto visIt = j.find( dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
+		const auto visIt = j.find( constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 		if ( visIt == j.end() || !visIt->is_string() )
 		{
 			auto lease = utils::StringBuilderPool::instance();
 			auto builder = lease.builder();
 			builder.append( "Codebooks JSON missing required '" );
-			builder.append( dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
+			builder.append( constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE );
 			builder.append( "' field" );
 
 			throw nlohmann::json::parse_error::create( 201, 0u, lease.toString(), nullptr );
 		}
 
-		const auto itemsIt = j.find( dto::CODEBOOK_DTO_KEY_ITEMS );
+		const auto itemsIt = j.find( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 		if ( itemsIt == j.end() || !itemsIt->is_array() )
 		{
 			auto lease = utils::StringBuilderPool::instance();
 			auto builder = lease.builder();
 			builder.append( "Codebooks JSON missing required '" );
-			builder.append( dto::CODEBOOK_DTO_KEY_ITEMS );
+			builder.append( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 			builder.append( "' array" );
 
 			throw nlohmann::json::parse_error::create( 202, 0u, lease.toString(), nullptr );
@@ -498,7 +499,7 @@ namespace dnv::vista::sdk
 			auto lease = utils::StringBuilderPool::instance();
 			auto builder = lease.builder();
 			builder.append( "ERROR: Expected '" );
-			builder.append( dto::CODEBOOK_DTO_KEY_ITEMS );
+			builder.append( constants::dto::CODEBOOK_DTO_KEY_ITEMS );
 			builder.append( "' to be array in CodebooksDto::from_json" );
 
 			throw nlohmann::json::parse_error::create( 202, 0u, lease.toString(), &j );
@@ -508,6 +509,7 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const CodebooksDto& dto )
 	{
 		/* ADL hook for nlohmann::json serialization. */
-		j = { { dto::CODEBOOK_DTO_KEY_VIS_RELEASE, dto.visVersion() }, { dto::CODEBOOK_DTO_KEY_ITEMS, dto.items() } };
+		j = { { constants::dto::CODEBOOK_DTO_KEY_VIS_RELEASE, dto.visVersion() },
+			{ constants::dto::CODEBOOK_DTO_KEY_ITEMS, dto.items() } };
 	}
 }

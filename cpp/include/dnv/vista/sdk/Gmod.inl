@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "config/CodebookConstants.h"
-#include "utils/StringUtils.h"
+#include "Config/CodebookConstants.h"
+#include "Utils/StringUtils.h"
 
 #include "GmodNode.h"
 
@@ -66,62 +66,71 @@ namespace dnv::vista::sdk
 
 	inline constexpr bool Gmod::isPotentialParent( std::string_view type ) noexcept
 	{
-		switch ( type.length() )
+		/**
+		 * Length 4: "Leaf" - constants::gmod::GMODNODE_TYPE_LEAF
+		 *   - Represents terminal nodes in the GMOD hierarchy
+		 *   - Cannot have child nodes
+		 *
+		 * Length 5: "Group" - constants::gmod::GMODNODE_TYPE_GROUP
+		 *   - Represents container nodes that can hold other nodes
+		 *   - Used for organizational grouping in the hierarchy
+		 *
+		 * Length 9: "Selection" - constants::gmod::GMODNODE_TYPE_SELECTION
+		 *   - Represents selection nodes for product configurations
+		 *   - Can contain multiple selectable options
+		 */
+
+		if ( utils::hasExactLength( type, 4 ) )
 		{
-			case 4:
-			{
-				return utils::equals( type, gmod::GMODNODE_TYPE_LEAF );
-			}
-			case 5:
-			{
-				return utils::equals( type, gmod::GMODNODE_TYPE_GROUP );
-			}
-			case 9:
-			{
-				return utils::equals( type, gmod::GMODNODE_TYPE_SELECTION );
-			}
-			default:
-			{
-				return false;
-			}
+			return utils::equals( type, constants::gmod::GMODNODE_TYPE_LEAF );
 		}
+		else if ( utils::hasExactLength( type, 5 ) )
+		{
+			return utils::equals( type, constants::gmod::GMODNODE_TYPE_GROUP );
+		}
+		else if ( utils::hasExactLength( type, 9 ) )
+		{
+			return utils::equals( type, constants::gmod::GMODNODE_TYPE_SELECTION );
+		}
+
+		return false;
 	}
 
 	inline bool Gmod::isLeafNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& fullType = metadata.fullType();
-		return utils::equals( fullType, gmod::GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
-			   utils::equals( fullType, gmod::GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
+		return utils::equals( fullType, constants::gmod::GMODNODE_FULLTYPE_ASSET_FUNCTION_LEAF ) ||
+			   utils::equals( fullType, constants::gmod::GMODNODE_FULLTYPE_PRODUCT_FUNCTION_LEAF );
 	}
 
 	inline bool Gmod::isFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
 		const auto& category = metadata.category();
 
-		return !utils::equals( category, gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   !utils::equals( category, gmod::GMODNODE_CATEGORY_ASSET );
+		return !utils::equals( category, constants::gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   !utils::equals( category, constants::gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isProductSelection( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   utils::equals( metadata.type(), gmod::GMODNODE_TYPE_SELECTION );
+		return utils::equals( metadata.category(), constants::gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   utils::equals( metadata.type(), constants::gmod::GMODNODE_TYPE_SELECTION );
 	}
 
 	inline bool Gmod::isProductType( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) &&
-			   utils::equals( metadata.type(), gmod::GMODNODE_TYPE_TYPE );
+		return utils::equals( metadata.category(), constants::gmod::GMODNODE_CATEGORY_PRODUCT ) &&
+			   utils::equals( metadata.type(), constants::gmod::GMODNODE_TYPE_TYPE );
 	}
 
 	inline bool Gmod::isAsset( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET );
+		return utils::equals( metadata.category(), constants::gmod::GMODNODE_CATEGORY_ASSET );
 	}
 
 	inline bool Gmod::isAssetFunctionNode( const GmodNodeMetadata& metadata ) noexcept
 	{
-		return utils::equals( metadata.category(), gmod::GMODNODE_CATEGORY_ASSET_FUNCTION );
+		return utils::equals( metadata.category(), constants::gmod::GMODNODE_CATEGORY_ASSET_FUNCTION );
 	}
 
 	inline bool Gmod::isProductTypeAssignment( const GmodNode* parent, const GmodNode* child ) noexcept
@@ -135,11 +144,12 @@ namespace dnv::vista::sdk
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !utils::contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( parentCategory, constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !utils::equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !utils::equals( childType, gmod::GMODNODE_TYPE_TYPE ) )
+		if ( !utils::equals( childCategory, constants::gmod::GMODNODE_CATEGORY_PRODUCT ) ||
+			 !utils::equals( childType, constants::gmod::GMODNODE_TYPE_TYPE ) )
 		{
 			return false;
 		}
@@ -158,11 +168,12 @@ namespace dnv::vista::sdk
 		const auto& childCategory = child->metadata().category();
 		const auto& childType = child->metadata().type();
 
-		if ( !utils::contains( parentCategory, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( parentCategory, constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return false;
 		}
-		if ( !utils::equals( childCategory, gmod::GMODNODE_CATEGORY_PRODUCT ) || !utils::equals( childType, gmod::GMODNODE_TYPE_SELECTION ) )
+		if ( !utils::equals( childCategory, constants::gmod::GMODNODE_CATEGORY_PRODUCT ) ||
+			 !utils::equals( childType, constants::gmod::GMODNODE_TYPE_SELECTION ) )
 		{
 			return false;
 		}
@@ -174,10 +185,7 @@ namespace dnv::vista::sdk
 	// Enumeration
 	//----------------------------------------------
 
-	inline Gmod::Enumerator Gmod::enumerator() const
-	{
-		return Enumerator( &m_nodeMap );
-	}
+	inline Gmod::Enumerator Gmod::enumerator() const { return Enumerator( &m_nodeMap ); }
 
 	//----------------------------------------------
 	// Gmod::Enumerator class
@@ -188,8 +196,7 @@ namespace dnv::vista::sdk
 	//-----------------------------
 
 	VISTA_SDK_CPP_FORCE_INLINE Gmod::Enumerator::Enumerator( const internal::ChdDictionary<GmodNode>* map ) noexcept
-		: m_sourceMapPtr{ map },
-		  m_isInitialState{ true }
+		: m_sourceMapPtr{ map }, m_isInitialState{ true }
 	{
 		if ( m_sourceMapPtr )
 		{
@@ -384,17 +391,21 @@ namespace dnv::vista::sdk
 	{
 		TraverseHandler capturedHandler = handler;
 		TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-			[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-			-> TraversalHandlerResult { return h( parents, node ); };
+			[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents,
+				const GmodNode& node ) -> TraversalHandlerResult { return h( parents, node ); };
 
 		return traverse( capturedHandler, wrapperHandler, options );
 	}
 
 	template <typename TState>
-	VISTA_SDK_CPP_FORCE_INLINE bool Gmod::traverse( TState& state, TraverseHandlerWithState<TState> handler, const TraversalOptions& options ) const
+	VISTA_SDK_CPP_FORCE_INLINE bool Gmod::traverse(
+		TState& state,
+		TraverseHandlerWithState<TState> handler,
+		const TraversalOptions& options ) const
 	{
 		Parents parentsStack;
 		TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
+
 		return traverseNode( context, *m_rootNode ) == TraversalHandlerResult::Continue;
 	}
 
@@ -402,19 +413,22 @@ namespace dnv::vista::sdk
 	{
 		TraverseHandler capturedHandler = handler;
 		TraverseHandlerWithState<TraverseHandler> wrapperHandler =
-			[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents, const GmodNode& node )
-			-> TraversalHandlerResult { return h( parents, node ); };
+			[]( TraverseHandler& h, const std::vector<const GmodNode*>& parents,
+				const GmodNode& node ) -> TraversalHandlerResult { return h( parents, node ); };
 
 		Parents parentsStack;
 		TraversalContext<TraverseHandler> context( parentsStack, wrapperHandler, capturedHandler, options.maxTraversalOccurrence );
+
 		return traverseNode( context, rootNode ) == TraversalHandlerResult::Continue;
 	}
 
 	template <typename TState>
-	VISTA_SDK_CPP_FORCE_INLINE bool Gmod::traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options ) const
+	VISTA_SDK_CPP_FORCE_INLINE bool Gmod::traverse(
+		TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options ) const
 	{
 		Parents parentsStack;
 		TraversalContext<TState> context( parentsStack, handler, state, options.maxTraversalOccurrence );
+
 		return traverseNode( context, rootNode ) == TraversalHandlerResult::Continue;
 	}
 }

@@ -6,9 +6,10 @@
 
 #pragma once
 
+#include "Utils/Hashing.h"
+
 #include "ImoNumber.h"
 #include "LocalIdBuilder.h"
-#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {
@@ -268,7 +269,10 @@ namespace dnv::vista::sdk
 		 * @param[out] universalIdBuilder Parsed result if successful.
 		 * @return True if parsing succeeded.
 		 */
-		static bool tryParse( std::string_view universalIdStr, ParsingErrors& errors, std::optional<UniversalIdBuilder>& universalIdBuilder );
+		static bool tryParse(
+			std::string_view universalIdStr,
+			ParsingErrors& errors,
+			std::optional<UniversalIdBuilder>& universalIdBuilder );
 
 	private:
 		//----------------------------------------------

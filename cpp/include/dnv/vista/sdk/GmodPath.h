@@ -9,9 +9,9 @@
 
 #include "GmodNode.h"
 
-#include "config/Platform.h"
-#include "utils/Hashing.h"
-#include "utils/StringBuilderPool.h"
+#include "Config/Platform.h"
+#include "Utils/Hashing.h"
+#include "Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -34,9 +34,7 @@ namespace dnv::vista::sdk
 		struct ParseContext;
 
 		dnv::vista::sdk::TraversalHandlerResult parseInternalTraversalHandler(
-			ParseContext& context,
-			const std::vector<const GmodNode*>& traversedParents,
-			const GmodNode& currentNode );
+			ParseContext& context, const std::vector<const GmodNode*>& traversedParents, const GmodNode& currentNode );
 	}
 
 	//=====================================================================
@@ -52,9 +50,7 @@ namespace dnv::vista::sdk
 		friend class GmodIndividualizableSet;
 
 		friend dnv::vista::sdk::TraversalHandlerResult internal::parseInternalTraversalHandler(
-			internal::ParseContext&,
-			const std::vector<const GmodNode*>&,
-			const GmodNode& );
+			internal::ParseContext&, const std::vector<const GmodNode*>&, const GmodNode& );
 
 	public:
 		class Enumerator;
@@ -270,10 +266,12 @@ namespace dnv::vista::sdk
 		 * @return True if parsing succeeded, false otherwise
 		 */
 		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParse( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
-		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParse( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParse(
+			std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
 
 		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParseFullPath( std::string_view item, VisVersion visVersion, std::optional<GmodPath>& outPath );
-		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParseFullPath( std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
+		[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE static bool tryParseFullPath(
+			std::string_view item, const Gmod& gmod, const Locations& locations, std::optional<GmodPath>& outPath );
 
 		//----------------------------------------------
 		// Enumeration
@@ -304,8 +302,7 @@ namespace dnv::vista::sdk
 		 * @return Parse result with either success path or error message
 		 * @details Uses GMOD traversal to find complete hierarchical path from partial input
 		 */
-		static GmodParsePathResult parseInternal(
-			std::string_view item, const Gmod& gmod, const Locations& locations );
+		static GmodParsePathResult parseInternal( std::string_view item, const Gmod& gmod, const Locations& locations );
 
 		/**
 		 * @brief Internal helper for parsing full path strings
@@ -314,8 +311,7 @@ namespace dnv::vista::sdk
 		 * @param locations The locations instance for location parsing
 		 * @return Parse result with either success path or error message
 		 */
-		static GmodParsePathResult parseFullPathInternal(
-			std::string_view item, const Gmod& gmod, const Locations& locations );
+		static GmodParsePathResult parseFullPathInternal( std::string_view item, const Gmod& gmod, const Locations& locations );
 
 	public:
 		//----------------------------------------------

@@ -7,13 +7,12 @@
 
 #include "dnv/vista/sdk/Locations.h"
 
-#include "dnv/vista/sdk/config/LocationsConstants.h"
+#include "dnv/vista/sdk/Config/LocationsConstants.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 #include "dnv/vista/sdk/LocationParsingErrorBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VISVersion.h"
-
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -25,27 +24,27 @@ namespace dnv::vista::sdk
 			{
 				case LocationGroup::Number:
 				{
-					return locations::GROUP_NAME_NUMBER;
+					return constants::locations::GROUP_NAME_NUMBER;
 				}
 				case LocationGroup::Side:
 				{
-					return locations::GROUP_NAME_SIDE;
+					return constants::locations::GROUP_NAME_SIDE;
 				}
 				case LocationGroup::Vertical:
 				{
-					return locations::GROUP_NAME_VERTICAL;
+					return constants::locations::GROUP_NAME_VERTICAL;
 				}
 				case LocationGroup::Transverse:
 				{
-					return locations::GROUP_NAME_TRANSVERSE;
+					return constants::locations::GROUP_NAME_TRANSVERSE;
 				}
 				case LocationGroup::Longitudinal:
 				{
-					return locations::GROUP_NAME_LONGITUDINAL;
+					return constants::locations::GROUP_NAME_LONGITUDINAL;
 				}
 				default:
 				{
-					return locations::GROUP_NAME_UNKNOWN;
+					return constants::locations::GROUP_NAME_UNKNOWN;
 				}
 			}
 		}
@@ -60,19 +59,14 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	Location::Location( std::string_view value )
-		: m_value{ value }
-	{
-	}
+		: m_value{ value } {}
 
 	//=====================================================================
 	// RelativeLocation Class
 	//=====================================================================
 
 	RelativeLocation::RelativeLocation(
-		char code,
-		std::string_view name,
-		const Location& location,
-		const std::optional<std::string> definition )
+		char code, std::string_view name, const Location& location, const std::optional<std::string> definition )
 		: m_code{ code },
 		  m_name{ name },
 		  m_location{ location },
@@ -153,35 +147,38 @@ namespace dnv::vista::sdk
 			auto code = relLocDto.code();
 			Location loc{ std::string{ 1, code } };
 
-			m_relativeLocations.emplace_back(
-				code,
-				relLocDto.name(),
-				loc,
-				relLocDto.definition() );
+			m_relativeLocations.emplace_back( code, relLocDto.name(), loc, relLocDto.definition() );
 
-			if ( code == locations::CHAR_HORIZONTAL || code == locations::CHAR_VERTICAL )
+			if ( code == constants::locations::CHAR_HORIZONTAL ||
+				 code == constants::locations::CHAR_VERTICAL )
 			{
 				continue;
 			}
 
 			LocationGroup key;
-			if ( code == locations::CHAR_NUMBER )
+			if ( code == constants::locations::CHAR_NUMBER )
 			{
 				key = LocationGroup::Number;
 			}
-			else if ( code == locations::CHAR_PORT || code == locations::CHAR_CENTER || code == locations::CHAR_STARBOARD )
+			else if ( code == constants::locations::CHAR_PORT ||
+					  code == constants::locations::CHAR_CENTER ||
+					  code == constants::locations::CHAR_STARBOARD )
 			{
 				key = LocationGroup::Side;
 			}
-			else if ( code == locations::CHAR_UPPER || code == locations::CHAR_MIDDLE || code == locations::CHAR_LOWER )
+			else if ( code == constants::locations::CHAR_UPPER ||
+					  code == constants::locations::CHAR_MIDDLE ||
+					  code == constants::locations::CHAR_LOWER )
 			{
 				key = LocationGroup::Vertical;
 			}
-			else if ( code == locations::CHAR_INBOARD || code == locations::CHAR_OUTBOARD )
+			else if ( code == constants::locations::CHAR_INBOARD ||
+					  code == constants::locations::CHAR_OUTBOARD )
 			{
 				key = LocationGroup::Transverse;
 			}
-			else if ( code == locations::CHAR_FORWARD || code == locations::CHAR_AFT )
+			else if ( code == constants::locations::CHAR_FORWARD ||
+					  code == constants::locations::CHAR_AFT )
 			{
 				key = LocationGroup::Longitudinal;
 			}
@@ -205,11 +202,7 @@ namespace dnv::vista::sdk
 			}
 
 			m_reversedGroups[code] = key;
-			m_groups[key].emplace_back(
-				code,
-				relLocDto.name(),
-				loc,
-				relLocDto.definition() );
+			m_groups[key].emplace_back( code, relLocDto.name(), loc, relLocDto.definition() );
 		}
 	}
 
@@ -320,18 +313,16 @@ namespace dnv::vista::sdk
 	// Private Methods
 	//----------------------------------------------
 
-	bool Locations::tryParseInternal( std::string_view span,
-		const std::optional<std::string>& originalStr,
-		Location& location,
-		internal::LocationParsingErrorBuilder& errorBuilder ) const
+	bool Locations::tryParseInternal(
+		std::string_view span, const std::optional<std::string>& originalStr, Location& location, internal::LocationParsingErrorBuilder& errorBuilder ) const
 	{
-		auto displayString = [&span, &originalStr]() -> std::string {
-			return originalStr.has_value() ? *originalStr : std::string{ span };
-		};
+		auto displayString =
+			[&span, &originalStr]() -> std::string { return originalStr.has_value() ? *originalStr : std::string{ span }; };
 
 		if ( span.empty() )
 		{
-			errorBuilder.addError( internal::LocationValidationResult::NullOrWhiteSpace,
+			errorBuilder.addError(
+				internal::LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 
 			return false;
@@ -341,7 +332,8 @@ namespace dnv::vista::sdk
 
 		if ( isOnlyWhitespace )
 		{
-			errorBuilder.addError( internal::LocationValidationResult::NullOrWhiteSpace,
+			errorBuilder.addError(
+				internal::LocationValidationResult::NullOrWhiteSpace,
 				"Invalid location: contains only whitespace" );
 
 			return false;
@@ -414,7 +406,8 @@ namespace dnv::vista::sdk
 
 				for ( char c : source )
 				{
-					if ( !std::isdigit( c ) && ( c == locations::CHAR_NUMBER || m_locationCodes.find( c ) == m_locationCodes.end() ) )
+					if ( !std::isdigit( c ) &&
+						 ( c == constants::locations::CHAR_NUMBER || m_locationCodes.find( c ) == m_locationCodes.end() ) )
 					{
 						if ( !first )
 						{

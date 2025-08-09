@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
+#include "Utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {

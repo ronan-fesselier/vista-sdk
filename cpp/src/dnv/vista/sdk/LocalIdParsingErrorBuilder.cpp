@@ -70,43 +70,81 @@ namespace dnv::vista::sdk
 			switch ( state )
 			{
 				case LocalIdParsingState::NamingRule:
+				{
 					return NAMING_RULE_STATE;
+				}
 				case LocalIdParsingState::VisVersion:
+				{
 					return VIS_VERSION_STATE;
+				}
 				case LocalIdParsingState::PrimaryItem:
+				{
 					return PRIMARY_ITEM_STATE;
+				}
 				case LocalIdParsingState::SecondaryItem:
+				{
 					return SECONDARY_ITEM_STATE;
+				}
 				case LocalIdParsingState::ItemDescription:
+				{
 					return ITEM_DESCRIPTION_STATE;
+				}
 				case LocalIdParsingState::MetaQuantity:
+				{
 					return META_QUANTITY_STATE;
+				}
 				case LocalIdParsingState::MetaContent:
+				{
 					return META_CONTENT_STATE;
+				}
 				case LocalIdParsingState::MetaCalculation:
+				{
 					return META_CALCULATION_STATE;
+				}
 				case LocalIdParsingState::MetaState:
+				{
 					return META_STATE_STATE;
+				}
 				case LocalIdParsingState::MetaCommand:
+				{
 					return META_COMMAND_STATE;
+				}
 				case LocalIdParsingState::MetaType:
+				{
 					return META_TYPE_STATE;
+				}
 				case LocalIdParsingState::MetaPosition:
+				{
 					return META_POSITION_STATE;
+				}
 				case LocalIdParsingState::MetaDetail:
+				{
 					return META_DETAIL_STATE;
+				}
 				case LocalIdParsingState::EmptyState:
+				{
 					return EMPTY_STATE_STATE;
+				}
 				case LocalIdParsingState::Formatting:
+				{
 					return FORMATTING_STATE;
+				}
 				case LocalIdParsingState::Completeness:
+				{
 					return COMPLETENESS_STATE;
+				}
 				case LocalIdParsingState::NamingEntity:
+				{
 					return NAMING_ENTITY_STATE;
+				}
 				case LocalIdParsingState::IMONumber:
+				{
 					return IMO_NUMBER_STATE;
+				}
 				default:
+				{
 					return UNKNOWN;
+				}
 			}
 		}
 
@@ -115,43 +153,81 @@ namespace dnv::vista::sdk
 			switch ( state )
 			{
 				case LocalIdParsingState::NamingRule:
+				{
 					return NAMING_RULE_MESSAGE;
+				}
 				case LocalIdParsingState::VisVersion:
+				{
 					return VIS_VERSION_MESSAGE;
+				}
 				case LocalIdParsingState::PrimaryItem:
+				{
 					return PRIMARY_ITEM_MESSAGE;
+				}
 				case LocalIdParsingState::SecondaryItem:
+				{
 					return SECONDARY_ITEM_MESSAGE;
+				}
 				case LocalIdParsingState::ItemDescription:
+				{
 					return ITEM_DESCRIPTION_MESSAGE;
+				}
 				case LocalIdParsingState::MetaQuantity:
+				{
 					return META_QUANTITY_MESSAGE;
+				}
 				case LocalIdParsingState::MetaContent:
+				{
 					return META_CONTENT_MESSAGE;
+				}
 				case LocalIdParsingState::MetaCalculation:
+				{
 					return META_CALCULATION_MESSAGE;
+				}
 				case LocalIdParsingState::MetaState:
+				{
 					return META_STATE_MESSAGE;
+				}
 				case LocalIdParsingState::MetaCommand:
+				{
 					return META_COMMAND_MESSAGE;
+				}
 				case LocalIdParsingState::MetaType:
+				{
 					return META_TYPE_MESSAGE;
+				}
 				case LocalIdParsingState::MetaPosition:
+				{
 					return META_POSITION_MESSAGE;
+				}
 				case LocalIdParsingState::MetaDetail:
+				{
 					return META_DETAIL_MESSAGE;
+				}
 				case LocalIdParsingState::EmptyState:
+				{
 					return EMPTY_STATE_MESSAGE;
+				}
 				case LocalIdParsingState::Formatting:
+				{
 					return FORMATTING_MESSAGE;
+				}
 				case LocalIdParsingState::Completeness:
+				{
 					return COMPLETENESS_MESSAGE;
+				}
 				case LocalIdParsingState::NamingEntity:
+				{
 					return NAMING_ENTITY_MESSAGE;
+				}
 				case LocalIdParsingState::IMONumber:
+				{
 					return IMO_NUMBER_MESSAGE;
+				}
 				default:
+				{
 					return UNKNOWN_PARSING_ERROR;
+				}
 			}
 		}
 	}
@@ -208,9 +284,7 @@ namespace dnv::vista::sdk
 		return *this;
 	}
 
-	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError(
-		LocalIdParsingState state,
-		const std::string& message )
+	LocalIdParsingErrorBuilder& LocalIdParsingErrorBuilder::addError( LocalIdParsingState state, const std::string& message )
 	{
 		if ( m_errors.size() == m_errors.capacity() )
 		{

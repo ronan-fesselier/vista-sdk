@@ -28,10 +28,7 @@ namespace dnv::vista::sdk::tests
 			}
 		}
 
-		void TearDown() override
-		{
-			m_vis = nullptr;
-		}
+		void TearDown() override { m_vis = nullptr; }
 
 		VIS* m_vis = nullptr;
 		bool m_setupSuccess = false;
@@ -84,9 +81,7 @@ namespace dnv::vista::sdk::tests
 			bool waitToReadAsync()
 			{
 				std::unique_lock<std::mutex> lock( m_channel->m_mutex );
-				m_channel->m_condition.wait( lock, [this] {
-					return !m_channel->m_queue.empty() || m_channel->m_completed;
-				} );
+				m_channel->m_condition.wait( lock, [this] { return !m_channel->m_queue.empty() || m_channel->m_completed; } );
 				return !m_channel->m_queue.empty() || !m_channel->m_completed;
 			}
 
@@ -138,8 +133,8 @@ namespace dnv::vista::sdk::tests
 
 			TraversalState state( context, sourceGmod );
 
-			TraverseHandlerWithState<TraversalState> handler =
-				[]( TraversalState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			TraverseHandlerWithState<TraversalState> handler = []( TraversalState& state, const std::vector<const GmodNode*>& parents,
+																   const GmodNode& node ) -> TraversalHandlerResult {
 				if ( parents.empty() )
 					return TraversalHandlerResult::Continue;
 
@@ -162,7 +157,8 @@ namespace dnv::vista::sdk::tests
 			ASSERT_TRUE( completed );
 			context.channel.writer().complete();
 			auto counter = context.counter.load();
-			std::cout << "[" << std::setw( pad ) << counter << "] Done traversing " << dnv::vista::sdk::VisVersionExtensions::toVersionString( sourceGmod.visVersion() ) << " gmod" << std::endl;
+			std::cout << "[" << std::setw( pad ) << counter << "] Done traversing "
+					  << dnv::vista::sdk::VisVersionExtensions::toVersionString( sourceGmod.visVersion() ) << " gmod" << std::endl;
 		} );
 
 		unsigned int numThreads = std::thread::hardware_concurrency();
@@ -205,8 +201,9 @@ namespace dnv::vista::sdk::tests
 						catch ( const std::exception& e )
 						{
 							counter = ++context.counter;
-							std::cout << "[" << std::setw( pad ) << counter << "][" << std::setw( 2 ) << thread << "] Failed to create valid path from: "
-									  << sourcePath.toString() << " -> " << ( targetPath ? targetPath->toString() : "N/A" ) << " - " << e.what() << std::endl;
+							std::cout << "[" << std::setw( pad ) << counter << "][" << std::setw( 2 ) << thread
+									  << "] Failed to create valid path from: " << sourcePath.toString() << " -> "
+									  << ( targetPath ? targetPath->toString() : "N/A" ) << " - " << e.what() << std::endl;
 
 							std::lock_guard<std::mutex> lock( context.failedConversionsMutex );
 							context.failedConversions.emplace_back( sourcePath, targetPath, std::current_exception() );
@@ -235,7 +232,8 @@ namespace dnv::vista::sdk::tests
 		auto failed = context.failedConversions.size();
 		auto successRate = static_cast<double>( success ) / static_cast<double>( context.counter.load() ) * 100.0;
 
-		std::cout << "Success/failed - " << success << "/" << failed << " (" << std::fixed << std::setprecision( 2 ) << successRate << "% success)" << std::endl;
+		std::cout << "Success/failed - " << success << "/" << failed << " (" << std::fixed << std::setprecision( 2 ) << successRate << "% success)"
+				  << std::endl;
 
 		/* Group errors by exception message */
 		std::map<std::string, int> errorGroups;
@@ -253,9 +251,7 @@ namespace dnv::vista::sdk::tests
 
 		std::cout << "Errors: " << std::endl;
 		std::vector<std::pair<std::string, int>> sortedErrors( errorGroups.begin(), errorGroups.end() );
-		std::sort( sortedErrors.begin(), sortedErrors.end(), []( const auto& a, const auto& b ) {
-			return a.second > b.second;
-		} );
+		std::sort( sortedErrors.begin(), sortedErrors.end(), []( const auto& a, const auto& b ) { return a.second > b.second; } );
 
 		for ( const auto& [errorMsg, count] : sortedErrors )
 		{

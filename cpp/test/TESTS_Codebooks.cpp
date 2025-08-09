@@ -9,7 +9,7 @@
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/VIS.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	namespace tests
 	{
@@ -28,16 +28,12 @@ namespace dnv::vista::sdk
 					continue;
 
 				const Codebooks* codebooksPtr = nullptr;
-				ASSERT_NO_THROW( {
-					codebooksPtr = &vis.codebooks( version );
-				} );
+				ASSERT_NO_THROW( { codebooksPtr = &vis.codebooks( version ); } );
 				ASSERT_NE( nullptr, codebooksPtr );
 
 				const Codebook* positionCodebookPtr = nullptr;
 
-				ASSERT_NO_THROW( {
-					positionCodebookPtr = &( *codebooksPtr )[CodebookName::Position];
-				} );
+				ASSERT_NO_THROW( { positionCodebookPtr = &( *codebooksPtr )[CodebookName::Position]; } );
 
 				ASSERT_NE( nullptr, positionCodebookPtr );
 			}
@@ -62,17 +58,10 @@ namespace dnv::vista::sdk
 
 		TEST( CodebooksTests, Test_CodebookName_Properties )
 		{
-			const std::vector<dnv::vista::sdk::CodebookName> allCodebookNames = {
-				dnv::vista::sdk::CodebookName::Quantity,
-				dnv::vista::sdk::CodebookName::Content,
-				dnv::vista::sdk::CodebookName::Calculation,
-				dnv::vista::sdk::CodebookName::State,
-				dnv::vista::sdk::CodebookName::Command,
-				dnv::vista::sdk::CodebookName::Type,
-				dnv::vista::sdk::CodebookName::FunctionalServices,
-				dnv::vista::sdk::CodebookName::MaintenanceCategory,
-				dnv::vista::sdk::CodebookName::ActivityType,
-				dnv::vista::sdk::CodebookName::Position,
+			const std::vector<dnv::vista::sdk::CodebookName> allCodebookNames = { dnv::vista::sdk::CodebookName::Quantity,
+				dnv::vista::sdk::CodebookName::Content, dnv::vista::sdk::CodebookName::Calculation, dnv::vista::sdk::CodebookName::State,
+				dnv::vista::sdk::CodebookName::Command, dnv::vista::sdk::CodebookName::Type, dnv::vista::sdk::CodebookName::FunctionalServices,
+				dnv::vista::sdk::CodebookName::MaintenanceCategory, dnv::vista::sdk::CodebookName::ActivityType, dnv::vista::sdk::CodebookName::Position,
 				dnv::vista::sdk::CodebookName::Detail };
 
 			std::vector<int> actualEnumValues;

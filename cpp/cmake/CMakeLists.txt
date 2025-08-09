@@ -94,8 +94,8 @@ target_sources(${PROJECT_NAME}
 
 # --- Library versioning ---
 configure_file(
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h.in
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/version.h.in
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/version.h
 	@ONLY
 )
 

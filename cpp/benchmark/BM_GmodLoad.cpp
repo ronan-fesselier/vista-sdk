@@ -3,13 +3,9 @@
  * @brief GMOD loading and construction performance analysis
  */
 
-#include "pch.h"
-
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/GmodDto.h"
 #include "dnv/vista/sdk/VIS.h"
-
-using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -32,9 +28,7 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	BENCHMARK( BM_gmodLoad )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMillisecond );
+	BENCHMARK( BM_gmodLoad )->MinTime( 10.0 )->Unit( benchmark::kMillisecond );
 }
 
 BENCHMARK_MAIN();

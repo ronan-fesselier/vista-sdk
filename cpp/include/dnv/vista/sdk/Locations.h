@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "LocationsDto.h"
+#include "Config/Platform.h"
+#include "Utils/Hashing.h"
 
-#include "config/Platform.h"
-#include "utils/Hashing.h"
+#include "LocationsDto.h"
 
 namespace dnv::vista::sdk
 {
@@ -191,8 +191,7 @@ namespace dnv::vista::sdk
 		 * @param definition An optional detailed description of the relative location.
 		 */
 		RelativeLocation(
-			char code,
-			std::string_view name,
+			char code, std::string_view name,
 			const Location& location,
 			const std::optional<std::string> definition = std::nullopt );
 
@@ -545,7 +544,8 @@ namespace dnv::vista::sdk
 		 * @param errorBuilder The `LocationParsingErrorBuilder` to accumulate errors.
 		 * @return True if parsing was successful to the point of forming a valid `Location`, false otherwise.
 		 */
-		[[nodiscard]] bool tryParseInternal( std::string_view span,
+		[[nodiscard]] bool tryParseInternal(
+			std::string_view span,
 			const std::optional<std::string>& originalStr,
 			Location& location,
 			internal::LocationParsingErrorBuilder& errorBuilder ) const;

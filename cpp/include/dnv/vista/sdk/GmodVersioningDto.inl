@@ -46,9 +46,12 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	inline GmodNodeConversionDto::GmodNodeConversionDto(
-		OperationSet operations, std::string source,
-		std::string target, std::string oldAssignment,
-		std::string newAssignment, bool deleteAssignment ) noexcept
+		OperationSet operations,
+		std::string source,
+		std::string target,
+		std::string oldAssignment,
+		std::string newAssignment,
+		bool deleteAssignment ) noexcept
 		: m_operations{ std::move( operations ) },
 		  m_source{ std::move( source ) },
 		  m_target{ std::move( target ) },

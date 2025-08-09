@@ -6,9 +6,10 @@
 
 #pragma once
 
+#include "Utils/Hashing.h"
+
 #include "ImoNumber.h"
 #include "LocalId.h"
-#include "utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {

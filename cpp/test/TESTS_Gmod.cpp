@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VIS.h"
@@ -33,11 +33,7 @@ namespace dnv::vista::sdk::tests
 		static std::size_t occurrences( const std::vector<const GmodNode*>& parents, const GmodNode& node )
 		{
 			return static_cast<size_t>(
-				std::count_if(
-					parents.begin(), parents.end(),
-					[&node]( const GmodNode* p ) {
-						return p != nullptr && p->code() == node.code();
-					} ) );
+				std::count_if( parents.begin(), parents.end(), [&node]( const GmodNode* p ) { return p != nullptr && p->code() == node.code(); } ) );
 		}
 
 		//=====================================================================
@@ -46,11 +42,7 @@ namespace dnv::vista::sdk::tests
 
 		struct TraversalState
 		{
-			TraversalState( int stopAfter )
-				: stopAfter{ stopAfter },
-				  nodeCount{ 0 }
-			{
-			}
+			TraversalState( int stopAfter ) : stopAfter{ stopAfter }, nodeCount{ 0 } {}
 
 			int stopAfter;
 			int nodeCount;
@@ -172,14 +164,12 @@ namespace dnv::vista::sdk::tests
 			FullTraversalState traversalState( gmod );
 			int maxExpected = TraversalOptions::DEFAULT_MAX_TRAVERSAL_OCCURRENCE;
 
-			TraverseHandlerWithState<FullTraversalState> handler =
-				[]( FullTraversalState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			TraverseHandlerWithState<FullTraversalState> handler = []( FullTraversalState& state, const std::vector<const GmodNode*>& parents,
+																	   const GmodNode& node ) -> TraversalHandlerResult {
 				EXPECT_TRUE( parents.empty() || parents[0]->isRoot() );
 
 				bool isHG3Related = ( node.code() == "HG3" ) ||
-									std::any_of( parents.begin(), parents.end(), []( const GmodNode* p ) {
-										return p != nullptr && p->code() == "HG3";
-									} );
+									std::any_of( parents.begin(), parents.end(), []( const GmodNode* p ) { return p != nullptr && p->code() == "HG3"; } );
 
 				if ( isHG3Related )
 				{
@@ -238,8 +228,8 @@ namespace dnv::vista::sdk::tests
 			TraversalOptions options;
 			options.maxTraversalOccurrence = maxExpected;
 
-			TraverseHandlerWithState<MaxOccurrenceState> handler =
-				[]( MaxOccurrenceState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+			TraverseHandlerWithState<MaxOccurrenceState> handler = []( MaxOccurrenceState& state, const std::vector<const GmodNode*>& parents,
+																	   const GmodNode& node ) -> TraversalHandlerResult {
 				const GmodNode* lastParent = parents.empty() ? nullptr : parents.back();
 				bool skipOccurenceCheck = Gmod::isProductSelectionAssignment( lastParent, &node );
 				if ( skipOccurenceCheck )
@@ -272,8 +262,8 @@ namespace dnv::vista::sdk::tests
 
 			TraversalState state( 5 );
 
-			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler =
-				[]( TraversalState& currentState, const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
+			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler = []( TraversalState& currentState, const std::vector<const GmodNode*>& parents,
+																					[[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
 				EXPECT_TRUE( parents.empty() || parents[0]->isRoot() );
 				if ( ++currentState.nodeCount == currentState.stopAfter )
 				{
@@ -301,8 +291,8 @@ namespace dnv::vista::sdk::tests
 
 			const GmodNode& startNode = gmod["400a"];
 
-			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler =
-				[]( TraversalState& currentState, const std::vector<const GmodNode*>& parents, [[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
+			dnv::vista::sdk::TraverseHandlerWithState<TraversalState> handler = []( TraversalState& currentState, const std::vector<const GmodNode*>& parents,
+																					[[maybe_unused]] const GmodNode& node ) -> TraversalHandlerResult {
 				EXPECT_TRUE( parents.empty() || ( parents[0] != nullptr && parents[0]->code() == "400a" ) );
 
 				++currentState.nodeCount;
@@ -344,8 +334,10 @@ namespace dnv::vista::sdk::tests
 			auto [vis, gmod] = visAndGmod( visVersion );
 
 			const GmodNode* tempNodePtr = nullptr;
-			ASSERT_TRUE( gmod.tryGetNode( std::string{ "400a" }, tempNodePtr ) ) << "Node '400a' not found in GMOD for version " << VisVersionExtensions::toVersionString( visVersion );
-			ASSERT_NE( tempNodePtr, nullptr ) << "tryGetNode succeeded but pointer is null for '400a' in GMOD version " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_TRUE( gmod.tryGetNode( std::string{ "400a" }, tempNodePtr ) )
+				<< "Node '400a' not found in GMOD for version " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( tempNodePtr, nullptr ) << "tryGetNode succeeded but pointer is null for '400a' in GMOD version "
+											  << VisVersionExtensions::toVersionString( visVersion );
 		}
 
 		//----------------------------------------------
@@ -358,13 +350,9 @@ namespace dnv::vista::sdk::tests
 			int nodeCount;
 		};
 
-		const std::map<VisVersion, ExpectedValues> expectedMaxes = {
-			{ VisVersion::v3_4a, { "C1053.3114", 6420 } },
-			{ VisVersion::v3_5a, { "C1053.3114", 6557 } },
-			{ VisVersion::v3_6a, { "C1053.3114", 6557 } },
-			{ VisVersion::v3_7a, { "H346.11113", 6672 } },
-			{ VisVersion::v3_8a, { "H346.11113", 6335 } },
-			{ VisVersion::v3_9a, { "H346.11113", 6553 } } };
+		const std::map<VisVersion, ExpectedValues> expectedMaxes = { { VisVersion::v3_4a, { "C1053.3114", 6420 } },
+			{ VisVersion::v3_5a, { "C1053.3114", 6557 } }, { VisVersion::v3_6a, { "C1053.3114", 6557 } }, { VisVersion::v3_7a, { "H346.11113", 6672 } },
+			{ VisVersion::v3_8a, { "H346.11113", 6335 } }, { VisVersion::v3_9a, { "H346.11113", 6553 } } };
 
 		TEST_P( GmodTests, Test_Gmod_Properties )
 		{
@@ -417,19 +405,26 @@ namespace dnv::vista::sdk::tests
 				}
 			}
 
-			ASSERT_NE( minLengthLexiographicallyOrderedNode, nullptr ) << "minLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
-			ASSERT_NE( maxLengthLexiographicallyOrderedNode, nullptr ) << "maxLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( minLengthLexiographicallyOrderedNode, nullptr )
+				<< "minLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( maxLengthLexiographicallyOrderedNode, nullptr )
+				<< "maxLengthNode should not be null for " << VisVersionExtensions::toVersionString( visVersion );
 
-			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code().length(), 2 ) << "Min code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
-			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code(), "VE" ) << "Min code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code().length(), 2 )
+				<< "Min code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( minLengthLexiographicallyOrderedNode->code(), "VE" )
+				<< "Min code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
 
-			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code().length(), 10 ) << "Max code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code().length(), 10 )
+				<< "Max code length mismatch for " << VisVersionExtensions::toVersionString( visVersion );
 
 			auto expectedIt = expectedMaxes.find( visVersion );
-			ASSERT_NE( expectedIt, expectedMaxes.end() ) << "Expected values not found for GMOD version " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_NE( expectedIt, expectedMaxes.end() )
+				<< "Expected values not found for GMOD version " << VisVersionExtensions::toVersionString( visVersion );
 			const auto& expectedValues = expectedIt->second;
 
-			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code(), expectedValues.maxCode ) << "Max code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
+			ASSERT_EQ( maxLengthLexiographicallyOrderedNode->code(), expectedValues.maxCode )
+				<< "Max code value mismatch for " << VisVersionExtensions::toVersionString( visVersion );
 			ASSERT_EQ( nodeCount, expectedValues.nodeCount ) << "Node count mismatch for " << VisVersionExtensions::toVersionString( visVersion );
 		}
 
@@ -452,12 +447,16 @@ namespace dnv::vista::sdk::tests
 					ASSERT_FALSE( dtoCode.empty() ) << "DTO code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
 
 					auto insert_result = seen_codes.insert( dtoCode );
-					ASSERT_TRUE( insert_result.second ) << "Duplicate DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_TRUE( insert_result.second )
+						<< "Duplicate DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
 
 					const GmodNode* foundNodePtr = nullptr;
-					ASSERT_TRUE( gmod.tryGetNode( dtoCode, foundNodePtr ) ) << "Failed to find node from DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
-					ASSERT_NE( foundNodePtr, nullptr ) << "Found node pointer is null for DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
-					ASSERT_EQ( dtoCode, foundNodePtr->code() ) << "Mismatch between DTO code and found node code for: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_TRUE( gmod.tryGetNode( dtoCode, foundNodePtr ) )
+						<< "Failed to find node from DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_NE( foundNodePtr, nullptr )
+						<< "Found node pointer is null for DTO code: " << dtoCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_EQ( dtoCode, foundNodePtr->code() ) << "Mismatch between DTO code and found node code for: " << dtoCode << " for version "
+															   << VisVersionExtensions::toVersionString( visVersion );
 				}
 			}
 
@@ -468,15 +467,20 @@ namespace dnv::vista::sdk::tests
 				{
 					const GmodNode& node = enumerator.current();
 					const auto gmodNodeCode = node.code();
-					ASSERT_FALSE( gmodNodeCode.empty() ) << "Gmod iterated node code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_FALSE( gmodNodeCode.empty() )
+						<< "Gmod iterated node code is empty for version " << VisVersionExtensions::toVersionString( visVersion );
 
 					auto insert_result = seen_codes.insert( std::string{ gmodNodeCode } );
-					ASSERT_TRUE( insert_result.second ) << "Duplicate Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_TRUE( insert_result.second )
+						<< "Duplicate Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
 
 					const GmodNode* foundNodePtr = nullptr;
-					ASSERT_TRUE( gmod.tryGetNode( gmodNodeCode, foundNodePtr ) ) << "Failed to find node from Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
-					ASSERT_NE( foundNodePtr, nullptr ) << "Found node pointer is null for Gmod iterated code: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
-					ASSERT_EQ( gmodNodeCode, foundNodePtr->code() ) << "Mismatch between Gmod iterated code and found node code for: " << gmodNodeCode << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_TRUE( gmod.tryGetNode( gmodNodeCode, foundNodePtr ) ) << "Failed to find node from Gmod iterated code: " << gmodNodeCode
+																				 << " for version " << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_NE( foundNodePtr, nullptr ) << "Found node pointer is null for Gmod iterated code: " << gmodNodeCode << " for version "
+													   << VisVersionExtensions::toVersionString( visVersion );
+					ASSERT_EQ( gmodNodeCode, foundNodePtr->code() ) << "Mismatch between Gmod iterated code and found node code for: " << gmodNodeCode
+																	<< " for version " << VisVersionExtensions::toVersionString( visVersion );
 				}
 			}
 
@@ -533,35 +537,14 @@ namespace dnv::vista::sdk::tests
 		// Instantiate
 		//=====================================================================
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodTestSuite,
-			GmodTests,
-			::testing::Values(
-				VisVersion::v3_4a,
-				VisVersion::v3_5a,
-				VisVersion::v3_6a,
-				VisVersion::v3_7a,
-				VisVersion::v3_8a,
-				VisVersion::v3_9a ) );
+		INSTANTIATE_TEST_SUITE_P( GmodTestSuite, GmodTests,
+			::testing::Values( VisVersion::v3_4a, VisVersion::v3_5a, VisVersion::v3_6a, VisVersion::v3_7a, VisVersion::v3_8a, VisVersion::v3_9a ) );
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodMappabilityTestSuite,
-			GmodMappabilityTests,
-			::testing::Values(
-				MappabilityTestData{ "VE", false },
-				MappabilityTestData{ "300a", false },
-				MappabilityTestData{ "300", true },
-				MappabilityTestData{ "411", true },
-				MappabilityTestData{ "410", true },
-				MappabilityTestData{ "651.21s", false },
-				MappabilityTestData{ "924.2", true },
-				MappabilityTestData{ "411.1", false },
-				MappabilityTestData{ "C101", true },
-				MappabilityTestData{ "CS1", false },
-				MappabilityTestData{ "C101.663", true },
-				MappabilityTestData{ "C101.4", true },
-				MappabilityTestData{ "C101.21s", false },
-				MappabilityTestData{ "F201.11", true },
-				MappabilityTestData{ "C101.211", false } ) );
+		INSTANTIATE_TEST_SUITE_P( GmodMappabilityTestSuite, GmodMappabilityTests,
+			::testing::Values( MappabilityTestData{ "VE", false }, MappabilityTestData{ "300a", false }, MappabilityTestData{ "300", true },
+				MappabilityTestData{ "411", true }, MappabilityTestData{ "410", true }, MappabilityTestData{ "651.21s", false },
+				MappabilityTestData{ "924.2", true }, MappabilityTestData{ "411.1", false }, MappabilityTestData{ "C101", true },
+				MappabilityTestData{ "CS1", false }, MappabilityTestData{ "C101.663", true }, MappabilityTestData{ "C101.4", true },
+				MappabilityTestData{ "C101.21s", false }, MappabilityTestData{ "F201.11", true }, MappabilityTestData{ "C101.211", false } ) );
 	}
 }

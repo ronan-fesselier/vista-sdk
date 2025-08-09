@@ -39,18 +39,15 @@ namespace dnv::vista::sdk::tests
 	static std::vector<LocationParseValidParam> loadValidLocationData()
 	{
 		std::vector<LocationParseValidParam> params;
-		const nlohmann::json& jsonData = loadTestData( LOCATIONS_TEST_DATA_PATH );
+		const nlohmann::json& jsonData = test::loadTestData( LOCATIONS_TEST_DATA_PATH );
 		const std::string dataKey = "locations";
 
 		if ( jsonData.contains( dataKey ) && jsonData[dataKey].is_array() )
 		{
 			for ( const auto& item : jsonData[dataKey] )
 			{
-				if ( item.is_object() &&
-					 item.contains( "success" ) && item["success"].is_boolean() &&
-					 item["success"].get<bool>() == true &&
-					 item.contains( "value" ) && item["value"].is_string() &&
-					 item.contains( "output" ) && item["output"].is_string() )
+				if ( item.is_object() && item.contains( "success" ) && item["success"].is_boolean() && item["success"].get<bool>() == true &&
+					 item.contains( "value" ) && item["value"].is_string() && item.contains( "output" ) && item["output"].is_string() )
 				{
 					std::string value = item["value"].get<std::string>();
 					std::string output = item["output"].get<std::string>();
@@ -74,16 +71,14 @@ namespace dnv::vista::sdk::tests
 	static std::vector<LocationParseInvalidParam> loadInvalidLocationData()
 	{
 		std::vector<LocationParseInvalidParam> params;
-		const nlohmann::json& jsonData = loadTestData( LOCATIONS_TEST_DATA_PATH );
+		const nlohmann::json& jsonData = test::loadTestData( LOCATIONS_TEST_DATA_PATH );
 		const std::string dataKey = "locations";
 
 		if ( jsonData.contains( dataKey ) && jsonData[dataKey].is_array() )
 		{
 			for ( const auto& item : jsonData[dataKey] )
 			{
-				if ( item.is_object() &&
-					 item.contains( "success" ) && item["success"].is_boolean() &&
-					 item["success"].get<bool>() == false &&
+				if ( item.is_object() && item.contains( "success" ) && item["success"].is_boolean() && item["success"].get<bool>() == false &&
 					 item.contains( "value" ) )
 				{
 					std::string value;
@@ -130,21 +125,13 @@ namespace dnv::vista::sdk::tests
 
 	static std::vector<VisVersionParam> getTestVisVersions()
 	{
-		return {
-			{ VisVersion::v3_4a },
-			{ VisVersion::v3_5a },
-			{ VisVersion::v3_6a },
-			{ VisVersion::v3_7a },
-			{ VisVersion::v3_8a } };
+		return { { VisVersion::v3_4a }, { VisVersion::v3_5a }, { VisVersion::v3_6a }, { VisVersion::v3_7a }, { VisVersion::v3_8a } };
 	}
 
 	class LocationsLoadsTests : public ::testing::TestWithParam<VisVersionParam>
 	{
 	protected:
-		void SetUp() override
-		{
-			vis = &VIS::instance();
-		}
+		void SetUp() override { vis = &VIS::instance(); }
 
 		VIS* vis{ nullptr };
 	};
@@ -162,10 +149,7 @@ namespace dnv::vista::sdk::tests
 		ASSERT_NE( nullptr, &groups );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		AllVisVersions,
-		LocationsLoadsTests,
-		::testing::ValuesIn( getTestVisVersions() ) );
+	INSTANTIATE_TEST_SUITE_P( AllVisVersions, LocationsLoadsTests, ::testing::ValuesIn( getTestVisVersions() ) );
 
 	//----------------------------------------------
 	// Test_LocationGroups_Properties
@@ -173,12 +157,8 @@ namespace dnv::vista::sdk::tests
 
 	TEST( LocationsTests, Test_LocationGroups_Properties )
 	{
-		std::vector<int> values = {
-			static_cast<int>( LocationGroup::Number ),
-			static_cast<int>( LocationGroup::Side ),
-			static_cast<int>( LocationGroup::Vertical ),
-			static_cast<int>( LocationGroup::Transverse ),
-			static_cast<int>( LocationGroup::Longitudinal ) };
+		std::vector<int> values = { static_cast<int>( LocationGroup::Number ), static_cast<int>( LocationGroup::Side ),
+			static_cast<int>( LocationGroup::Vertical ), static_cast<int>( LocationGroup::Transverse ), static_cast<int>( LocationGroup::Longitudinal ) };
 
 		std::set<int> uniqueValues( values.begin(), values.end() );
 		ASSERT_EQ( values.size(), uniqueValues.size() );
@@ -282,10 +262,7 @@ namespace dnv::vista::sdk::tests
 		verify( spanSuccess, spanErrorBuilder, spanParsedLocation );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		AllLocations,
-		LocationsTests,
-		::testing::ValuesIn( getLocationTestData() ) );
+	INSTANTIATE_TEST_SUITE_P( AllLocations, LocationsTests, ::testing::ValuesIn( getLocationTestData() ) );
 
 	//----------------------------------------------
 	// Test_Location_Parse_Throwing

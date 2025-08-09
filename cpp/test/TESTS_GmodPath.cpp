@@ -42,15 +42,15 @@ namespace dnv::vista::sdk::tests
 		static std::vector<GmodPathParseValidParam> loadValidGmodPathData()
 		{
 			std::vector<GmodPathParseValidParam> params;
-			const nlohmann::json& jsonData = loadTestData( GMOD_PATH_TEST_DATA_PATH );
+			const nlohmann::json& jsonData = test::loadTestData( GMOD_PATH_TEST_DATA_PATH );
 			const std::string dataKey = "Valid";
 
 			if ( jsonData.contains( dataKey ) && jsonData[dataKey].is_array() )
 			{
 				for ( const auto& item : jsonData[dataKey] )
 				{
-					if ( item.is_object() && item.contains( "visVersion" ) && item["visVersion"].is_string() &&
-						 item.contains( "path" ) && item["path"].is_string() )
+					if ( item.is_object() && item.contains( "visVersion" ) && item["visVersion"].is_string() && item.contains( "path" ) &&
+						 item["path"].is_string() )
 					{
 						std::string visVersionStr = item["visVersion"].get<std::string>();
 						std::string pathStr = item["path"].get<std::string>();
@@ -74,15 +74,15 @@ namespace dnv::vista::sdk::tests
 		static std::vector<GmodPathParseInvalidParam> loadInvalidGmodPathData()
 		{
 			std::vector<GmodPathParseInvalidParam> params;
-			const nlohmann::json& jsonData = loadTestData( GMOD_PATH_TEST_DATA_PATH );
+			const nlohmann::json& jsonData = test::loadTestData( GMOD_PATH_TEST_DATA_PATH );
 			const std::string dataKey = "Invalid";
 
 			if ( jsonData.contains( dataKey ) && jsonData[dataKey].is_array() )
 			{
 				for ( const auto& item : jsonData[dataKey] )
 				{
-					if ( item.is_object() && item.contains( "visVersion" ) && item["visVersion"].is_string() &&
-						 item.contains( "path" ) && item["path"].is_string() )
+					if ( item.is_object() && item.contains( "visVersion" ) && item["visVersion"].is_string() && item.contains( "path" ) &&
+						 item["path"].is_string() )
 					{
 						std::string visVersionStr = item["visVersion"].get<std::string>();
 						std::string pathStr = item["path"].get<std::string>();
@@ -108,17 +108,14 @@ namespace dnv::vista::sdk::tests
 		static std::vector<IndividualizableSetsTestData> LoadIndividualizableSetsData()
 		{
 			std::vector<IndividualizableSetsTestData> params;
-			const nlohmann::json& jsonData = loadTestData( INDIVIDUALIZABLE_SETS_TEST_DATA_PATH );
+			const nlohmann::json& jsonData = test::loadTestData( INDIVIDUALIZABLE_SETS_TEST_DATA_PATH );
 
 			if ( jsonData.is_array() )
 			{
 				for ( const auto& item : jsonData )
 				{
-					if ( item.is_object() &&
-						 item.contains( "isFullPath" ) && item["isFullPath"].is_boolean() &&
-						 item.contains( "visVersion" ) && item["visVersion"].is_string() &&
-						 item.contains( "path" ) && item["path"].is_string() &&
-						 item.contains( "expected" ) )
+					if ( item.is_object() && item.contains( "isFullPath" ) && item["isFullPath"].is_boolean() && item.contains( "visVersion" ) &&
+						 item["visVersion"].is_string() && item.contains( "path" ) && item["path"].is_string() && item.contains( "expected" ) )
 					{
 						bool isFullPath = item["isFullPath"].get<bool>();
 						std::string visVersionStr = item["visVersion"].get<std::string>();
@@ -164,9 +161,7 @@ namespace dnv::vista::sdk::tests
 		class GmodPathParseValidTest : public ::testing::TestWithParam<GmodPathParseValidParam>
 		{
 		protected:
-			GmodPathParseValidTest() : m_vis( VIS::instance() )
-			{
-			}
+			GmodPathParseValidTest() : m_vis( VIS::instance() ) {}
 
 			VIS& m_vis;
 		};
@@ -185,10 +180,7 @@ namespace dnv::vista::sdk::tests
 			ASSERT_EQ( param.pathString, parsedGmodPathOptional.value().toString() );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodPathParseValidSuite,
-			GmodPathParseValidTest,
-			::testing::ValuesIn( loadValidGmodPathData() ) );
+		INSTANTIATE_TEST_SUITE_P( GmodPathParseValidSuite, GmodPathParseValidTest, ::testing::ValuesIn( loadValidGmodPathData() ) );
 
 		//----------------------------------------------
 		// Test_GmodPath_Parse_Invalid
@@ -197,9 +189,7 @@ namespace dnv::vista::sdk::tests
 		class GmodPathParseInvalidTest : public ::testing::TestWithParam<GmodPathParseInvalidParam>
 		{
 		protected:
-			GmodPathParseInvalidTest() : m_vis( VIS::instance() )
-			{
-			}
+			GmodPathParseInvalidTest() : m_vis( VIS::instance() ) {}
 
 			VIS& m_vis;
 		};
@@ -217,10 +207,7 @@ namespace dnv::vista::sdk::tests
 			ASSERT_FALSE( parsedGmodPathOptional.has_value() );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodPathParseInvalidSuite,
-			GmodPathParseInvalidTest,
-			::testing::ValuesIn( loadInvalidGmodPathData() ) );
+		INSTANTIATE_TEST_SUITE_P( GmodPathParseInvalidSuite, GmodPathParseInvalidTest, ::testing::ValuesIn( loadInvalidGmodPathData() ) );
 
 		//----------------------------------------------
 		// Test_FullPathParsing
@@ -268,12 +255,10 @@ namespace dnv::vista::sdk::tests
 			ASSERT_EQ( param.shortPathStr, parsedPathNonOptional.toString() );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			GmodPathFullPathParsingSuite,
-			GmodPathFullPathParsingTest,
-			::testing::Values(
-				FullPathParsingTestData{ "411.1/C101.72/I101", "VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101", VisVersion::v3_4a },
-				FullPathParsingTestData{ "612.21-1/C701.13/S93", "VE/600a/610/612/612.2/612.2i-1/612.21-1/CS10/C701/C701.1/C701.13/S93", VisVersion::v3_4a } ) );
+		INSTANTIATE_TEST_SUITE_P( GmodPathFullPathParsingSuite, GmodPathFullPathParsingTest,
+			::testing::Values( FullPathParsingTestData{ "411.1/C101.72/I101", "VE/400a/410/411/411i/411.1/CS1/C101/C101.7/C101.72/I101", VisVersion::v3_4a },
+				FullPathParsingTestData{
+					"612.21-1/C701.13/S93", "VE/600a/610/612/612.2/612.2i-1/612.21-1/CS10/C701/C701.1/C701.13/S93", VisVersion::v3_4a } ) );
 
 		//----------------------------------------------
 		// Test_IndividualizableSets
@@ -282,9 +267,7 @@ namespace dnv::vista::sdk::tests
 		class GmodPathIndividualizableSetsTest : public ::testing::TestWithParam<IndividualizableSetsTestData>
 		{
 		protected:
-			GmodPathIndividualizableSetsTest() : m_vis( VIS::instance() )
-			{
-			}
+			GmodPathIndividualizableSetsTest() : m_vis( VIS::instance() ) {}
 
 			VIS& m_vis;
 		};
@@ -339,9 +322,7 @@ namespace dnv::vista::sdk::tests
 		}
 
 		INSTANTIATE_TEST_SUITE_P(
-			GmodPathIndividualizableSetsTestSuite,
-			GmodPathIndividualizableSetsTest,
-			::testing::ValuesIn( LoadIndividualizableSetsData() ) );
+			GmodPathIndividualizableSetsTestSuite, GmodPathIndividualizableSetsTest, ::testing::ValuesIn( LoadIndividualizableSetsData() ) );
 
 		//----------------------------------------------
 		// Test_IndividualizableSets_FullPath
@@ -350,9 +331,7 @@ namespace dnv::vista::sdk::tests
 		class GmodPathIndividualizableSetsFullPathTest : public ::testing::TestWithParam<IndividualizableSetsTestData>
 		{
 		protected:
-			GmodPathIndividualizableSetsFullPathTest() : m_vis( VIS::instance() )
-			{
-			}
+			GmodPathIndividualizableSetsFullPathTest() : m_vis{ VIS::instance() } {}
 
 			VIS& m_vis;
 		};
@@ -399,9 +378,7 @@ namespace dnv::vista::sdk::tests
 		}
 
 		INSTANTIATE_TEST_SUITE_P(
-			GmodPathIndividualizableSetsFullPathTestSuite,
-			GmodPathIndividualizableSetsFullPathTest,
-			::testing::ValuesIn( LoadIndividualizableSetsData() ) );
+			GmodPathIndividualizableSetsFullPathTestSuite, GmodPathIndividualizableSetsFullPathTest, ::testing::ValuesIn( LoadIndividualizableSetsData() ) );
 
 		//----------------------------------------------
 		// Test_Valid_GmodPath_IndividualizableSets
@@ -410,9 +387,7 @@ namespace dnv::vista::sdk::tests
 		class GmodPathValidIndividualizableSetsTest : public ::testing::TestWithParam<GmodPathParseValidParam>
 		{
 		protected:
-			GmodPathValidIndividualizableSetsTest() : m_vis( VIS::instance() )
-			{
-			}
+			GmodPathValidIndividualizableSetsTest() : m_vis( VIS::instance() ) {}
 
 			VIS& m_vis;
 		};
@@ -441,9 +416,7 @@ namespace dnv::vista::sdk::tests
 		}
 
 		INSTANTIATE_TEST_SUITE_P(
-			GmodPathValidIndividualizableSetsTestSuite,
-			GmodPathValidIndividualizableSetsTest,
-			::testing::ValuesIn( loadValidGmodPathData() ) );
+			GmodPathValidIndividualizableSetsTestSuite, GmodPathValidIndividualizableSetsTest, ::testing::ValuesIn( loadValidGmodPathData() ) );
 
 		//----------------------------------------------
 		// Test_Valid_GmodPath_IndividualizableSets_FullPath
@@ -480,9 +453,7 @@ namespace dnv::vista::sdk::tests
 		}
 
 		INSTANTIATE_TEST_SUITE_P(
-			GmodPathValidIndividualizableSetsFullPathSuite,
-			GmodPathValidIndividualizableSetsFullPathTest,
-			::testing::ValuesIn( loadValidGmodPathData() ) );
+			GmodPathValidIndividualizableSetsFullPathSuite, GmodPathValidIndividualizableSetsFullPathTest, ::testing::ValuesIn( loadValidGmodPathData() ) );
 	}
 
 	namespace Tests
@@ -624,14 +595,10 @@ namespace dnv::vista::sdk::tests
 			const Gmod& gmod = VIS::instance().gmod( version );
 
 			GmodPath path = gmod.parsePath( "511.11-1/C101.663i-1/C663" );
-			ASSERT_EQ(
-				"VE/500a/510/511/511.1/511.1i-1/511.11-1/CS1/C101/C101.6/C101.66/C101.663/C101.663i-1/C663",
-				path.toFullPathString() );
+			ASSERT_EQ( "VE/500a/510/511/511.1/511.1i-1/511.11-1/CS1/C101/C101.6/C101.66/C101.663/C101.663i-1/C663", path.toFullPathString() );
 
 			path = gmod.parsePath( "846/G203.32-2/S110.2-1/E31" );
-			ASSERT_EQ(
-				"VE/800a/840/846/G203/G203.3-2/G203.32-2/S110/S110.2-1/CS1/E31",
-				path.toFullPathString() );
+			ASSERT_EQ( "VE/800a/840/846/G203/G203.3-2/G203.32-2/S110/S110.2-1/CS1/E31", path.toFullPathString() );
 		}
 	}
 }

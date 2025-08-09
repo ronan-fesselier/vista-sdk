@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/ImoNumber.h"
 
-#include "dnv/vista/sdk/config/AlgorithmConstants.h"
+#include "dnv/vista/sdk/Config/AlgorithmConstants.h"
 
 namespace dnv::vista::sdk
 {
@@ -89,7 +89,7 @@ namespace dnv::vista::sdk
 		int calculatedCheckDigit = checkSum % 10;
 		int providedCheckDigit = digits[0];
 
-		return ( providedCheckDigit == calculatedCheckDigit );
+		return providedCheckDigit == calculatedCheckDigit;
 	}
 
 	//----------------------------------------------
@@ -136,7 +136,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( value.find_first_of( constants::NULL_OR_WHITESPACE ) != std::string::npos )
+		if ( value.find_first_of( constants::algorithm::NULL_OR_WHITESPACE ) != std::string::npos )
 		{
 			return std::nullopt;
 		}
@@ -166,6 +166,6 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		return ImoNumber( num );
+		return ImoNumber{ num };
 	}
 }

@@ -7,8 +7,9 @@
 
 #include "dnv/vista/sdk/LocationsDto.h"
 
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
+
+#include "dnv/vista/sdk/Config/DtoKeysConstants.h"
 
 namespace dnv::vista::sdk
 {
@@ -22,7 +23,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				const auto it = json.find( dto::LOCATIONS_DTO_KEY_CODE );
+				const auto it = json.find( constants::dto::LOCATIONS_DTO_KEY_CODE );
 				if ( it != json.end() && it->is_string() )
 				{
 					const auto& str = it->get_ref<const std::string&>();
@@ -30,11 +31,11 @@ namespace dnv::vista::sdk
 					return std::string_view{ str };
 				}
 
-				return dto::LOCATIONS_DTO_UNKNOWN_CODE;
+				return constants::dto::LOCATIONS_DTO_UNKNOWN_CODE;
 			}
 			catch ( ... )
 			{
-				return dto::LOCATIONS_DTO_UNKNOWN_CODE;
+				return constants::dto::LOCATIONS_DTO_UNKNOWN_CODE;
 			}
 		}
 
@@ -42,7 +43,7 @@ namespace dnv::vista::sdk
 		{
 			try
 			{
-				const auto it = json.find( dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
+				const auto it = json.find( constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
 				if ( it != json.end() && it->is_string() )
 				{
 					const auto& str = it->get_ref<const std::string&>();
@@ -50,11 +51,11 @@ namespace dnv::vista::sdk
 					return std::string_view{ str };
 				}
 
-				return dto::LOCATIONS_DTO_UNKNOWN_VERSION;
+				return constants::dto::LOCATIONS_DTO_UNKNOWN_VERSION;
 			}
 			catch ( ... )
 			{
-				return dto::LOCATIONS_DTO_UNKNOWN_VERSION;
+				return constants::dto::LOCATIONS_DTO_UNKNOWN_VERSION;
 			}
 		}
 	}
@@ -85,16 +86,16 @@ namespace dnv::vista::sdk
 			}
 
 			/* Cache iterators to avoid multiple lookups */
-			const auto codeIt = json.find( dto::LOCATIONS_DTO_KEY_CODE );
-			const auto nameIt = json.find( dto::LOCATIONS_DTO_KEY_NAME );
-			const auto defIt = json.find( dto::LOCATIONS_DTO_KEY_DEFINITION );
+			const auto codeIt = json.find( constants::dto::LOCATIONS_DTO_KEY_CODE );
+			const auto nameIt = json.find( constants::dto::LOCATIONS_DTO_KEY_NAME );
+			const auto defIt = json.find( constants::dto::LOCATIONS_DTO_KEY_DEFINITION );
 
 			if ( codeIt == json.end() || !codeIt->is_string() )
 			{
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: RelativeLocationsDto JSON missing required '" );
-				builder.append( dto::LOCATIONS_DTO_KEY_CODE );
+				builder.append( constants::dto::LOCATIONS_DTO_KEY_CODE );
 				builder.append( "' field or not a string" );
 				fmt::print( stderr, "{}\n", lease.toString() );
 
@@ -105,7 +106,7 @@ namespace dnv::vista::sdk
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: RelativeLocationsDto JSON missing required '" );
-				builder.append( dto::LOCATIONS_DTO_KEY_NAME );
+				builder.append( constants::dto::LOCATIONS_DTO_KEY_NAME );
 				builder.append( "' field or not a string" );
 				fmt::print( stderr, "{}\n", lease.toString() );
 
@@ -159,10 +160,7 @@ namespace dnv::vista::sdk
 				}
 			}
 
-			RelativeLocationsDto result(
-				std::move( tempCode ),
-				std::move( tempName ),
-				std::move( tempDefinition ) );
+			RelativeLocationsDto result( std::move( tempCode ), std::move( tempName ), std::move( tempDefinition ) );
 
 			return result;
 		}
@@ -220,21 +218,19 @@ namespace dnv::vista::sdk
 
 	void to_json( nlohmann::json& j, const RelativeLocationsDto& dto )
 	{
-		j = nlohmann::json{
-			{ dto::LOCATIONS_DTO_KEY_CODE, std::string{ 1, dto.m_code } },
-			{ dto::LOCATIONS_DTO_KEY_NAME, dto.m_name } };
+		j = nlohmann::json{ { constants::dto::LOCATIONS_DTO_KEY_CODE, std::string{ 1, dto.m_code } }, { constants::dto::LOCATIONS_DTO_KEY_NAME, dto.m_name } };
 
 		if ( dto.m_definition.has_value() )
 		{
-			j[dto::LOCATIONS_DTO_KEY_DEFINITION] = dto.m_definition.value();
+			j[constants::dto::LOCATIONS_DTO_KEY_DEFINITION] = dto.m_definition.value();
 		}
 	}
 
 	void from_json( const nlohmann::json& j, RelativeLocationsDto& dto )
 	{
-		const auto codeIt = j.find( dto::LOCATIONS_DTO_KEY_CODE );
-		const auto nameIt = j.find( dto::LOCATIONS_DTO_KEY_NAME );
-		const auto defIt = j.find( dto::LOCATIONS_DTO_KEY_DEFINITION );
+		const auto codeIt = j.find( constants::dto::LOCATIONS_DTO_KEY_CODE );
+		const auto nameIt = j.find( constants::dto::LOCATIONS_DTO_KEY_NAME );
+		const auto defIt = j.find( constants::dto::LOCATIONS_DTO_KEY_DEFINITION );
 
 		if ( codeIt == j.end() || !codeIt->is_string() )
 		{
@@ -252,7 +248,7 @@ namespace dnv::vista::sdk
 		}
 
 		dto.m_code = codeStr[0];
-		dto.m_name = std::move( nameIt->get<std::string>() );
+		dto.m_name = nameIt->get<std::string>();
 		if ( dto.m_name.empty() )
 		{
 			auto lease = utils::StringBuilderPool::instance();
@@ -266,7 +262,7 @@ namespace dnv::vista::sdk
 
 		if ( defIt != j.end() && defIt->is_string() )
 		{
-			dto.m_definition = std::move( defIt->get<std::string>() );
+			dto.m_definition = defIt->get<std::string>();
 
 			if ( dto.m_definition.has_value() && dto.m_definition->empty() )
 			{
@@ -311,15 +307,15 @@ namespace dnv::vista::sdk
 			}
 
 			/* Cache iterators to avoid multiple lookups */
-			const auto visIt = json.find( dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
-			const auto itemsIt = json.find( dto::LOCATIONS_DTO_KEY_ITEMS );
+			const auto visIt = json.find( constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
+			const auto itemsIt = json.find( constants::dto::LOCATIONS_DTO_KEY_ITEMS );
 
 			if ( visIt == json.end() || !visIt->is_string() )
 			{
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: LocationsDto JSON missing required '" );
-				builder.append( dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
+				builder.append( constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
 				builder.append( "' field or not a string" );
 
 				fmt::print( stderr, "{}\n", lease.toString() );
@@ -331,7 +327,7 @@ namespace dnv::vista::sdk
 				auto lease = utils::StringBuilderPool::instance();
 				auto builder = lease.builder();
 				builder.append( "ERROR: LocationsDto JSON missing required '" );
-				builder.append( dto::LOCATIONS_DTO_KEY_ITEMS );
+				builder.append( constants::dto::LOCATIONS_DTO_KEY_ITEMS );
 				builder.append( "' array" );
 
 				fmt::print( stderr, "{}\n", lease.toString() );
@@ -396,29 +392,37 @@ namespace dnv::vista::sdk
 	void to_json( nlohmann::json& j, const LocationsDto& dto )
 	{
 		j = nlohmann::json{
-			{ dto::LOCATIONS_DTO_KEY_VIS_RELEASE, dto.m_visVersion },
-			{ dto::LOCATIONS_DTO_KEY_ITEMS, dto.m_items } };
+			{ constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE, dto.m_visVersion },
+			{ constants::dto::LOCATIONS_DTO_KEY_ITEMS, dto.m_items } };
 	}
 
 	void from_json( const nlohmann::json& j, LocationsDto& dto )
 	{
 		dto.m_items.clear();
 
-		const auto visIt = j.find( dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
-		const auto itemsIt = j.find( dto::LOCATIONS_DTO_KEY_ITEMS );
+		const auto visIt = j.find( constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE );
+		const auto itemsIt = j.find( constants::dto::LOCATIONS_DTO_KEY_ITEMS );
 
 		if ( visIt == j.end() || !visIt->is_string() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "LocationsDto JSON missing required '{}' field", dto::LOCATIONS_DTO_KEY_VIS_RELEASE ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"LocationsDto JSON missing required '{}' field",
+					constants::dto::LOCATIONS_DTO_KEY_VIS_RELEASE ),
+				nullptr );
 		}
 		if ( itemsIt == j.end() || !itemsIt->is_array() )
 		{
-			throw nlohmann::json::parse_error::create( 101, 0u,
-				fmt::format( "LocationsDto JSON missing required '{}' field", dto::LOCATIONS_DTO_KEY_ITEMS ), nullptr );
+			throw nlohmann::json::parse_error::create(
+				101, 0u,
+				fmt::format(
+					"LocationsDto JSON missing required '{}' field",
+					constants::dto::LOCATIONS_DTO_KEY_ITEMS ),
+				nullptr );
 		}
 
-		dto.m_visVersion = std::move( visIt->get<std::string>() );
+		dto.m_visVersion = visIt->get<std::string>();
 
 		if ( dto.m_visVersion.empty() )
 		{
@@ -433,9 +437,7 @@ namespace dnv::vista::sdk
 		const size_t totalItems = jsonArray.size();
 		size_t successCount = 0;
 
-		const size_t reserveSize = totalItems < 1000
-									   ? totalItems + totalItems / 4
-									   : totalItems + totalItems / 16;
+		const size_t reserveSize = totalItems < 1000 ? totalItems + totalItems / 4 : totalItems + totalItems / 16;
 
 		dto.m_items.reserve( reserveSize );
 

@@ -5,10 +5,12 @@
 
 #pragma once
 
+#include "Config/AlgorithmConstants.h"
+#include "Config/LocalIdConstants.h"
+#include "Config/Platform.h"
+#include "Utils/StringBuilderPool.h"
+
 #include "CodebookName.h"
-#include "utils/StringBuilderPool.h"
-#include "config/AlgorithmConstants.h"
-#include "config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -184,8 +186,7 @@ namespace dnv::vista::sdk
 						  !m_items.secondaryItem().has_value();
 
 		bool metadataEmpty = !m_quantity.has_value() &&
-							 !m_content.has_value() &&
-							 !m_calculation.has_value() &&
+							 !m_content.has_value() && !m_calculation.has_value() &&
 							 !m_state.has_value() &&
 							 !m_command.has_value() &&
 							 !m_type.has_value() &&
@@ -298,7 +299,7 @@ namespace dnv::vista::sdk
 
 		/* Naming rule prefix: "/dnv-v2" */
 		builder.append( "/" );
-		builder.append( namingRule );
+		builder.append( constants::localId::NAMING_RULE );
 		builder.append( "/" );
 
 		/* VIS version: "vis-{major}-{minor}{patch}" */

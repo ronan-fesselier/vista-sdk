@@ -22,18 +22,13 @@ namespace dnv::vista::sdk
 	MetadataTag::MetadataTag( CodebookName name, const std::string& value, bool isCustom )
 		: m_name{ name },
 		  m_custom{ isCustom },
-		  m_value{ value }
-	{
-	}
+		  m_value{ value } {}
 
 	//-------------------------------------------------------------------------
 	// String conversion methods
 	//-------------------------------------------------------------------------
 
-	std::string MetadataTag::toString() const noexcept
-	{
-		return m_value;
-	}
+	std::string MetadataTag::toString() const noexcept { return m_value; }
 
 	void MetadataTag::toString( std::string& builder, char separator ) const
 	{

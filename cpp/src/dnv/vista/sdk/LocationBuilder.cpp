@@ -7,12 +7,12 @@
 
 #include "dnv/vista/sdk/LocationBuilder.h"
 
-#include "dnv/vista/sdk/config/LocationsConstants.h"
+#include "dnv/vista/sdk/Config/LocationsConstants.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
+#include "dnv/vista/sdk/Exceptions.h"
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VISVersion.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
-#include "dnv/vista/sdk/Exceptions.h"
 
 namespace dnv::vista::sdk
 {
@@ -243,33 +243,35 @@ namespace dnv::vista::sdk
 				{
 					case LocationGroup::Side:
 					{
-						return locations::GROUP_NAME_SIDE;
+						return constants::locations::GROUP_NAME_SIDE;
 					}
 					case LocationGroup::Vertical:
 					{
-						return locations::GROUP_NAME_VERTICAL;
+						return constants::locations::GROUP_NAME_VERTICAL;
 					}
 					case LocationGroup::Transverse:
 					{
-						return locations::GROUP_NAME_TRANSVERSE;
+						return constants::locations::GROUP_NAME_TRANSVERSE;
 					}
 					case LocationGroup::Longitudinal:
 					{
-						return locations::GROUP_NAME_LONGITUDINAL;
+						return constants::locations::GROUP_NAME_LONGITUDINAL;
 					}
 					case LocationGroup::Number:
 					{
-						return locations::GROUP_NAME_NUMBER;
+						return constants::locations::GROUP_NAME_NUMBER;
 					}
 					default:
 					{
-						return locations::GROUP_NAME_UNKNOWN;
+						return constants::locations::GROUP_NAME_UNKNOWN;
 					}
 				}
 			}();
 
 			throw ValidationException(
-				fmt::format( "The value '{}' is an invalid {} value", value, groupName ) );
+				fmt::format( "The value '{}' is an invalid {} value",
+					value,
+					groupName ) );
 		}
 
 		LocationBuilder result = *this;

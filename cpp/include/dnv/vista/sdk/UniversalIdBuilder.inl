@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "config/Platform.h"
+#include "Config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -29,7 +29,8 @@ namespace dnv::vista::sdk
 
 	inline bool UniversalIdBuilder::equals( const UniversalIdBuilder& other ) const
 	{
-		return m_imoNumber == other.m_imoNumber && m_localIdBuilder == other.m_localIdBuilder;
+		return m_imoNumber == other.m_imoNumber &&
+			   m_localIdBuilder == other.m_localIdBuilder;
 	}
 
 	//----------------------------------------------
@@ -57,6 +58,8 @@ namespace dnv::vista::sdk
 
 	inline bool UniversalIdBuilder::isValid() const noexcept
 	{
-		return m_imoNumber.has_value() && m_localIdBuilder.has_value() && m_localIdBuilder->isValid();
+		return m_imoNumber.has_value() &&
+			   m_localIdBuilder.has_value() &&
+			   m_localIdBuilder->isValid();
 	}
 }

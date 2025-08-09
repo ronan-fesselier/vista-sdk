@@ -35,10 +35,7 @@ namespace dnv::vista::sdk
 	// Static parsing methods
 	//----------------------------------------------
 
-	LocalId LocalId::parse( std::string_view localIdStr )
-	{
-		return LocalId( LocalIdBuilder::parse( localIdStr ) );
-	}
+	LocalId LocalId::parse( std::string_view localIdStr ) { return LocalId( LocalIdBuilder::parse( localIdStr ) ); }
 
 	bool LocalId::tryParse( std::string_view localIdStr, ParsingErrors& errors, std::optional<LocalId>& localId )
 	{

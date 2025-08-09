@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
+#include "Utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -16,9 +16,13 @@ namespace dnv::vista::sdk
 	class GmodDto;
 	class GmodVersioningDto;
 	class CodebooksDto;
-	class DataChannelTypeNamesDto;
 	class LocationsDto;
-	class FormatDataTypesDto;
+
+	namespace transport
+	{
+		class DataChannelTypeNamesDto;
+		class FormatDataTypesDto;
+	}
 
 	//=====================================================================
 	// EmbeddedResource class
@@ -101,7 +105,7 @@ namespace dnv::vista::sdk
 		 * @param version ISO 19848 version string
 		 * @return DataChannelTypeNamesDto if found, std::nullopt otherwise
 		 */
-		static std::optional<DataChannelTypeNamesDto> dataChannelTypeNames( std::string_view version );
+		static std::optional<transport::DataChannelTypeNamesDto> dataChannelTypeNames( std::string_view version );
 
 		/**
 		 * @brief Get format data types for specific version
@@ -111,7 +115,7 @@ namespace dnv::vista::sdk
 		 * @param version ISO 19848 version string
 		 * @return FormatDataTypesDto if found, std::nullopt otherwise
 		 */
-		static std::optional<FormatDataTypesDto> formatDataTypes( std::string_view version );
+		static std::optional<transport::FormatDataTypesDto> formatDataTypes( std::string_view version );
 
 	private:
 		//----------------------------------------------

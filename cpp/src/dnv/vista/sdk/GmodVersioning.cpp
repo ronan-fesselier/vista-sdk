@@ -6,7 +6,7 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/GmodVersioning.h"
-#include "dnv/vista/sdk/internal/PathConversionCache.h"
+#include "dnv/vista/sdk/Internal/PathConversionCache.h"
 
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/GmodNode.h"
@@ -79,7 +79,7 @@ namespace dnv::vista::sdk
 							{
 								if ( n->isIndividualizable( false, true ) )
 								{
-									path.emplace_back( std::move( n->tryWithLocation( nodeLocation.value() ) ) );
+									path.emplace_back( n->tryWithLocation( nodeLocation.value() ) );
 								}
 								else
 								{
@@ -132,8 +132,8 @@ namespace dnv::vista::sdk
 	// Node
 	//----------------------------
 
-	std::optional<GmodNode> GmodVersioning::convertNode(
-		VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const
+	std::optional<GmodNode> GmodVersioning::convertNode( VisVersion sourceVersion, const GmodNode& sourceNode,
+		VisVersion targetVersion ) const
 	{
 		if ( sourceNode.code().empty() )
 		{
@@ -203,7 +203,8 @@ namespace dnv::vista::sdk
 	// Path
 	//----------------------------
 
-	std::optional<GmodPath> GmodVersioning::convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
+	std::optional<GmodPath> GmodVersioning::convertPath(
+		VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
 	{
 		auto& pathCache = internal::PathConversionCache::instance();
 		const std::string pathString = sourcePath.toString();
@@ -221,7 +222,8 @@ namespace dnv::vista::sdk
 		return result;
 	}
 
-	std::optional<GmodPath> GmodVersioning::convertPathInternal( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
+	std::optional<GmodPath> GmodVersioning::convertPathInternal(
+		VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const
 	{
 		std::optional<GmodNode> targetEndNode = convertNode( sourceVersion, sourcePath.node(), targetVersion );
 		if ( !targetEndNode.has_value() )
@@ -302,10 +304,9 @@ namespace dnv::vista::sdk
 			const std::optional<GmodNode> sourceNormalAssignment = qualifyingNode.first->productType();
 			const std::optional<GmodNode> targetNormalAssignment = qualifyingNode.second.productType();
 
-			const bool normalAssignmentChanged =
-				sourceNormalAssignment.has_value() != targetNormalAssignment.has_value() ||
-				( sourceNormalAssignment.has_value() && targetNormalAssignment.has_value() &&
-					sourceNormalAssignment->code() != targetNormalAssignment->code() );
+			const bool normalAssignmentChanged = sourceNormalAssignment.has_value() != targetNormalAssignment.has_value() ||
+												 ( sourceNormalAssignment.has_value() && targetNormalAssignment.has_value() &&
+													 sourceNormalAssignment->code() != targetNormalAssignment->code() );
 
 			bool selectionChanged = false;
 
@@ -344,7 +345,8 @@ namespace dnv::vista::sdk
 					if ( targetNormalAssignment.has_value() )
 					{
 						GmodNode targetNormalAssignmentVal = *targetNormalAssignment;
-						if ( qualifyingNode.second.location().has_value() && targetNormalAssignmentVal.isIndividualizable( false, true ) )
+						if ( qualifyingNode.second.location().has_value() &&
+							 targetNormalAssignmentVal.isIndividualizable( false, true ) )
 						{
 							targetNormalAssignmentVal = targetNormalAssignmentVal.tryWithLocation( *qualifyingNode.second.location() );
 						}
@@ -424,9 +426,7 @@ namespace dnv::vista::sdk
 		if ( sourceLocalId.primaryItem().has_value() )
 		{
 			auto targetPrimaryItem = convertPath(
-				*sourceLocalId.visVersion(),
-				sourceLocalId.primaryItem().value(),
-				targetVersion );
+				*sourceLocalId.visVersion(), sourceLocalId.primaryItem().value(), targetVersion );
 
 			if ( !targetPrimaryItem.has_value() )
 			{
@@ -439,9 +439,7 @@ namespace dnv::vista::sdk
 		if ( sourceLocalId.secondaryItem().has_value() )
 		{
 			auto targetSecondaryItem = convertPath(
-				*sourceLocalId.visVersion(),
-				sourceLocalId.secondaryItem().value(),
-				targetVersion );
+				*sourceLocalId.visVersion(), sourceLocalId.secondaryItem().value(), targetVersion );
 
 			if ( !targetSecondaryItem.has_value() )
 			{
@@ -451,8 +449,7 @@ namespace dnv::vista::sdk
 			targetLocalId = targetLocalId.withSecondaryItem( std::move( *targetSecondaryItem ) );
 		}
 
-		return targetLocalId
-			.withVerboseMode( sourceLocalId.isVerboseMode() )
+		return targetLocalId.withVerboseMode( sourceLocalId.isVerboseMode() )
 			.tryWithMetadataTag( sourceLocalId.quantity() )
 			.tryWithMetadataTag( sourceLocalId.content() )
 			.tryWithMetadataTag( sourceLocalId.calculation() )
@@ -463,14 +460,11 @@ namespace dnv::vista::sdk
 			.tryWithMetadataTag( sourceLocalId.detail() );
 	}
 
-	std::optional<LocalId> GmodVersioning::convertLocalId(
-		const LocalId& sourceLocalId, VisVersion targetVersion ) const
+	std::optional<LocalId> GmodVersioning::convertLocalId( const LocalId& sourceLocalId, VisVersion targetVersion ) const
 	{
 		auto builder = convertLocalId( sourceLocalId.builder(), targetVersion );
 
-		return builder.has_value()
-				   ? std::make_optional( builder->build() )
-				   : std::nullopt;
+		return builder.has_value() ? std::make_optional( builder->build() ) : std::nullopt;
 	}
 
 	//----------------------------------------------
@@ -481,9 +475,7 @@ namespace dnv::vista::sdk
 	// Construction
 	//----------------------------
 
-	GmodVersioning::GmodVersioningNode::GmodVersioningNode(
-		VisVersion visVersion,
-		const utils::StringMap<GmodNodeConversionDto>& dto )
+	GmodVersioning::GmodVersioningNode::GmodVersioningNode( VisVersion visVersion, const utils::StringMap<GmodNodeConversionDto>& dto )
 		: m_visVersion{ visVersion }
 	{
 		for ( const auto& [code, dtoNode] : dto )
@@ -552,7 +544,8 @@ namespace dnv::vista::sdk
 	}
 
 	std::optional<GmodNode> GmodVersioning::convertNodeInternal(
-		[[maybe_unused]] VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion, const Gmod& targetGmod ) const
+		[[maybe_unused]] VisVersion sourceVersion, const GmodNode& sourceNode,
+		VisVersion targetVersion, const Gmod& targetGmod ) const
 	{
 		validateSourceAndTargetVersionPair( sourceNode.visVersion(), targetVersion );
 

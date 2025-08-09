@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "config/GmodConstants.h"
-#include "config/Platform.h"
-#include "utils/StringBuilderPool.h"
+#include "Config/GmodConstants.h"
+#include "Config/Platform.h"
+#include "Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -19,15 +19,15 @@ namespace dnv::vista::sdk
 	{
 		static constexpr size_t estimateChildrenCount( std::string_view category, std::string_view type ) noexcept
 		{
-			if ( category == gmod::GMODNODE_CATEGORY_PRODUCT && type == gmod::GMODNODE_TYPE_TYPE )
+			if ( category == constants::gmod::GMODNODE_CATEGORY_PRODUCT && type == constants::gmod::GMODNODE_TYPE_TYPE )
 			{
 				return 0;
 			}
-			if ( utils::contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+			if ( utils::contains( category, constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 			{
 				return 16;
 			}
-			if ( category == gmod::GMODNODE_CATEGORY_ASSET )
+			if ( category == constants::gmod::GMODNODE_CATEGORY_ASSET )
 			{
 				return 4;
 			}
@@ -36,15 +36,15 @@ namespace dnv::vista::sdk
 
 		static constexpr size_t estimateParentsCount( std::string_view category, std::string_view type ) noexcept
 		{
-			if ( category == gmod::GMODNODE_CATEGORY_PRODUCT && type == gmod::GMODNODE_TYPE_TYPE )
+			if ( category == constants::gmod::GMODNODE_CATEGORY_PRODUCT && type == constants::gmod::GMODNODE_TYPE_TYPE )
 			{
 				return 1;
 			}
-			if ( utils::contains( category, gmod::GMODNODE_CATEGORY_FUNCTION ) )
+			if ( utils::contains( category, constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 			{
 				return 2;
 			}
-			if ( category == gmod::GMODNODE_CATEGORY_ASSET )
+			if ( category == constants::gmod::GMODNODE_CATEGORY_ASSET )
 			{
 				return 1;
 			}
@@ -203,13 +203,13 @@ namespace dnv::vista::sdk
 		  m_visVersion{ version },
 		  m_metadata{
 			  dto.category(),
-			  dto.type(),
-			  dto.name(),
+			  dto.type(), dto.name(),
 			  dto.commonName(),
 			  dto.definition(),
 			  dto.commonDefinition(),
 			  dto.installSubstructure(),
-			  dto.normalAssignmentNames().has_value() ? *dto.normalAssignmentNames() : utils::StringMap<std::string>() },
+			  dto.normalAssignmentNames().has_value() ? *dto.normalAssignmentNames()
+													  : utils::StringMap<std::string>() },
 		  m_children{},
 		  m_parents{},
 		  m_childrenSet{}
@@ -334,7 +334,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !utils::contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( m_metadata.category(), constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return std::nullopt;
 		}
@@ -345,12 +345,12 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( child->m_metadata.category() != gmod::GMODNODE_CATEGORY_PRODUCT )
+		if ( child->m_metadata.category() != constants::gmod::GMODNODE_CATEGORY_PRODUCT )
 		{
 			return std::nullopt;
 		}
 
-		if ( child->m_metadata.type() != gmod::GMODNODE_TYPE_TYPE )
+		if ( child->m_metadata.type() != constants::gmod::GMODNODE_TYPE_TYPE )
 		{
 			return std::nullopt;
 		}
@@ -365,7 +365,7 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !utils::contains( m_metadata.category(), gmod::GMODNODE_CATEGORY_FUNCTION ) )
+		if ( !utils::contains( m_metadata.category(), constants::gmod::GMODNODE_CATEGORY_FUNCTION ) )
 		{
 			return std::nullopt;
 		}
@@ -376,12 +376,12 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		if ( !utils::contains( child->m_metadata.category(), gmod::GMODNODE_CATEGORY_PRODUCT ) )
+		if ( !utils::contains( child->m_metadata.category(), constants::gmod::GMODNODE_CATEGORY_PRODUCT ) )
 		{
 			return std::nullopt;
 		}
 
-		if ( child->m_metadata.type() != gmod::GMODNODE_TYPE_SELECTION )
+		if ( child->m_metadata.type() != constants::gmod::GMODNODE_TYPE_SELECTION )
 		{
 			return std::nullopt;
 		}
@@ -395,11 +395,11 @@ namespace dnv::vista::sdk
 
 	inline bool GmodNode::isIndividualizable( bool isTargetNode, bool isInSet ) const noexcept
 	{
-		if ( m_metadata.type() == gmod::GMODNODE_TYPE_GROUP )
+		if ( m_metadata.type() == constants::gmod::GMODNODE_TYPE_GROUP )
 		{
 			return false;
 		}
-		if ( m_metadata.type() == gmod::GMODNODE_TYPE_SELECTION )
+		if ( m_metadata.type() == constants::gmod::GMODNODE_TYPE_SELECTION )
 		{
 			return false;
 		}
@@ -407,7 +407,7 @@ namespace dnv::vista::sdk
 		{
 			return false;
 		}
-		if ( m_metadata.category() == gmod::GMODNODE_CATEGORY_ASSET && m_metadata.type() == gmod::GMODNODE_TYPE_TYPE )
+		if ( m_metadata.category() == constants::gmod::GMODNODE_CATEGORY_ASSET && m_metadata.type() == constants::gmod::GMODNODE_TYPE_TYPE )
 		{
 			return false;
 		}
@@ -426,9 +426,10 @@ namespace dnv::vista::sdk
 
 	inline bool GmodNode::isFunctionComposition() const noexcept
 	{
-		return ( m_metadata.category() == gmod::GMODNODE_CATEGORY_ASSET_FUNCTION ||
-				   m_metadata.category() == gmod::GMODNODE_CATEGORY_PRODUCT_FUNCTION ) &&
-			   m_metadata.type() == gmod::GMODNODE_TYPE_COMPOSITION;
+		return (
+				   m_metadata.category() == constants::gmod::GMODNODE_CATEGORY_ASSET_FUNCTION ||
+				   m_metadata.category() == constants::gmod::GMODNODE_CATEGORY_PRODUCT_FUNCTION ) &&
+			   m_metadata.type() == constants::gmod::GMODNODE_TYPE_COMPOSITION;
 	}
 
 	inline bool GmodNode::isMappable() const noexcept
@@ -445,12 +446,13 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		if ( m_metadata.category().find( gmod::GMODNODE_CATEGORY_PRODUCT ) != std::string::npos && m_metadata.type() == gmod::GMODNODE_TYPE_SELECTION )
+		if ( m_metadata.category().find( constants::gmod::GMODNODE_CATEGORY_PRODUCT ) != std::string::npos &&
+			 m_metadata.type() == constants::gmod::GMODNODE_TYPE_SELECTION )
 		{
 			return false;
 		}
 
-		if ( m_metadata.category() == gmod::GMODNODE_CATEGORY_ASSET )
+		if ( m_metadata.category() == constants::gmod::GMODNODE_CATEGORY_ASSET )
 		{
 			return false;
 		}

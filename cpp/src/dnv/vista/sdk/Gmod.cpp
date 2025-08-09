@@ -20,7 +20,8 @@ namespace dnv::vista::sdk
 	//----------------------------------------------
 
 	Gmod::Gmod( VisVersion version, const GmodDto& dto )
-		: m_visVersion{ version }, m_rootNode{ nullptr }
+		: m_visVersion{ version },
+		  m_rootNode{ nullptr }
 	{
 		const auto& items = dto.items();
 		std::vector<std::pair<std::string, GmodNode>> nodePairs;
@@ -28,9 +29,7 @@ namespace dnv::vista::sdk
 
 		for ( const auto& nodeDto : items )
 		{
-			nodePairs.emplace_back(
-				std::string{ nodeDto.code() },
-				GmodNode{ version, nodeDto } );
+			nodePairs.emplace_back( std::string{ nodeDto.code() }, GmodNode{ version, nodeDto } );
 		}
 
 		m_nodeMap = internal::ChdDictionary<GmodNode>( std::move( nodePairs ) );
@@ -109,7 +108,8 @@ namespace dnv::vista::sdk
 	// Traversal methods
 	//----------------------------------------------
 
-	bool Gmod::pathExistsBetween( const std::vector<const GmodNode*>& fromPath, const GmodNode& to, std::vector<const GmodNode*>& remainingParents ) const
+	bool Gmod::pathExistsBetween( const std::vector<const GmodNode*>& fromPath, const GmodNode& to,
+		std::vector<const GmodNode*>& remainingParents ) const
 	{
 		remainingParents.clear();
 
@@ -136,8 +136,14 @@ namespace dnv::vista::sdk
 			size_t assetFunctionIndex;
 			bool found = false;
 
-			PathExistsState( const GmodNode& target, const std::vector<const GmodNode*>& from, std::vector<const GmodNode*>& remaining, size_t afIndex )
-				: targetNode( target ), fromPath( from ), remainingParents( remaining ), assetFunctionIndex( afIndex ) {}
+			PathExistsState( const GmodNode& target, const std::vector<const GmodNode*>& from,
+				std::vector<const GmodNode*>& remaining, size_t afIndex )
+				: targetNode{ target },
+				  fromPath{ from },
+				  remainingParents{ remaining },
+				  assetFunctionIndex{ afIndex }
+			{
+			}
 
 			PathExistsState( const PathExistsState& ) = delete;
 			PathExistsState( PathExistsState&& ) = delete;
@@ -147,7 +153,8 @@ namespace dnv::vista::sdk
 
 		PathExistsState state( to, fromPath, remainingParents, assetFunctionIndex );
 
-		auto handler = +[]( PathExistsState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+		auto handler = +[]( PathExistsState& state, const std::vector<const GmodNode*>& parents,
+							const GmodNode& node ) -> TraversalHandlerResult {
 			if ( node.code() != state.targetNode.code() )
 			{
 				return TraversalHandlerResult::Continue;

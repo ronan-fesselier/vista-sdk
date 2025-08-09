@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/Codebook.h"
 
-#include "dnv/vista/sdk/config/CodebookConstants.h"
+#include "dnv/vista/sdk/Config/CodebookConstants.h"
 
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/MetadataTag.h"
@@ -42,63 +42,63 @@ namespace dnv::vista::sdk
 			switch ( name.size() )
 			{
 				case 5:
-					if ( name == codebook::CODEBOOK_NAME_TYPE )
+					if ( name == constants::codebook::CODEBOOK_NAME_TYPE )
 					{
 						return CodebookName::Type;
 					}
 					break;
 				case 6:
-					if ( name == codebook::CODEBOOK_NAME_STATE )
+					if ( name == constants::codebook::CODEBOOK_NAME_STATE )
 					{
 						return CodebookName::State;
 					}
-					if ( name == codebook::CODEBOOK_NAME_DETAIL )
+					if ( name == constants::codebook::CODEBOOK_NAME_DETAIL )
 					{
 						return CodebookName::Detail;
 					}
 					break;
 				case 8:
-					if ( name == codebook::CODEBOOK_NAME_CONTENT )
+					if ( name == constants::codebook::CODEBOOK_NAME_CONTENT )
 					{
 						return CodebookName::Content;
 					}
-					if ( name == codebook::CODEBOOK_NAME_COMMAND )
+					if ( name == constants::codebook::CODEBOOK_NAME_COMMAND )
 					{
 						return CodebookName::Command;
 					}
 					break;
 				case 9:
-					if ( name == codebook::CODEBOOK_NAME_POSITION )
+					if ( name == constants::codebook::CODEBOOK_NAME_POSITION )
 					{
 						return CodebookName::Position;
 					}
 					break;
 				case 10:
-					if ( name == codebook::CODEBOOK_NAME_QUANTITY )
+					if ( name == constants::codebook::CODEBOOK_NAME_QUANTITY )
 					{
 						return CodebookName::Quantity;
 					}
 					break;
 				case 12:
-					if ( name == codebook::CODEBOOK_NAME_CALCULATION )
+					if ( name == constants::codebook::CODEBOOK_NAME_CALCULATION )
 					{
 						return CodebookName::Calculation;
 					}
 					break;
 				case 13:
-					if ( name == codebook::CODEBOOK_NAME_ACTIVITY_TYPE )
+					if ( name == constants::codebook::CODEBOOK_NAME_ACTIVITY_TYPE )
 					{
 						return CodebookName::ActivityType;
 					}
 					break;
 				case 19:
-					if ( name == codebook::CODEBOOK_NAME_FUNCTIONAL_SERVICES )
+					if ( name == constants::codebook::CODEBOOK_NAME_FUNCTIONAL_SERVICES )
 					{
 						return CodebookName::FunctionalServices;
 					}
 					break;
 				case 20:
-					if ( name == codebook::CODEBOOK_NAME_MAINTENANCE_CATEGORY )
+					if ( name == constants::codebook::CODEBOOK_NAME_MAINTENANCE_CATEGORY )
 					{
 						return CodebookName::MaintenanceCategory;
 					}
@@ -121,7 +121,7 @@ namespace dnv::vista::sdk
 		 */
 		alignas( 64 ) constexpr std::array<bool, 256> s_whitespaceLookup = []() constexpr {
 			std::array<bool, 256> lookup{};
-			for ( char c : constants::NULL_OR_WHITESPACE )
+			for ( char c : constants::algorithm::NULL_OR_WHITESPACE )
 			{
 				lookup[static_cast<unsigned char>( c )] = true;
 			}
@@ -129,15 +129,9 @@ namespace dnv::vista::sdk
 			return lookup;
 		}();
 
-		constexpr bool isWhitespace( char c ) noexcept
-		{
-			return s_whitespaceLookup[static_cast<unsigned char>( c )];
-		}
+		constexpr bool isWhitespace( char c ) noexcept { return s_whitespaceLookup[static_cast<unsigned char>( c )]; }
 
-		constexpr bool isDigit( char c ) noexcept
-		{
-			return static_cast<unsigned char>( c - '0' ) <= 9u;
-		}
+		constexpr bool isDigit( char c ) noexcept { return static_cast<unsigned char>( c - '0' ) <= 9u; }
 
 		constexpr std::string_view trimString( std::string_view str ) noexcept
 		{
@@ -177,11 +171,11 @@ namespace dnv::vista::sdk
 	namespace
 	{
 		static constexpr std::array<std::pair<std::string_view, PositionValidationResult>, 5> s_validationResultMap{
-			{ { codebook::CODEBOOK_POSITION_VALIDATION_INVALID, PositionValidationResult::Invalid },
-				{ codebook::CODEBOOK_POSITION_VALIDATION_INVALID_ORDER, PositionValidationResult::InvalidOrder },
-				{ codebook::CODEBOOK_POSITION_VALIDATION_INVALID_GROUPING, PositionValidationResult::InvalidGrouping },
-				{ codebook::CODEBOOK_POSITION_VALIDATION_VALID, PositionValidationResult::Valid },
-				{ codebook::CODEBOOK_POSITION_VALIDATION_CUSTOM, PositionValidationResult::Custom } } };
+			{ { constants::codebook::CODEBOOK_POSITION_VALIDATION_INVALID, PositionValidationResult::Invalid },
+				{ constants::codebook::CODEBOOK_POSITION_VALIDATION_INVALID_ORDER, PositionValidationResult::InvalidOrder },
+				{ constants::codebook::CODEBOOK_POSITION_VALIDATION_INVALID_GROUPING, PositionValidationResult::InvalidGrouping },
+				{ constants::codebook::CODEBOOK_POSITION_VALIDATION_VALID, PositionValidationResult::Valid },
+				{ constants::codebook::CODEBOOK_POSITION_VALIDATION_CUSTOM, PositionValidationResult::Custom } } };
 
 		[[nodiscard]] static std::string toLower( std::string_view input ) noexcept
 		{
@@ -222,8 +216,10 @@ namespace dnv::vista::sdk
 			}
 		}
 
-		throw std::invalid_argument( "Unknown PositionValidationResult name: '" + std::string{ name } +
-									 "'. Valid values are: Invalid, InvalidOrder, InvalidGrouping, Valid, Custom" );
+		throw std::invalid_argument(
+			"Unknown PositionValidationResult name: '" +
+			std::string{ name } +
+			"'. Valid values are: Invalid, InvalidOrder, InvalidGrouping, Valid, Custom" );
 	}
 
 	//=====================================================================
@@ -276,7 +272,7 @@ namespace dnv::vista::sdk
 				std::string valueStr{ valueTrimmed };
 				trimmedValues.emplace_back( std::move( valueStr ) );
 
-				if ( trimmedValues.back() != codebook::CODEBOOK_GROUP_NUMBER )
+				if ( trimmedValues.back() != constants::codebook::CODEBOOK_GROUP_NUMBER )
 				{
 					m_groupMap.emplace( trimmedValues.back(), groupStr );
 					valueSet.emplace( trimmedValues.back() );
@@ -340,7 +336,8 @@ namespace dnv::vista::sdk
 		auto tagOpt = tryCreateTag( value );
 		if ( !tagOpt )
 		{
-			throw std::invalid_argument( "Invalid value for metadata tag: codebook=" + std::to_string( static_cast<int>( m_name ) ) + ", value=" + std::string{ value } );
+			throw std::invalid_argument(
+				"Invalid value for metadata tag: codebook=" + std::to_string( static_cast<int>( m_name ) ) + ", value=" + std::string{ value } );
 		}
 
 		return tagOpt.value();
@@ -426,7 +423,8 @@ namespace dnv::vista::sdk
 
 		for ( size_t i = 0; i < positionCount; ++i )
 		{
-			isDigitArray[i] = !positions[i].empty() && std::all_of( positions[i].begin(), positions[i].end(), isDigit );
+			isDigitArray[i] = !positions[i].empty() &&
+							  std::all_of( positions[i].begin(), positions[i].end(), isDigit );
 
 			PositionValidationResult result;
 			if ( m_standardValues.contains( positions[i] ) )
@@ -489,17 +487,18 @@ namespace dnv::vista::sdk
 
 				if ( isDigitArray[i] )
 				{
-					group = codebook::CODEBOOK_GROUP_NUMBER;
+					group = constants::codebook::CODEBOOK_GROUP_NUMBER;
 				}
 				else
 				{
 					auto it = m_groupMap.find( positions[i] );
-					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second } : codebook::CODEBOOK_GROUP_UNKNOWN;
+					group = ( it != m_groupMap.end() ) ? std::string_view{ it->second }
+													   : constants::codebook::CODEBOOK_GROUP_UNKNOWN;
 				}
 
 				uniqueGroups.emplace( group );
 
-				if ( group == codebook::CODEBOOK_GROUP_DEFAULT )
+				if ( group == constants::codebook::CODEBOOK_GROUP_DEFAULT )
 				{
 					hasDefaultGroup = true;
 				}

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
-#include "utils/Hashing.h"
-#include "utils/StringBuilderPool.h"
+#include "Utils/Hashing.h"
+#include "Utils/StringBuilderPool.h"
+#include "Utils/StringMap.h"
 
 #include "GmodDto.h"
 #include "Locations.h"
@@ -57,8 +57,7 @@ namespace dnv::vista::sdk
 		 */
 		inline GmodNodeMetadata(
 			std::string_view category,
-			std::string_view type,
-			std::string_view name,
+			std::string_view type, std::string_view name,
 			const std::optional<std::string>& commonName = std::nullopt,
 			const std::optional<std::string>& definition = std::nullopt,
 			const std::optional<std::string>& commonDefinition = std::nullopt,

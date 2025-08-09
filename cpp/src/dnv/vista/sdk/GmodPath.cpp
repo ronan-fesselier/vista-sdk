@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/GmodPath.h"
 
-#include "dnv/vista/sdk/utils/StringUtils.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VIS.h"
@@ -21,14 +21,10 @@ namespace dnv::vista::sdk
 		{
 			size_t currentParentStart;
 
-			LocationSetsVisitor()
-				: currentParentStart{ std::numeric_limits<size_t>().max() } {}
+			LocationSetsVisitor() : currentParentStart{ std::numeric_limits<size_t>().max() } {}
 
 			std::optional<std::tuple<size_t, size_t, std::optional<Location>>> visit(
-				const GmodNode& node,
-				size_t i,
-				const std::vector<GmodNode*>& pathParents,
-				const GmodNode& pathTargetNode )
+				const GmodNode& node, size_t i, const std::vector<GmodNode*>& pathParents, const GmodNode& pathTargetNode )
 			{
 				bool isParent = Gmod::isPotentialParent( node.metadata().type() );
 				bool isTargetNode = ( static_cast<size_t>( i ) == pathParents.size() );
@@ -74,9 +70,7 @@ namespace dnv::vista::sdk
 									continue;
 								}
 
-								if ( nodes.has_value() &&
-									 std::get<2>( nodes.value() ).has_value() &&
-									 setNode->location().has_value() &&
+								if ( nodes.has_value() && std::get<2>( nodes.value() ).has_value() && setNode->location().has_value() &&
 									 std::get<2>( nodes.value() ) != setNode->location() )
 								{
 									throw std::runtime_error( "Mapping error: different locations in the same nodeset" );
@@ -92,7 +86,8 @@ namespace dnv::vista::sdk
 									hasComposition = true;
 								}
 
-								auto location = nodes.has_value() && std::get<2>( nodes.value() ).has_value() ? std::get<2>( nodes.value() ) : setNode->location();
+								auto location =
+									nodes.has_value() && std::get<2>( nodes.value() ).has_value() ? std::get<2>( nodes.value() ) : setNode->location();
 								size_t start = nodes.has_value() ? std::get<0>( nodes.value() ) : j;
 								size_t end = j;
 								nodes = std::make_tuple( start, end, location );
@@ -143,17 +138,9 @@ namespace dnv::vista::sdk
 			std::string_view code;
 			std::optional<Location> location;
 
-			PathNode( std::string_view c )
-				: code{ c },
-				  location{ std::nullopt }
-			{
-			}
+			PathNode( std::string_view c ) : code{ c }, location{ std::nullopt } {}
 
-			PathNode( std::string_view c, const Location& loc )
-				: code{ c },
-				  location{ loc }
-			{
-			}
+			PathNode( std::string_view c, const Location& loc ) : code{ c }, location{ loc } {}
 		};
 
 		struct ParseContext
@@ -164,7 +151,8 @@ namespace dnv::vista::sdk
 			std::optional<GmodPath> path;
 			const Gmod* gmod;
 
-			ParseContext( std::queue<PathNode>&& p, PathNode&& t, std::optional<utils::StringMap<Location>>&& l, std::optional<GmodPath>&& path, const Gmod& g )
+			ParseContext( std::queue<PathNode>&& p, PathNode&& t, std::optional<utils::StringMap<Location>>&& l,
+				std::optional<GmodPath>&& path, const Gmod& g )
 				: parts{ std::move( p ) },
 				  toFind{ std::move( t ) },
 				  locations{ std::move( l ) },
@@ -175,9 +163,7 @@ namespace dnv::vista::sdk
 		};
 
 		static inline TraversalHandlerResult parseInternalHandler(
-			ParseContext& context,
-			const std::vector<const GmodNode*>& parents,
-			const GmodNode& current )
+			ParseContext& context, const std::vector<const GmodNode*>& parents, const GmodNode& current )
 		{
 			PathNode& toFind = context.toFind;
 			bool found = ( current.code() == toFind.code );
@@ -298,6 +284,7 @@ namespace dnv::vista::sdk
 			}
 
 			context.path = GmodPath( *context.gmod, std::move( endNode ), std::move( pathParents ), true );
+
 			return TraversalHandlerResult::Stop;
 		}
 	}
@@ -576,15 +563,14 @@ namespace dnv::vista::sdk
 			newParents.push_back( parent.withoutLocation() );
 		}
 
-		return GmodPath( *m_gmod, m_node->withoutLocation(), std::move( newParents ) );
+		return GmodPath{ *m_gmod, m_node->withoutLocation(), std::move( newParents ) };
 	}
 
 	//----------------------------------------------
 	// Private static parsing methods
 	//----------------------------------------------
 
-	GmodParsePathResult GmodPath::parseFullPathInternal(
-		std::string_view item, const Gmod& gmod, const Locations& locations )
+	GmodParsePathResult GmodPath::parseFullPathInternal( std::string_view item, const Gmod& gmod, const Locations& locations )
 	{
 		if ( item.empty() )
 		{
@@ -626,7 +612,7 @@ namespace dnv::vista::sdk
 					return GmodParsePathResult::Error{ "Location parse failed" };
 				}
 
-				nodes.emplace_back( std::move( nodePtr->withLocation( std::move( parsedLocation ) ) ) );
+				nodes.emplace_back( nodePtr->withLocation( std::move( parsedLocation ) ) );
 			}
 			else
 			{
@@ -807,13 +793,13 @@ namespace dnv::vista::sdk
 			return GmodParsePathResult::Error{ "Item is empty" };
 		}
 
-		const size_t start = item.find_first_not_of( constants::NULL_OR_WHITESPACE );
+		const size_t start = item.find_first_not_of( constants::algorithm::NULL_OR_WHITESPACE );
 		if ( start == std::string_view::npos )
 		{
 			return GmodParsePathResult::Error{ "Item is empty" };
 		}
 
-		const size_t end = item.find_last_not_of( constants::NULL_OR_WHITESPACE ) + 1;
+		const size_t end = item.find_last_not_of( constants::algorithm::NULL_OR_WHITESPACE ) + 1;
 		item = item.substr( start, end - start );
 
 		if ( !item.empty() && item[0] == '/' )
@@ -896,9 +882,7 @@ namespace dnv::vista::sdk
 	//----------------------------
 
 	GmodPath::Enumerator::Enumerator( const GmodPath* pathInst, size_t startIndex )
-		: m_pathInstance{ pathInst },
-		  m_currentIndex{ std::numeric_limits<size_t>::max() },
-		  m_current{ std::numeric_limits<size_t>::max(), nullptr }
+		: m_pathInstance{ pathInst }, m_currentIndex{ std::numeric_limits<size_t>::max() }, m_current{ std::numeric_limits<size_t>::max(), nullptr }
 	{
 		if ( startIndex != std::numeric_limits<size_t>::max() )
 		{
@@ -914,9 +898,7 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	GmodIndividualizableSet::GmodIndividualizableSet( const std::vector<int>& nodeIndices, const GmodPath& sourcePath )
-		: m_nodeIndices{ nodeIndices },
-		  m_path{ sourcePath },
-		  m_isBuilt{ false }
+		: m_nodeIndices{ nodeIndices }, m_path{ sourcePath }, m_isBuilt{ false }
 	{
 		if ( m_nodeIndices.empty() )
 		{
@@ -927,9 +909,9 @@ namespace dnv::vista::sdk
 		{
 			if ( static_cast<size_t>( nodeIdx ) >= m_path.length() || nodeIdx < 0 )
 			{
-				throw std::out_of_range( "GmodIndividualizableSet constructor: Node index " +
-										 std::to_string( nodeIdx ) + " is out of bounds for path length " +
-										 std::to_string( m_path.length() ) + "." );
+				throw std::out_of_range(
+					"GmodIndividualizableSet constructor: Node index " + std::to_string( nodeIdx ) +
+					" is out of bounds for path length " + std::to_string( m_path.length() ) + "." );
 			}
 
 			const GmodNode& currentNode = m_path[static_cast<size_t>( nodeIdx )];
@@ -938,8 +920,7 @@ namespace dnv::vista::sdk
 			bool isInSet = ( m_nodeIndices.size() > 1 );
 			if ( !currentNode.isIndividualizable( isTargetNode, isInSet ) )
 			{
-				throw std::invalid_argument( "GmodIndividualizableSet constructor: Node '" +
-											 std::string{ currentNode.code().data() } + "' (at index " +
+				throw std::invalid_argument( "GmodIndividualizableSet constructor: Node '" + std::string{ currentNode.code().data() } + "' (at index " +
 											 std::to_string( nodeIdx ) + ") is not individualizable in the given context." );
 			}
 		}
@@ -955,9 +936,10 @@ namespace dnv::vista::sdk
 				const GmodNode& currentNode = m_path[static_cast<size_t>( currentIdx )];
 				if ( currentNode.location() != expectedLocation )
 				{
-					throw std::invalid_argument( "GmodIndividualizableSet constructor: Nodes have different locations. Node '" +
-												 std::string{ currentNode.code().data() } + "' (at index " +
-												 std::to_string( currentIdx ) + ") has location while first node in set had different or no location." );
+					throw std::invalid_argument(
+						"GmodIndividualizableSet constructor: Nodes have different locations. Node '" +
+						std::string{ currentNode.code().data() } + "' (at index " + std::to_string( currentIdx ) +
+						") has location while first node in set had different or no location." );
 				}
 			}
 		}
@@ -976,7 +958,8 @@ namespace dnv::vista::sdk
 
 		if ( !foundPartOfShortPath )
 		{
-			throw std::invalid_argument( "GmodIndividualizableSet constructor: No nodes in the set are part of the short path (final node or leaf node)." );
+			throw std::invalid_argument(
+				"GmodIndividualizableSet constructor: No nodes in the set are part of the short path (final node or leaf node)." );
 		}
 	}
 

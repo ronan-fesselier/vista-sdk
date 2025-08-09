@@ -11,7 +11,7 @@
 #include "dnv/vista/sdk/MetadataTag.h"
 #include "dnv/vista/sdk/VIS.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	namespace
 	{
@@ -110,8 +110,7 @@ namespace dnv::vista::sdk
 			std::string expectedOutput;
 		};
 
-		class PositionValidationTest : public CodebookBaseTest,
-									   public ::testing::TestWithParam<PositionValidationParam>
+		class PositionValidationTest : public CodebookBaseTest, public ::testing::TestWithParam<PositionValidationParam>
 		{
 		};
 
@@ -162,10 +161,7 @@ namespace dnv::vista::sdk
 			EXPECT_EQ( parsedExpectedOutput, validPosition );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			CodebookPositionValidationSuite,
-			PositionValidationTest,
-			::testing::ValuesIn( positionValidationData() ) );
+		INSTANTIATE_TEST_SUITE_P( CodebookPositionValidationSuite, PositionValidationTest, ::testing::ValuesIn( positionValidationData() ) );
 
 		struct PositionsParam
 		{
@@ -173,8 +169,7 @@ namespace dnv::vista::sdk
 			std::string validStandardValue;
 		};
 
-		class PositionsTest : public CodebookBaseTest,
-							  public ::testing::TestWithParam<PositionsParam>
+		class PositionsTest : public CodebookBaseTest, public ::testing::TestWithParam<PositionsParam>
 		{
 		};
 
@@ -207,10 +202,7 @@ namespace dnv::vista::sdk
 			EXPECT_TRUE( positions.hasStandardValue( param.validStandardValue ) );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			CodebookPositionsSuite,
-			PositionsTest,
-			::testing::ValuesIn( positionsData() ) );
+		INSTANTIATE_TEST_SUITE_P( CodebookPositionsSuite, PositionsTest, ::testing::ValuesIn( positionsData() ) );
 
 		struct StatesParam
 		{
@@ -220,8 +212,7 @@ namespace dnv::vista::sdk
 			std::string secondValidValue;
 		};
 
-		class StatesTest : public CodebookBaseTest,
-						   public ::testing::TestWithParam<StatesParam>
+		class StatesTest : public CodebookBaseTest, public ::testing::TestWithParam<StatesParam>
 		{
 		};
 
@@ -234,14 +225,9 @@ namespace dnv::vista::sdk
 			{
 				for ( const auto& item : jsonDataFromFile["States"] )
 				{
-					if ( item.is_array() && item.size() == 4 &&
-						 item[0].is_string() && item[1].is_string() &&
-						 item[2].is_string() && item[3].is_string() )
+					if ( item.is_array() && item.size() == 4 && item[0].is_string() && item[1].is_string() && item[2].is_string() && item[3].is_string() )
 					{
-						data.push_back( { item[0].get<std::string>(),
-							item[1].get<std::string>(),
-							item[2].get<std::string>(),
-							item[3].get<std::string>() } );
+						data.push_back( { item[0].get<std::string>(), item[1].get<std::string>(), item[2].get<std::string>(), item[3].get<std::string>() } );
 					}
 				}
 			}
@@ -261,10 +247,7 @@ namespace dnv::vista::sdk
 			EXPECT_TRUE( states.hasStandardValue( param.secondValidValue ) );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			CodebookStatesSuite,
-			StatesTest,
-			::testing::ValuesIn( statesData() ) );
+		INSTANTIATE_TEST_SUITE_P( CodebookStatesSuite, StatesTest, ::testing::ValuesIn( statesData() ) );
 
 		struct TagParam
 		{
@@ -278,8 +261,7 @@ namespace dnv::vista::sdk
 			std::string secondInvalidTag;
 		};
 
-		class TagTest : public CodebookBaseTest,
-						public ::testing::TestWithParam<TagParam>
+		class TagTest : public CodebookBaseTest, public ::testing::TestWithParam<TagParam>
 		{
 		};
 
@@ -292,21 +274,12 @@ namespace dnv::vista::sdk
 			{
 				for ( const auto& item : jsonDataFromFile["Tag"] )
 				{
-					if ( item.is_array() && item.size() == 8 &&
-						 item[0].is_string() && item[1].is_string() && item[2].is_string() &&
-						 item[3].is_string() && !item[3].get<std::string>().empty() &&
-						 item[4].is_string() &&
-						 item[5].is_string() && !item[5].get<std::string>().empty() &&
+					if ( item.is_array() && item.size() == 8 && item[0].is_string() && item[1].is_string() && item[2].is_string() && item[3].is_string() &&
+						 !item[3].get<std::string>().empty() && item[4].is_string() && item[5].is_string() && !item[5].get<std::string>().empty() &&
 						 item[6].is_string() && item[7].is_string() )
 					{
-						data.push_back( { item[0].get<std::string>(),
-							item[1].get<std::string>(),
-							item[2].get<std::string>(),
-							item[3].get<std::string>()[0],
-							item[4].get<std::string>(),
-							item[5].get<std::string>()[0],
-							item[6].get<std::string>(),
-							item[7].get<std::string>() } );
+						data.push_back( { item[0].get<std::string>(), item[1].get<std::string>(), item[2].get<std::string>(), item[3].get<std::string>()[0],
+							item[4].get<std::string>(), item[5].get<std::string>()[0], item[6].get<std::string>(), item[7].get<std::string>() } );
 					}
 				}
 			}
@@ -345,10 +318,7 @@ namespace dnv::vista::sdk
 			EXPECT_EQ( codebookType.tryCreateTag( param.secondInvalidTag ), std::nullopt );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			CodebookTagSuite,
-			TagTest,
-			::testing::ValuesIn( tagData() ) );
+		INSTANTIATE_TEST_SUITE_P( CodebookTagSuite, TagTest, ::testing::ValuesIn( tagData() ) );
 
 		struct DetailTagParam
 		{
@@ -357,8 +327,7 @@ namespace dnv::vista::sdk
 			std::string secondInvalidCustomTag;
 		};
 
-		class DetailTagTest : public CodebookBaseTest,
-							  public ::testing::TestWithParam<DetailTagParam>
+		class DetailTagTest : public CodebookBaseTest, public ::testing::TestWithParam<DetailTagParam>
 		{
 		};
 
@@ -371,12 +340,9 @@ namespace dnv::vista::sdk
 			{
 				for ( const auto& item : jsonDataFromFile["DetailTag"] )
 				{
-					if ( item.is_array() && item.size() == 3 &&
-						 item[0].is_string() && item[1].is_string() && item[2].is_string() )
+					if ( item.is_array() && item.size() == 3 && item[0].is_string() && item[1].is_string() && item[2].is_string() )
 					{
-						data.push_back( { item[0].get<std::string>(),
-							item[1].get<std::string>(),
-							item[2].get<std::string>() } );
+						data.push_back( { item[0].get<std::string>(), item[1].get<std::string>(), item[2].get<std::string>() } );
 					}
 				}
 			}
@@ -398,28 +364,19 @@ namespace dnv::vista::sdk
 			EXPECT_THROW( codebook.createTag( param.secondInvalidCustomTag ), std::invalid_argument );
 		}
 
-		INSTANTIATE_TEST_SUITE_P(
-			CodebookDetailTagSuite,
-			DetailTagTest,
-			::testing::ValuesIn( detailTagData() ) );
+		INSTANTIATE_TEST_SUITE_P( CodebookDetailTagSuite, DetailTagTest, ::testing::ValuesIn( detailTagData() ) );
 	}
 
 	namespace CodebooksTests
 	{
 		TEST( CodebooksTests, Test_CodebookName_Prefix_Conversions )
 		{
-			const std::map<dnv::vista::sdk::CodebookName, std::string_view> expectedMappings = {
-				{ dnv::vista::sdk::CodebookName::Quantity, "qty" },
-				{ dnv::vista::sdk::CodebookName::Content, "cnt" },
-				{ dnv::vista::sdk::CodebookName::Calculation, "calc" },
-				{ dnv::vista::sdk::CodebookName::State, "state" },
-				{ dnv::vista::sdk::CodebookName::Command, "cmd" },
-				{ dnv::vista::sdk::CodebookName::Type, "type" },
-				{ dnv::vista::sdk::CodebookName::FunctionalServices, "funct.svc" },
-				{ dnv::vista::sdk::CodebookName::MaintenanceCategory, "maint.cat" },
-				{ dnv::vista::sdk::CodebookName::ActivityType, "act.type" },
-				{ dnv::vista::sdk::CodebookName::Position, "pos" },
-				{ dnv::vista::sdk::CodebookName::Detail, "detail" } };
+			const std::map<dnv::vista::sdk::CodebookName, std::string_view> expectedMappings = { { dnv::vista::sdk::CodebookName::Quantity, "qty" },
+				{ dnv::vista::sdk::CodebookName::Content, "cnt" }, { dnv::vista::sdk::CodebookName::Calculation, "calc" },
+				{ dnv::vista::sdk::CodebookName::State, "state" }, { dnv::vista::sdk::CodebookName::Command, "cmd" },
+				{ dnv::vista::sdk::CodebookName::Type, "type" }, { dnv::vista::sdk::CodebookName::FunctionalServices, "funct.svc" },
+				{ dnv::vista::sdk::CodebookName::MaintenanceCategory, "maint.cat" }, { dnv::vista::sdk::CodebookName::ActivityType, "act.type" },
+				{ dnv::vista::sdk::CodebookName::Position, "pos" }, { dnv::vista::sdk::CodebookName::Detail, "detail" } };
 
 			for ( const auto& pair : expectedMappings )
 			{
@@ -428,16 +385,12 @@ namespace dnv::vista::sdk
 
 				SCOPED_TRACE( "Testing CodebookName toPrefix: " + std::string{ expectedPrefix } );
 				std::string_view actualPrefix;
-				ASSERT_NO_THROW( {
-					actualPrefix = dnv::vista::sdk::CodebookNames::toPrefix( cbName );
-				} );
+				ASSERT_NO_THROW( { actualPrefix = dnv::vista::sdk::CodebookNames::toPrefix( cbName ); } );
 				ASSERT_EQ( expectedPrefix, actualPrefix );
 
 				SCOPED_TRACE( "Testing fromPrefix round trip for: " + std::string{ expectedPrefix } );
 				dnv::vista::sdk::CodebookName roundTripName;
-				ASSERT_NO_THROW( {
-					roundTripName = dnv::vista::sdk::CodebookNames::fromPrefix( actualPrefix );
-				} );
+				ASSERT_NO_THROW( { roundTripName = dnv::vista::sdk::CodebookNames::fromPrefix( actualPrefix ); } );
 				ASSERT_EQ( cbName, roundTripName );
 			}
 

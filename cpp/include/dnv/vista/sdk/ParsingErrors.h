@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "config/Platform.h"
-#include "utils/Hashing.h"
+#include "Config/Platform.h"
+#include "Utils/Hashing.h"
 
 namespace dnv::vista::sdk
 {

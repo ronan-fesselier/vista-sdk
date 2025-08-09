@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::transport
 {
 	//=====================================================================
 	// Single Data Channel Type data transfer objects

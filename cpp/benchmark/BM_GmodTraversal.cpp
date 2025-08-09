@@ -3,11 +3,7 @@
  * @brief GMOD tree traversal performance benchmark testing full tree iteration
  */
 
-#include "pch.h"
-
 #include "dnv/vista/sdk/VIS.h"
-
-using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -38,8 +34,10 @@ namespace dnv::vista::sdk::benchmarks
 			BenchmarkState benchState;
 
 			TraverseHandlerWithState<BenchmarkState> handler =
-				[]( BenchmarkState& state, const std::vector<const GmodNode*>&, const GmodNode& ) -> TraversalHandlerResult {
+				[]( BenchmarkState& state, const std::vector<const GmodNode*>&, const GmodNode& )
+				-> TraversalHandlerResult {
 				++state.nodeCount;
+
 				return TraversalHandlerResult::Continue;
 			};
 
@@ -50,9 +48,7 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	BENCHMARK( BM_fullTraversal )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kMillisecond );
+	BENCHMARK( BM_fullTraversal )->MinTime( 10.0 )->Unit( benchmark::kMillisecond );
 }
 
 BENCHMARK_MAIN();

@@ -5,11 +5,11 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/internal/HashMap.h"
+#include "dnv/vista/sdk/Internal/HashMap.h"
 
 #include "TestDataLoader.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	static internal::HashMap<std::string, nlohmann::json> g_testDataCache;
 
@@ -46,11 +46,8 @@ namespace dnv::vista::sdk
 		}
 		catch ( const nlohmann::json::parse_error& ex )
 		{
-			throw std::runtime_error(
-				std::string{ "JSON parse error in '" } + testDataPath +
-				"'. Type: " + std::to_string( ex.id ) +
-				", Byte: " + std::to_string( ex.byte ) +
-				". Original what() likely too long." );
+			throw std::runtime_error( std::string{ "JSON parse error in '" } + testDataPath + "'. Type: " + std::to_string( ex.id ) +
+									  ", Byte: " + std::to_string( ex.byte ) + ". Original what() likely too long." );
 		}
 	}
 }

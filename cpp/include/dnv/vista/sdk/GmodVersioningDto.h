@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
+#include "Utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -186,13 +186,8 @@ namespace dnv::vista::sdk
 		 * @param newAssignment The new assignment code after conversion.
 		 * @param deleteAssignment Flag indicating if the assignment should be deleted.
 		 */
-		inline explicit GmodNodeConversionDto(
-			OperationSet operations,
-			std::string source,
-			std::string target,
-			std::string oldAssignment,
-			std::string newAssignment,
-			bool deleteAssignment ) noexcept;
+		inline explicit GmodNodeConversionDto( OperationSet operations, std::string source, std::string target, std::string oldAssignment,
+			std::string newAssignment, bool deleteAssignment ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodNodeConversionDto() = default;

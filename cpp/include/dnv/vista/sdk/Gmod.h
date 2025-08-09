@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "internal/ChdDictionary.h"
-#include "internal/HashMap.h"
+#include "Internal/ChdDictionary.h"
+#include "Internal/HashMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -264,7 +264,8 @@ namespace dnv::vista::sdk
 		 * @return true if completed, false if stopped early
 		 */
 		template <typename TState>
-		VISTA_SDK_CPP_FORCE_INLINE bool traverse( TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} ) const;
+		VISTA_SDK_CPP_FORCE_INLINE bool traverse(
+			TState& state, const GmodNode& rootNode, TraverseHandlerWithState<TState> handler, const TraversalOptions& options = {} ) const;
 
 		/**
 		 * @brief Checks if a traversal path exists between given parents and target node
@@ -468,7 +469,9 @@ namespace dnv::vista::sdk
 			size_t maxTraversalOccurrence;
 
 			TraversalContext( Parents& p, TraverseHandlerWithState<TState> h, TState& s, size_t maxOcc )
-				: parents( p ), handler( h ), state( s ), maxTraversalOccurrence( maxOcc ) {}
+				: parents( p ), handler( h ), state( s ), maxTraversalOccurrence( maxOcc )
+			{
+			}
 
 			TraversalContext( const TraversalContext& ) = delete;
 			TraversalContext( TraversalContext&& ) = delete;

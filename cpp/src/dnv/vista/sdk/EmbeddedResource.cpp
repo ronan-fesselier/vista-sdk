@@ -58,20 +58,36 @@ namespace dnv::vista::sdk
 					}
 					else
 					{
-						fmt::print( stderr, "WARN: GMOD resource {} missing or has invalid '{}' field.\n", resourceName, VIS_RELEASE_KEY );
+						fmt::print(
+							stderr,
+							"WARN: GMOD resource {} missing or has invalid '{}' field.\n",
+							resourceName,
+							VIS_RELEASE_KEY );
 					}
 				}
 				catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 				{
-					fmt::print( stderr, "ERROR: JSON parse error in resource {}: {}\n", resourceName, ex.what() );
+					fmt::print(
+						stderr,
+						"ERROR: JSON parse error in resource {}: {}\n",
+						resourceName,
+						ex.what() );
 				}
 				catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 				{
-					fmt::print( stderr, "ERROR: JSON error processing resource {}: {}\n", resourceName, ex.what() );
+					fmt::print(
+						stderr,
+						"ERROR: JSON error processing resource {}: {}\n",
+						resourceName,
+						ex.what() );
 				}
 				catch ( [[maybe_unused]] const std::exception& ex )
 				{
-					fmt::print( stderr, "ERROR: Error reading/decompressing resource {} for version extraction: {}\n", resourceName, ex.what() );
+					fmt::print(
+						stderr,
+						"ERROR: Error reading/decompressing resource {} for version extraction: {}\n",
+						resourceName,
+						ex.what() );
 				}
 			}
 		}
@@ -147,20 +163,36 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					fmt::print( stderr, "WARN: GMOD Versioning resource {} missing or has invalid '{}' field.\n", resourceName, VIS_RELEASE_KEY );
+					fmt::print(
+						stderr,
+						"WARN: GMOD Versioning resource {} missing or has invalid '{}' field.\n",
+						resourceName,
+						VIS_RELEASE_KEY );
 				}
 			}
 			catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 			{
-				fmt::print( stderr, "ERROR: JSON parse error in GMOD Versioning resource {}: {}\n", resourceName, ex.what() );
+				fmt::print(
+					stderr,
+					"ERROR: JSON parse error in GMOD Versioning resource {}: {}\n",
+					resourceName,
+					ex.what() );
 			}
 			catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 			{
-				fmt::print( stderr, "ERROR: JSON validation/deserialization error in GMOD Versioning resource {}: {}\n", resourceName, ex.what() );
+				fmt::print(
+					stderr,
+					"ERROR: JSON validation/deserialization error in GMOD Versioning resource {}: {}\n",
+					resourceName,
+					ex.what() );
 			}
 			catch ( [[maybe_unused]] const std::exception& ex )
 			{
-				fmt::print( stderr, "ERROR: Error processing GMOD Versioning resource {}: {}\n", resourceName, ex.what() );
+				fmt::print(
+					stderr,
+					"ERROR: Error processing GMOD Versioning resource {}: {}\n",
+					resourceName,
+					ex.what() );
 			}
 		}
 
@@ -194,13 +226,11 @@ namespace dnv::vista::sdk
 
 		auto names = resourceNames();
 
-		auto it = std::find_if( names.begin(), names.end(),
-			[&visVersion]( const std::string& name ) {
-				return utils::contains( name, "gmod" ) &&
-					   utils::contains( name, visVersion ) &&
-					   utils::endsWith( name, ".json.gz" ) &&
-					   !utils::contains( name, "versioning" );
-			} );
+		auto it = std::find_if( names.begin(), names.end(), [&visVersion]( const std::string& name ) {
+			return utils::contains( name, "gmod" ) && utils::contains( name, visVersion ) &&
+				   utils::endsWith( name, ".json.gz" ) &&
+				   !utils::contains( name, "versioning" );
+		} );
 
 		if ( it == names.end() )
 		{
@@ -224,15 +254,26 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON parse error in GMOD resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON parse error in GMOD resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON validation/deserialization error in GMOD resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON validation/deserialization error in GMOD resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Error processing GMOD resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: Error processing GMOD resource {}: {}\n",
+				*it, ex.what() );
 		}
 
 		std::lock_guard<std::mutex> lock( gmodCacheMutex );
@@ -258,12 +299,11 @@ namespace dnv::vista::sdk
 
 		auto names = resourceNames();
 
-		auto it = std::find_if( names.begin(), names.end(),
-			[&visVersion]( const std::string& name ) {
-				return utils::contains( name, "codebooks" ) &&
-					   utils::contains( name, visVersion ) &&
-					   utils::endsWith( name, ".json.gz" );
-			} );
+		auto it = std::find_if( names.begin(), names.end(), [&visVersion]( const std::string& name ) {
+			return utils::contains( name, "codebooks" ) &&
+				   utils::contains( name, visVersion ) &&
+				   utils::endsWith( name, ".json.gz" );
+		} );
 
 		if ( it == names.end() )
 		{
@@ -286,15 +326,27 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON parse error in Codebooks resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON parse error in Codebooks resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON validation/deserialization error in Codebooks resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON validation/deserialization error in Codebooks resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Error processing Codebooks resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: Error processing Codebooks resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 
 		std::lock_guard<std::mutex> lock( codebooksCacheMutex );
@@ -321,10 +373,8 @@ namespace dnv::vista::sdk
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
-			[&visVersion]( const std::string& name ) {
-				return isLocationsResource( name ) &&
-					   containsVersion( name, visVersion );
-			} );
+			[&visVersion]( const std::string& name ) { return isLocationsResource( name ) &&
+															  containsVersion( name, visVersion ); } );
 
 		if ( it == names.end() )
 		{
@@ -347,15 +397,27 @@ namespace dnv::vista::sdk
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON parse error in Locations resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON parse error in Locations resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON validation/deserialization error in Locations resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON validation/deserialization error in Locations resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Error processing Locations resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: Error processing Locations resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 
 		std::lock_guard<std::mutex> lock( locationsCacheMutex );
@@ -364,11 +426,11 @@ namespace dnv::vista::sdk
 		return emplaceIt->second;
 	}
 
-	std::optional<DataChannelTypeNamesDto> EmbeddedResource::dataChannelTypeNames( std::string_view version )
+	std::optional<transport::DataChannelTypeNamesDto> EmbeddedResource::dataChannelTypeNames( std::string_view version )
 	{
 		static std::mutex dataChannelTypeNamesCacheMutex;
 
-		static utils::StringMap<std::optional<DataChannelTypeNamesDto>> dataChannelTypeNamesCache;
+		static utils::StringMap<std::optional<transport::DataChannelTypeNamesDto>> dataChannelTypeNamesCache;
 
 		{
 			std::lock_guard<std::mutex> lock( dataChannelTypeNamesCacheMutex );
@@ -382,10 +444,8 @@ namespace dnv::vista::sdk
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
-			[&version]( const std::string& name ) {
-				return isDataChannelTypeNamesResource( name ) &&
-					   containsVersion( name, version );
-			} );
+			[&version]( const std::string& name ) { return isDataChannelTypeNamesResource( name ) &&
+														   containsVersion( name, version ); } );
 
 		if ( it == names.end() )
 		{
@@ -397,27 +457,39 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		std::optional<DataChannelTypeNamesDto> resultForCache = std::nullopt;
+		std::optional<transport::DataChannelTypeNamesDto> resultForCache = std::nullopt;
 		try
 		{
 			auto stream = decompressedStream( *it );
 			nlohmann::json dtNamesJson = nlohmann::json::parse( *stream );
 
-			DataChannelTypeNamesDto loadedDto = DataChannelTypeNamesDto::fromJson( dtNamesJson );
+			auto loadedDto = transport::DataChannelTypeNamesDto::fromJson( dtNamesJson );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON parse error in DataChannelTypeNames resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR : JSON parse error in DataChannelTypeNames resource{} : {}\n ",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON validation/deserialization error in DataChannelTypeNames resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON validation/deserialization error in DataChannelTypeNames resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Error processing DataChannelTypeNames resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: Error processing DataChannelTypeNames resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 
 		std::lock_guard<std::mutex> lock( dataChannelTypeNamesCacheMutex );
@@ -426,11 +498,11 @@ namespace dnv::vista::sdk
 		return emplaceIt->second;
 	}
 
-	std::optional<FormatDataTypesDto> EmbeddedResource::formatDataTypes( std::string_view version )
+	std::optional<transport::FormatDataTypesDto> EmbeddedResource::formatDataTypes( std::string_view version )
 	{
 		static std::mutex fdTypesCacheMutex;
 
-		static utils::StringMap<std::optional<FormatDataTypesDto>> fdTypesCache;
+		static utils::StringMap<std::optional<transport::FormatDataTypesDto>> fdTypesCache;
 
 		{
 			std::lock_guard<std::mutex> lock( fdTypesCacheMutex );
@@ -444,10 +516,8 @@ namespace dnv::vista::sdk
 		auto names = resourceNames();
 
 		auto it = std::find_if( names.begin(), names.end(),
-			[&version]( const std::string& name ) {
-				return isFormatDataTypesResource( name ) &&
-					   containsVersion( name, version );
-			} );
+			[&version]( const std::string& name ) { return isFormatDataTypesResource( name ) &&
+														   containsVersion( name, version ); } );
 
 		if ( it == names.end() )
 		{
@@ -458,27 +528,39 @@ namespace dnv::vista::sdk
 			return std::nullopt;
 		}
 
-		std::optional<FormatDataTypesDto> resultForCache = std::nullopt;
+		std::optional<transport::FormatDataTypesDto> resultForCache = std::nullopt;
 		try
 		{
 			auto stream = decompressedStream( *it );
 			nlohmann::json fdTypesJson = nlohmann::json::parse( *stream );
 
-			FormatDataTypesDto loadedDto = FormatDataTypesDto::fromJson( fdTypesJson );
+			auto loadedDto = transport::FormatDataTypesDto::fromJson( fdTypesJson );
 
 			resultForCache.emplace( std::move( loadedDto ) );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::parse_error& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON parse error in FormatDataTypes resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON parse error in FormatDataTypes resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const nlohmann::json::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: JSON validation/deserialization error in FormatDataTypes resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: JSON validation/deserialization error in FormatDataTypes resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			fmt::print( stderr, "ERROR: Error processing FormatDataTypes resource {}: {}\n", *it, ex.what() );
+			fmt::print(
+				stderr,
+				"ERROR: Error processing FormatDataTypes resource {}: {}\n",
+				*it,
+				ex.what() );
 		}
 
 		std::lock_guard<std::mutex> lock( fdTypesCacheMutex );
@@ -514,7 +596,8 @@ namespace dnv::vista::sdk
 		{
 			if ( !std::filesystem::exists( resourcesDir ) || !std::filesystem::is_directory( resourcesDir ) )
 			{
-				throw std::runtime_error( fmt::format( "Resources directory not found: {}", resourcesDir.string() ) );
+				throw std::runtime_error(
+					fmt::format( "Resources directory not found: {}", resourcesDir.string() ) );
 			}
 
 			for ( const auto& entry : std::filesystem::directory_iterator( resourcesDir ) )
@@ -527,16 +610,21 @@ namespace dnv::vista::sdk
 
 			if ( foundNames.empty() )
 			{
-				fmt::print( stderr, "WARN: No embedded resource files (.json.gz) found in resources directory: {}\n", resourcesDir.string() );
+				fmt::print(
+					stderr,
+					"WARN: No embedded resource files (.json.gz) found in resources directory: {}\n",
+					resourcesDir.string() );
 			}
 		}
 		catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
 		{
-			throw std::runtime_error( fmt::format( "Filesystem error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
+			throw std::runtime_error(
+				fmt::format( "Filesystem error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			throw std::runtime_error( fmt::format( "Error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
+			throw std::runtime_error(
+				fmt::format( "Error scanning resources directory {}: {}", resourcesDir.string(), ex.what() ) );
 		}
 
 		{
@@ -554,21 +642,21 @@ namespace dnv::vista::sdk
 
 		if ( !compressedStream || !compressedStream->good() )
 		{
-			throw std::runtime_error( fmt::format( "Failed to open compressed stream for resource: {}", resourceName ) );
+			throw std::runtime_error(
+				fmt::format( "Failed to open compressed stream for resource: {}", resourceName ) );
 		}
 
 		compressedStream->seekg( 0, std::ios::end );
 		auto pos = compressedStream->tellg();
 		if ( pos < 0 )
 		{
-			throw std::runtime_error( fmt::format( "Invalid stream position for resource: {}", resourceName ) );
+			throw std::runtime_error(
+				fmt::format( "Invalid stream position for resource: {}", resourceName ) );
 		}
 		size_t compressedSize = static_cast<size_t>( pos );
 		compressedStream->seekg( 0, std::ios::beg );
 
-		size_t estimatedDecompressedSize = std::min(
-			compressedSize * 8,
-			static_cast<size_t>( 128 * 1024 * 1024 ) );
+		size_t estimatedDecompressedSize = std::min( compressedSize * 8, static_cast<size_t>( 128 * 1024 * 1024 ) );
 
 		std::string decompressedData;
 		decompressedData.reserve( estimatedDecompressedSize );
@@ -580,7 +668,8 @@ namespace dnv::vista::sdk
 
 		if ( ::inflateInit2( &zs, 15 + 16 ) != Z_OK )
 		{
-			throw std::runtime_error( fmt::format( "Failed to initialize zlib for resource: {}", resourceName ) );
+			throw std::runtime_error(
+				fmt::format( "Failed to initialize zlib for resource: {}", resourceName ) );
 		}
 
 		std::vector<char> inBuffer( CHUNK_IN_SIZE );
@@ -596,7 +685,8 @@ namespace dnv::vista::sdk
 			{
 				::inflateEnd( &zs );
 
-				throw std::runtime_error( fmt::format( "Error reading compressed stream for resource: {}", resourceName ) );
+				throw std::runtime_error(
+					fmt::format( "Error reading compressed stream for resource: {}", resourceName ) );
 			}
 
 			zs.next_in = reinterpret_cast<Bytef*>( inBuffer.data() );
@@ -613,8 +703,12 @@ namespace dnv::vista::sdk
 					std::string errorMsg = ( zs.msg ) ? zs.msg : "Unknown zlib error";
 					::inflateEnd( &zs );
 
-					throw std::runtime_error( fmt::format( "Zlib decompression failed for resource '{}' with error code {}: {}",
-						resourceName, ret, errorMsg ) );
+					throw std::runtime_error(
+						fmt::format(
+							"Zlib decompression failed for resource '{}' with error code {}: {}",
+							resourceName,
+							ret,
+							errorMsg ) );
 				}
 
 				size_t have = CHUNK_OUT_SIZE - zs.avail_out;
@@ -648,8 +742,12 @@ namespace dnv::vista::sdk
 						return fileStream;
 					}
 				}
-				fmt::print( stderr, "WARN: Cached resource path '{}' for '{}' is invalid, removing from cache.\n",
-					it->second.string(), resourceName );
+				fmt::print(
+					stderr,
+					"WARN: Cached resource path '{}' for '{}' is invalid, removing from cache.\n",
+					it->second.string(),
+					resourceName );
+
 				resourcePathCache.erase( it );
 			}
 		}
@@ -672,19 +770,31 @@ namespace dnv::vista::sdk
 				}
 				else
 				{
-					throw std::runtime_error( fmt::format( "Found resource '{}' but failed to open stream", resourcePath.string() ) );
+					throw std::runtime_error(
+						fmt::format(
+							"Found resource '{}' but failed to open stream",
+							resourcePath.string() ) );
 				}
 			}
 		}
 		catch ( [[maybe_unused]] const std::filesystem::filesystem_error& ex )
 		{
-			throw std::runtime_error( fmt::format( "Filesystem error accessing resource '{}': {}", resourcePath.string(), ex.what() ) );
+			throw std::runtime_error(
+				fmt::format(
+					"Filesystem error accessing resource '{}': {}",
+					resourcePath.string(),
+					ex.what() ) );
 		}
 		catch ( [[maybe_unused]] const std::exception& ex )
 		{
-			throw std::runtime_error( fmt::format( "Error accessing resource '{}': {}", resourcePath.string(), ex.what() ) );
+			throw std::runtime_error(
+				fmt::format(
+					"Error accessing resource '{}': {}",
+					resourcePath.string(),
+					ex.what() ) );
 		}
 
-		throw std::runtime_error( fmt::format( "Resource file not found: {}", resourcePath.string() ) );
+		throw std::runtime_error(
+			fmt::format( "Resource file not found: {}", resourcePath.string() ) );
 	}
 }

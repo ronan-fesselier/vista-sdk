@@ -16,29 +16,12 @@
  * PURPOSE: Determine optimal data structure for codebook lookups with 3 elements
  */
 
-#include "pch.h"
-
 #include "dnv/vista/sdk/Codebook.h"
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/CodebookName.h"
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/utils/Hashing.h"
-
-using namespace dnv::vista::sdk;
-
-/* Optimized hash specialization for CodebookName using Vista SDK Hash to enable std::unordered_map */
-namespace std
-{
-	template <>
-	struct hash<dnv::vista::sdk::CodebookName>
-	{
-		size_t operator()( dnv::vista::sdk::CodebookName key ) const noexcept
-		{
-			return static_cast<size_t>( utils::Hash::combine( static_cast<int>( key ) ) );
-		}
-	};
-}
+#include "dnv/vista/sdk/Utils/Hashing.h"
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -93,7 +76,7 @@ namespace dnv::vista::sdk::benchmarks
 
 		bool tryGetValue( const dnv::vista::sdk::internal::ChdDictionary<Codebook>& dict, CodebookName key, const Codebook*& outValue ) const noexcept
 		{
-			static const char* const keyMappings[] = {
+			static const char* const keyMappings[]{
 				nullptr,
 				"Quantity",
 				"Content",
@@ -412,6 +395,7 @@ namespace dnv::vista::sdk::benchmarks
 	//=====================================================================
 	// Benchmark registrations
 	//=====================================================================
+
 	BENCHMARK( BM_CodebooksInstance )->MinTime( 10.0 );
 	BENCHMARK( BM_CodebooksReference )->MinTime( 10.0 );
 	BENCHMARK( BM_Array )->MinTime( 10.0 );

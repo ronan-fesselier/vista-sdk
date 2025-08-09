@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/VIS.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	struct SmokeContext
 	{
@@ -22,15 +22,11 @@ namespace dnv::vista::sdk
 	{
 		for ( const char ch : AllAllowedCharacters )
 		{
-			EXPECT_TRUE( VIS::isISOString( std::string( 1, ch ) ) )
-				<< "Character: " << ch;
+			EXPECT_TRUE( VIS::isISOString( std::string( 1, ch ) ) ) << "Character: " << ch;
 		}
 	}
 
-	TEST( IsISOStringTests, AllAllowedInOne )
-	{
-		EXPECT_TRUE( VIS::isISOString( AllAllowedCharacters ) );
-	}
+	TEST( IsISOStringTests, AllAllowedInOne ) { EXPECT_TRUE( VIS::isISOString( AllAllowedCharacters ) ); }
 
 	TEST( IsISOStringTests, SpotTests )
 	{

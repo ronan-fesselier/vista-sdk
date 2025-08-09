@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 #include "TestDataLoader.h"
 
@@ -59,9 +59,7 @@ namespace dnv::vista::sdk::tests
 			}
 		}
 
-		virtual void TearDown() override
-		{
-		}
+		virtual void TearDown() override {}
 
 		VIS* m_vis = nullptr;
 		std::unique_ptr<GmodVersioning> m_gmodVersioning;
@@ -110,8 +108,8 @@ namespace dnv::vista::sdk::tests
 
 		PathState state( gmod );
 
-		TraverseHandlerWithState<PathState> handler =
-			[]( PathState& state, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+		TraverseHandlerWithState<PathState> handler = []( PathState& state, const std::vector<const GmodNode*>& parents,
+														  const GmodNode& node ) -> TraversalHandlerResult {
 			if ( parents.empty() )
 			{
 				return TraversalHandlerResult::Continue;
@@ -182,9 +180,9 @@ namespace dnv::vista::sdk::tests
 				{
 					continue;
 				}
-				ASSERT_TRUE( onePathToRoot( node ) )
-					<< "Node " << node.code() << " in GMOD " << dnv::vista::sdk::VisVersionExtensions::toVersionString( version )
-					<< " is an asset function node but does not have one path to root.";
+				ASSERT_TRUE( onePathToRoot( node ) ) << "Node " << node.code() << " in GMOD "
+													 << dnv::vista::sdk::VisVersionExtensions::toVersionString( version )
+													 << " is an asset function node but does not have one path to root.";
 			}
 		}
 	}
@@ -197,7 +195,7 @@ namespace dnv::vista::sdk::tests
 	{
 		ASSERT_TRUE( m_setupSuccess ) << "Test setup failed";
 
-		const auto& testData = loadTestData( "testdata/GmodPaths.json" );
+		const auto& testData = test::loadTestData( "testdata/GmodPaths.json" );
 		const auto& validPaths = testData["Valid"];
 
 		for ( const auto& item : validPaths )
@@ -289,41 +287,34 @@ namespace dnv::vista::sdk::tests
 		VisVersion sourceVersion;
 		VisVersion targetVersion;
 
-		PathTestData( std::string_view input, std::string_view expected,
-			VisVersion source = VisVersion::v3_4a, VisVersion target = VisVersion::v3_6a )
-			: inputPath{ input },
-			  expectedPath{ expected },
-			  sourceVersion{ source },
-			  targetVersion{ target }
+		PathTestData( std::string_view input, std::string_view expected, VisVersion source = VisVersion::v3_4a, VisVersion target = VisVersion::v3_6a )
+			: inputPath{ input }, expectedPath{ expected }, sourceVersion{ source }, targetVersion{ target }
 		{
 		}
 	};
 
 	std::vector<PathTestData> validPathTestData()
 	{
-		return {
-			PathTestData( "411.1/C101.72/I101", "411.1/C101.72/I101" ),
-			PathTestData( "323.51/H362.1", "323.61/H362.1" ),
-			PathTestData( "321.38/C906", "321.39/C906" ),
-			PathTestData( "511.331/C221", "511.31/C121.31/C221" ),
+		return { PathTestData( "411.1/C101.72/I101", "411.1/C101.72/I101" ), PathTestData( "323.51/H362.1", "323.61/H362.1" ),
+			PathTestData( "321.38/C906", "321.39/C906" ), PathTestData( "511.331/C221", "511.31/C121.31/C221" ),
 			PathTestData( "511.11/C101.663i/C663.5/CS6d", "511.11/C101.663i/C663.6/CS6d" ),
 			PathTestData( "511.11-1/C101.663i/C663.5/CS6d", "511.11-1/C101.663i/C663.6/CS6d" ),
 			PathTestData( "1012.21/C1147.221/C1051.7/C101.22", "1012.21/C1147.221/C1051.7/C101.93" ),
-			PathTestData( "1012.21/C1147.221/C1051.7/C101.61/S203.6", "1012.21/C1147.221/C1051.7/C101.311/C467.5" ),
-			PathTestData( "001", "001" ),
+			PathTestData( "1012.21/C1147.221/C1051.7/C101.61/S203.6", "1012.21/C1147.221/C1051.7/C101.311/C467.5" ), PathTestData( "001", "001" ),
 			PathTestData( "038.7/F101.2/F71", "038.7/F101.2/F71" ),
-			PathTestData( "1012.21/C1147.221/C1051.7/C101.61/S203.6/S61", "1012.21/C1147.221/C1051.7/C101.311/C467.5/S61" ),
-			PathTestData( "000a", "000a" ),
+			PathTestData( "1012.21/C1147.221/C1051.7/C101.61/S203.6/S61", "1012.21/C1147.221/C1051.7/C101.311/C467.5/S61" ), PathTestData( "000a", "000a" ),
 			PathTestData( "1012.21/C1147.221/C1051.7/C101.61/S203.2/S101", "1012.21/C1147.221/C1051.7/C101.61/S203.3/S110.1/S101" ),
 			PathTestData( "1012.21/C1147.221/C1051.7/C101.661i/C624", "1012.21/C1147.221/C1051.7/C101.661i/C621" ),
 			PathTestData( "1012.22/S201.1/C151.2/S110.2/C101.64i", "1012.22/S201.1/C151.2/S110.2/C101.64" ),
 			PathTestData( "632.32i/S110.2/C111.42/G203.31/S90.5/C401", "632.32i/S110.2/C111.42/G203.31/S90.5/C401" ),
-			PathTestData( "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51", "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51" ),
-			PathTestData( "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401", "864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401" ),
-			PathTestData( "221.31/C1141.41/C664.2/C471", "221.31/C1141.41/C664.2/C471" ),
-			PathTestData( "514/E15", "514" ),
+			PathTestData( "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51",
+				"864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.42/G204.41/S90.2/S51" ),
+			PathTestData( "864.11/G71.21/C101.64i/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401",
+				"864.11/G71.21/C101.64/S201.1/C151.31/S110.2/C111.41/G240.1/G242.2/S90.5/C401" ),
+			PathTestData( "221.31/C1141.41/C664.2/C471", "221.31/C1141.41/C664.2/C471" ), PathTestData( "514/E15", "514" ),
 			PathTestData( "244.1i/H101.111/H401", "244.1i/H101.11/H407.1/H401", VisVersion::v3_7a, VisVersion::v3_8a ),
-			PathTestData( "1346/S201.1/C151.31/S110.2/C111.1/C109.16/C509", "1346/S201.1/C151.31/S110.2/C111.1/C109.126/C509", VisVersion::v3_7a, VisVersion::v3_8a ) };
+			PathTestData(
+				"1346/S201.1/C151.31/S110.2/C111.1/C109.16/C509", "1346/S201.1/C151.31/S110.2/C111.1/C109.126/C509", VisVersion::v3_7a, VisVersion::v3_8a ) };
 	}
 
 	class PathConversionTest : public ::testing::TestWithParam<PathTestData>
@@ -367,8 +358,8 @@ namespace dnv::vista::sdk::tests
 		};
 
 		LocationValidationState state;
-		TraverseHandlerWithState<LocationValidationState> handler =
-			[]( LocationValidationState& s, const std::vector<const GmodNode*>& parents, const GmodNode& node ) -> TraversalHandlerResult {
+		TraverseHandlerWithState<LocationValidationState> handler = []( LocationValidationState& s, const std::vector<const GmodNode*>& parents,
+																		const GmodNode& node ) -> TraversalHandlerResult {
 			(void)parents;
 
 			if ( node.location().has_value() )
@@ -392,10 +383,7 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( testData.expectedPath, targetPath->toString() );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ValidPathTests,
-		PathConversionTest,
-		::testing::ValuesIn( validPathTestData() ) );
+	INSTANTIATE_TEST_SUITE_P( ValidPathTests, PathConversionTest, ::testing::ValuesIn( validPathTestData() ) );
 
 	//----------------------------------------------
 	// Test_GmodVersioning_ConvertFullPath
@@ -408,21 +396,15 @@ namespace dnv::vista::sdk::tests
 		VisVersion sourceVersion;
 		VisVersion targetVersion;
 
-		FullPathTestData( std::string_view input, std::string_view expected,
-			VisVersion source = VisVersion::v3_4a, VisVersion target = VisVersion::v3_6a )
-			: inputPath{ input },
-			  expectedPath{ expected },
-			  sourceVersion{ source },
-			  targetVersion{ target }
+		FullPathTestData( std::string_view input, std::string_view expected, VisVersion source = VisVersion::v3_4a, VisVersion target = VisVersion::v3_6a )
+			: inputPath{ input }, expectedPath{ expected }, sourceVersion{ source }, targetVersion{ target }
 		{
 		}
 	};
 
 	std::vector<FullPathTestData> validFullPathTestData()
 	{
-		return {
-			FullPathTestData( "VE/600a/630/632/632.3/632.32/632.32i-2/S110",
-				"VE/600a/630/632/632.3/632.32/632.32i-2/SS5/S110" ) };
+		return { FullPathTestData( "VE/600a/630/632/632.3/632.32/632.32i-2/S110", "VE/600a/630/632/632.3/632.32/632.32i-2/SS5/S110" ) };
 	}
 
 	class FullPathConversionTest : public ::testing::TestWithParam<FullPathTestData>
@@ -457,10 +439,7 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( testData.expectedPath, targetPath->toFullPathString() );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ValidFullPathTests,
-		FullPathConversionTest,
-		::testing::ValuesIn( validFullPathTestData() ) );
+	INSTANTIATE_TEST_SUITE_P( ValidFullPathTests, FullPathConversionTest, ::testing::ValuesIn( validFullPathTestData() ) );
 
 	//----------------------------------------------
 	// Test_GmodVersioning_ConvertNode
@@ -473,26 +452,17 @@ namespace dnv::vista::sdk::tests
 		std::string expectedCode;
 
 		NodeTestData( std::string_view input, const std::optional<std::string>& loc, std::string_view expected )
-			: inputCode{ input },
-			  location{ loc },
-			  expectedCode{ expected }
+			: inputCode{ input }, location{ loc }, expectedCode{ expected }
 		{
 		}
 	};
 
 	std::vector<NodeTestData> validNodeTestData()
 	{
-		return {
-			NodeTestData( "1014.211", std::nullopt, "1014.211" ),
-			NodeTestData( "323.5", std::nullopt, "323.6" ),
-			NodeTestData( "412.72", std::nullopt, "412.7i" ),
-			NodeTestData( "323.4", std::nullopt, "323.5" ),
-			NodeTestData( "323.51", std::nullopt, "323.61" ),
-			NodeTestData( "323.6", std::nullopt, "323.7" ),
-			NodeTestData( "C101.212", std::nullopt, "C101.22" ),
-			NodeTestData( "C101.22", std::nullopt, "C101.93" ),
-			NodeTestData( "511.31", std::nullopt, "C121.1" ),
-			NodeTestData( "C101.31", "5", "C101.31" ) };
+		return { NodeTestData( "1014.211", std::nullopt, "1014.211" ), NodeTestData( "323.5", std::nullopt, "323.6" ),
+			NodeTestData( "412.72", std::nullopt, "412.7i" ), NodeTestData( "323.4", std::nullopt, "323.5" ), NodeTestData( "323.51", std::nullopt, "323.61" ),
+			NodeTestData( "323.6", std::nullopt, "323.7" ), NodeTestData( "C101.212", std::nullopt, "C101.22" ),
+			NodeTestData( "C101.22", std::nullopt, "C101.93" ), NodeTestData( "511.31", std::nullopt, "C121.1" ), NodeTestData( "C101.31", "5", "C101.31" ) };
 	}
 
 	class NodeConversionTest : public ::testing::TestWithParam<NodeTestData>
@@ -543,8 +513,5 @@ namespace dnv::vista::sdk::tests
 		EXPECT_EQ( expectedNode, targetNode );
 	}
 
-	INSTANTIATE_TEST_SUITE_P(
-		ValidNodeTests,
-		NodeConversionTest,
-		::testing::ValuesIn( validNodeTestData() ) );
+	INSTANTIATE_TEST_SUITE_P( ValidNodeTests, NodeConversionTest, ::testing::ValuesIn( validNodeTestData() ) );
 }

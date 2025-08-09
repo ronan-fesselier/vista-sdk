@@ -9,6 +9,8 @@
 #include <bitset>
 #include <cctype>
 #include <charconv>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -16,6 +18,7 @@
 #include <functional>
 #include <future>
 #include <iomanip>
+#include <iosfwd>
 #include <iostream>
 #include <iterator>
 #include <limits>

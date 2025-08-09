@@ -31,7 +31,10 @@ namespace dnv::vista::sdk
 		 * @param name The name of the location
 		 * @param definition An optional definition of the location
 		 */
-		inline explicit RelativeLocationsDto( char code, std::string name, std::optional<std::string> definition = std::nullopt ) noexcept;
+		inline explicit RelativeLocationsDto(
+			char code,
+			std::string name,
+			std::optional<std::string> definition = std::nullopt ) noexcept;
 
 		/** @brief Default constructor. */
 		RelativeLocationsDto() = default;

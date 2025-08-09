@@ -2,6 +2,9 @@
 
 #include "dnv/vista/sdk/UniversalIdBuilder.h"
 
+#include "dnv/vista/sdk/Config/UniversalIdConstants.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
+
 #include "dnv/vista/sdk/ImoNumber.h"
 #include "dnv/vista/sdk/LocalIdBuilder.h"
 #include "dnv/vista/sdk/LocalIdParsingErrorBuilder.h"
@@ -11,12 +14,6 @@
 
 namespace dnv::vista::sdk
 {
-	//=====================================================================
-	// Constants
-	//=====================================================================
-
-	const std::string UniversalIdBuilder::namingEntity = "data.dnv.com";
-
 	//=====================================================================
 	// UniversalIdBuilder class
 	//=====================================================================
@@ -43,21 +40,24 @@ namespace dnv::vista::sdk
 	std::string UniversalIdBuilder::toString() const
 	{
 		if ( !m_imoNumber.has_value() )
+		{
 			throw std::invalid_argument( "Invalid Universal Id state: Missing IMO Number" );
+		}
 
 		if ( !m_localIdBuilder.has_value() )
+		{
 			throw std::invalid_argument( "Invalid Universal Id state: Missing LocalId" );
+		}
 
-		std::string result;
-		/*  entity + "/" + IMO + localId estimate */
-		result.reserve( namingEntity.size() + 1 + 10 + 200 );
+		auto lease = utils::StringBuilderPool::instance();
+		auto builder = lease.builder();
 
-		result.append( namingEntity );
-		result.append( "/" );
-		result.append( m_imoNumber->toString() );
-		result.append( m_localIdBuilder->toString() );
+		builder.append( constants::universalId::NAMING_ENTITY );
+		builder.push_back( '/' );
+		builder.append( m_imoNumber->toString() );
+		builder.append( m_localIdBuilder->toString() );
 
-		return result;
+		return lease.toString();
 	}
 
 	//----------------------------------------------
@@ -77,10 +77,7 @@ namespace dnv::vista::sdk
 	// Build
 	//----------------------------
 
-	UniversalId UniversalIdBuilder::build() const
-	{
-		return UniversalId( *this );
-	}
+	UniversalId UniversalIdBuilder::build() const { return UniversalId( *this ); }
 
 	//----------------------------------------------
 	// Local id
@@ -235,7 +232,8 @@ namespace dnv::vista::sdk
 				break;
 
 			auto nextSlash = span.substr( i ).find( '/' );
-			std::string_view segment = ( nextSlash == std::string_view::npos ) ? span.substr( i ) : span.substr( i, nextSlash );
+			std::string_view segment = ( nextSlash == std::string_view::npos ) ? span.substr( i )
+																			   : span.substr( i, nextSlash );
 
 			switch ( state )
 			{
@@ -255,16 +253,20 @@ namespace dnv::vista::sdk
 				case LocalIdParsingState::EmptyState:
 				case LocalIdParsingState::Formatting:
 				case LocalIdParsingState::Completeness:
+				{
 					break;
+				}
 				case LocalIdParsingState::NamingEntity:
-					if ( segment != namingEntity )
+				{
+					if ( segment != constants::universalId::NAMING_ENTITY )
 					{
 						errorBuilder.addError(
-							state, std::string{ "Naming entity segment didnt match. Found: " } +
-									   std::string{ segment } );
+							state,
+							std::string{ "Naming entity segment didnt match. Found: " } + std::string{ segment } );
 						break;
 					}
 					break;
+				}
 				case LocalIdParsingState::IMONumber:
 				{
 					auto imoResult = ImoNumber::tryParse( segment );
@@ -292,9 +294,7 @@ namespace dnv::vista::sdk
 			return false;
 		}
 
-		universalIdBuilder.emplace( create( visVersion.value() )
-				.tryWithLocalId( localIdBuilder )
-				.tryWithImoNumber( imoNumber ) );
+		universalIdBuilder.emplace( create( visVersion.value() ).tryWithLocalId( localIdBuilder ).tryWithImoNumber( imoNumber ) );
 
 		errors = errorBuilder.build();
 

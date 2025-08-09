@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "config/CodebookConstants.h"
-#include "config/Platform.h"
+#include "Config/CodebookConstants.h"
+#include "Config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -23,17 +23,17 @@ namespace dnv::vista::sdk
 		};
 
 		static constexpr std::array<PrefixMapping, 11> s_prefixMappings{
-			{ { codebook::CODEBOOK_PREFIX_POSITION, CodebookName::Position },
-				{ codebook::CODEBOOK_PREFIX_QUANTITY, CodebookName::Quantity },
-				{ codebook::CODEBOOK_PREFIX_STATE, CodebookName::State },
-				{ codebook::CODEBOOK_PREFIX_CONTENT, CodebookName::Content },
-				{ codebook::CODEBOOK_PREFIX_COMMAND, CodebookName::Command },
-				{ codebook::CODEBOOK_PREFIX_TYPE, CodebookName::Type },
-				{ codebook::CODEBOOK_PREFIX_CALCULATION, CodebookName::Calculation },
-				{ codebook::CODEBOOK_PREFIX_DETAIL, CodebookName::Detail },
-				{ codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES, CodebookName::FunctionalServices },
-				{ codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY, CodebookName::MaintenanceCategory },
-				{ codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE, CodebookName::ActivityType } } };
+			{ { constants::codebook::CODEBOOK_PREFIX_POSITION, CodebookName::Position },
+				{ constants::codebook::CODEBOOK_PREFIX_QUANTITY, CodebookName::Quantity },
+				{ constants::codebook::CODEBOOK_PREFIX_STATE, CodebookName::State },
+				{ constants::codebook::CODEBOOK_PREFIX_CONTENT, CodebookName::Content },
+				{ constants::codebook::CODEBOOK_PREFIX_COMMAND, CodebookName::Command },
+				{ constants::codebook::CODEBOOK_PREFIX_TYPE, CodebookName::Type },
+				{ constants::codebook::CODEBOOK_PREFIX_CALCULATION, CodebookName::Calculation },
+				{ constants::codebook::CODEBOOK_PREFIX_DETAIL, CodebookName::Detail },
+				{ constants::codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES, CodebookName::FunctionalServices },
+				{ constants::codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY, CodebookName::MaintenanceCategory },
+				{ constants::codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE, CodebookName::ActivityType } } };
 	}
 
 	//=====================================================================
@@ -68,47 +68,47 @@ namespace dnv::vista::sdk
 		{
 			case CodebookName::Position:
 			{
-				return codebook::CODEBOOK_PREFIX_POSITION;
+				return constants::codebook::CODEBOOK_PREFIX_POSITION;
 			}
 			case CodebookName::Quantity:
 			{
-				return codebook::CODEBOOK_PREFIX_QUANTITY;
+				return constants::codebook::CODEBOOK_PREFIX_QUANTITY;
 			}
 			case CodebookName::Calculation:
 			{
-				return codebook::CODEBOOK_PREFIX_CALCULATION;
+				return constants::codebook::CODEBOOK_PREFIX_CALCULATION;
 			}
 			case CodebookName::State:
 			{
-				return codebook::CODEBOOK_PREFIX_STATE;
+				return constants::codebook::CODEBOOK_PREFIX_STATE;
 			}
 			case CodebookName::Content:
 			{
-				return codebook::CODEBOOK_PREFIX_CONTENT;
+				return constants::codebook::CODEBOOK_PREFIX_CONTENT;
 			}
 			case CodebookName::Command:
 			{
-				return codebook::CODEBOOK_PREFIX_COMMAND;
+				return constants::codebook::CODEBOOK_PREFIX_COMMAND;
 			}
 			case CodebookName::Type:
 			{
-				return codebook::CODEBOOK_PREFIX_TYPE;
+				return constants::codebook::CODEBOOK_PREFIX_TYPE;
 			}
 			case CodebookName::FunctionalServices:
 			{
-				return codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES;
+				return constants::codebook::CODEBOOK_PREFIX_FUNCTIONAL_SERVICES;
 			}
 			case CodebookName::MaintenanceCategory:
 			{
-				return codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY;
+				return constants::codebook::CODEBOOK_PREFIX_MAINTENANCE_CATEGORY;
 			}
 			case CodebookName::ActivityType:
 			{
-				return codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE;
+				return constants::codebook::CODEBOOK_PREFIX_ACTIVITY_TYPE;
 			}
 			case CodebookName::Detail:
 			{
-				return codebook::CODEBOOK_PREFIX_DETAIL;
+				return constants::codebook::CODEBOOK_PREFIX_DETAIL;
 			}
 			default:
 			{

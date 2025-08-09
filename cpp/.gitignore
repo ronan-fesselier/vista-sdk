@@ -1,7 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Generated files
-include/dnv/vista/sdk/config/version.h
+include/dnv/vista/sdk/Config/version.h
 
 # cpp build directory
 build/

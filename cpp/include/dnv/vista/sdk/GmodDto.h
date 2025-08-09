@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
+#include "Utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -51,15 +51,9 @@ namespace dnv::vista::sdk
 		 * @param installSubstructure Optional installation flag
 		 * @param normalAssignmentNames Optional assignment name mapping
 		 */
-		inline explicit GmodNodeDto(
-			std::string category,
-			std::string type,
-			std::string code,
-			std::string name,
-			std::optional<std::string> commonName = std::nullopt,
-			std::optional<std::string> definition = std::nullopt,
-			std::optional<std::string> commonDefinition = std::nullopt,
-			std::optional<bool> installSubstructure = std::nullopt,
+		inline explicit GmodNodeDto( std::string category, std::string type, std::string code, std::string name,
+			std::optional<std::string> commonName = std::nullopt, std::optional<std::string> definition = std::nullopt,
+			std::optional<std::string> commonDefinition = std::nullopt, std::optional<bool> installSubstructure = std::nullopt,
 			std::optional<NormalAssignmentNamesMap> normalAssignmentNames = std::nullopt ) noexcept;
 
 		/** @brief Default constructor. */
@@ -270,10 +264,7 @@ namespace dnv::vista::sdk
 		 * @param items Collection of GMOD node DTOs
 		 * @param relations Collection of relationships between nodes
 		 */
-		inline explicit GmodDto(
-			std::string visVersion,
-			Items items,
-			Relations relations ) noexcept;
+		inline explicit GmodDto( std::string visVersion, Items items, Relations relations ) noexcept;
 
 		/** @brief Default constructor. */
 		GmodDto() = default;

@@ -3,13 +3,10 @@
  * @brief Short string hash function performance comparison between different algorithms
  */
 
-#include "pch.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Utils/Hashing.h"
 
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
-#include "dnv/vista/sdk/utils/Hashing.h"
-
-using namespace dnv::vista::sdk;
 
 namespace dnv::vista::sdk::benchmarks
 {
@@ -75,24 +72,28 @@ namespace dnv::vista::sdk::benchmarks
 		switch ( length )
 		{
 			case 0:
+			{
 				return Hash1Start + ( Hash1Start * Factor );
-
+			}
 			case 1:
 				hash2 = ( ( Hash1Start << 5 ) + Hash1Start ) ^ static_cast<uint8_t>( data[0] );
-				return Hash1Start + ( hash2 * Factor );
-
+				{
+					return Hash1Start + ( hash2 * Factor );
+				}
 			case 2:
+			{
 				hash2 = ( ( Hash1Start << 5 ) + Hash1Start ) ^ static_cast<uint8_t>( data[0] );
 				hash2 = ( ( hash2 << 5 ) + hash2 ) ^ static_cast<uint8_t>( data[1] );
 				return Hash1Start + ( hash2 * Factor );
 
-			case 3:
-				hash2 = ( ( Hash1Start << 5 ) + Hash1Start ) ^ static_cast<uint8_t>( data[0] );
-				hash2 = ( ( hash2 << 5 ) + hash2 ) ^ static_cast<uint8_t>( data[1] );
-				hash2 = ( ( hash2 << 5 ) + hash2 ) ^ static_cast<uint8_t>( data[2] );
-				return Hash1Start + ( hash2 * Factor );
-
+				case 3:
+					hash2 = ( ( Hash1Start << 5 ) + Hash1Start ) ^ static_cast<uint8_t>( data[0] );
+					hash2 = ( ( hash2 << 5 ) + hash2 ) ^ static_cast<uint8_t>( data[1] );
+					hash2 = ( ( hash2 << 5 ) + hash2 ) ^ static_cast<uint8_t>( data[2] );
+					return Hash1Start + ( hash2 * Factor );
+			}
 			default:
+			{
 				hash1 = Hash1Start;
 				hash2 = hash1;
 
@@ -113,6 +114,7 @@ namespace dnv::vista::sdk::benchmarks
 				}
 
 				return hash1 + ( hash2 * Factor );
+			}
 		}
 	}
 
@@ -260,53 +262,18 @@ namespace dnv::vista::sdk::benchmarks
 		}
 	}
 
-	BENCHMARK( BM_bcl_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_bcl_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_bclOrd_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_bclOrd_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_Larson_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_Larson_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_crc32Intrinsic_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_crc32Intrinsic_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_fnv_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_fnv_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_HashCode_400 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
-
-	BENCHMARK( BM_HashCode_H346_11112 )
-		->MinTime( 10.0 )
-		->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_bcl_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_bcl_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_bclOrd_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_bclOrd_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_Larson_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_Larson_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_crc32Intrinsic_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_crc32Intrinsic_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_fnv_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_fnv_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_HashCode_400 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
+	BENCHMARK( BM_HashCode_H346_11112 )->MinTime( 10.0 )->Unit( benchmark::kNanosecond );
 }
 
 BENCHMARK_MAIN();

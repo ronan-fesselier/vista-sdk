@@ -2,6 +2,8 @@
 
 #include "dnv/vista/sdk/UniversalId.h"
 
+#include "dnv/vista/sdk/Config/UniversalIdConstants.h"
+
 #include "dnv/vista/sdk/ImoNumber.h"
 #include "dnv/vista/sdk/LocalId.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
@@ -35,7 +37,7 @@ namespace dnv::vista::sdk
 	{
 		std::ostringstream oss;
 
-		oss << UniversalIdBuilder::namingEntity;
+		oss << constants::universalId::NAMING_ENTITY;
 		oss << "/" << m_imoNumber.toString();
 		oss << m_localId.toString();
 

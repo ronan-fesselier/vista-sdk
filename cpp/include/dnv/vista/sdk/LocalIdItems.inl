@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/LocalIdConstants.h"
+#include "Config/LocalIdConstants.h"
 
 namespace dnv::vista::sdk
 {
@@ -14,12 +14,35 @@ namespace dnv::vista::sdk
 	//=====================================================================
 
 	//----------------------------------------------
+	// Construction
+	//----------------------------------------------
+
+	inline LocalIdItems::LocalIdItems( GmodPath&& primaryItem, std::optional<GmodPath>&& secondaryItem )
+		: m_primaryItem{ std::move( primaryItem ) },
+		  m_secondaryItem{ std::move( secondaryItem ) }
+	{
+	}
+
+	inline LocalIdItems::LocalIdItems( LocalIdItems&& other, GmodPath&& newPrimaryItem )
+		: m_primaryItem{ std::move( newPrimaryItem ) },
+		  m_secondaryItem{ std::move( other.m_secondaryItem ) }
+	{
+	}
+
+	inline LocalIdItems::LocalIdItems( LocalIdItems&& other, std::optional<GmodPath>&& newSecondaryItem )
+		: m_primaryItem{ std::move( other.m_primaryItem ) },
+		  m_secondaryItem{ std::move( newSecondaryItem ) }
+	{
+	}
+
+	//----------------------------------------------
 	// Comparison operators
 	//----------------------------------------------
 
 	inline bool LocalIdItems::operator==( const LocalIdItems& other ) const noexcept
 	{
-		return m_primaryItem == other.m_primaryItem && m_secondaryItem == other.m_secondaryItem;
+		return m_primaryItem == other.m_primaryItem &&
+			   m_secondaryItem == other.m_secondaryItem;
 	}
 
 	inline bool LocalIdItems::operator!=( const LocalIdItems& other ) const noexcept
@@ -43,7 +66,8 @@ namespace dnv::vista::sdk
 
 	inline bool LocalIdItems::isEmpty() const noexcept
 	{
-		return !m_primaryItem.has_value() && !m_secondaryItem.has_value();
+		return !m_primaryItem.has_value() &&
+			   !m_secondaryItem.has_value();
 	}
 
 	//=====================================================================
@@ -66,7 +90,7 @@ namespace dnv::vista::sdk
 
 		if ( m_secondaryItem )
 		{
-			builder.append( localId::PREFIX_SEC );
+			builder.append( constants::localId::PREFIX_SEC );
 			builder.push_back( '/' );
 			m_secondaryItem->toString( builder );
 			builder.push_back( '/' );
@@ -100,12 +124,12 @@ namespace dnv::vista::sdk
 				{
 					if ( isFirstSecondary )
 					{
-						builder.append( localId::PREFIX_FOR );
+						builder.append( constants::localId::PREFIX_FOR );
 						isFirstSecondary = false;
 					}
 					else
 					{
-						builder.append( localId::PREFIX_TILDE );
+						builder.append( constants::localId::PREFIX_TILDE );
 					}
 
 					const GmodNode& nodeRef = ( *m_secondaryItem )[depth];

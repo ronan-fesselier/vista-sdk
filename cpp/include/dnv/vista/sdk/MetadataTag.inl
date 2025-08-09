@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "config/Platform.h"
+#include "Config/Platform.h"
 
 namespace dnv::vista::sdk
 {
@@ -58,7 +58,8 @@ namespace dnv::vista::sdk
 
 	inline char MetadataTag::prefix() const noexcept
 	{
-		return m_custom ? '~' : '-';
+		return m_custom ? '~'
+						: '-';
 	}
 
 	VISTA_SDK_CPP_FORCE_INLINE int MetadataTag::hashCode() const noexcept

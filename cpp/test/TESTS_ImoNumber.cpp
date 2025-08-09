@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/ImoNumber.h"
 
-namespace dnv::vista::sdk
+namespace dnv::vista::sdk::test
 {
 	class ImoNumberTests : public ::testing::Test
 	{
@@ -23,12 +23,8 @@ namespace dnv::vista::sdk
 
 		virtual void SetUp() override
 		{
-			std::vector<std::string> possiblePaths = {
-				"testdata/ImoNumbers.json",
-				"../testdata/ImoNumbers.json",
-				"../../testdata/ImoNumbers.json",
-				"../../../testdata/ImoNumbers.json",
-				"./ImoNumbers.json" };
+			std::vector<std::string> possiblePaths = { "testdata/ImoNumbers.json", "../testdata/ImoNumbers.json", "../../testdata/ImoNumbers.json",
+				"../../../testdata/ImoNumbers.json", "./ImoNumbers.json" };
 
 			std::ifstream file;
 			std::string attemptedPaths;

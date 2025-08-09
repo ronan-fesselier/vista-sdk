@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "utils/StringMap.h"
+#include "Utils/StringMap.h"
 
 namespace dnv::vista::sdk
 {
@@ -61,13 +61,16 @@ namespace dnv::vista::sdk
 
 	inline const std::vector<VisVersion>& VisVersionExtensions::allVersions()
 	{
-		static const std::vector<VisVersion> versions = {
-			VisVersion::v3_4a,
-			VisVersion::v3_5a,
-			VisVersion::v3_6a,
-			VisVersion::v3_7a,
-			VisVersion::v3_8a,
-			VisVersion::v3_9a };
+		static const std::vector<VisVersion> versions = []() {
+			std::vector<VisVersion> result;
+
+			for ( VisVersion v = VisVersion::v3_4a; v <= VisVersion::LATEST; v = v + 1 )
+			{
+				result.push_back( v );
+			}
+
+			return result;
+		}();
 
 		return versions;
 	}
@@ -82,19 +85,33 @@ namespace dnv::vista::sdk
 		switch ( version )
 		{
 			case VisVersion::v3_4a:
+			{
 				return "vis-3-4a";
+			}
 			case VisVersion::v3_5a:
+			{
 				return "vis-3-5a";
+			}
 			case VisVersion::v3_6a:
+			{
 				return "vis-3-6a";
+			}
 			case VisVersion::v3_7a:
+			{
 				return "vis-3-7a";
+			}
 			case VisVersion::v3_8a:
+			{
 				return "vis-3-8a";
+			}
 			case VisVersion::v3_9a:
+			{
 				return "vis-3-9a";
+			}
 			case VisVersion::Unknown:
+			{
 				return "Unknown";
+			}
 			default:
 			{
 				throw std::invalid_argument( "Invalid VIS version: " + std::to_string( static_cast<int>( version ) ) );
@@ -104,7 +121,7 @@ namespace dnv::vista::sdk
 
 	inline bool VisVersionExtensions::tryParse( std::string_view versionString, VisVersion& version )
 	{
-		static const utils::StringMap<VisVersion> versionMap = {
+		static const utils::StringMap<VisVersion> versionMap{
 			{ "3.4a", VisVersion::v3_4a },
 			{ "3.5a", VisVersion::v3_5a },
 			{ "3.6a", VisVersion::v3_6a },

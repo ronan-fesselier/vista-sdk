@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "internal/HashMap.h"
-#include "utils/StringUtils.h"
+#include "Internal/HashMap.h"
+#include "Utils/StringUtils.h"
 
-#include "GmodVersioningDto.h"
-#include "GmodPath.h"
 #include "LocalId.h"
+#include "GmodPath.h"
+#include "GmodVersioningDto.h"
 
 namespace dnv::vista::sdk
 {
@@ -82,8 +82,7 @@ namespace dnv::vista::sdk
 		 * @brief Convert a GmodNode from one version to a higher version
 		 * @throws std::invalid_argument If targetVersion is not higher than sourceVersion
 		 */
-		[[nodiscard]] std::optional<GmodNode> convertNode(
-			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
+		[[nodiscard]] std::optional<GmodNode> convertNode( VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a GmodNode with cached target GMOD
@@ -100,8 +99,7 @@ namespace dnv::vista::sdk
 		 * @return An optional containing the converted GmodPath if successful, otherwise std::nullopt.
 		 * @throws std::invalid_argument if source or target versions are invalid or source >= target.
 		 */
-		[[nodiscard]] std::optional<GmodPath> convertPath(
-			VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const;
+		[[nodiscard]] std::optional<GmodPath> convertPath( VisVersion sourceVersion, const GmodPath& sourcePath, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Convert a LocalIdBuilder from one version to a higher version
@@ -160,8 +158,7 @@ namespace dnv::vista::sdk
 			/**
 			 * @brief Constructor for GmodVersioningNode
 			 */
-			GmodVersioningNode( VisVersion visVersion,
-				const utils::StringMap<GmodNodeConversionDto>& dto );
+			GmodVersioningNode( VisVersion visVersion, const utils::StringMap<GmodNodeConversionDto>& dto );
 
 			/** @brief Default constructor. */
 			GmodVersioningNode() = default;
@@ -226,7 +223,8 @@ namespace dnv::vista::sdk
 		 * @brief Internal implementation for converting a node between adjacent versions
 		 */
 		[[nodiscard]] std::optional<GmodNode> convertNodeInternal(
-			VisVersion sourceVersion, const GmodNode& sourceNode, VisVersion targetVersion ) const;
+			VisVersion sourceVersion,
+			const GmodNode& sourceNode, VisVersion targetVersion ) const;
 
 		/**
 		 * @brief Internal implementation for converting a node with cached GMOD
