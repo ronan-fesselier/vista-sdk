@@ -4,9 +4,7 @@
  * @details Validates pooled string building functionality and resource management
  */
 
-#include "pch.h"
-
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk::utils
 {

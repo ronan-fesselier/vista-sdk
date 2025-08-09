@@ -3,25 +3,37 @@
 # ==============================================================================
 
 set(PUBLIC_HEADERS
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/AlgorithmConstants.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/CodebookConstants.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/DtoKeys.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/GmodConstants.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/LocalIdConstants.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/LocationsConstants.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/Platform.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/config/version.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/AlgorithmConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/CodebookConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/Decimal128Constants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/DtoKeys.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/GmodConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/ISO19848Constants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/LocalIdConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/LocationsConstants.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/Platform.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Config/version.h
 
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/Hashing.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringBuilderPool.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringMap.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/utils/StringUtils.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/DataTypes/Decimal128.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/DataTypes/Decimal128.inl
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/DataTypes/Int128.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/DataTypes/Int128.inl
 
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/HashMap.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/MemoryCache.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/PathConversionCache.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/ChdDictionary.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/internal/ChdDictionary.inl
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Internal/HashMap.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Internal/MemoryCache.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Internal/PathConversionCache.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Internal/ChdDictionary.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Internal/ChdDictionary.inl
+
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848.inl
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.inl
+
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Utils/Hashing.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Utils/StringBuilderPool.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Utils/StringMap.h
+	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Utils/StringUtils.h
 
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Codebook.inl
@@ -74,15 +86,18 @@ set(PUBLIC_HEADERS
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VIS.h
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VIS.inl
 	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/VISVersion.h
-
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.h
-	${VISTA_SDK_CPP_INCLUDE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.inl
 )
 
 set(PRIVATE_HEADERS
 )
 
 set(PRIVATE_SOURCES
+	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/DataTypes/Decimal128.cpp
+	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/DataTypes/Int128.cpp
+
+	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Transport/ISO19848.cpp
+	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.cpp
+
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Codebook.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Codebooks.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/CodebooksDto.cpp
@@ -107,6 +122,4 @@ set(PRIVATE_SOURCES
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/UniversalIdBuilder.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/UniversalId.cpp
 	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/VIS.cpp
-
-	${VISTA_SDK_CPP_SOURCE_DIR}/dnv/vista/sdk/Transport/ISO19848Dtos.cpp
 )

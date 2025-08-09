@@ -59,3 +59,33 @@
 #else
 #	define VISTA_SDK_CPP_NO_UNIQUE_ADDRESS
 #endif
+
+//----------------------------------------------
+// Cross-platform 128-bit integer support for Decimal implementation
+//----------------------------------------------
+
+/**
+ * @brief Cross-platform 128-bit integer support detection
+ * @details Detects native __int128 support for high-performance decimal arithmetic.
+ *          - GCC/Clang: Native __int128 support since GCC 4.6+ and Clang 3.1+
+ *          - MSVC: No native 128-bit support, requires manual implementation
+ */
+#if defined( __SIZEOF_INT128__ ) && !defined( _MSC_VER )
+/* GCC and Clang have native __int128 support */
+#	define VISTA_SDK_CPP_HAS_INT128 1
+#	define VISTA_SDK_CPP_INT128 __int128
+#	define VISTA_SDK_CPP_UINT128 unsigned __int128
+#else
+/* MSVC and other compilers without native 128-bit support */
+#	define VISTA_SDK_CPP_HAS_INT128 0
+/* For manual 128-bit implementation, we'll use our custom Int128 struct */
+#endif
+
+/** @brief Conditional compilation helper for 128-bit specific code paths */
+#if VISTA_SDK_CPP_HAS_INT128
+#	define VISTA_SDK_CPP_IF_INT128( code ) code
+#	define VISTA_SDK_CPP_IF_NO_INT128( code )
+#else
+#	define VISTA_SDK_CPP_IF_INT128( code )
+#	define VISTA_SDK_CPP_IF_NO_INT128( code ) code
+#endif

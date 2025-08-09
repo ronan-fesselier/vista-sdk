@@ -6,7 +6,7 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/GmodVersioning.h"
-#include "dnv/vista/sdk/internal/PathConversionCache.h"
+#include "dnv/vista/sdk/Internal/PathConversionCache.h"
 
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/GmodNode.h"

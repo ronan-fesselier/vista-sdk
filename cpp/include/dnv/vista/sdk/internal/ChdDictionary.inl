@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/AlgorithmConstants.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Config/AlgorithmConstants.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 namespace dnv::vista::sdk::internal
 {

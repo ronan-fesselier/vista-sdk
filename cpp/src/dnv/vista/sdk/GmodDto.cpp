@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/GmodDto.h"
 
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Config/DtoKeys.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -1015,7 +1015,7 @@ namespace dnv::vista::sdk
 						auto builder = lease.builder();
 						builder.append( "ERROR: Failed to parse GMOD relation in collection during from_json: " );
 						builder.append( ex.what() );
-						
+
 						throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &relationJson );
 					}
 				}
@@ -1024,7 +1024,7 @@ namespace dnv::vista::sdk
 					auto lease = utils::StringBuilderPool::instance();
 					auto builder = lease.builder();
 					builder.append( "ERROR: GMOD relation must be an array during from_json" );
-					
+
 					throw nlohmann::json::parse_error::create( 203, 0u, lease.toString(), &relationJson );
 				}
 			}

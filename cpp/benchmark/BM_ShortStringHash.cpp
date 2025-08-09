@@ -6,8 +6,8 @@
 #include "pch.h"
 
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
-#include "dnv/vista/sdk/utils/Hashing.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Utils/Hashing.h"
 
 using namespace dnv::vista::sdk;
 

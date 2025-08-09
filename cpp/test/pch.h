@@ -3,6 +3,8 @@
 #include <immintrin.h>
 
 /* STL */
+#include <charconv>
+#include <stdexcept>
 #include <fstream>
 #include <future>
 #include <queue>

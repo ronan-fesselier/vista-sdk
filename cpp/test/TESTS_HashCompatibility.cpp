@@ -9,8 +9,8 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 namespace dnv::vista::sdk
 {

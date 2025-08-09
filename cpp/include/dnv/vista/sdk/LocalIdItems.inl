@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/LocalIdConstants.h"
+#include "dnv/vista/sdk/Config/LocalIdConstants.h"
 
 namespace dnv::vista::sdk
 {

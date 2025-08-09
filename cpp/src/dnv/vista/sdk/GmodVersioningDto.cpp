@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/GmodVersioningDto.h"
 
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Config/DtoKeys.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
@@ -300,7 +300,6 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodNodeConversionDto& dto )
 	{
-
 		const auto opsIt = j.find( dto::GMODVERSIONING_DTO_KEY_OPERATIONS );
 		if ( opsIt != j.end() )
 		{
@@ -568,7 +567,6 @@ namespace dnv::vista::sdk
 
 	void from_json( const nlohmann::json& j, GmodVersioningDto& dto )
 	{
-
 		const auto visReleaseIt = j.find( dto::GMODVERSIONING_DTO_KEY_VIS_RELEASE );
 		if ( visReleaseIt == j.end() || !visReleaseIt->is_string() )
 		{

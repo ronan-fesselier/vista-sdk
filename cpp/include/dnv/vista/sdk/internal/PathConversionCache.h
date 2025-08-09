@@ -11,7 +11,7 @@
 
 #include "dnv/vista/sdk/GmodPath.h"
 #include "dnv/vista/sdk/VISVersion.h"
-#include "dnv/vista/sdk/utils/Hashing.h"
+#include "dnv/vista/sdk/Utils/Hashing.h"
 
 namespace dnv::vista::sdk::internal
 {

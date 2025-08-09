@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/ImoNumber.h"
 
-#include "dnv/vista/sdk/config/AlgorithmConstants.h"
+#include "dnv/vista/sdk/Config/AlgorithmConstants.h"
 
 namespace dnv::vista::sdk
 {

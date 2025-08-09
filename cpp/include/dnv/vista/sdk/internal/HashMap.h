@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/Platform.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Config/Platform.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 namespace dnv::vista::sdk::internal
 {

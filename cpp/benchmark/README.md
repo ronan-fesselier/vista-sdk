@@ -722,4 +722,96 @@ Performance comparison between different C++ access methods for Vista SDK codebo
 
 ---
 
-_Last updated: August 3, 2025_
+## 128bits Integer
+
+**Performance Comparison:** 128-bit signed integer arithmetic vs native 64-bit integer operations
+
+| **Operation Category**    | **Benchmark**             | **WIN32 MSVC 17.14.10** | **Performance vs Int64** |
+| :------------------------ | :------------------------ | :---------------------- | :----------------------- |
+| **Construction**          |                           |                         |                          |
+|                           | Default Constructor       | 1398.6M ops/s           |                          |
+|                           | From Uint64               | 1061.9M ops/s           |                          |
+|                           | From Int64                | 975.2M ops/s            |                          |
+|                           | From Low/High             | 724.0M ops/s            |                          |
+| **Arithmetic Operations** |                           |                         |                          |
+|                           | **Int128 Addition**       | **579.2M ops/s**        | **1.37x slower**         |
+|                           | **Int64 Addition**        | **796.4M ops/s**        | **(baseline)**           |
+|                           | **Int128 Subtraction**    | **579.2M ops/s**        | **1.37x slower**         |
+|                           | **Int64 Subtraction**     | **796.4M ops/s**        | **(baseline)**           |
+|                           | **Int128 Multiplication** | **325.8M ops/s**        | **2.34x slower**         |
+|                           | **Int64 Multiplication**  | **762.6M ops/s**        | **(baseline)**           |
+|                           | **Int128 Division**       | **108.2M ops/s**        | **3.92x slower**         |
+|                           | **Int64 Division**        | **424.8M ops/s**        | **(baseline)**           |
+|                           | **Int128 Modulo**         | **77.9M ops/s**         | **5.35x slower**         |
+|                           | **Int64 Modulo**          | **416.7M ops/s**        | **(baseline)**           |
+|                           | **Int128 Unary Minus**    | **779.1M ops/s**        | **1.28x slower**         |
+|                           | **Int64 Unary Minus**     | **999.0M ops/s**        | **(baseline)**           |
+| **Comparison Operations** |                           |                         |                          |
+|                           | **Int128 Equality**       | **716.8M ops/s**        | **1.05x slower**         |
+|                           | **Int64 Equality**        | **682.7M ops/s**        | **(baseline)**           |
+|                           | **Int128 Less Than**      | **666.8M ops/s**        | **1.07x slower**         |
+|                           | **Int64 Less Than**       | **716.8M ops/s**        | **(baseline)**           |
+|                           | Int128 Greater Than       | 677.8M ops/s            |                          |
+| **State Operations**      |                           |                         |                          |
+|                           | IsZero()                  | 853.3M ops/s            |                          |
+|                           | IsNegative()              | 937.0M ops/s            |                          |
+|                           | AbsoluteValue()           | 796.4M ops/s            |                          |
+| **Access Operations**     |                           |                         |                          |
+|                           | ToLow()                   | 995.6M ops/s            |                          |
+|                           | ToHigh()                  | 1016.7M ops/s           |                          |
+| **Complex Operations**    |                           |                         |                          |
+|                           | Chained Arithmetic        | 225.9M ops/s            |                          |
+|                           | Fast Path 64-bit          | 266.7M ops/s            |                          |
+
+---
+
+## 128bits Decimal
+
+**Performance Comparison:** High-precision 128-bit decimal arithmetic vs native double operations
+
+| **Operation Category**     | **Benchmark**              | **WIN32 MSVC 17.14.10** | **Performance vs Double** |
+| :------------------------- | :------------------------- | :---------------------- | :------------------------ |
+| **Construction**           |                            |                         |                           |
+|                            | From Int32                 | 383.3M ops/s            |                           |
+|                            | From Int64                 | 215.1M ops/s            |                           |
+|                            | From Double                | 56.9M ops/s             |                           |
+|                            | From String                | 31.0M ops/s             |                           |
+|                            | Copy Constructor           | 1433.6M ops/s           |                           |
+| **Arithmetic Operations**  |                            |                         |                           |
+|                            | **Decimal Addition**       | **40.7M ops/s**         | **35x slower**            |
+|                            | **Double Addition**        | **1405.5M ops/s**       | **(baseline)**            |
+|                            | **Decimal Subtraction**    | **40.2M ops/s**         | **35x slower**            |
+|                            | **Double Subtraction**     | **1398.6M ops/s**       | **(baseline)**            |
+|                            | **Decimal Multiplication** | **81.7M ops/s**         | **17x slower**            |
+|                            | **Double Multiplication**  | **1405.5M ops/s**       | **(baseline)**            |
+|                            | **Decimal Division**       | **111.1M ops/s**        | **13x slower**            |
+|                            | **Double Division**        | **1405.5M ops/s**       | **(baseline)**            |
+|                            | In-place Addition (+=)     | 58.3M ops/s             |                           |
+| **Comparison Operations**  |                            |                         |                           |
+|                            | Equality (==)              | 72.4M ops/s             |                           |
+|                            | Less Than (<)              | 69.3M ops/s             |                           |
+| **Mathematical Functions** |                            |                         |                           |
+|                            | Absolute Value             | 124.7M ops/s            |                           |
+|                            | Round (to 2 places)        | 15.3M ops/s             |                           |
+|                            | Truncate                   | 14.6M ops/s             |                           |
+|                            | Floor                      | 14.6M ops/s             |                           |
+|                            | Ceiling                    | 14.3M ops/s             |                           |
+| **String Conversions**     |                            |                         |                           |
+|                            | **Decimal ToString**       | **24.0M ops/s**         | **6.8x faster**           |
+|                            | **Double ToString**        | **3.5M ops/s**          | **(baseline)**            |
+|                            | Decimal ToDouble           | 303.4M ops/s            |                           |
+|                            | Decimal ToBits             | 435.7M ops/s            |                           |
+| **String Parsing**         |                            |                         |                           |
+|                            | Parse Valid Strings        | 32.8M ops/s             |                           |
+|                            | Parse Invalid Strings      | 97.5M ops/s             |                           |
+| **Property Access**        |                            |                         |                           |
+|                            | IsZero()                   | 444.5M ops/s            |                           |
+|                            | IsNegative()               | 459.5M ops/s            |                           |
+|                            | Scale()                    | 455.1M ops/s            |                           |
+| **Real-World Scenarios**   |                            |                         |                           |
+|                            | Financial Calculation      | 4.7M ops/s              |                           |
+|                            | Summation Accuracy         | 62.5k ops/s             |                           |
+
+---
+
+_Last updated: August 9, 2025_

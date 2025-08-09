@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/CodebookConstants.h"
+#include "dnv/vista/sdk/Config/CodebookConstants.h"
 
 #include "StringUtils.h"
 

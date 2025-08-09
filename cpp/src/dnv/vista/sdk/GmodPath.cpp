@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/GmodPath.h"
 
-#include "dnv/vista/sdk/utils/StringUtils.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 #include "dnv/vista/sdk/Locations.h"
 #include "dnv/vista/sdk/VIS.h"

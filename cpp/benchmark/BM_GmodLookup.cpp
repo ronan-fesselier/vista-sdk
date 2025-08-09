@@ -5,8 +5,8 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/internal/HashMap.h"
-#include "dnv/vista/sdk/utils/StringUtils.h"
+#include "dnv/vista/sdk/Internal/HashMap.h"
+#include "dnv/vista/sdk/Utils/StringUtils.h"
 
 #include "dnv/vista/sdk/Gmod.h"
 #include "dnv/vista/sdk/VIS.h"

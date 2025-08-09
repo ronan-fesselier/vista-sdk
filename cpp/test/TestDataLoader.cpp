@@ -5,7 +5,7 @@
 
 #include "pch.h"
 
-#include "dnv/vista/sdk/internal/HashMap.h"
+#include "dnv/vista/sdk/Internal/HashMap.h"
 
 #include "TestDataLoader.h"
 

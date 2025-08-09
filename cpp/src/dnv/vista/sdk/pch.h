@@ -9,6 +9,7 @@
 #include <bitset>
 #include <cctype>
 #include <charconv>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>

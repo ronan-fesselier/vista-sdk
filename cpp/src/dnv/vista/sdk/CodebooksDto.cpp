@@ -7,8 +7,8 @@
 
 #include "dnv/vista/sdk/CodebooksDto.h"
 
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Config/DtoKeys.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {

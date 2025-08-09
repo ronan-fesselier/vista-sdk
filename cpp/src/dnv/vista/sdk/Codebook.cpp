@@ -7,7 +7,7 @@
 
 #include "dnv/vista/sdk/Codebook.h"
 
-#include "dnv/vista/sdk/config/CodebookConstants.h"
+#include "dnv/vista/sdk/Config/CodebookConstants.h"
 
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/MetadataTag.h"

@@ -6,8 +6,8 @@
 #include "dnv/vista/sdk/pch.h"
 
 #include "dnv/vista/sdk/Transport/ISO19848Dtos.h"
-#include "dnv/vista/sdk/config/DtoKeys.h"
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Config/DtoKeys.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {

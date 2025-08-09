@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "dnv/vista/sdk/config/Platform.h"
+#include "dnv/vista/sdk/Config/Platform.h"
 
 namespace dnv::vista::sdk::utils
 {
@@ -285,5 +285,64 @@ namespace dnv::vista::sdk::utils
 	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE StringViewSplitter splitView( std::string_view str, char delimiter ) noexcept
 	{
 		return StringViewSplitter( str, delimiter );
+	}
+
+	//=====================================================================
+	// High-performance parsing utilities
+	//=====================================================================
+
+	/**
+	 * @brief Fast integer parsing with error handling
+	 * @param str String to parse
+	 * @param result Output integer value
+	 * @return True if parsing succeeded, false otherwise
+	 */
+	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE bool tryParseInt( std::string_view str, int& result ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return false;
+		}
+
+		const auto parseResult = std::from_chars( str.data(), str.data() + str.size(), result );
+		return parseResult.ec == std::errc{} && parseResult.ptr == str.data() + str.size();
+	}
+
+	/**
+	 * @brief Fast double parsing with error handling
+	 * @param str String to parse
+	 * @param result Output double value
+	 * @return True if parsing succeeded, false otherwise
+	 */
+	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE bool tryParseDouble( std::string_view str, double& result ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return false;
+		}
+
+		const auto parseResult = std::from_chars( str.data(), str.data() + str.size(), result );
+		return parseResult.ec == std::errc{} && parseResult.ptr == str.data() + str.size();
+	}
+
+	/**
+	 * @brief Fast boolean parsing with error handling
+	 * @param str String to parse
+	 * @param result Output boolean value
+	 * @return True if parsing succeeded, false otherwise
+	 */
+	[[nodiscard]] VISTA_SDK_CPP_FORCE_INLINE bool tryParseBool( std::string_view str, bool& result ) noexcept
+	{
+		if ( str == "true" )
+		{
+			result = true;
+			return true;
+		}
+		else if ( str == "false" )
+		{
+			result = false;
+			return true;
+		}
+		return false;
 	}
 }

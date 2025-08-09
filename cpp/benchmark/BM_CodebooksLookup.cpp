@@ -21,9 +21,9 @@
 #include "dnv/vista/sdk/Codebook.h"
 #include "dnv/vista/sdk/Codebooks.h"
 #include "dnv/vista/sdk/CodebookName.h"
-#include "dnv/vista/sdk/internal/ChdDictionary.h"
+#include "dnv/vista/sdk/Internal/ChdDictionary.h"
 #include "dnv/vista/sdk/VIS.h"
-#include "dnv/vista/sdk/utils/Hashing.h"
+#include "dnv/vista/sdk/Utils/Hashing.h"
 
 using namespace dnv::vista::sdk;
 

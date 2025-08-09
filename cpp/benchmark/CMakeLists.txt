@@ -16,6 +16,9 @@ endif()
 
 # --- Benchmarks source files ---
 set(BENCHMARK_SOURCES
+	DataTypes/BM_Decimal128.cpp
+	DataTypes/BM_Int128.cpp
+
 	BM_CodebooksLookup.cpp
 	BM_GmodLoad.cpp
 	BM_GmodLookup.cpp
@@ -23,6 +26,7 @@ set(BENCHMARK_SOURCES
 	BM_GmodTraversal.cpp
 	BM_GmodVersioningConvertPath.cpp
 	BM_ShortStringHash.cpp
+
 )
 
 # --- Configure benchmark executables ---

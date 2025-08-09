@@ -7,13 +7,13 @@
 
 #include "dnv/vista/sdk/Locations.h"
 
-#include "dnv/vista/sdk/config/LocationsConstants.h"
+#include "dnv/vista/sdk/Config/LocationsConstants.h"
 
 #include "dnv/vista/sdk/LocationParsingErrorBuilder.h"
 #include "dnv/vista/sdk/ParsingErrors.h"
 #include "dnv/vista/sdk/VISVersion.h"
 
-#include "dnv/vista/sdk/utils/StringBuilderPool.h"
+#include "dnv/vista/sdk/Utils/StringBuilderPool.h"
 
 namespace dnv::vista::sdk
 {
