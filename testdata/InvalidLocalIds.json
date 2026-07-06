@@ -113,6 +113,12 @@
                 "Invalid or missing '/meta' prefix after Primary item",
                 "No metadata tags specified. Local IDs require atleast 1 metadata tag."
             ]
+        },
+        {
+            "input": "/dnv-v2/vis-3-10a/410/411.1/C101/meta/qty-temperature",
+            "expectedErrorMessages": [
+                "Invalid GmodPath in Primary item: 410/411.1/C101"
+            ]
         }
     ]
 }

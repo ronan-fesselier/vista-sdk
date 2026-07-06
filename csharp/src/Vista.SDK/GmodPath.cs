@@ -580,24 +580,40 @@ public sealed record GmodPath
 
         item = item!.Trim().TrimStart('/');
 
+        var partStrings = item.Split('/');
+
         var parts = new Queue<PathNode>();
-        foreach (var partStr in item.Split('/'))
+        for (var partIndex = 0; partIndex < partStrings.Length; partIndex++)
         {
+            var partStr = partStrings[partIndex];
+            var isTargetNode = partIndex == partStrings.Length - 1;
+
+            GmodNode node;
+            Location? location = null;
             if (partStr.Contains('-'))
             {
                 var split = partStr.Split('-');
-                if (!gmod.TryGetNode(split[0], out _))
+                if (!gmod.TryGetNode(split[0], out node!))
                     return new GmodParsePathResult.Err($"Failed to get GmodNode for {partStr}");
-                if (!locations.TryParse(split[1], out var location))
+                if (!locations.TryParse(split[1], out var parsedLocation))
                     return new GmodParsePathResult.Err($"Failed to parse location {split[1]}");
-                parts.Enqueue(new PathNode(split[0], location));
+                location = parsedLocation;
             }
             else
             {
-                if (!gmod.TryGetNode(partStr, out _))
+                if (!gmod.TryGetNode(partStr, out node!))
                     return new GmodParsePathResult.Err($"Failed to get GmodNode for {partStr}");
-                parts.Enqueue(new PathNode(partStr));
             }
+
+            // In a short GmodPath only leaf nodes are listed as parents (see ToString).
+            // The final part is the target node and may be any node type, but every
+            // preceding part must be a leaf node - otherwise it is not a valid short path.
+            if (!isTargetNode && !Gmod.IsLeafNode(node.Metadata))
+                return new GmodParsePathResult.Err(
+                    $"{node.Code} should not be present in the path because it is not a leaf node or the target node. Only leaf nodes and the target node should be present in the path."
+                );
+
+            parts.Enqueue(new PathNode(node.Code, location));
         }
 
         if (parts.Count == 0)

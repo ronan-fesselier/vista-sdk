@@ -397,11 +397,18 @@ export class GmodPath {
 
             const parts: PathNode[] = [];
 
-            for (const partStr of item.split("/")) {
+            const partStrings = item.split("/");
+            for (let partIndex = 0; partIndex < partStrings.length; partIndex++) {
+                const partStr = partStrings[partIndex];
+                const isTargetNode = partIndex === partStrings.length - 1;
+
+                let node: GmodNode | undefined;
+                let location: Location | undefined;
                 if (partStr.includes("-")) {
                     const split = partStr.split("-");
                     const parsedLocation = locations.tryParse(split[1]);
-                    if (!gmod.tryGetNode(split[0]))
+                    node = gmod.tryGetNode(split[0]);
+                    if (!node)
                         return new GmodParsePathResult.Err(
                             `Failed to get GmodNode for ${split[0]}`,
                         );
@@ -409,14 +416,24 @@ export class GmodPath {
                         return new GmodParsePathResult.Err(
                             `Failed to parse location ${split[1]}`,
                         );
-                    parts.push({ code: split[0], location: parsedLocation });
+                    location = parsedLocation;
                 } else {
-                    if (!gmod.tryGetNode(partStr))
+                    node = gmod.tryGetNode(partStr);
+                    if (!node)
                         return new GmodParsePathResult.Err(
                             `Failed to get GmodNode for ${partStr}`,
                         );
-                    parts.push({ code: partStr });
                 }
+
+                // In a short GmodPath only leaf nodes are listed as parents (see toString).
+                // The final part is the target node and may be any node type, but every
+                // preceding part must be a leaf node - otherwise it is not a valid short path.
+                if (!isTargetNode && !Gmod.isLeafNode(node.metadata))
+                    return new GmodParsePathResult.Err(
+                        `${node.code} is not a valid start GmodNode for a short GmodPath. Only leaf nodes are allowed as parents in a short path`,
+                    );
+
+                parts.push({ code: node.code, location });
             }
 
             if (parts.length === 0)

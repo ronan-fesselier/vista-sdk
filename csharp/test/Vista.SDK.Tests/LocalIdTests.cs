@@ -281,14 +281,6 @@ public class LocalIdTests
         Assert.Equal(localIdStr, localId!.ToString());
     }
 
-    [Fact]
-    public void Test()
-    {
-        var localIdAsString = "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet";
-
-        var localId = LocalIdBuilder.Parse(localIdAsString);
-    }
-
     // [Fact(Skip = "LocalIds have a lot of location errors")]
     [Fact]
     public async Task SmokeTest_Parsing()

@@ -65,6 +65,10 @@
         {
             "path": "C101",
             "visVersion": "3-4a"
+        },
+        {
+            "path": "410/411.1/C101",
+            "visVersion": "3-10a"
         }
     ]
 }

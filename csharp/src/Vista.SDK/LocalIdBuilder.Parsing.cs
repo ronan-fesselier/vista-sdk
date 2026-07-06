@@ -604,7 +604,7 @@ partial record class LocalIdBuilder
             }
         }
 
-        localId = Create(visVersion)
+        var builder = Create(visVersion)
             .TryWithPrimaryItem(in primaryItem)
             .TryWithSecondaryItem(in secondaryItem)
             .WithVerboseMode(in verbose)
@@ -617,7 +617,7 @@ partial record class LocalIdBuilder
             .TryWithMetadataTag(in pos)
             .TryWithMetadataTag(in detail);
 
-        if (localId.IsEmptyMetadata)
+        if (builder.IsEmptyMetadata)
         {
             AddError(
                 ref errorBuilder,
@@ -626,7 +626,9 @@ partial record class LocalIdBuilder
             );
         }
 
-        return (!errorBuilder.HasError && !invalidSecondaryItem);
+        var succeeded = !errorBuilder.HasError && !invalidSecondaryItem;
+        localId = succeeded ? builder : null;
+        return succeeded;
 
         static bool ParseMetatag(
             CodebookName codebookName,

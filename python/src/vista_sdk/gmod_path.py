@@ -557,7 +557,9 @@ class GmodPath:
         item = item.strip().lstrip("/")
         parts: deque[GmodPath.PathNode] = deque()
 
-        for part_str in item.split("/"):
+        part_strings = item.split("/")
+        for part_index, part_str in enumerate(part_strings):
+            is_target_node = part_index == len(part_strings) - 1
             if "-" in part_str:
                 try:
                     code, loc_str = part_str.split("-", 1)  # Split on first hyphen only
@@ -588,6 +590,16 @@ class GmodPath:
                         f" in VIS version {gmod.vis_version}"
                     )
                 parts.append(GmodPath.PathNode(part_str))
+
+            # In a short GmodPath only leaf nodes are listed as parents (see __str__).
+            # The final part is the target node and may be any node type, but every
+            # preceding part must be a leaf node - otherwise it is
+            # not a valid short path.
+            if not is_target_node and not Gmod.is_leaf_node(node.metadata.full_type):
+                return GmodParsePathResult.Err(
+                    f"{node.code} is not a valid start GmodNode for a short GmodPath. "
+                    f"Only leaf nodes are allowed as parents in a short path"
+                )
 
         if not parts:
             return GmodParsePathResult.Err("Failed to find any parts in path: '{item}'")
