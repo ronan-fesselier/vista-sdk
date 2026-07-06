@@ -533,6 +533,32 @@ class GmodPath:
         raise ValueError(f"Invalid arguments for path '{item}': arg={arg}, gmod={gmod}")
 
     @staticmethod
+    def try_parse_with_error(
+        item: str | None,
+        arg: VisVersion | Locations | None = None,
+        gmod=None,  # noqa: ANN001
+    ) -> tuple[bool, GmodPath | None, str | None]:  # return error on failure
+        """Try to parse a string into a GmodPath, also returning any parse error."""
+        from vista_sdk.gmod import Gmod
+        from vista_sdk.vis import VIS
+
+        if item is None or not item.strip():
+            return False, None, "Item is empty"
+
+        if type(arg) is VisVersion and gmod is None:
+            gmod = VIS().get_gmod(arg)
+            locations = VIS().get_locations(arg)
+            return GmodPath.try_parse_with_error(item, arg=locations, gmod=gmod)
+        if type(gmod) is Gmod and type(arg) is Locations:
+            result = GmodPath.parse_internal(item, gmod, arg)
+            if isinstance(result, GmodParsePathResult.Ok):
+                return True, result.path, None
+            if isinstance(result, GmodParsePathResult.Err):
+                return False, None, result.error
+            raise ValueError(f"Unexpected result during path parsing: {result}")
+        raise ValueError(f"Invalid arguments for path '{item}': arg={arg}, gmod={gmod}")
+
+    @staticmethod
     def parse_internal(  # noqa : C901
         item: str | None,
         gmod,  # noqa: ANN001
@@ -586,8 +612,7 @@ class GmodPath:
                 success, node = gmod.try_get_node(part_str)
                 if not success or node is None:
                     return GmodParsePathResult.Err(
-                        f"Failed to get GmodNode for '{part_str}'"
-                        f" in VIS version {gmod.vis_version}"
+                        f"Failed to get GmodNode for {part_str}"
                     )
                 parts.append(GmodPath.PathNode(part_str))
 

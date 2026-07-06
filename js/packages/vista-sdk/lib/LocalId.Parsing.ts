@@ -163,16 +163,16 @@ export class LocalIdParser {
                                     context.i - 1,
                                 ); // context.i - 1
 
-                                const gmodPath = gmod.tryParsePath(
-                                    path,
-                                    locations,
-                                );
+                                const { path: gmodPath, error: parseError } =
+                                    gmod.tryParsePathWithError(path, locations);
                                 if (gmodPath === undefined) {
                                     errorBuilder?.push({
                                         type: ParsingState.PrimaryItem,
                                         message:
                                             "Invalid GmodPath in Primary item: " +
-                                            path,
+                                            path +
+                                            " - " +
+                                            parseError,
                                     });
                                 }
                             } else {
@@ -234,17 +234,17 @@ export class LocalIdParser {
                                     context.i - 1,
                                 ); // context.i - 1
 
-                                const gmodPath = gmod.tryParsePath(
-                                    path,
-                                    locations,
-                                );
+                                const { path: gmodPath, error: parseError } =
+                                    gmod.tryParsePathWithError(path, locations);
                                 if (gmodPath === undefined) {
                                     // Displays the full GmodPath when first part of PrimaryItem is invalid
                                     errorBuilder?.push({
                                         type: ParsingState.PrimaryItem,
                                         message:
                                             "Invalid GmodPath in Primary item: " +
-                                            path,
+                                            path +
+                                            " - " +
+                                            parseError,
                                     });
 
                                     const {

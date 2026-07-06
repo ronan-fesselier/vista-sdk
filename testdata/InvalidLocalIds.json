@@ -24,7 +24,7 @@
             "input": "/dnv-v2/vis-3-4a/f652.31/S90.3/S61/sec/652.1i-1P/meta/cnt-sea.water/state-opened",
             "expectedErrorMessages": [
                 "Invalid start GmodNode in Primary item: f652.31",
-                "Invalid GmodPath in Primary item: f652.31/S90.3/S61"
+                "Invalid GmodPath in Primary item: f652.31/S90.3/S61 - Failed to get GmodNode for f652.31"
             ]
         },
         {
@@ -117,7 +117,7 @@
         {
             "input": "/dnv-v2/vis-3-10a/410/411.1/C101/meta/qty-temperature",
             "expectedErrorMessages": [
-                "Invalid GmodPath in Primary item: 410/411.1/C101"
+                "Invalid GmodPath in Primary item: 410/411.1/C101 - 410 is not a valid start GmodNode for a short GmodPath. Only leaf nodes are allowed as parents in a short path"
             ]
         }
     ]

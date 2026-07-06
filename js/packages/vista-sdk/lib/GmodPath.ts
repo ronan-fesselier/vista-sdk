@@ -378,6 +378,26 @@ export class GmodPath {
         return out;
     }
 
+    public static tryParseWithError(
+        item: string | undefined,
+        locations: Locations,
+        gmod: Gmod,
+    ): { path?: GmodPath; error?: string } {
+        const result = this.parseInternal(item, locations, gmod);
+        return match<GmodParsePathResult, { path?: GmodPath; error?: string }>(
+            result,
+        )
+            .ofType(GmodParsePathResult.Ok)
+            .do((result) => {
+                return { path: result.path };
+            })
+            .ofType(GmodParsePathResult.Err)
+            .do((result) => {
+                return { error: result.error };
+            })
+            .unwrap();
+    }
+
     private static parseInternal(
         item: string | undefined,
         locations: Locations,

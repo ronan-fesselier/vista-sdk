@@ -198,12 +198,15 @@ class LocalIdBuilderParsing:
                             return False, None
 
                         path = span[primary_item_start : i - 1]
-                        success, primary_item = gmod.try_parse_path(path)
+                        success, primary_item, parse_error = (
+                            gmod.try_parse_path_with_error(path)
+                        )
                         if not success or primary_item is None:
                             self.add_error(
                                 error_builder,
                                 LocalIdParsingState.PRIMARY_ITEM,
-                                f"Invalid GmodPath in Primary item: {path}",
+                                f"Invalid GmodPath in Primary item: {path}"
+                                f" - {parse_error}",
                             )
                     else:
                         self.add_error(
@@ -256,14 +259,17 @@ class LocalIdBuilderParsing:
                     if next_state != state:
                         # Try to parse the accumulated path
                         path = span[primary_item_start : i - 1]
-                        success, primary_item = gmod.try_parse_path(path)
+                        success, primary_item, parse_error = (
+                            gmod.try_parse_path_with_error(path)
+                        )
                         if not success or primary_item is None:
                             # Displays the full GmodPath when first part of
                             # PrimaryItem is invalid
                             self.add_error(
                                 error_builder,
                                 LocalIdParsingState.PRIMARY_ITEM,
-                                f"Invalid GmodPath in Primary item: {path}",
+                                f"Invalid GmodPath in Primary item: {path}"
+                                f" - {parse_error}",
                             )
 
                         if is_tilde:

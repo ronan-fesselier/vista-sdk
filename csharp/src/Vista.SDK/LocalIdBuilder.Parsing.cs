@@ -163,13 +163,13 @@ partial record class LocalIdBuilder
                                     return false;
 
                                 var path = span.Slice(primaryItemStart, i - 1 - primaryItemStart);
-                                if (!gmod.TryParsePath(path.ToString(), out primaryItem))
+                                if (!gmod.TryParsePath(path.ToString(), out primaryItem, out var parseError))
                                 {
                                     // Displays the full GmodPath when first part of PrimaryItem is invalid
                                     AddError(
                                         ref errorBuilder,
                                         LocalIdParsingState.PrimaryItem,
-                                        $"Invalid GmodPath in Primary item: {path.ToString()}"
+                                        $"Invalid GmodPath in Primary item: {path.ToString()} - {parseError}"
                                     );
                                 }
                             }
@@ -221,13 +221,13 @@ partial record class LocalIdBuilder
                             if (nextState != state)
                             {
                                 var path = span.Slice(primaryItemStart, i - 1 - primaryItemStart);
-                                if (!gmod.TryParsePath(path.ToString(), out primaryItem))
+                                if (!gmod.TryParsePath(path.ToString(), out primaryItem, out var parseError))
                                 {
                                     // Displays the full GmodPath when first part of PrimaryItem is invalid
                                     AddError(
                                         ref errorBuilder,
                                         LocalIdParsingState.PrimaryItem,
-                                        $"Invalid GmodPath in Primary item: {path.ToString()}"
+                                        $"Invalid GmodPath in Primary item: {path.ToString()} - {parseError}"
                                     );
 
                                     (var _, var endOfNextStateIndex) = GetNextStateIndexes(span, state);

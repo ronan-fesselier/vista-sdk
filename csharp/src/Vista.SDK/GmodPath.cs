@@ -449,6 +449,18 @@ public sealed record GmodPath
         return TryParse(item, gmod, locations, out path);
     }
 
+    public static bool TryParse(
+        string? item,
+        VisVersion visVersion,
+        [NotNullWhen(true)] out GmodPath? path,
+        [NotNullWhen(false)] out string? parseError
+    )
+    {
+        var gmod = VIS.Instance.GetGmod(visVersion);
+        var locations = VIS.Instance.GetLocations(visVersion);
+        return TryParse(item, gmod, locations, out path, out parseError);
+    }
+
     public static GmodPath Parse(string item, Gmod gmod, Locations locations)
     {
         var result = ParseInternal(item, gmod, locations);
@@ -570,6 +582,26 @@ public sealed record GmodPath
         return false;
     }
 
+    public static bool TryParse(
+        string? item,
+        Gmod gmod,
+        Locations locations,
+        [NotNullWhen(true)] out GmodPath? path,
+        [NotNullWhen(false)] out string? parseError
+    )
+    {
+        var result = ParseInternal(item, gmod, locations);
+        path = null;
+        parseError = null;
+        if (result is GmodParsePathResult.Ok r)
+        {
+            path = r.Path;
+            return true;
+        }
+        parseError = result is GmodParsePathResult.Err e ? e.Error : "Unexpected result";
+        return false;
+    }
+
     private static GmodParsePathResult ParseInternal(string? item, Gmod gmod, Locations locations)
     {
         if (gmod.VisVersion != locations.VisVersion)
@@ -610,7 +642,7 @@ public sealed record GmodPath
             // preceding part must be a leaf node - otherwise it is not a valid short path.
             if (!isTargetNode && !Gmod.IsLeafNode(node.Metadata))
                 return new GmodParsePathResult.Err(
-                    $"{node.Code} should not be present in the path because it is not a leaf node or the target node. Only leaf nodes and the target node should be present in the path."
+                    $"{node.Code} is not a valid start GmodNode for a short GmodPath. Only leaf nodes are allowed as parents in a short path"
                 );
 
             parts.Enqueue(new PathNode(node.Code, location));

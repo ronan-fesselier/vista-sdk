@@ -163,6 +163,13 @@ export class Gmod {
         return GmodPath.tryParse(item, locations, this);
     }
 
+    public tryParsePathWithError(
+        item: string,
+        locations: Locations,
+    ): { path?: GmodPath; error?: string } {
+        return GmodPath.tryParseWithError(item, locations, this);
+    }
+
     // Parsing
     public parseFromFullPath(item: string, locations: Locations): GmodPath {
         return GmodPath.parseFromFullPath(item, this, locations);

@@ -144,6 +144,12 @@ public sealed partial class Gmod : IEnumerable<GmodNode>
     public bool TryParsePath(string item, [NotNullWhen(true)] out GmodPath? path) =>
         GmodPath.TryParse(item, VisVersion, out path);
 
+    public bool TryParsePath(
+        string item,
+        [NotNullWhen(true)] out GmodPath? path,
+        [NotNullWhen(false)] out string? parseError
+    ) => GmodPath.TryParse(item, VisVersion, out path, out parseError);
+
     public GmodPath ParseFromFullPath(string item) => GmodPath.ParseFullPath(item, VisVersion);
 
     public bool TryParseFromFullPath(string item, [NotNullWhen(true)] out GmodPath? path) =>

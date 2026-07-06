@@ -177,6 +177,12 @@ class Gmod:
         """Try to parse a string into a GmodPath object."""
         return GmodPath.try_parse(item, arg=self.vis_version)
 
+    def try_parse_path_with_error(
+        self, item: str
+    ) -> tuple[bool, GmodPath | None, str | None]:
+        """Try to parse a string into a GmodPath object, returning any parse error."""
+        return GmodPath.try_parse_with_error(item, arg=self.vis_version)
+
     def parse_from_full_path(self, item: str) -> GmodPath:
         """Parse a full path string into a GmodPath object."""
         return GmodPath.parse_full_path(item, self.vis_version)
