@@ -692,7 +692,14 @@ class LocalIdBuilderParsing:
         dash_index = segment.find("-")
         tilde_index = segment.find("~")
 
-        prefix_index = tilde_index if dash_index == -1 else dash_index
+        # If both '-' and '~' are present,
+        # we take the one that comes first in the segment
+        if dash_index == -1:
+            prefix_index = tilde_index
+        elif tilde_index == -1:
+            prefix_index = dash_index
+        else:
+            prefix_index = min(dash_index, tilde_index)
 
         if prefix_index == -1:
             self.add_error(

@@ -669,7 +669,13 @@ partial record class PMSLocalIdBuilder
 
             var dashIndex = segment.IndexOf('-');
             var tildeIndex = segment.IndexOf('~');
-            var prefixIndex = dashIndex == -1 ? tildeIndex : dashIndex;
+            // If both '-' and '~' are present, we take the one that comes first in the segment
+            var prefixIndex =
+                dashIndex == -1
+                    ? tildeIndex
+                    : tildeIndex == -1
+                        ? dashIndex
+                        : Math.Min(dashIndex, tildeIndex);
             if (prefixIndex == -1)
             {
                 AddError(

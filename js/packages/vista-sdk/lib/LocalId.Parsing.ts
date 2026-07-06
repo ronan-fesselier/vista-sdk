@@ -808,7 +808,13 @@ export class LocalIdParser {
 
         const dashIndex = segment.indexOf("-");
         const tildeIndex = segment.indexOf("~");
-        const prefixIndex = dashIndex === -1 ? tildeIndex : dashIndex;
+        // If both '-' and '~' are present, we take the one that comes first in the segment
+        const prefixIndex =
+            dashIndex === -1
+                ? tildeIndex
+                : tildeIndex === -1
+                  ? dashIndex
+                  : Math.min(dashIndex, tildeIndex);
 
         if (prefixIndex === -1) {
             errorBuilder?.push({

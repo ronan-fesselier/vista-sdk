@@ -270,6 +270,9 @@ public class LocalIdTests
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet"
     )]
     [InlineData("/dnv-v2/vis-3-4a/511.11-21O/C101.67/S208/meta/qty-pressure/cnt-air/state-low")]
+    [InlineData(
+        "/dnv-v2/vis-3-10a/623.4/M211.14/sec/433.1/C322.91/S205/meta/qty-particle.concentration/cnt~non-ferrous/detail-size.over.400"
+    )]
     public void Test_Parsing(string localIdStr)
     {
         var parsed = LocalIdBuilder.TryParse(localIdStr, out var localId);

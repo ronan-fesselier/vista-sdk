@@ -185,6 +185,7 @@ describe("LocalId", () => {
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/~propulsion.engine/~cooling.system/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         "/dnv-v2/vis-3-4a/411.1/C101.63/S206/sec/411.1/C101.31-5/~propulsion.engine/~cooling.system/~for.propulsion.engine/~cylinder.5/meta/qty-temperature/cnt-exhaust.gas/pos-inlet",
         "/dnv-v2/vis-3-4a/411.1/C101.313-4/C469/meta/qty-temperature/state-high/pos-intake.side",
+        "/dnv-v2/vis-3-4a/1031/meta/cnt~non-ferrous",
     ];
     it("LocalId parsing", async () => {
         const visVersion = VisVersion.v3_4a;
