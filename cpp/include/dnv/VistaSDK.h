@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "dnv/vista/sdk/Version.h" ///< Compile-time/runtime SDK version (dnv::vista::sdk::version())
+
 #include "vista/sdk/core/Codebook.h"
 #include "vista/sdk/core/CodebookName.h"
 #include "vista/sdk/core/Codebooks.h"
