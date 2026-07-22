@@ -9,6 +9,8 @@
 add_library(dnv-vista-sdk-warnings INTERFACE)
 add_library(dnv::vista::sdk::warnings ALIAS dnv-vista-sdk-warnings)
 
+set_target_properties(dnv-vista-sdk-warnings PROPERTIES EXPORT_NAME vista::sdk::warnings)
+
 target_compile_options(dnv-vista-sdk-warnings
     INTERFACE
         $<$<AND:$<BOOL:${DNV_VISTA_SDK_WARNINGS}>,$<CXX_COMPILER_ID:GNU,Clang>>:-Wall -Wextra -Wpedantic>
@@ -30,6 +32,8 @@ dnv_vista_sdk_embed_blobs(
 )
 add_library(dnv::vista::sdk::resources ALIAS dnv-vista-sdk-resources)
 
+set_target_properties(dnv-vista-sdk-resources PROPERTIES EXPORT_NAME vista::sdk::resources)
+
 dnv_vista_sdk_embed_blobs(
     TARGET          dnv-vista-sdk-schemas
     RESOURCE_DIR    "${VISTA_SDK_ROOT}/schemas/json"
@@ -39,6 +43,8 @@ dnv_vista_sdk_embed_blobs(
     PATTERN         "*.json"
 )
 add_library(dnv::vista::sdk::schemas ALIAS dnv-vista-sdk-schemas)
+
+set_target_properties(dnv-vista-sdk-schemas PROPERTIES EXPORT_NAME vista::sdk::schemas)
 
 #----------------------------------------------
 # Code generation
@@ -68,6 +74,7 @@ set_target_properties(${PROJECT_NAME}
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS        OFF
         DEBUG_POSTFIX         "-d"
+        EXPORT_NAME           vista::sdk
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
@@ -108,6 +115,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${DNV_VISTA_SDK_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
         ${DNV_VISTA_SDK_SOURCE_DIR}
 )

@@ -204,7 +204,9 @@ namespace ${ARG_NAMESPACE}
         add_library(${ARG_TARGET} OBJECT ${ALL_FILES})
 
         target_include_directories(${ARG_TARGET}
-            PUBLIC $<BUILD_INTERFACE:${ARG_OUTPUT_DIR}>
+            PUBLIC
+                $<BUILD_INTERFACE:${ARG_OUTPUT_DIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dnv/vista/sdk>
         )
 
         set_target_properties(${ARG_TARGET}
@@ -216,8 +218,17 @@ namespace ${ARG_NAMESPACE}
         )
     else()
         target_sources(${ARG_TARGET} PRIVATE ${ALL_FILES})
-        target_include_directories(${ARG_TARGET} PUBLIC $<BUILD_INTERFACE:${ARG_OUTPUT_DIR}>)
+        target_include_directories(${ARG_TARGET}
+            PUBLIC
+                $<BUILD_INTERFACE:${ARG_OUTPUT_DIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dnv/vista/sdk>
+        )
     endif()
+
+    install(
+        FILES "${REGISTRY_H}"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dnv/vista/sdk
+    )
 
     list(LENGTH ALL_IDS NUM_RESOURCES)
     message(STATUS "[dnv-vista-sdk] Embedded ${NUM_RESOURCES} resource(s) into ${ARG_TARGET}")
