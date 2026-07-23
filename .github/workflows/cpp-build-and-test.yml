@@ -110,6 +110,7 @@ jobs:
             -DDNV_VISTA_SDK_BUILD_SAMPLES=ON \
             -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF \
             -DDNV_VISTA_SDK_WARNINGS=OFF \
+            -DDNV_VISTA_SDK_ENABLE_SIMD=OFF
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
@@ -132,7 +133,8 @@ jobs:
             -DDNV_VISTA_SDK_BUILD_TESTS=ON \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=ON \
             -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF \
-            -DDNV_VISTA_SDK_WARNINGS=OFF
+            -DDNV_VISTA_SDK_WARNINGS=OFF \
+            -DDNV_VISTA_SDK_ENABLE_SIMD=OFF
 
       - name: Build (Windows MinGW)
         if: runner.os == 'Windows' && matrix.toolchain == 'mingw'
@@ -156,6 +158,7 @@ jobs:
           -DDNV_VISTA_SDK_BUILD_SAMPLES=ON
           -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF
           -DDNV_VISTA_SDK_WARNINGS=OFF
+          -DDNV_VISTA_SDK_ENABLE_SIMD=OFF
 
       - name: Build (Windows MSVC)
         if: runner.os == 'Windows' && matrix.toolchain == 'msvc'
@@ -224,7 +227,8 @@ jobs:
             -DDNV_VISTA_SDK_BUILD_TESTS=OFF \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=OFF \
             -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF \
-            -DDNV_VISTA_SDK_WARNINGS=OFF
+            -DDNV_VISTA_SDK_WARNINGS=OFF \
+            -DDNV_VISTA_SDK_ENABLE_SIMD=OFF
 
       - name: Build SDK (Linux)
         if: runner.os == 'Linux'
@@ -264,6 +268,7 @@ jobs:
           -DDNV_VISTA_SDK_BUILD_SAMPLES=OFF
           -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF
           -DDNV_VISTA_SDK_WARNINGS=OFF
+          -DDNV_VISTA_SDK_ENABLE_SIMD=OFF
 
       - name: Build SDK (Windows MSVC)
         if: runner.os == 'Windows'
