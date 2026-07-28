@@ -63,6 +63,7 @@ add_library(dnv::vista::sdk::testdata ALIAS dnv-vista-sdk-testdata)
 #----------------------------------------------
 
 add_subdirectory(blobs)
+add_subdirectory(c-api)
 add_subdirectory(codegeneration)
 add_subdirectory(compression)
 add_subdirectory(containers)

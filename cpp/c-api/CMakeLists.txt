@@ -7,6 +7,8 @@
 #----------------------------------------------
 
 add_library(dnv-vista-sdk-c
+    src/core/vis.cpp
+
     src/error.cpp
     src/version.cpp
 )
