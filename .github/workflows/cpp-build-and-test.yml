@@ -17,8 +17,8 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Build and test (${{ matrix.os }}, ${{ matrix.toolchain }}, ${{ matrix.link }})
-    timeout-minutes: 30
+    name: Build and test (${{ matrix.os }}, ${{ matrix.toolchain }}, ${{ matrix.link }}${{ matrix.build_type && format(', {0}', matrix.build_type) || '' }})
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -116,6 +116,7 @@ jobs:
           cmake -S cpp -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type || 'Debug' }} \
             -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }} \
+            -DDNV_VISTA_SDK_BUILD_C_API=ON \
             -DDNV_VISTA_SDK_BUILD_TOOLS=ON \
             -DDNV_VISTA_SDK_BUILD_TESTS=ON \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=ON \
@@ -143,6 +144,7 @@ jobs:
             -DCMAKE_C_COMPILER=gcc \
             -DCMAKE_CXX_COMPILER=g++ \
             -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }} \
+            -DDNV_VISTA_SDK_BUILD_C_API=ON \
             -DDNV_VISTA_SDK_BUILD_TOOLS=ON \
             -DDNV_VISTA_SDK_BUILD_TESTS=ON \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=ON \
@@ -170,6 +172,7 @@ jobs:
           cmake -S cpp -B build
           -G "Visual Studio 17 2022" -A x64
           -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }}
+          -DDNV_VISTA_SDK_BUILD_C_API=ON
           -DDNV_VISTA_SDK_BUILD_TOOLS=ON
           -DDNV_VISTA_SDK_BUILD_TESTS=ON
           -DDNV_VISTA_SDK_BUILD_SAMPLES=ON
@@ -244,6 +247,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=install \
             -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }} \
+            -DDNV_VISTA_SDK_BUILD_C_API=ON \
             -DDNV_VISTA_SDK_BUILD_TOOLS=OFF \
             -DDNV_VISTA_SDK_BUILD_TESTS=OFF \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=OFF \
@@ -287,6 +291,7 @@ jobs:
           -G "Visual Studio 17 2022" -A x64
           -DCMAKE_INSTALL_PREFIX=install
           -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }}
+          -DDNV_VISTA_SDK_BUILD_C_API=ON
           -DDNV_VISTA_SDK_BUILD_TOOLS=OFF
           -DDNV_VISTA_SDK_BUILD_TESTS=OFF
           -DDNV_VISTA_SDK_BUILD_SAMPLES=OFF
@@ -341,6 +346,8 @@ jobs:
         run: |
           cmake -S cpp -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DDNV_VISTA_SDK_BUILD_C_API=ON \
+            -DDNV_VISTA_SDK_BUILD_TOOLS=OFF \
             -DDNV_VISTA_SDK_BUILD_TESTS=OFF \
             -DDNV_VISTA_SDK_BUILD_SAMPLES=OFF \
             -DDNV_VISTA_SDK_BUILD_BENCHMARKS=OFF \

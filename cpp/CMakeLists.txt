@@ -66,6 +66,7 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
+option(DNV_VISTA_SDK_BUILD_C_API        "Build dnv::vista::sdk::c C API"                             OFF)
 option(DNV_VISTA_SDK_BUILD_TOOLS        "Build dnv::vista::sdk tools"                                OFF)
 option(DNV_VISTA_SDK_BUILD_TESTS        "Build dnv::vista::sdk tests"                                OFF)
 option(DNV_VISTA_SDK_BUILD_SAMPLES      "Build dnv::vista::sdk samples"                              OFF)
@@ -90,6 +91,14 @@ include(dnvVistaSdkISO19848VersionsGenerator)
 include(dnvVistaSdkSources)
 include(dnvVistaSdkTargets)
 include(dnvVistaSdkInstall)
+
+#----------------------------------------------
+# C API
+#----------------------------------------------
+
+if(DNV_VISTA_SDK_BUILD_C_API)
+    add_subdirectory(c-api)
+endif()
 
 #----------------------------------------------
 # Tools
