@@ -7,6 +7,7 @@
 #----------------------------------------------
 
 add_library(dnv-vista-sdk-c
+    src/core/codebook_name.cpp
     src/core/vis.cpp
 
     src/error.cpp
