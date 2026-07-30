@@ -8,6 +8,9 @@
 
 add_library(dnv-vista-sdk-c
     src/core/codebook_name.cpp
+    src/core/codebook.cpp
+    src/core/codebooks.cpp
+    src/core/metadata_tag.cpp
     src/core/vis.cpp
 
     src/error.cpp
