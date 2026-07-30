@@ -4,6 +4,7 @@
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
 #include "dnv/vista/sdk/c/core/location.h"
+#include "dnv/vista/sdk/c/core/location_builder.h"
 #include "dnv/vista/sdk/c/core/locations.h"
 #include "dnv/vista/sdk/c/core/metadata_tag.h"
 #include "dnv/vista/sdk/c/core/parsing_errors.h"
@@ -122,5 +123,15 @@ namespace dnv::vista::sdk::c
     inline const dnv_vista_sdk_relative_location_t* fromRelativeLocation(const RelativeLocation& relativeLocation)
     {
         return reinterpret_cast<const dnv_vista_sdk_relative_location_t*>(&relativeLocation);
+    }
+
+    inline const LocationBuilder* toBuilder(const dnv_vista_sdk_location_builder_t* builder)
+    {
+        return reinterpret_cast<const LocationBuilder*>(builder);
+    }
+
+    inline dnv_vista_sdk_location_builder_t* fromBuilder(LocationBuilder&& builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_location_builder_t*>(new LocationBuilder{ std::move(builder) });
     }
 } // namespace dnv::vista::sdk::c

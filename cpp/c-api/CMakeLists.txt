@@ -11,6 +11,7 @@ add_library(dnv-vista-sdk-c
     src/core/codebook.cpp
     src/core/codebooks.cpp
     src/core/location.cpp
+    src/core/location_builder.cpp
     src/core/locations.cpp
     src/core/metadata_tag.cpp
     src/core/parsing_errors.cpp
