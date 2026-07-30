@@ -68,3 +68,21 @@ const dnv_vista_sdk_codebooks_t* dnv_vista_sdk_vis_codebooks(const dnv_vista_sdk
 
     return reinterpret_cast<const dnv_vista_sdk_codebooks_t*>(&toVis(vis)->codebooks(*version));
 }
+
+const dnv_vista_sdk_locations_t* dnv_vista_sdk_vis_locations(const dnv_vista_sdk_vis_t* vis, const char* visVersion)
+{
+    if (vis == nullptr || visVersion == nullptr)
+    {
+        c::setLastErrorMessage("vis and visVersion must not be null");
+        return nullptr;
+    }
+
+    const auto version = VisVersions::fromString(visVersion);
+    if (!version.has_value())
+    {
+        c::setLastErrorMessage("unrecognized VIS version");
+        return nullptr;
+    }
+
+    return reinterpret_cast<const dnv_vista_sdk_locations_t*>(&toVis(vis)->locations(*version));
+}
