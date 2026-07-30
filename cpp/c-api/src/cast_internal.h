@@ -4,6 +4,7 @@
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
 #include "dnv/vista/sdk/c/core/metadata_tag.h"
+#include "dnv/vista/sdk/c/core/parsing_errors.h"
 #include "dnv/vista/sdk/c/core/vis.h"
 
 #include <dnv/VistaSDK.h>
@@ -67,5 +68,10 @@ namespace dnv::vista::sdk::c
     inline const MetadataTag* toTag(const dnv_vista_sdk_metadata_tag_t* tag)
     {
         return reinterpret_cast<const MetadataTag*>(tag);
+    }
+
+    inline const ParsingErrors* toErrors(const dnv_vista_sdk_parsing_errors_t* errors)
+    {
+        return reinterpret_cast<const ParsingErrors*>(errors);
     }
 } // namespace dnv::vista::sdk::c
