@@ -3,8 +3,11 @@
 #include "dnv/vista/sdk/c/core/codebook_name.h"
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
+#include "dnv/vista/sdk/c/core/location.h"
+#include "dnv/vista/sdk/c/core/locations.h"
 #include "dnv/vista/sdk/c/core/metadata_tag.h"
 #include "dnv/vista/sdk/c/core/parsing_errors.h"
+#include "dnv/vista/sdk/c/core/relative_location.h"
 #include "dnv/vista/sdk/c/core/vis.h"
 
 #include <dnv/VistaSDK.h>
@@ -27,6 +30,12 @@ namespace dnv::vista::sdk::c
     static_assert(static_cast<int>(CodebookName::ActivityType) == DNV_VISTA_SDK_CODEBOOK_NAME_ACTIVITY_TYPE);
     static_assert(static_cast<int>(CodebookName::Position) == DNV_VISTA_SDK_CODEBOOK_NAME_POSITION);
     static_assert(static_cast<int>(CodebookName::Detail) == DNV_VISTA_SDK_CODEBOOK_NAME_DETAIL);
+
+    static_assert(static_cast<int>(LocationGroup::Number) == DNV_VISTA_SDK_LOCATION_GROUP_NUMBER);
+    static_assert(static_cast<int>(LocationGroup::Side) == DNV_VISTA_SDK_LOCATION_GROUP_SIDE);
+    static_assert(static_cast<int>(LocationGroup::Vertical) == DNV_VISTA_SDK_LOCATION_GROUP_VERTICAL);
+    static_assert(static_cast<int>(LocationGroup::Transverse) == DNV_VISTA_SDK_LOCATION_GROUP_TRANSVERSE);
+    static_assert(static_cast<int>(LocationGroup::Longitudinal) == DNV_VISTA_SDK_LOCATION_GROUP_LONGITUDINAL);
 
     inline char* toOwnedCString(const std::string& str)
     {
@@ -73,5 +82,45 @@ namespace dnv::vista::sdk::c
     inline const ParsingErrors* toErrors(const dnv_vista_sdk_parsing_errors_t* errors)
     {
         return reinterpret_cast<const ParsingErrors*>(errors);
+    }
+
+    inline const Location* toLocation(const dnv_vista_sdk_location_t* location)
+    {
+        return reinterpret_cast<const Location*>(location);
+    }
+
+    inline const Locations* toLocations(const dnv_vista_sdk_locations_t* locations)
+    {
+        return reinterpret_cast<const Locations*>(locations);
+    }
+
+    inline dnv_vista_sdk_location_t* fromLocation(std::optional<Location>&& location)
+    {
+        if (!location.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_location_t*>(new Location{ std::move(*location) });
+    }
+
+    inline LocationGroup toLocationGroup(dnv_vista_sdk_location_group_t group)
+    {
+        return static_cast<LocationGroup>(group);
+    }
+
+    inline const dnv_vista_sdk_location_t* fromLocationRef(const Location& location)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_location_t*>(&location);
+    }
+
+    inline const RelativeLocation* toRelativeLocation(const dnv_vista_sdk_relative_location_t* relativeLocation)
+    {
+        return reinterpret_cast<const RelativeLocation*>(relativeLocation);
+    }
+
+    inline const dnv_vista_sdk_relative_location_t* fromRelativeLocation(const RelativeLocation& relativeLocation)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_relative_location_t*>(&relativeLocation);
     }
 } // namespace dnv::vista::sdk::c
