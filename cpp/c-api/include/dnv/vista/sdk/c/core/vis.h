@@ -15,6 +15,7 @@ extern "C"
 {
 #endif
 
+    typedef struct dnv_vista_sdk_codebooks dnv_vista_sdk_codebooks_t;
     typedef struct dnv_vista_sdk_vis dnv_vista_sdk_vis_t;
 
     /**
@@ -46,6 +47,16 @@ extern "C"
      *         valid for the lifetime of the program, or NULL if `vis` is NULL
      */
     DNV_VISTA_SDK_C_API const char* dnv_vista_sdk_vis_latest(const dnv_vista_sdk_vis_t* vis);
+
+    /**
+     * @brief Get the Codebooks for a VIS version
+     * @param vis Instance obtained from dnv_vista_sdk_vis_instance
+     * @param visVersion VIS version string (e.g. "3-11a")
+     * @return Borrowed pointer valid for the program's lifetime, or NULL if `vis` is
+     *         NULL or `visVersion` is not a recognized VIS version
+     */
+    DNV_VISTA_SDK_C_API const dnv_vista_sdk_codebooks_t* dnv_vista_sdk_vis_codebooks(
+        const dnv_vista_sdk_vis_t* vis, const char* visVersion);
 
 #ifdef __cplusplus
 }
