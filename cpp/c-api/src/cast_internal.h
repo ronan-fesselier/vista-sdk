@@ -3,6 +3,7 @@
 #include "dnv/vista/sdk/c/core/codebook_name.h"
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
+#include "dnv/vista/sdk/c/core/imo_number.h"
 #include "dnv/vista/sdk/c/core/location.h"
 #include "dnv/vista/sdk/c/core/location_builder.h"
 #include "dnv/vista/sdk/c/core/locations.h"
@@ -133,5 +134,10 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_location_builder_t* fromBuilder(LocationBuilder&& builder)
     {
         return reinterpret_cast<dnv_vista_sdk_location_builder_t*>(new LocationBuilder{ std::move(builder) });
+    }
+
+    inline const ImoNumber* toImoNumber(const dnv_vista_sdk_imo_number_t* imoNumber)
+    {
+        return reinterpret_cast<const ImoNumber*>(imoNumber);
     }
 } // namespace dnv::vista::sdk::c
