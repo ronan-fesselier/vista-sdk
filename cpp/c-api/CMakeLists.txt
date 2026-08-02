@@ -10,6 +10,9 @@ add_library(dnv-vista-sdk-c
     src/core/codebook_name.cpp
     src/core/codebook.cpp
     src/core/codebooks.cpp
+    src/core/gmod.cpp
+    src/core/gmod_node.cpp
+    src/core/gmod_node_metadata.cpp
     src/core/imo_number.cpp
     src/core/location.cpp
     src/core/location_builder.cpp
