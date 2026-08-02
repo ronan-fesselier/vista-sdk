@@ -3,6 +3,9 @@
 #include "dnv/vista/sdk/c/core/codebook_name.h"
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
+#include "dnv/vista/sdk/c/core/gmod.h"
+#include "dnv/vista/sdk/c/core/gmod_node.h"
+#include "dnv/vista/sdk/c/core/gmod_node_metadata.h"
 #include "dnv/vista/sdk/c/core/imo_number.h"
 #include "dnv/vista/sdk/c/core/location.h"
 #include "dnv/vista/sdk/c/core/location_builder.h"
@@ -139,5 +142,30 @@ namespace dnv::vista::sdk::c
     inline const ImoNumber* toImoNumber(const dnv_vista_sdk_imo_number_t* imoNumber)
     {
         return reinterpret_cast<const ImoNumber*>(imoNumber);
+    }
+
+    inline const GmodNodeMetadata* toMetadata(const dnv_vista_sdk_gmod_node_metadata_t* metadata)
+    {
+        return reinterpret_cast<const GmodNodeMetadata*>(metadata);
+    }
+
+    inline const dnv_vista_sdk_gmod_node_metadata_t* fromMetadata(const GmodNodeMetadata& metadata)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_gmod_node_metadata_t*>(&metadata);
+    }
+
+    inline const GmodNode* toGmodNode(const dnv_vista_sdk_gmod_node_t* node)
+    {
+        return reinterpret_cast<const GmodNode*>(node);
+    }
+
+    inline const dnv_vista_sdk_gmod_node_t* fromGmodNode(const GmodNode* node)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_gmod_node_t*>(node);
+    }
+
+    inline const Gmod* toGmod(const dnv_vista_sdk_gmod_t* gmod)
+    {
+        return reinterpret_cast<const Gmod*>(gmod);
     }
 } // namespace dnv::vista::sdk::c
