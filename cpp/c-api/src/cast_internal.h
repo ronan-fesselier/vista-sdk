@@ -24,6 +24,10 @@
 
 namespace dnv::vista::sdk::c
 {
+    static_assert(static_cast<int>(TraversalHandlerResult::Stop) == DNV_VISTA_SDK_TRAVERSAL_STOP);
+    static_assert(static_cast<int>(TraversalHandlerResult::SkipSubtree) == DNV_VISTA_SDK_TRAVERSAL_SKIP_SUBTREE);
+    static_assert(static_cast<int>(TraversalHandlerResult::Continue) == DNV_VISTA_SDK_TRAVERSAL_CONTINUE);
+
     static_assert(static_cast<int>(PositionValidationResult::Invalid) == DNV_VISTA_SDK_POSITION_VALIDATION_INVALID);
     static_assert(
         static_cast<int>(PositionValidationResult::InvalidOrder) == DNV_VISTA_SDK_POSITION_VALIDATION_INVALID_ORDER);
@@ -208,5 +212,10 @@ namespace dnv::vista::sdk::c
     inline const GmodIndividualizableSet* toIndividualizableSet(const dnv_vista_sdk_gmod_individualizable_set_t* set)
     {
         return reinterpret_cast<const GmodIndividualizableSet*>(set);
+    }
+
+    inline TraversalHandlerResult toTraversalResult(dnv_vista_sdk_traversal_result_t result)
+    {
+        return static_cast<TraversalHandlerResult>(result);
     }
 } // namespace dnv::vista::sdk::c
