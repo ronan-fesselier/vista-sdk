@@ -4,8 +4,10 @@
 #include "dnv/vista/sdk/c/core/codebook.h"
 #include "dnv/vista/sdk/c/core/codebooks.h"
 #include "dnv/vista/sdk/c/core/gmod.h"
+#include "dnv/vista/sdk/c/core/gmod_individualizable_set.h"
 #include "dnv/vista/sdk/c/core/gmod_node.h"
 #include "dnv/vista/sdk/c/core/gmod_node_metadata.h"
+#include "dnv/vista/sdk/c/core/gmod_path.h"
 #include "dnv/vista/sdk/c/core/imo_number.h"
 #include "dnv/vista/sdk/c/core/location.h"
 #include "dnv/vista/sdk/c/core/location_builder.h"
@@ -167,5 +169,35 @@ namespace dnv::vista::sdk::c
     inline const Gmod* toGmod(const dnv_vista_sdk_gmod_t* gmod)
     {
         return reinterpret_cast<const Gmod*>(gmod);
+    }
+
+    inline const GmodPath* toGmodPath(const dnv_vista_sdk_gmod_path_t* path)
+    {
+        return reinterpret_cast<const GmodPath*>(path);
+    }
+
+    inline dnv_vista_sdk_gmod_path_t* fromGmodPath(std::optional<GmodPath>&& path)
+    {
+        if (!path.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_gmod_path_t*>(new GmodPath{ std::move(*path) });
+    }
+
+    inline dnv_vista_sdk_gmod_path_t* fromGmodPathValue(GmodPath&& path)
+    {
+        return reinterpret_cast<dnv_vista_sdk_gmod_path_t*>(new GmodPath{ std::move(path) });
+    }
+
+    inline GmodIndividualizableSet* toIndividualizableSet(dnv_vista_sdk_gmod_individualizable_set_t* set)
+    {
+        return reinterpret_cast<GmodIndividualizableSet*>(set);
+    }
+
+    inline const GmodIndividualizableSet* toIndividualizableSet(const dnv_vista_sdk_gmod_individualizable_set_t* set)
+    {
+        return reinterpret_cast<const GmodIndividualizableSet*>(set);
     }
 } // namespace dnv::vista::sdk::c
