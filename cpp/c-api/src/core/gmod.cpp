@@ -8,6 +8,8 @@
 using namespace dnv::vista::sdk;
 using dnv::vista::sdk::c::fromGmodNode;
 using dnv::vista::sdk::c::toGmod;
+using dnv::vista::sdk::c::toGmodNode;
+using dnv::vista::sdk::c::toTraversalResult;
 
 const char* dnv_vista_sdk_gmod_version(const dnv_vista_sdk_gmod_t* gmod)
 {
@@ -82,4 +84,46 @@ const dnv_vista_sdk_gmod_node_t* dnv_vista_sdk_gmod_node_at(const dnv_vista_sdk_
 
     c::setLastError("index out of range", DNV_VISTA_SDK_ERROR_OUT_OF_RANGE);
     return nullptr;
+}
+
+int dnv_vista_sdk_gmod_is_product_type_assignment(
+    const dnv_vista_sdk_gmod_node_t* parent, const dnv_vista_sdk_gmod_node_t* child)
+{
+    return Gmod::isProductTypeAssignment(toGmodNode(parent), toGmodNode(child)) ? 1 : 0;
+}
+
+int dnv_vista_sdk_gmod_is_product_selection_assignment(
+    const dnv_vista_sdk_gmod_node_t* parent, const dnv_vista_sdk_gmod_node_t* child)
+{
+    return Gmod::isProductSelectionAssignment(toGmodNode(parent), toGmodNode(child)) ? 1 : 0;
+}
+
+int dnv_vista_sdk_gmod_traverse(
+    const dnv_vista_sdk_gmod_t* gmod,
+    dnv_vista_sdk_traverse_handler_t handler,
+    int max_traversal_occurrence,
+    void* userdata)
+{
+    if (gmod == nullptr || handler == nullptr)
+    {
+        c::setLastError("gmod and handler must not be null", DNV_VISTA_SDK_ERROR_INVALID_ARGUMENT);
+        return 0;
+    }
+
+    TraversalOptions options;
+    options.maxTraversalOccurrence = max_traversal_occurrence;
+
+    return toGmod(gmod)->traverse(
+        [handler, userdata](const TraversalPath& parents, const GmodNode& node) -> TraversalHandlerResult {
+            std::vector<const dnv_vista_sdk_gmod_node_t*> cParents;
+            cParents.reserve(parents.size());
+            for (const GmodNode* p : parents)
+            {
+                cParents.push_back(fromGmodNode(p));
+            }
+
+            const auto result = handler(cParents.data(), cParents.size(), fromGmodNode(&node), userdata);
+            return toTraversalResult(result);
+        },
+        options);
 }

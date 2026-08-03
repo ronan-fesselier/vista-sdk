@@ -4,7 +4,10 @@
 #include <dnv/vista/sdk/c/core/vis.h>
 #include <dnv/vista/sdk/c/error.h>
 
+#include <algorithm>
+#include <string>
 #include <string_view>
+#include <vector>
 
 TEST_SUITE("c-api::gmod")
 {
@@ -125,5 +128,98 @@ TEST_SUITE("c-api::gmod")
     {
         CHECK(dnv_vista_sdk_gmod_node_count(nullptr) == 0);
         CHECK(dnv_vista_sdk_gmod_node_at(nullptr, 0) == nullptr);
+    }
+
+    TEST_CASE("dnv_vista_sdk_gmod_is_product_type_assignment - valid pair returns 1")
+    {
+        const auto* vis = dnv_vista_sdk_vis_instance();
+        const auto* gmod = dnv_vista_sdk_vis_gmod(vis, "3-4a");
+        const auto* parent = dnv_vista_sdk_gmod_get_node(gmod, "1241.31");
+        const auto* child = dnv_vista_sdk_gmod_get_node(gmod, "C1013");
+
+        REQUIRE(parent != nullptr);
+        REQUIRE(child != nullptr);
+
+        CHECK(dnv_vista_sdk_gmod_is_product_type_assignment(parent, child) == 1);
+        CHECK(dnv_vista_sdk_gmod_is_product_type_assignment(child, parent) == 0);
+        CHECK(dnv_vista_sdk_gmod_is_product_type_assignment(nullptr, child) == 0);
+        CHECK(dnv_vista_sdk_gmod_is_product_type_assignment(parent, nullptr) == 0);
+    }
+
+    TEST_CASE("dnv_vista_sdk_gmod_is_product_selection_assignment - valid pair returns 1")
+    {
+        const auto* vis = dnv_vista_sdk_vis_instance();
+        const auto* gmod = dnv_vista_sdk_vis_gmod(vis, "3-4a");
+        const auto* child = dnv_vista_sdk_gmod_get_node(gmod, "CS1");
+
+        REQUIRE(child != nullptr);
+
+        const size_t parentCount = dnv_vista_sdk_gmod_node_parent_count(child);
+        REQUIRE(parentCount > 0);
+
+        const auto* parent = dnv_vista_sdk_gmod_node_parent_at(child, 0);
+        REQUIRE(parent != nullptr);
+
+        CHECK(dnv_vista_sdk_gmod_is_product_selection_assignment(parent, child) == 1);
+        CHECK(dnv_vista_sdk_gmod_is_product_selection_assignment(child, parent) == 0);
+        CHECK(dnv_vista_sdk_gmod_is_product_selection_assignment(nullptr, child) == 0);
+        CHECK(dnv_vista_sdk_gmod_is_product_selection_assignment(parent, nullptr) == 0);
+    }
+
+    TEST_CASE("dnv_vista_sdk_gmod_traverse - visits root and stops early")
+    {
+        const auto* vis = dnv_vista_sdk_vis_instance();
+        const auto* gmod = dnv_vista_sdk_vis_gmod(vis, "3-4a");
+
+        struct State
+        {
+            std::vector<std::string> visited;
+        } state;
+
+        auto handler = [](const dnv_vista_sdk_gmod_node_t* const* parents,
+                          size_t parent_count,
+                          const dnv_vista_sdk_gmod_node_t* node,
+                          void* userdata) -> dnv_vista_sdk_traversal_result_t {
+            (void)parents;
+            (void)parent_count;
+            auto* s = static_cast<State*>(userdata);
+            s->visited.emplace_back(dnv_vista_sdk_gmod_node_code(node));
+            return s->visited.size() >= 20 ? DNV_VISTA_SDK_TRAVERSAL_STOP : DNV_VISTA_SDK_TRAVERSAL_CONTINUE;
+        };
+
+        const int completed = dnv_vista_sdk_gmod_traverse(gmod, handler, 1, &state);
+
+        CHECK(completed == 0);
+        CHECK(std::any_of(state.visited.begin(), state.visited.end(), [](const auto& c) { return c == "VE"; }));
+        CHECK(state.visited.size() == 20);
+    }
+
+    TEST_CASE("dnv_vista_sdk_gmod_traverse - skips subtree")
+    {
+        const auto* vis = dnv_vista_sdk_vis_instance();
+        const auto* gmod = dnv_vista_sdk_vis_gmod(vis, "3-4a");
+
+        struct State
+        {
+            std::vector<std::string> visited;
+        } state;
+
+        auto handler = [](const dnv_vista_sdk_gmod_node_t* const* parents,
+                          size_t parent_count,
+                          const dnv_vista_sdk_gmod_node_t* node,
+                          void* userdata) -> dnv_vista_sdk_traversal_result_t {
+            (void)parents;
+            (void)parent_count;
+            auto* s = static_cast<State*>(userdata);
+            std::string c{ dnv_vista_sdk_gmod_node_code(node) };
+            s->visited.push_back(c);
+            return c == "400a" ? DNV_VISTA_SDK_TRAVERSAL_SKIP_SUBTREE : DNV_VISTA_SDK_TRAVERSAL_CONTINUE;
+        };
+
+        dnv_vista_sdk_gmod_traverse(gmod, handler, 1, &state);
+
+        CHECK(std::none_of(state.visited.begin(), state.visited.end(), [](const auto& c) { return c == "410"; }));
+        CHECK(std::any_of(state.visited.begin(), state.visited.end(), [](const auto& c) { return c == "VE"; }));
+        CHECK(std::any_of(state.visited.begin(), state.visited.end(), [](const auto& c) { return c == "500a"; }));
     }
 }
