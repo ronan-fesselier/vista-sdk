@@ -294,3 +294,8 @@ int dnv_vista_sdk_gmod_node_equals(const dnv_vista_sdk_gmod_node_t* a, const dnv
 
     return (*toGmodNode(a) == *toGmodNode(b)) ? 1 : 0;
 }
+
+void dnv_vista_sdk_gmod_node_free(dnv_vista_sdk_gmod_node_t* node)
+{
+    delete reinterpret_cast<GmodNode*>(node);
+}
