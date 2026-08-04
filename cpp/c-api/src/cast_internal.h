@@ -18,6 +18,8 @@
 #include "dnv/vista/sdk/c/core/metadata_tag.h"
 #include "dnv/vista/sdk/c/core/parsing_errors.h"
 #include "dnv/vista/sdk/c/core/relative_location.h"
+#include "dnv/vista/sdk/c/core/universal_id.h"
+#include "dnv/vista/sdk/c/core/universal_id_builder.h"
 #include "dnv/vista/sdk/c/core/vis.h"
 
 #include <dnv/VistaSDK.h>
@@ -252,5 +254,50 @@ namespace dnv::vista::sdk::c
     inline const dnv_vista_sdk_metadata_tag_t* fromTagRef(const MetadataTag& tag)
     {
         return reinterpret_cast<const dnv_vista_sdk_metadata_tag_t*>(&tag);
+    }
+
+    inline const UniversalIdBuilder* toUniversalIdBuilder(const dnv_vista_sdk_universal_id_builder_t* builder)
+    {
+        return reinterpret_cast<const UniversalIdBuilder*>(builder);
+    }
+
+    inline dnv_vista_sdk_universal_id_builder_t* fromUniversalIdBuilder(UniversalIdBuilder&& builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_universal_id_builder_t*>(new UniversalIdBuilder{ std::move(builder) });
+    }
+
+    inline const UniversalId* toUniversalId(const dnv_vista_sdk_universal_id_t* universalId)
+    {
+        return reinterpret_cast<const UniversalId*>(universalId);
+    }
+
+    inline dnv_vista_sdk_universal_id_t* fromUniversalId(std::optional<UniversalId>&& universalId)
+    {
+        if (!universalId.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_universal_id_t*>(new UniversalId{ std::move(*universalId) });
+    }
+
+    inline dnv_vista_sdk_universal_id_t* fromUniversalIdValue(UniversalId&& universalId)
+    {
+        return reinterpret_cast<dnv_vista_sdk_universal_id_t*>(new UniversalId{ std::move(universalId) });
+    }
+
+    inline const dnv_vista_sdk_imo_number_t* fromImoNumberRef(const ImoNumber& imoNumber)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_imo_number_t*>(&imoNumber);
+    }
+
+    inline const dnv_vista_sdk_local_id_t* fromLocalIdRef(const LocalId& localId)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_local_id_t*>(&localId);
+    }
+
+    inline const dnv_vista_sdk_universal_id_builder_t* fromUniversalIdBuilderRef(const UniversalIdBuilder& builder)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_universal_id_builder_t*>(&builder);
     }
 } // namespace dnv::vista::sdk::c
