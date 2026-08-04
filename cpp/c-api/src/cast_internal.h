@@ -9,6 +9,9 @@
 #include "dnv/vista/sdk/c/core/gmod_node_metadata.h"
 #include "dnv/vista/sdk/c/core/gmod_path.h"
 #include "dnv/vista/sdk/c/core/imo_number.h"
+#include "dnv/vista/sdk/c/core/local_id.h"
+#include "dnv/vista/sdk/c/core/local_id_builder.h"
+#include "dnv/vista/sdk/c/core/local_id_mqtt.h"
 #include "dnv/vista/sdk/c/core/location.h"
 #include "dnv/vista/sdk/c/core/location_builder.h"
 #include "dnv/vista/sdk/c/core/locations.h"
@@ -199,5 +202,55 @@ namespace dnv::vista::sdk::c
     inline const GmodIndividualizableSet* toIndividualizableSet(const dnv_vista_sdk_gmod_individualizable_set_t* set)
     {
         return reinterpret_cast<const GmodIndividualizableSet*>(set);
+    }
+
+    inline const LocalIdBuilder* toLocalIdBuilder(const dnv_vista_sdk_local_id_builder_t* builder)
+    {
+        return reinterpret_cast<const LocalIdBuilder*>(builder);
+    }
+
+    inline dnv_vista_sdk_local_id_builder_t* fromLocalIdBuilder(LocalIdBuilder&& builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_local_id_builder_t*>(new LocalIdBuilder{ std::move(builder) });
+    }
+
+    inline const LocalId* toLocalId(const dnv_vista_sdk_local_id_t* localId)
+    {
+        return reinterpret_cast<const LocalId*>(localId);
+    }
+
+    inline dnv_vista_sdk_local_id_t* fromLocalId(std::optional<LocalId>&& localId)
+    {
+        if (!localId.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_local_id_t*>(new LocalId{ std::move(*localId) });
+    }
+
+    inline dnv_vista_sdk_local_id_t* fromLocalIdValue(LocalId&& localId)
+    {
+        return reinterpret_cast<dnv_vista_sdk_local_id_t*>(new LocalId{ std::move(localId) });
+    }
+
+    inline const mqtt::LocalId* toLocalIdMqtt(const dnv_vista_sdk_local_id_mqtt_t* localId)
+    {
+        return reinterpret_cast<const mqtt::LocalId*>(localId);
+    }
+
+    inline const dnv_vista_sdk_local_id_builder_t* fromLocalIdBuilderRef(const LocalIdBuilder& builder)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_local_id_builder_t*>(&builder);
+    }
+
+    inline const dnv_vista_sdk_gmod_path_t* fromGmodPathRef(const GmodPath& path)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_gmod_path_t*>(&path);
+    }
+
+    inline const dnv_vista_sdk_metadata_tag_t* fromTagRef(const MetadataTag& tag)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_metadata_tag_t*>(&tag);
     }
 } // namespace dnv::vista::sdk::c

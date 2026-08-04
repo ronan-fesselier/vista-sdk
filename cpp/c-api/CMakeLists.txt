@@ -16,6 +16,9 @@ add_library(dnv-vista-sdk-c
     src/core/gmod_node_metadata.cpp
     src/core/gmod_path.cpp
     src/core/imo_number.cpp
+    src/core/local_id.cpp
+    src/core/local_id_builder.cpp
+    src/core/local_id_mqtt.cpp
     src/core/location.cpp
     src/core/location_builder.cpp
     src/core/locations.cpp
