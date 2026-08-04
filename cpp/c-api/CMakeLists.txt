@@ -25,6 +25,8 @@ add_library(dnv-vista-sdk-c
     src/core/metadata_tag.cpp
     src/core/parsing_errors.cpp
     src/core/relative_location.cpp
+    src/core/universal_id.cpp
+    src/core/universal_id_builder.cpp
     src/core/vis.cpp
 
     src/common.cpp
