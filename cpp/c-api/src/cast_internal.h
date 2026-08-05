@@ -21,6 +21,8 @@
 #include "dnv/vista/sdk/c/core/universal_id.h"
 #include "dnv/vista/sdk/c/core/universal_id_builder.h"
 #include "dnv/vista/sdk/c/core/vis.h"
+#include "dnv/vista/sdk/c/query/metadata_tags_query.h"
+#include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
 
 #include <dnv/VistaSDK.h>
 
@@ -309,5 +311,33 @@ namespace dnv::vista::sdk::c
     inline const dnv_vista_sdk_universal_id_builder_t* fromUniversalIdBuilderRef(const UniversalIdBuilder& builder)
     {
         return reinterpret_cast<const dnv_vista_sdk_universal_id_builder_t*>(&builder);
+    }
+
+    inline const MetadataTagsQueryBuilder* toMetadataTagsQueryBuilder(
+        const dnv_vista_sdk_metadata_tags_query_builder_t* builder)
+    {
+        return reinterpret_cast<const MetadataTagsQueryBuilder*>(builder);
+    }
+
+    inline dnv_vista_sdk_metadata_tags_query_builder_t* fromMetadataTagsQueryBuilder(MetadataTagsQueryBuilder&& builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_metadata_tags_query_builder_t*>(
+            new MetadataTagsQueryBuilder{ std::move(builder) });
+    }
+
+    inline const dnv_vista_sdk_metadata_tags_query_builder_t* fromMetadataTagsQueryBuilderRef(
+        const MetadataTagsQueryBuilder& builder)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_metadata_tags_query_builder_t*>(&builder);
+    }
+
+    inline const MetadataTagsQuery* toMetadataTagsQuery(const dnv_vista_sdk_metadata_tags_query_t* query)
+    {
+        return reinterpret_cast<const MetadataTagsQuery*>(query);
+    }
+
+    inline dnv_vista_sdk_metadata_tags_query_t* fromMetadataTagsQueryValue(MetadataTagsQuery&& query)
+    {
+        return reinterpret_cast<dnv_vista_sdk_metadata_tags_query_t*>(new MetadataTagsQuery{ std::move(query) });
     }
 } // namespace dnv::vista::sdk::c

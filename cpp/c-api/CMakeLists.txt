@@ -29,6 +29,9 @@ add_library(dnv-vista-sdk-c
     src/core/universal_id_builder.cpp
     src/core/vis.cpp
 
+    src/query/metadata_tags_query.cpp
+    src/query/metadata_tags_query_builder.cpp
+
     src/common.cpp
     src/error.cpp
     src/version.cpp
