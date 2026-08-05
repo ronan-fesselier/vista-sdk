@@ -21,12 +21,15 @@
 #include "dnv/vista/sdk/c/core/universal_id.h"
 #include "dnv/vista/sdk/c/core/universal_id_builder.h"
 #include "dnv/vista/sdk/c/core/vis.h"
+#include "dnv/vista/sdk/c/query/gmod_path_query.h"
+#include "dnv/vista/sdk/c/query/gmod_path_query_builder.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
 
 #include <dnv/VistaSDK.h>
 
 #include <cstring>
+#include <memory>
 #include <string>
 
 namespace dnv::vista::sdk::c
@@ -339,5 +342,44 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_metadata_tags_query_t* fromMetadataTagsQueryValue(MetadataTagsQuery&& query)
     {
         return reinterpret_cast<dnv_vista_sdk_metadata_tags_query_t*>(new MetadataTagsQuery{ std::move(query) });
+    }
+
+    struct GmodPathQueryBuilderWrapper
+    {
+        enum class Variant
+        {
+            Path,
+            Nodes
+        };
+        Variant variant;
+        std::unique_ptr<GmodPathQueryBuilder> builder;
+    };
+
+    inline GmodPathQueryBuilderWrapper* toGmodPathQueryBuilderWrapper(dnv_vista_sdk_gmod_path_query_builder_t* builder)
+    {
+        return reinterpret_cast<GmodPathQueryBuilderWrapper*>(builder);
+    }
+
+    inline const GmodPathQueryBuilderWrapper* toGmodPathQueryBuilderWrapper(
+        const dnv_vista_sdk_gmod_path_query_builder_t* builder)
+    {
+        return reinterpret_cast<const GmodPathQueryBuilderWrapper*>(builder);
+    }
+
+    inline dnv_vista_sdk_gmod_path_query_builder_t* fromGmodPathQueryBuilderWrapper(
+        GmodPathQueryBuilderWrapper::Variant variant, std::unique_ptr<GmodPathQueryBuilder> builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_gmod_path_query_builder_t*>(
+            new GmodPathQueryBuilderWrapper{ variant, std::move(builder) });
+    }
+
+    inline const GmodPathQuery* toGmodPathQuery(const dnv_vista_sdk_gmod_path_query_t* query)
+    {
+        return reinterpret_cast<const GmodPathQuery*>(query);
+    }
+
+    inline dnv_vista_sdk_gmod_path_query_t* fromGmodPathQueryValue(GmodPathQuery&& query)
+    {
+        return reinterpret_cast<dnv_vista_sdk_gmod_path_query_t*>(new GmodPathQuery{ std::move(query) });
     }
 } // namespace dnv::vista::sdk::c
