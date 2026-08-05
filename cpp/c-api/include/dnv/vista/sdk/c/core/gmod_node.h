@@ -1,8 +1,10 @@
 /**
  * @file gmod_node.h
  * @brief C API for dnv::vista::sdk::GmodNode
- * @details `dnv_vista_sdk_gmod_node_t*` is a borrowed pointer, owned by the parent
- *          Gmod - never freed independently
+ * @details `dnv_vista_sdk_gmod_node_t*` is normally a borrowed pointer, owned by the
+ *          parent Gmod - never freed independently. The exception is a node returned
+ *          by cross-version conversion (dnv_vista_sdk_vis_convert_node), which is an
+ *          owned copy and must be released with dnv_vista_sdk_gmod_node_free
  */
 
 #pragma once
@@ -158,6 +160,14 @@ extern "C"
      *         dnv_vista_sdk_string_free, or NULL if `node` is NULL
      */
     DNV_VISTA_SDK_C_API char* dnv_vista_sdk_gmod_node_to_string(const dnv_vista_sdk_gmod_node_t* node);
+
+    /**
+     * @brief Release an owned GmodNode handle
+     * @param node Owned handle obtained from dnv_vista_sdk_vis_convert_node, may be
+     *             NULL (no-op). Do NOT call this on a borrowed handle obtained from
+     *             a Gmod accessor - only on the owned copy returned by conversion
+     */
+    DNV_VISTA_SDK_C_API void dnv_vista_sdk_gmod_node_free(dnv_vista_sdk_gmod_node_t* node);
 
 #ifdef __cplusplus
 }

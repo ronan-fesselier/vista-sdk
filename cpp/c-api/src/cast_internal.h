@@ -171,6 +171,16 @@ namespace dnv::vista::sdk::c
         return reinterpret_cast<const dnv_vista_sdk_gmod_node_t*>(node);
     }
 
+    inline dnv_vista_sdk_gmod_node_t* fromGmodNode(std::optional<GmodNode>&& node)
+    {
+        if (!node.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_gmod_node_t*>(new GmodNode{ std::move(*node) });
+    }
+
     inline const Gmod* toGmod(const dnv_vista_sdk_gmod_t* gmod)
     {
         return reinterpret_cast<const Gmod*>(gmod);

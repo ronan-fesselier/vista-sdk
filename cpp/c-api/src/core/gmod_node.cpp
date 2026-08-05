@@ -283,3 +283,8 @@ char* dnv_vista_sdk_gmod_node_to_string(const dnv_vista_sdk_gmod_node_t* node)
 
     return toOwnedCString(toGmodNode(node)->toString());
 }
+
+void dnv_vista_sdk_gmod_node_free(dnv_vista_sdk_gmod_node_t* node)
+{
+    delete reinterpret_cast<GmodNode*>(node);
+}
