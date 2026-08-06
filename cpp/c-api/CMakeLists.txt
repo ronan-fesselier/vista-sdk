@@ -31,6 +31,8 @@ add_library(dnv-vista-sdk-c
 
     src/query/gmod_path_query.cpp
     src/query/gmod_path_query_builder.cpp
+    src/query/local_id_query.cpp
+    src/query/local_id_query_builder.cpp
     src/query/metadata_tags_query.cpp
     src/query/metadata_tags_query_builder.cpp
 
