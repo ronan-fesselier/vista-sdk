@@ -23,14 +23,16 @@
 #include "dnv/vista/sdk/c/core/vis.h"
 #include "dnv/vista/sdk/c/query/gmod_path_query.h"
 #include "dnv/vista/sdk/c/query/gmod_path_query_builder.h"
+#include "dnv/vista/sdk/c/query/local_id_query.h"
+#include "dnv/vista/sdk/c/query/local_id_query_builder.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
 
 #include <dnv/VistaSDK.h>
 
 #include <cstring>
-#include <memory>
 #include <string>
+#include <type_traits>
 
 namespace dnv::vista::sdk::c
 {
@@ -381,5 +383,41 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_gmod_path_query_t* fromGmodPathQueryValue(GmodPathQuery&& query)
     {
         return reinterpret_cast<dnv_vista_sdk_gmod_path_query_t*>(new GmodPathQuery{ std::move(query) });
+    }
+
+    inline const dnv_vista_sdk_gmod_path_query_t* fromGmodPathQueryRef(const GmodPathQuery& query)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_gmod_path_query_t*>(&query);
+    }
+
+    inline const LocalIdQueryBuilder* toLocalIdQueryBuilder(const dnv_vista_sdk_local_id_query_builder_t* builder)
+    {
+        return reinterpret_cast<const LocalIdQueryBuilder*>(builder);
+    }
+
+    inline dnv_vista_sdk_local_id_query_builder_t* fromLocalIdQueryBuilder(LocalIdQueryBuilder&& builder)
+    {
+        return reinterpret_cast<dnv_vista_sdk_local_id_query_builder_t*>(new LocalIdQueryBuilder{ std::move(builder) });
+    }
+
+    inline dnv_vista_sdk_local_id_query_builder_t* fromLocalIdQueryBuilder(std::optional<LocalIdQueryBuilder>&& builder)
+    {
+        if (!builder.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_local_id_query_builder_t*>(
+            new LocalIdQueryBuilder{ std::move(*builder) });
+    }
+
+    inline const LocalIdQuery* toLocalIdQuery(const dnv_vista_sdk_local_id_query_t* query)
+    {
+        return reinterpret_cast<const LocalIdQuery*>(query);
+    }
+
+    inline dnv_vista_sdk_local_id_query_t* fromLocalIdQueryValue(LocalIdQuery&& query)
+    {
+        return reinterpret_cast<dnv_vista_sdk_local_id_query_t*>(new LocalIdQuery{ std::move(query) });
     }
 } // namespace dnv::vista::sdk::c
