@@ -36,6 +36,10 @@ add_library(dnv-vista-sdk-c
     src/query/metadata_tags_query.cpp
     src/query/metadata_tags_query_builder.cpp
 
+    src/types/datetime/date_time.cpp
+    src/types/datetime/date_time_offset.cpp
+    src/types/datetime/time_span.cpp
+
     src/error.cpp
 )
 add_library(dnv::vista::sdk::c ALIAS dnv-vista-sdk-c)

@@ -27,6 +27,9 @@
 #include "dnv/vista/sdk/c/query/local_id_query_builder.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
+#include "dnv/vista/sdk/c/types/datetime/date_time.h"
+#include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
+#include "dnv/vista/sdk/c/types/datetime/time_span.h"
 
 #include <dnv/VistaSDK.h>
 
@@ -55,6 +58,22 @@ namespace dnv::vista::sdk::c
     static_assert(static_cast<int>(LocationGroup::Vertical) == DNV_VISTA_SDK_LOCATION_GROUP_VERTICAL);
     static_assert(static_cast<int>(LocationGroup::Transverse) == DNV_VISTA_SDK_LOCATION_GROUP_TRANSVERSE);
     static_assert(static_cast<int>(LocationGroup::Longitudinal) == DNV_VISTA_SDK_LOCATION_GROUP_LONGITUDINAL);
+
+    static_assert(static_cast<int>(DateTime::Format::Iso8601) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Precise) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_PRECISE);
+    static_assert(
+        static_cast<int>(DateTime::Format::Iso8601PreciseTrimmed) ==
+        DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_PRECISE_TRIMMED);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Millis) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_MILLIS);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Micros) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_MICROS);
+    static_assert(
+        static_cast<int>(DateTime::Format::Iso8601Extended) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_EXTENDED);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Basic) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_BASIC);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Date) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_DATE);
+    static_assert(static_cast<int>(DateTime::Format::Iso8601Time) == DNV_VISTA_SDK_DATE_TIME_FORMAT_ISO8601_TIME);
+    static_assert(static_cast<int>(DateTime::Format::UnixSeconds) == DNV_VISTA_SDK_DATE_TIME_FORMAT_UNIX_SECONDS);
+    static_assert(
+        static_cast<int>(DateTime::Format::UnixMilliseconds) == DNV_VISTA_SDK_DATE_TIME_FORMAT_UNIX_MILLISECONDS);
 
     inline char* toOwnedCString(const std::string& str)
     {
@@ -419,5 +438,40 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_local_id_query_t* fromLocalIdQueryValue(LocalIdQuery&& query)
     {
         return reinterpret_cast<dnv_vista_sdk_local_id_query_t*>(new LocalIdQuery{ std::move(query) });
+    }
+
+    inline TimeSpan toTimeSpan(dnv_vista_sdk_time_span_t ts)
+    {
+        return TimeSpan{ ts.ticks };
+    }
+
+    inline dnv_vista_sdk_time_span_t fromTimeSpan(const TimeSpan& ts)
+    {
+        return dnv_vista_sdk_time_span_t{ ts.ticks() };
+    }
+
+    inline DateTime toDateTime(dnv_vista_sdk_date_time_t dt)
+    {
+        return DateTime{ dt.ticks };
+    }
+
+    inline dnv_vista_sdk_date_time_t fromDateTime(const DateTime& dt)
+    {
+        return dnv_vista_sdk_date_time_t{ dt.ticks() };
+    }
+
+    inline DateTime::Format toDateTimeFormat(dnv_vista_sdk_date_time_format_t format)
+    {
+        return static_cast<DateTime::Format>(format);
+    }
+
+    inline DateTimeOffset toDateTimeOffset(dnv_vista_sdk_date_time_offset_t dto)
+    {
+        return DateTimeOffset{ toDateTime(dto.dateTime), toTimeSpan(dto.offset) };
+    }
+
+    inline dnv_vista_sdk_date_time_offset_t fromDateTimeOffset(const DateTimeOffset& dto)
+    {
+        return dnv_vista_sdk_date_time_offset_t{ fromDateTime(dto.dateTime()), fromTimeSpan(dto.offset()) };
     }
 } // namespace dnv::vista::sdk::c
