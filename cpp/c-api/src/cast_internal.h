@@ -30,6 +30,7 @@
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
 #include "dnv/vista/sdk/c/types/datetime/time_span.h"
+#include "dnv/vista/sdk/c/types/decimal/decimal.h"
 
 #include <dnv/VistaSDK.h>
 
@@ -74,6 +75,18 @@ namespace dnv::vista::sdk::c
     static_assert(static_cast<int>(DateTime::Format::UnixSeconds) == DNV_VISTA_SDK_DATE_TIME_FORMAT_UNIX_SECONDS);
     static_assert(
         static_cast<int>(DateTime::Format::UnixMilliseconds) == DNV_VISTA_SDK_DATE_TIME_FORMAT_UNIX_MILLISECONDS);
+
+    static_assert(static_cast<int>(Decimal::RoundingMode::ToNearest) == DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_NEAREST);
+    static_assert(
+        static_cast<int>(Decimal::RoundingMode::ToNearestTiesAway) ==
+        DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_NEAREST_TIES_AWAY);
+    static_assert(static_cast<int>(Decimal::RoundingMode::ToZero) == DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_ZERO);
+    static_assert(
+        static_cast<int>(Decimal::RoundingMode::ToPositiveInfinity) ==
+        DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_POSITIVE_INFINITY);
+    static_assert(
+        static_cast<int>(Decimal::RoundingMode::ToNegativeInfinity) ==
+        DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_NEGATIVE_INFINITY);
 
     inline char* toOwnedCString(const std::string& str)
     {
@@ -473,5 +486,28 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_date_time_offset_t fromDateTimeOffset(const DateTimeOffset& dto)
     {
         return dnv_vista_sdk_date_time_offset_t{ fromDateTime(dto.dateTime()), fromTimeSpan(dto.offset()) };
+    }
+
+    inline Decimal toDecimal(dnv_vista_sdk_decimal_t d)
+    {
+        Decimal result;
+        result.flags() = d.flags;
+        result.mantissa() = { d.mantissa[0], d.mantissa[1], d.mantissa[2] };
+        return result;
+    }
+
+    inline dnv_vista_sdk_decimal_t fromDecimal(const Decimal& d)
+    {
+        dnv_vista_sdk_decimal_t result{};
+        result.flags = d.flags();
+        result.mantissa[0] = d.mantissa()[0];
+        result.mantissa[1] = d.mantissa()[1];
+        result.mantissa[2] = d.mantissa()[2];
+        return result;
+    }
+
+    inline Decimal::RoundingMode toRoundingMode(dnv_vista_sdk_decimal_rounding_mode_t mode)
+    {
+        return static_cast<Decimal::RoundingMode>(mode);
     }
 } // namespace dnv::vista::sdk::c
