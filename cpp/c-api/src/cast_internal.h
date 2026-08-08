@@ -27,6 +27,7 @@
 #include "dnv/vista/sdk/c/query/local_id_query_builder.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
+#include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
@@ -535,5 +536,24 @@ namespace dnv::vista::sdk::c
         }
 
         return reinterpret_cast<dnv_vista_sdk_ship_id_t*>(new transport::ShipId{ std::move(*shipId) });
+    }
+
+    inline const transport::serialization::json::SerializableDocument* toSerializableDocument(
+        const dnv_vista_sdk_serializable_document_t* doc)
+    {
+        return reinterpret_cast<const transport::serialization::json::SerializableDocument*>(doc);
+    }
+
+    inline dnv_vista_sdk_serializable_document_t* fromSerializableDocument(
+        transport::serialization::json::SerializableDocument&& doc)
+    {
+        return reinterpret_cast<dnv_vista_sdk_serializable_document_t*>(
+            new transport::serialization::json::SerializableDocument{ std::move(doc) });
+    }
+
+    inline const dnv_vista_sdk_serializable_document_t* fromSerializableDocumentRef(
+        const transport::serialization::json::SerializableDocument& doc)
+    {
+        return reinterpret_cast<const dnv_vista_sdk_serializable_document_t*>(&doc);
     }
 } // namespace dnv::vista::sdk::c
