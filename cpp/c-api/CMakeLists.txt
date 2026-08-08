@@ -39,6 +39,7 @@ add_library(dnv-vista-sdk-c
     src/types/datetime/date_time.cpp
     src/types/datetime/date_time_offset.cpp
     src/types/datetime/time_span.cpp
+    src/types/decimal/decimal.cpp
 
     src/common.cpp
     src/error.cpp
