@@ -36,6 +36,7 @@ add_library(dnv-vista-sdk-c
     src/query/metadata_tags_query.cpp
     src/query/metadata_tags_query_builder.cpp
 
+    src/transport/serialization/json/serializable_document.cpp
     src/transport/ship_id.cpp
 
     src/types/datetime/date_time.cpp
