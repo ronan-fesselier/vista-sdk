@@ -27,6 +27,7 @@
 #include "dnv/vista/sdk/c/query/local_id_query_builder.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
+#include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
 #include "dnv/vista/sdk/c/types/datetime/time_span.h"
@@ -188,6 +189,11 @@ namespace dnv::vista::sdk::c
     inline const ImoNumber* toImoNumber(const dnv_vista_sdk_imo_number_t* imoNumber)
     {
         return reinterpret_cast<const ImoNumber*>(imoNumber);
+    }
+
+    inline dnv_vista_sdk_imo_number_t* fromImoNumberValue(const ImoNumber& imoNumber)
+    {
+        return reinterpret_cast<dnv_vista_sdk_imo_number_t*>(new ImoNumber{ imoNumber });
     }
 
     inline const GmodNodeMetadata* toMetadata(const dnv_vista_sdk_gmod_node_metadata_t* metadata)
@@ -509,5 +515,25 @@ namespace dnv::vista::sdk::c
     inline Decimal::RoundingMode toRoundingMode(dnv_vista_sdk_decimal_rounding_mode_t mode)
     {
         return static_cast<Decimal::RoundingMode>(mode);
+    }
+
+    inline const transport::ShipId* toShipId(const dnv_vista_sdk_ship_id_t* shipId)
+    {
+        return reinterpret_cast<const transport::ShipId*>(shipId);
+    }
+
+    inline dnv_vista_sdk_ship_id_t* fromShipId(transport::ShipId&& shipId)
+    {
+        return reinterpret_cast<dnv_vista_sdk_ship_id_t*>(new transport::ShipId{ std::move(shipId) });
+    }
+
+    inline dnv_vista_sdk_ship_id_t* fromShipId(std::optional<transport::ShipId>&& shipId)
+    {
+        if (!shipId.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_ship_id_t*>(new transport::ShipId{ std::move(*shipId) });
     }
 } // namespace dnv::vista::sdk::c
