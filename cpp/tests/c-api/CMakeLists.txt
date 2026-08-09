@@ -27,6 +27,7 @@ target_link_libraries(dnv-vista-sdk-tests-c-api
     PRIVATE
         doctest::doctest_with_main
         dnv::vista::sdk::c
+        dnv::vista::sdk::testdata
         dnv::vista::sdk::warnings
 )
 
