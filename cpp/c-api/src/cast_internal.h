@@ -28,6 +28,7 @@
 #include "dnv/vista/sdk/c/query/metadata_tags_query.h"
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
 #include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
+#include "dnv/vista/sdk/c/transport/datachannel/data_channel.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
@@ -42,6 +43,8 @@
 
 namespace dnv::vista::sdk::c
 {
+    namespace dcl = transport::datachannel;
+
     static_assert(static_cast<int>(CodebookName::Quantity) == DNV_VISTA_SDK_CODEBOOK_NAME_QUANTITY);
     static_assert(static_cast<int>(CodebookName::Content) == DNV_VISTA_SDK_CODEBOOK_NAME_CONTENT);
     static_assert(static_cast<int>(CodebookName::Calculation) == DNV_VISTA_SDK_CODEBOOK_NAME_CALCULATION);
@@ -89,6 +92,10 @@ namespace dnv::vista::sdk::c
     static_assert(
         static_cast<int>(Decimal::RoundingMode::ToNegativeInfinity) ==
         DNV_VISTA_SDK_DECIMAL_ROUNDING_MODE_TO_NEGATIVE_INFINITY);
+
+    static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Preserve) == DNV_VISTA_SDK_DCL_WHITE_SPACE_PRESERVE);
+    static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Replace) == DNV_VISTA_SDK_DCL_WHITE_SPACE_REPLACE);
+    static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Collapse) == DNV_VISTA_SDK_DCL_WHITE_SPACE_COLLAPSE);
 
     inline char* toOwnedCString(const std::string& str)
     {
@@ -555,5 +562,242 @@ namespace dnv::vista::sdk::c
         const transport::serialization::json::SerializableDocument& doc)
     {
         return reinterpret_cast<const dnv_vista_sdk_serializable_document_t*>(&doc);
+    }
+
+    inline dcl::Restriction::WhiteSpace toWhiteSpace(dnv_vista_sdk_dcl_white_space_t value)
+    {
+        return static_cast<dcl::Restriction::WhiteSpace>(value);
+    }
+
+    inline dnv_vista_sdk_dcl_white_space_t fromWhiteSpace(dcl::Restriction::WhiteSpace value)
+    {
+        return static_cast<dnv_vista_sdk_dcl_white_space_t>(value);
+    }
+
+    inline dcl::Restriction* toRestriction(dnv_vista_sdk_dcl_restriction_t* r)
+    {
+        return reinterpret_cast<dcl::Restriction*>(r);
+    }
+
+    inline const dcl::Restriction* toRestriction(const dnv_vista_sdk_dcl_restriction_t* r)
+    {
+        return reinterpret_cast<const dcl::Restriction*>(r);
+    }
+
+    inline dnv_vista_sdk_dcl_restriction_t* fromRestriction(dcl::Restriction&& r)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_restriction_t*>(new dcl::Restriction{ std::move(r) });
+    }
+
+    inline dcl::Range* toRange(dnv_vista_sdk_dcl_range_t* r)
+    {
+        return reinterpret_cast<dcl::Range*>(r);
+    }
+
+    inline const dcl::Range* toRange(const dnv_vista_sdk_dcl_range_t* r)
+    {
+        return reinterpret_cast<const dcl::Range*>(r);
+    }
+
+    inline dnv_vista_sdk_dcl_range_t* fromRange(dcl::Range&& r)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_range_t*>(new dcl::Range{ std::move(r) });
+    }
+
+    inline dcl::Format* toFormat(dnv_vista_sdk_dcl_format_t* f)
+    {
+        return reinterpret_cast<dcl::Format*>(f);
+    }
+
+    inline const dcl::Format* toFormat(const dnv_vista_sdk_dcl_format_t* f)
+    {
+        return reinterpret_cast<const dcl::Format*>(f);
+    }
+
+    inline dnv_vista_sdk_dcl_format_t* fromFormat(dcl::Format&& f)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_format_t*>(new dcl::Format{ std::move(f) });
+    }
+
+    inline dcl::DataChannelType* toDataChannelType(dnv_vista_sdk_dcl_data_channel_type_t* dct)
+    {
+        return reinterpret_cast<dcl::DataChannelType*>(dct);
+    }
+
+    inline const dcl::DataChannelType* toDataChannelType(const dnv_vista_sdk_dcl_data_channel_type_t* dct)
+    {
+        return reinterpret_cast<const dcl::DataChannelType*>(dct);
+    }
+
+    inline dnv_vista_sdk_dcl_data_channel_type_t* fromDataChannelType(dcl::DataChannelType&& dct)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_data_channel_type_t*>(new dcl::DataChannelType{ std::move(dct) });
+    }
+
+    inline dcl::NameObject* toNameObject(dnv_vista_sdk_dcl_name_object_t* n)
+    {
+        return reinterpret_cast<dcl::NameObject*>(n);
+    }
+
+    inline const dcl::NameObject* toNameObject(const dnv_vista_sdk_dcl_name_object_t* n)
+    {
+        return reinterpret_cast<const dcl::NameObject*>(n);
+    }
+
+    inline dnv_vista_sdk_dcl_name_object_t* fromNameObject(dcl::NameObject&& n)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_name_object_t*>(new dcl::NameObject{ std::move(n) });
+    }
+
+    inline dcl::Unit* toUnit(dnv_vista_sdk_dcl_unit_t* u)
+    {
+        return reinterpret_cast<dcl::Unit*>(u);
+    }
+
+    inline const dcl::Unit* toUnit(const dnv_vista_sdk_dcl_unit_t* u)
+    {
+        return reinterpret_cast<const dcl::Unit*>(u);
+    }
+
+    inline dnv_vista_sdk_dcl_unit_t* fromUnit(dcl::Unit&& u)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_unit_t*>(new dcl::Unit{ std::move(u) });
+    }
+
+    inline dcl::Property* toProperty(dnv_vista_sdk_dcl_property_t* p)
+    {
+        return reinterpret_cast<dcl::Property*>(p);
+    }
+
+    inline const dcl::Property* toProperty(const dnv_vista_sdk_dcl_property_t* p)
+    {
+        return reinterpret_cast<const dcl::Property*>(p);
+    }
+
+    inline dnv_vista_sdk_dcl_property_t* fromProperty(dcl::Property&& p)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_property_t*>(new dcl::Property{ std::move(p) });
+    }
+
+    inline dcl::ConfigurationReference* toConfigurationReference(dnv_vista_sdk_dcl_configuration_reference_t* c)
+    {
+        return reinterpret_cast<dcl::ConfigurationReference*>(c);
+    }
+
+    inline const dcl::ConfigurationReference* toConfigurationReference(
+        const dnv_vista_sdk_dcl_configuration_reference_t* c)
+    {
+        return reinterpret_cast<const dcl::ConfigurationReference*>(c);
+    }
+
+    inline dnv_vista_sdk_dcl_configuration_reference_t* fromConfigurationReference(dcl::ConfigurationReference&& c)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_configuration_reference_t*>(
+            new dcl::ConfigurationReference{ std::move(c) });
+    }
+
+    inline dcl::VersionInformation* toVersionInformation(dnv_vista_sdk_dcl_version_information_t* v)
+    {
+        return reinterpret_cast<dcl::VersionInformation*>(v);
+    }
+
+    inline const dcl::VersionInformation* toVersionInformation(const dnv_vista_sdk_dcl_version_information_t* v)
+    {
+        return reinterpret_cast<const dcl::VersionInformation*>(v);
+    }
+
+    inline dnv_vista_sdk_dcl_version_information_t* fromVersionInformation(dcl::VersionInformation&& v)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_version_information_t*>(new dcl::VersionInformation{ std::move(v) });
+    }
+
+    inline dcl::DataChannelId* toDclChannelId(dnv_vista_sdk_dcl_channel_id_t* id)
+    {
+        return reinterpret_cast<dcl::DataChannelId*>(id);
+    }
+
+    inline const dcl::DataChannelId* toDclChannelId(const dnv_vista_sdk_dcl_channel_id_t* id)
+    {
+        return reinterpret_cast<const dcl::DataChannelId*>(id);
+    }
+
+    inline dnv_vista_sdk_dcl_channel_id_t* fromDclChannelId(dcl::DataChannelId&& id)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_channel_id_t*>(new dcl::DataChannelId{ std::move(id) });
+    }
+
+    inline dcl::Header* toHeader(dnv_vista_sdk_dcl_header_t* h)
+    {
+        return reinterpret_cast<dcl::Header*>(h);
+    }
+
+    inline const dcl::Header* toHeader(const dnv_vista_sdk_dcl_header_t* h)
+    {
+        return reinterpret_cast<const dcl::Header*>(h);
+    }
+
+    inline dnv_vista_sdk_dcl_header_t* fromHeader(dcl::Header&& h)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_header_t*>(new dcl::Header{ std::move(h) });
+    }
+
+    inline dcl::DataChannel* toDclDataChannel(dnv_vista_sdk_dcl_data_channel_t* dc)
+    {
+        return reinterpret_cast<dcl::DataChannel*>(dc);
+    }
+
+    inline const dcl::DataChannel* toDclDataChannel(const dnv_vista_sdk_dcl_data_channel_t* dc)
+    {
+        return reinterpret_cast<const dcl::DataChannel*>(dc);
+    }
+
+    inline dnv_vista_sdk_dcl_data_channel_t* fromDclDataChannel(dcl::DataChannel&& dc)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_data_channel_t*>(new dcl::DataChannel{ std::move(dc) });
+    }
+
+    inline dcl::DataChannelList* toDataChannelList(dnv_vista_sdk_dcl_data_channel_list_t* list)
+    {
+        return reinterpret_cast<dcl::DataChannelList*>(list);
+    }
+
+    inline const dcl::DataChannelList* toDataChannelList(const dnv_vista_sdk_dcl_data_channel_list_t* list)
+    {
+        return reinterpret_cast<const dcl::DataChannelList*>(list);
+    }
+
+    inline dnv_vista_sdk_dcl_data_channel_list_t* fromDataChannelList(dcl::DataChannelList&& list)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_data_channel_list_t*>(new dcl::DataChannelList{ std::move(list) });
+    }
+
+    inline dcl::Package* toDclPackage(dnv_vista_sdk_dcl_package_t* p)
+    {
+        return reinterpret_cast<dcl::Package*>(p);
+    }
+
+    inline const dcl::Package* toDclPackage(const dnv_vista_sdk_dcl_package_t* p)
+    {
+        return reinterpret_cast<const dcl::Package*>(p);
+    }
+
+    inline dnv_vista_sdk_dcl_package_t* fromDclPackage(dcl::Package&& p)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_package_t*>(new dcl::Package{ std::move(p) });
+    }
+
+    inline dcl::DataChannelListPackage* toDataChannelListPackage(dnv_vista_sdk_dcl_list_package_t* p)
+    {
+        return reinterpret_cast<dcl::DataChannelListPackage*>(p);
+    }
+
+    inline const dcl::DataChannelListPackage* toDataChannelListPackage(const dnv_vista_sdk_dcl_list_package_t* p)
+    {
+        return reinterpret_cast<const dcl::DataChannelListPackage*>(p);
+    }
+
+    inline dnv_vista_sdk_dcl_list_package_t* fromDataChannelListPackage(dcl::DataChannelListPackage&& p)
+    {
+        return reinterpret_cast<dnv_vista_sdk_dcl_list_package_t*>(new dcl::DataChannelListPackage{ std::move(p) });
     }
 } // namespace dnv::vista::sdk::c
