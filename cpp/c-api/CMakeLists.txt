@@ -39,6 +39,7 @@ add_library(dnv-vista-sdk-c
     src/transport/serialization/json/datachannel/data_channel_json.cpp
     src/transport/serialization/json/serializable_document.cpp
     src/transport/datachannel/data_channel.cpp
+    src/transport/timeseries/data_channel_id.cpp
     src/transport/ship_id.cpp
 
     src/types/datetime/date_time.cpp
