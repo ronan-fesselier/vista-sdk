@@ -29,6 +29,7 @@
 #include "dnv/vista/sdk/c/query/metadata_tags_query_builder.h"
 #include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
 #include "dnv/vista/sdk/c/transport/datachannel/data_channel.h"
+#include "dnv/vista/sdk/c/transport/timeseries/data_channel_id.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
@@ -799,5 +800,22 @@ namespace dnv::vista::sdk::c
     inline dnv_vista_sdk_dcl_list_package_t* fromDataChannelListPackage(dcl::DataChannelListPackage&& p)
     {
         return reinterpret_cast<dnv_vista_sdk_dcl_list_package_t*>(new dcl::DataChannelListPackage{ std::move(p) });
+    }
+
+    inline const transport::timeseries::DataChannelId* toTsdChannelId(const dnv_vista_sdk_tsd_channel_id_t* channelId)
+    {
+        return reinterpret_cast<const transport::timeseries::DataChannelId*>(channelId);
+    }
+
+    inline dnv_vista_sdk_tsd_channel_id_t* fromTsdChannelId(
+        std::optional<transport::timeseries::DataChannelId>&& channelId)
+    {
+        if (!channelId.has_value())
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<dnv_vista_sdk_tsd_channel_id_t*>(
+            new transport::timeseries::DataChannelId{ std::move(*channelId) });
     }
 } // namespace dnv::vista::sdk::c
