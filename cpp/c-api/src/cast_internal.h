@@ -30,6 +30,7 @@
 #include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
 #include "dnv/vista/sdk/c/transport/datachannel/data_channel.h"
 #include "dnv/vista/sdk/c/transport/timeseries/data_channel_id.h"
+#include "dnv/vista/sdk/c/transport/timeseries/time_series_data.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
@@ -817,5 +818,157 @@ namespace dnv::vista::sdk::c
 
         return reinterpret_cast<dnv_vista_sdk_tsd_channel_id_t*>(
             new transport::timeseries::DataChannelId{ std::move(*channelId) });
+    }
+
+    namespace tsd = transport::timeseries;
+
+    inline tsd::TimeSpan* toTsdTimeSpan(dnv_vista_sdk_tsd_time_span_t* ts)
+    {
+        return reinterpret_cast<tsd::TimeSpan*>(ts);
+    }
+
+    inline const tsd::TimeSpan* toTsdTimeSpan(const dnv_vista_sdk_tsd_time_span_t* ts)
+    {
+        return reinterpret_cast<const tsd::TimeSpan*>(ts);
+    }
+
+    inline dnv_vista_sdk_tsd_time_span_t* fromTsdTimeSpan(tsd::TimeSpan&& ts)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_time_span_t*>(new tsd::TimeSpan{ std::move(ts) });
+    }
+
+    inline tsd::ConfigurationReference* toTsdConfigRef(dnv_vista_sdk_tsd_config_ref_t* c)
+    {
+        return reinterpret_cast<tsd::ConfigurationReference*>(c);
+    }
+
+    inline const tsd::ConfigurationReference* toTsdConfigRef(const dnv_vista_sdk_tsd_config_ref_t* c)
+    {
+        return reinterpret_cast<const tsd::ConfigurationReference*>(c);
+    }
+
+    inline dnv_vista_sdk_tsd_config_ref_t* fromTsdConfigRef(tsd::ConfigurationReference&& c)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_config_ref_t*>(new tsd::ConfigurationReference{ std::move(c) });
+    }
+
+    inline tsd::Header* toTsdHeader(dnv_vista_sdk_tsd_header_t* h)
+    {
+        return reinterpret_cast<tsd::Header*>(h);
+    }
+
+    inline const tsd::Header* toTsdHeader(const dnv_vista_sdk_tsd_header_t* h)
+    {
+        return reinterpret_cast<const tsd::Header*>(h);
+    }
+
+    inline dnv_vista_sdk_tsd_header_t* fromTsdHeader(tsd::Header&& h)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_header_t*>(new tsd::Header{ std::move(h) });
+    }
+
+    inline tsd::TabularDataSet* toTsdTabularDataSet(dnv_vista_sdk_tsd_tabular_data_set_t* d)
+    {
+        return reinterpret_cast<tsd::TabularDataSet*>(d);
+    }
+
+    inline const tsd::TabularDataSet* toTsdTabularDataSet(const dnv_vista_sdk_tsd_tabular_data_set_t* d)
+    {
+        return reinterpret_cast<const tsd::TabularDataSet*>(d);
+    }
+
+    inline dnv_vista_sdk_tsd_tabular_data_set_t* fromTsdTabularDataSet(tsd::TabularDataSet&& d)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_tabular_data_set_t*>(new tsd::TabularDataSet{ std::move(d) });
+    }
+
+    inline tsd::TabularData* toTsdTabularData(dnv_vista_sdk_tsd_tabular_data_t* d)
+    {
+        return reinterpret_cast<tsd::TabularData*>(d);
+    }
+
+    inline const tsd::TabularData* toTsdTabularData(const dnv_vista_sdk_tsd_tabular_data_t* d)
+    {
+        return reinterpret_cast<const tsd::TabularData*>(d);
+    }
+
+    inline dnv_vista_sdk_tsd_tabular_data_t* fromTsdTabularData(tsd::TabularData&& d)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_tabular_data_t*>(new tsd::TabularData{ std::move(d) });
+    }
+
+    inline tsd::EventDataSet* toTsdEventDataSet(dnv_vista_sdk_tsd_event_data_set_t* d)
+    {
+        return reinterpret_cast<tsd::EventDataSet*>(d);
+    }
+
+    inline const tsd::EventDataSet* toTsdEventDataSet(const dnv_vista_sdk_tsd_event_data_set_t* d)
+    {
+        return reinterpret_cast<const tsd::EventDataSet*>(d);
+    }
+
+    inline dnv_vista_sdk_tsd_event_data_set_t* fromTsdEventDataSet(tsd::EventDataSet&& d)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_event_data_set_t*>(new tsd::EventDataSet{ std::move(d) });
+    }
+
+    inline tsd::EventData* toTsdEventData(dnv_vista_sdk_tsd_event_data_t* d)
+    {
+        return reinterpret_cast<tsd::EventData*>(d);
+    }
+
+    inline const tsd::EventData* toTsdEventData(const dnv_vista_sdk_tsd_event_data_t* d)
+    {
+        return reinterpret_cast<const tsd::EventData*>(d);
+    }
+
+    inline dnv_vista_sdk_tsd_event_data_t* fromTsdEventData(tsd::EventData&& d)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_event_data_t*>(new tsd::EventData{ std::move(d) });
+    }
+
+    inline tsd::TimeSeriesData* toTsdTimeSeriesData(dnv_vista_sdk_tsd_time_series_data_t* d)
+    {
+        return reinterpret_cast<tsd::TimeSeriesData*>(d);
+    }
+
+    inline const tsd::TimeSeriesData* toTsdTimeSeriesData(const dnv_vista_sdk_tsd_time_series_data_t* d)
+    {
+        return reinterpret_cast<const tsd::TimeSeriesData*>(d);
+    }
+
+    inline dnv_vista_sdk_tsd_time_series_data_t* fromTsdTimeSeriesData(tsd::TimeSeriesData&& d)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_time_series_data_t*>(new tsd::TimeSeriesData{ std::move(d) });
+    }
+
+    inline tsd::Package* toTsdPackage(dnv_vista_sdk_tsd_package_t* p)
+    {
+        return reinterpret_cast<tsd::Package*>(p);
+    }
+
+    inline const tsd::Package* toTsdPackage(const dnv_vista_sdk_tsd_package_t* p)
+    {
+        return reinterpret_cast<const tsd::Package*>(p);
+    }
+
+    inline dnv_vista_sdk_tsd_package_t* fromTsdPackage(tsd::Package&& p)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_package_t*>(new tsd::Package{ std::move(p) });
+    }
+
+    inline tsd::TimeSeriesDataPackage* toTsdDataPackage(dnv_vista_sdk_tsd_data_package_t* p)
+    {
+        return reinterpret_cast<tsd::TimeSeriesDataPackage*>(p);
+    }
+
+    inline const tsd::TimeSeriesDataPackage* toTsdDataPackage(const dnv_vista_sdk_tsd_data_package_t* p)
+    {
+        return reinterpret_cast<const tsd::TimeSeriesDataPackage*>(p);
+    }
+
+    inline dnv_vista_sdk_tsd_data_package_t* fromTsdDataPackage(tsd::TimeSeriesDataPackage&& p)
+    {
+        return reinterpret_cast<dnv_vista_sdk_tsd_data_package_t*>(new tsd::TimeSeriesDataPackage{ std::move(p) });
     }
 } // namespace dnv::vista::sdk::c
