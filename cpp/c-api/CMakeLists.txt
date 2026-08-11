@@ -37,6 +37,7 @@ add_library(dnv-vista-sdk-c
     src/query/metadata_tags_query_builder.cpp
 
     src/transport/serialization/json/datachannel/data_channel_json.cpp
+    src/transport/serialization/json/timeseries/time_series_data_json.cpp
     src/transport/serialization/json/serializable_document.cpp
     src/transport/datachannel/data_channel.cpp
     src/transport/timeseries/data_channel_id.cpp
