@@ -1,0 +1,15 @@
+/**
+ * @file VistaSDK_c_api_short.h
+ * @brief Short-name aliases for the DNV Vista SDK C API
+ * @details Opt-in header: strips the dnv_vista_sdk_ prefix from every function
+ *          so that C callers can write e.g. vista_local_id_from_string()
+ *          instead of dnv_vista_sdk_local_id_from_string()
+ */
+
+#pragma once
+
+#include <dnv/VistaSDK_c_api.h>
+
+// clang-format off
+@_defines@
+    // clang-format on
