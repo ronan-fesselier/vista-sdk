@@ -1,8 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/gmod.h>
-#include <dnv/vista/sdk/c/core/vis.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 

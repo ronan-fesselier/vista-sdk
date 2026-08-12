@@ -1,9 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/imo_number.h>
-#include <dnv/vista/sdk/c/transport/ship_id.h>
-#include <dnv/vista/sdk/c/common.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 
