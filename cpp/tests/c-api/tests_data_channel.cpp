@@ -147,7 +147,33 @@ TEST_SUITE("c-api::data_channel::format")
         auto* format = dnv_vista_sdk_dcl_format_create("Decimal");
         REQUIRE(format != nullptr);
 
-        CHECK(dnv_vista_sdk_dcl_format_validate_value(format, "42.5") == 1);
+        CHECK(dnv_vista_sdk_dcl_format_validate_value(format, "42.5", nullptr) == 1);
+
+        dnv_vista_sdk_dcl_format_free(format);
+    }
+
+    TEST_CASE("validate_value - parsedValue out-param returns the parsed Value")
+    {
+        auto* format = dnv_vista_sdk_dcl_format_create("Decimal");
+        REQUIRE(format != nullptr);
+
+        dnv_vista_sdk_iso19848_value_t* parsedValue = nullptr;
+        CHECK(dnv_vista_sdk_dcl_format_validate_value(format, "42.5", &parsedValue) == 1);
+        REQUIRE(parsedValue != nullptr);
+        CHECK(dnv_vista_sdk_iso19848_value_type(parsedValue) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_DECIMAL);
+
+        dnv_vista_sdk_iso19848_value_free(parsedValue);
+        dnv_vista_sdk_dcl_format_free(format);
+    }
+
+    TEST_CASE("validate_value - invalid value leaves parsedValue untouched")
+    {
+        auto* format = dnv_vista_sdk_dcl_format_create("Decimal");
+        REQUIRE(format != nullptr);
+
+        dnv_vista_sdk_iso19848_value_t* parsedValue = reinterpret_cast<dnv_vista_sdk_iso19848_value_t*>(0x1);
+        CHECK(dnv_vista_sdk_dcl_format_validate_value(format, "not_a_decimal", &parsedValue) == 0);
+        CHECK(parsedValue == reinterpret_cast<dnv_vista_sdk_iso19848_value_t*>(0x1));
 
         dnv_vista_sdk_dcl_format_free(format);
     }

@@ -691,7 +691,8 @@ void dnv_vista_sdk_dcl_format_clear_restriction(dnv_vista_sdk_dcl_format_t* form
     toFormat(format)->setRestriction(std::nullopt);
 }
 
-int dnv_vista_sdk_dcl_format_validate_value(const dnv_vista_sdk_dcl_format_t* format, const char* value)
+int dnv_vista_sdk_dcl_format_validate_value(
+    const dnv_vista_sdk_dcl_format_t* format, const char* value, dnv_vista_sdk_iso19848_value_t** parsedValue)
 {
     if (format == nullptr || value == nullptr)
     {
@@ -699,12 +700,17 @@ int dnv_vista_sdk_dcl_format_validate_value(const dnv_vista_sdk_dcl_format_t* fo
         return 0;
     }
 
-    transport::Value parsedValue{ transport::Value::Boolean{ false } };
-    const auto result = toFormat(format)->validateValue(value, parsedValue);
+    transport::Value parsed{ transport::Value::Boolean{ false } };
+    const auto result = toFormat(format)->validateValue(value, parsed);
     if (!result)
     {
         c::setLastErrorMessage(result.errors().empty() ? "validation failed" : result.errors().front());
         return 0;
+    }
+
+    if (parsedValue != nullptr)
+    {
+        *parsedValue = fromIso19848Value(std::move(parsed));
     }
 
     return 1;

@@ -19,10 +19,14 @@
  *          - `timeseries::Package`/`TimeSeriesDataPackage` vs `datachannel::Package`/
  *            `DataChannelListPackage` are likewise disambiguated by the `tsd_`/`dcl_` prefix
  *
- *          `TimeSeriesData::validate()` is NOT exposed in this module - its signature takes
- *          `std::function` callbacks receiving a `transport::Value` by reference, and `Value`
- *          (ISO19848.h) is not yet wrapped in the C API. Deferred to a future ISO19848
- *          primitives module
+ *          `TimeSeriesData::validate(dcPackage, onTabularData, onEventData)` is exposed via
+ *          dnv_vista_sdk_tsd_time_series_data_validate() using a C callback per data stream
+ *          (dnv_vista_sdk_tsd_validate_callback_t). The C++ implementation calls each callback
+ *          once per data point and never stops early on a failed callback - it always visits
+ *          every point and aggregates failures into the final ValidateResult. The callback
+ *          return value (1 = valid, 0 = invalid) is what drives that aggregation, so it must
+ *          be supplied honestly. See dnv_vista_sdk_tsd_validate_callback_t for the
+ *          outErrorMessage lifetime contract
  */
 
 #pragma once
@@ -31,6 +35,7 @@
 
 #include "../../types/datetime/date_time_offset.h"
 #include "../serialization/json/serializable_document.h"
+#include "../datachannel/data_channel.h"
 #include "../ship_id.h"
 
 #include "data_channel_id.h"
@@ -371,6 +376,52 @@ extern "C"
         dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData, dnv_vista_sdk_serializable_document_t* value);
     DNV_VISTA_SDK_C_API void dnv_vista_sdk_tsd_time_series_data_clear_custom_data_kinds(
         dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData);
+
+    /**
+     * @brief Per-data-point custom validation callback for dnv_vista_sdk_tsd_time_series_data_validate
+     * @param timeStamp Timestamp of the data point being validated
+     * @param dataChannel Borrowed pointer to the resolved DataChannel, valid only for the
+     *                     duration of the callback
+     * @param value Borrowed pointer to the parsed Value, valid only for the duration of the callback
+     * @param quality Optional quality indicator, may be NULL
+     * @param outErrorMessage Optional out-param: if the callback returns 0, it may set
+     *                         `*outErrorMessage` to a description of the failure. The pointed-to
+     *                         string is only read by the caller before the callback returns
+     *                         control - it is never read afterwards and never freed by the
+     *                         caller, so a string literal or a thread-local/static buffer is a
+     *                         valid choice. May be left untouched (defaults to a generic message)
+     * @param userdata Opaque pointer forwarded from dnv_vista_sdk_tsd_time_series_data_validate
+     * @return 1 if the data point passes custom validation, 0 otherwise
+     * @details The C++ implementation calls this callback once per data point (tabular value or
+     *          event) and never stops early on a 0 return - it always visits every point and
+     *          aggregates every failure into the final validation result
+     */
+    typedef int (*dnv_vista_sdk_tsd_validate_callback_t)(
+        dnv_vista_sdk_date_time_offset_t timeStamp,
+        const dnv_vista_sdk_dcl_data_channel_t* dataChannel,
+        const dnv_vista_sdk_iso19848_value_t* value,
+        const char* quality,
+        const char** outErrorMessage,
+        void* userdata);
+
+    /**
+     * @brief Validate this TimeSeriesData against a DataChannelList package
+     * @param timeSeriesData Must not be NULL
+     * @param dcPackage DataChannelList package to validate against, must not be NULL
+     * @param onTabularData Callback invoked for each tabular data point, must not be NULL
+     * @param tabularUserdata Opaque pointer forwarded to `onTabularData`
+     * @param onEventData Callback invoked for each event data point, must not be NULL
+     * @param eventUserdata Opaque pointer forwarded to `onEventData`
+     * @return 1 if valid, 0 otherwise (with the first validation error set via
+     *         dnv_vista_sdk_last_error_message()), or if any required argument is NULL
+     */
+    DNV_VISTA_SDK_C_API int dnv_vista_sdk_tsd_time_series_data_validate(
+        const dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData,
+        const dnv_vista_sdk_dcl_list_package_t* dcPackage,
+        dnv_vista_sdk_tsd_validate_callback_t onTabularData,
+        void* tabularUserdata,
+        dnv_vista_sdk_tsd_validate_callback_t onEventData,
+        void* eventUserdata);
 
     /*=====================================================================
      * Package - Table 23
