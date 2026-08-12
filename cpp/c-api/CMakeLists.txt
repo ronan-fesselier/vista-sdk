@@ -42,6 +42,7 @@ add_library(dnv-vista-sdk-c
     src/transport/datachannel/data_channel.cpp
     src/transport/timeseries/data_channel_id.cpp
     src/transport/timeseries/time_series_data.cpp
+    src/transport/iso19848.cpp
     src/transport/ship_id.cpp
 
     src/types/datetime/date_time.cpp
