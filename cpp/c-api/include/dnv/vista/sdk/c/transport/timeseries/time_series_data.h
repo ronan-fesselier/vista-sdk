@@ -10,6 +10,7 @@
 #include <dnv/vista/sdk/c/Export.h>
 
 #include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
+#include "dnv/vista/sdk/c/transport/datachannel/data_channel.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
 
@@ -351,6 +352,64 @@ extern "C"
         dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData, dnv_vista_sdk_serializable_document_t* value);
     DNV_VISTA_SDK_C_API void dnv_vista_sdk_tsd_time_series_data_clear_custom_data_kinds(
         dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData);
+
+    /**
+     * @brief Opaque accumulator for validation error messages, passed to the callback by the library
+     * @details The library owns this handle for the duration of the callback invocation.
+     *          The callback must not store or free it. Pass NULL to ignore errors
+     */
+    typedef struct dnv_vista_sdk_tsd_validation_errors dnv_vista_sdk_tsd_validation_errors_t;
+
+    /**
+     * @brief Append an error message to the validation errors accumulator
+     * @param errors Handle provided by the library to the callback, must not be NULL
+     * @param message NUL-terminated error message, copied internally, no lifetime requirement
+     */
+    DNV_VISTA_SDK_C_API void dnv_vista_sdk_tsd_validation_errors_add(
+        dnv_vista_sdk_tsd_validation_errors_t* errors, const char* message);
+
+    /**
+     * @brief Per-data-point custom validation callback for dnv_vista_sdk_tsd_time_series_data_validate
+     * @param timeStamp Timestamp of the data point being validated
+     * @param dataChannel Borrowed pointer to the resolved DataChannel, valid only for the
+     *                    duration of the callback
+     * @param value Borrowed pointer to the parsed Value, valid only for the duration of the callback
+     * @param quality Optional quality indicator, may be NULL
+     * @param outErrors Accumulator for error messages, call dnv_vista_sdk_tsd_validation_errors_add()
+     *                  once per message when returning 0. May be NULL (errors silently discarded).
+     *                  Owned by the library, do not free
+     * @param userdata Opaque pointer forwarded from dnv_vista_sdk_tsd_time_series_data_validate
+     * @return 1 if the data point passes custom validation, 0 otherwise
+     * @details The C++ implementation calls this callback once per data point (tabular value or
+     *          event) and never stops early on a 0 return. It always visits every point and
+     *          aggregates every failure into the final validation result
+     */
+    typedef int (*dnv_vista_sdk_tsd_validate_callback_t)(
+        dnv_vista_sdk_date_time_offset_t timeStamp,
+        const dnv_vista_sdk_dcl_data_channel_t* dataChannel,
+        const dnv_vista_sdk_iso19848_value_t* value,
+        const char* quality,
+        dnv_vista_sdk_tsd_validation_errors_t* outErrors,
+        void* userdata);
+
+    /**
+     * @brief Validate this TimeSeriesData against a DataChannelList package
+     * @param timeSeriesData Must not be NULL
+     * @param dcPackage DataChannelList package to validate against, must not be NULL
+     * @param onTabularData Callback invoked for each tabular data point, must not be NULL
+     * @param tabularUserdata Opaque pointer forwarded to `onTabularData`
+     * @param onEventData Callback invoked for each event data point, must not be NULL
+     * @param eventUserdata Opaque pointer forwarded to `onEventData`
+     * @return 1 if valid, 0 otherwise (with the first validation error set via
+     *         dnv_vista_sdk_last_error_message()), or if any required argument is NULL
+     */
+    DNV_VISTA_SDK_C_API int dnv_vista_sdk_tsd_time_series_data_validate(
+        const dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData,
+        const dnv_vista_sdk_dcl_list_package_t* dcPackage,
+        dnv_vista_sdk_tsd_validate_callback_t onTabularData,
+        void* tabularUserdata,
+        dnv_vista_sdk_tsd_validate_callback_t onEventData,
+        void* eventUserdata);
 
     /*=====================================================================
      * Package - Table 23
