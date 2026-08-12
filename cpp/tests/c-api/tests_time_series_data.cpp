@@ -1,12 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/imo_number.h>
-#include <dnv/vista/sdk/c/transport/serialization/json/datachannel/data_channel_json.h>
-#include <dnv/vista/sdk/c/transport/serialization/json/serializable_document.h>
-#include <dnv/vista/sdk/c/transport/timeseries/data_channel_id.h>
-#include <dnv/vista/sdk/c/transport/timeseries/time_series_data.h>
-#include <dnv/vista/sdk/c/transport/ship_id.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <EmbeddedTestData.h>
 
