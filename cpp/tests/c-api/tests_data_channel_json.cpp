@@ -1,8 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/transport/serialization/json/datachannel/data_channel_json.h>
-#include <dnv/vista/sdk/c/transport/datachannel/data_channel.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <EmbeddedTestData.h>
 

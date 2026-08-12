@@ -1,13 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/imo_number.h>
-#include <dnv/vista/sdk/c/core/local_id.h>
-#include <dnv/vista/sdk/c/transport/serialization/json/serializable_document.h>
-#include <dnv/vista/sdk/c/transport/datachannel/data_channel.h>
-#include <dnv/vista/sdk/c/transport/ship_id.h>
-#include <dnv/vista/sdk/c/types/datetime/date_time_offset.h>
-
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 

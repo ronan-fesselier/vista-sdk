@@ -1,7 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/types/datetime/date_time.h>
-#include <dnv/vista/sdk/c/types/datetime/time_span.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 

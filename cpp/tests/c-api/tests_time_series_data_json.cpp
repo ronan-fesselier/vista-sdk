@@ -1,8 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/transport/serialization/json/timeseries/time_series_data_json.h>
-#include <dnv/vista/sdk/c/transport/timeseries/time_series_data.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <EmbeddedTestData.h>
 
