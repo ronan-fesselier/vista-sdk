@@ -97,6 +97,9 @@ include(dnvVistaSdkInstall)
 
 if(DNV_VISTA_SDK_BUILD_C_API)
     add_subdirectory(c-api)
+    set(DNV_VISTA_SDK_C_API_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/c-api/include")
+else()
+    set(DNV_VISTA_SDK_C_API_INCLUDE_DIR "")
 endif()
 
 #----------------------------------------------
