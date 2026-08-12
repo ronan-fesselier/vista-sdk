@@ -1,11 +1,14 @@
 #include <doctest/doctest.h>
 
 #include <dnv/vista/sdk/c/core/imo_number.h>
+#include <dnv/vista/sdk/c/transport/serialization/json/datachannel/data_channel_json.h>
 #include <dnv/vista/sdk/c/transport/serialization/json/serializable_document.h>
 #include <dnv/vista/sdk/c/transport/timeseries/data_channel_id.h>
 #include <dnv/vista/sdk/c/transport/timeseries/time_series_data.h>
 #include <dnv/vista/sdk/c/transport/ship_id.h>
 #include <dnv/vista/sdk/c/error.h>
+
+#include <EmbeddedTestData.h>
 
 #include <string_view>
 
@@ -322,5 +325,170 @@ TEST_SUITE("c-api::time_series_data::data_package")
     TEST_CASE("create - null returns null")
     {
         CHECK(dnv_vista_sdk_tsd_data_package_create(nullptr) == nullptr);
+    }
+}
+
+namespace
+{
+    const std::string& validDataChannelListJson()
+    {
+        static const std::string json = dnv::vista::sdk::EmbeddedTestData::text("DataChannelList.json");
+        return json;
+    }
+
+    int okCallback(
+        dnv_vista_sdk_date_time_offset_t,
+        const dnv_vista_sdk_dcl_data_channel_t*,
+        const dnv_vista_sdk_iso19848_value_t*,
+        const char*,
+        const char**,
+        void*)
+    {
+        return 1;
+    }
+
+    int failCallback(
+        dnv_vista_sdk_date_time_offset_t,
+        const dnv_vista_sdk_dcl_data_channel_t*,
+        const dnv_vista_sdk_iso19848_value_t*,
+        const char*,
+        const char** outErrorMessage,
+        void*)
+    {
+        if (outErrorMessage != nullptr)
+        {
+            *outErrorMessage = "custom callback rejected this point";
+        }
+        return 0;
+    }
+
+    int countingCallback(
+        dnv_vista_sdk_date_time_offset_t,
+        const dnv_vista_sdk_dcl_data_channel_t*,
+        const dnv_vista_sdk_iso19848_value_t*,
+        const char*,
+        const char**,
+        void* userdata)
+    {
+        *static_cast<int*>(userdata) += 1;
+        return 1;
+    }
+} // namespace
+
+TEST_SUITE("c-api::time_series_data::validate")
+{
+    TEST_CASE("dnv_vista_sdk_tsd_time_series_data_validate - valid tabular data point")
+    {
+        auto* dcListPackage = dnv_vista_sdk_dcl_list_package_from_json(validDataChannelListJson().c_str());
+        REQUIRE(dcListPackage != nullptr);
+
+        auto* channelId = dnv_vista_sdk_tsd_channel_id_from_string("0010");
+        REQUIRE(channelId != nullptr);
+        const dnv_vista_sdk_tsd_channel_id_t* channelIds[] = { channelId };
+
+        auto ts = dnv_vista_sdk_date_time_offset_from_epoch_seconds(1704110400);
+        const char* values[] = { "12.5" };
+        auto* dataSet = dnv_vista_sdk_tsd_tabular_data_set_create(ts, values, 1);
+        REQUIRE(dataSet != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_set_t* dataSets[] = { dataSet };
+
+        auto* tabularData = dnv_vista_sdk_tsd_tabular_data_create(channelIds, 1, dataSets, 1);
+        REQUIRE(tabularData != nullptr);
+
+        auto* timeSeriesData = dnv_vista_sdk_tsd_time_series_data_create();
+        REQUIRE(timeSeriesData != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_t* tabularEntries[] = { tabularData };
+        dnv_vista_sdk_tsd_time_series_data_set_tabular_data(timeSeriesData, tabularEntries, 1);
+
+        int callCount = 0;
+        CHECK(
+            dnv_vista_sdk_tsd_time_series_data_validate(
+                timeSeriesData, dcListPackage, countingCallback, &callCount, okCallback, nullptr) == 1);
+        CHECK(callCount == 1);
+
+        dnv_vista_sdk_tsd_time_series_data_free(timeSeriesData);
+        dnv_vista_sdk_tsd_tabular_data_free(tabularData);
+        dnv_vista_sdk_tsd_tabular_data_set_free(dataSet);
+        dnv_vista_sdk_tsd_channel_id_free(channelId);
+        dnv_vista_sdk_dcl_list_package_free(dcListPackage);
+    }
+
+    TEST_CASE("dnv_vista_sdk_tsd_time_series_data_validate - unknown channel id fails")
+    {
+        auto* dcListPackage = dnv_vista_sdk_dcl_list_package_from_json(validDataChannelListJson().c_str());
+        REQUIRE(dcListPackage != nullptr);
+
+        auto* channelId = dnv_vista_sdk_tsd_channel_id_from_string("9999");
+        REQUIRE(channelId != nullptr);
+        const dnv_vista_sdk_tsd_channel_id_t* channelIds[] = { channelId };
+
+        auto ts = dnv_vista_sdk_date_time_offset_from_epoch_seconds(1704110400);
+        const char* values[] = { "12.5" };
+        auto* dataSet = dnv_vista_sdk_tsd_tabular_data_set_create(ts, values, 1);
+        REQUIRE(dataSet != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_set_t* dataSets[] = { dataSet };
+
+        auto* tabularData = dnv_vista_sdk_tsd_tabular_data_create(channelIds, 1, dataSets, 1);
+        REQUIRE(tabularData != nullptr);
+
+        auto* timeSeriesData = dnv_vista_sdk_tsd_time_series_data_create();
+        REQUIRE(timeSeriesData != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_t* tabularEntries[] = { tabularData };
+        dnv_vista_sdk_tsd_time_series_data_set_tabular_data(timeSeriesData, tabularEntries, 1);
+
+        CHECK(
+            dnv_vista_sdk_tsd_time_series_data_validate(
+                timeSeriesData, dcListPackage, okCallback, nullptr, okCallback, nullptr) == 0);
+        CHECK(std::string_view{ dnv_vista_sdk_last_error_message() }.find("not found") != std::string_view::npos);
+
+        dnv_vista_sdk_tsd_time_series_data_free(timeSeriesData);
+        dnv_vista_sdk_tsd_tabular_data_free(tabularData);
+        dnv_vista_sdk_tsd_tabular_data_set_free(dataSet);
+        dnv_vista_sdk_tsd_channel_id_free(channelId);
+        dnv_vista_sdk_dcl_list_package_free(dcListPackage);
+    }
+
+    TEST_CASE("dnv_vista_sdk_tsd_time_series_data_validate - custom callback failure propagates its error message")
+    {
+        auto* dcListPackage = dnv_vista_sdk_dcl_list_package_from_json(validDataChannelListJson().c_str());
+        REQUIRE(dcListPackage != nullptr);
+
+        auto* channelId = dnv_vista_sdk_tsd_channel_id_from_string("0010");
+        REQUIRE(channelId != nullptr);
+        const dnv_vista_sdk_tsd_channel_id_t* channelIds[] = { channelId };
+
+        auto ts = dnv_vista_sdk_date_time_offset_from_epoch_seconds(1704110400);
+        const char* values[] = { "12.5" };
+        auto* dataSet = dnv_vista_sdk_tsd_tabular_data_set_create(ts, values, 1);
+        REQUIRE(dataSet != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_set_t* dataSets[] = { dataSet };
+
+        auto* tabularData = dnv_vista_sdk_tsd_tabular_data_create(channelIds, 1, dataSets, 1);
+        REQUIRE(tabularData != nullptr);
+
+        auto* timeSeriesData = dnv_vista_sdk_tsd_time_series_data_create();
+        REQUIRE(timeSeriesData != nullptr);
+        const dnv_vista_sdk_tsd_tabular_data_t* tabularEntries[] = { tabularData };
+        dnv_vista_sdk_tsd_time_series_data_set_tabular_data(timeSeriesData, tabularEntries, 1);
+
+        CHECK(
+            dnv_vista_sdk_tsd_time_series_data_validate(
+                timeSeriesData, dcListPackage, failCallback, nullptr, okCallback, nullptr) == 0);
+        CHECK(
+            std::string_view{ dnv_vista_sdk_last_error_message() }.find("custom callback rejected this point") !=
+            std::string_view::npos);
+
+        dnv_vista_sdk_tsd_time_series_data_free(timeSeriesData);
+        dnv_vista_sdk_tsd_tabular_data_free(tabularData);
+        dnv_vista_sdk_tsd_tabular_data_set_free(dataSet);
+        dnv_vista_sdk_tsd_channel_id_free(channelId);
+        dnv_vista_sdk_dcl_list_package_free(dcListPackage);
+    }
+
+    TEST_CASE("dnv_vista_sdk_tsd_time_series_data_validate - null arguments")
+    {
+        CHECK(
+            dnv_vista_sdk_tsd_time_series_data_validate(nullptr, nullptr, okCallback, nullptr, okCallback, nullptr) ==
+            0);
     }
 }

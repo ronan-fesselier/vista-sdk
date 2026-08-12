@@ -1117,6 +1117,83 @@ void dnv_vista_sdk_tsd_time_series_data_clear_custom_data_kinds(dnv_vista_sdk_ts
     toTsdTimeSeriesData(timeSeriesData)->setCustomDataKinds(std::nullopt);
 }
 
+namespace
+{
+    transport::ValidateResult<> invokeTsdValidateCallback(
+        dnv_vista_sdk_tsd_validate_callback_t callback,
+        void* userdata,
+        const DateTimeOffset& timeStamp,
+        const transport::datachannel::DataChannel& dataChannel,
+        const transport::Value& value,
+        const std::optional<std::string>& quality)
+    {
+        const char* errorMessage = nullptr;
+        const int ok = callback(
+            fromDateTimeOffset(timeStamp),
+            reinterpret_cast<const dnv_vista_sdk_dcl_data_channel_t*>(&dataChannel),
+            reinterpret_cast<const dnv_vista_sdk_iso19848_value_t*>(&value),
+            quality.has_value() ? quality->c_str() : nullptr,
+            &errorMessage,
+            userdata);
+
+        if (ok != 0)
+        {
+            return transport::ValidateResult<>::ok();
+        }
+
+        return transport::ValidateResult<>::invalid(
+            errorMessage != nullptr ? std::string{ errorMessage } : std::string{ "custom validation failed" });
+    }
+} // namespace
+
+int dnv_vista_sdk_tsd_time_series_data_validate(
+    const dnv_vista_sdk_tsd_time_series_data_t* timeSeriesData,
+    const dnv_vista_sdk_dcl_list_package_t* dcPackage,
+    dnv_vista_sdk_tsd_validate_callback_t onTabularData,
+    void* tabularUserdata,
+    dnv_vista_sdk_tsd_validate_callback_t onEventData,
+    void* eventUserdata)
+{
+    if (timeSeriesData == nullptr || dcPackage == nullptr || onTabularData == nullptr || onEventData == nullptr)
+    {
+        c::setLastError(
+            "timeSeriesData, dcPackage, onTabularData and onEventData must not be null",
+            DNV_VISTA_SDK_ERROR_INVALID_ARGUMENT);
+        return 0;
+    }
+
+    return c::cApiTryCatch<int>([&]() -> int {
+        const auto result = toTsdTimeSeriesData(timeSeriesData)
+                                ->validate(
+                                    *toDataChannelListPackage(dcPackage),
+                                    [onTabularData, tabularUserdata](
+                                        const DateTimeOffset& timeStamp,
+                                        const transport::datachannel::DataChannel& dataChannel,
+                                        const transport::Value& value,
+                                        const std::optional<std::string>& quality) {
+                                        return invokeTsdValidateCallback(
+                                            onTabularData, tabularUserdata, timeStamp, dataChannel, value, quality);
+                                    },
+                                    [onEventData, eventUserdata](
+                                        const DateTimeOffset& timeStamp,
+                                        const transport::datachannel::DataChannel& dataChannel,
+                                        const transport::Value& value,
+                                        const std::optional<std::string>& quality) {
+                                        return invokeTsdValidateCallback(
+                                            onEventData, eventUserdata, timeStamp, dataChannel, value, quality);
+                                    });
+
+        if (!result)
+        {
+            c::setLastError(
+                result.errors().empty() ? "validation failed" : result.errors().front(), DNV_VISTA_SDK_ERROR_DOMAIN);
+            return 0;
+        }
+
+        return 1;
+    });
+}
+
 /*=====================================================================
  * Package
  *===================================================================*/
