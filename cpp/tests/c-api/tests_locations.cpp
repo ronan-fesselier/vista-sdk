@@ -1,11 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/location.h>
-#include <dnv/vista/sdk/c/core/locations.h>
-#include <dnv/vista/sdk/c/core/parsing_errors.h>
-#include <dnv/vista/sdk/c/core/relative_location.h>
-#include <dnv/vista/sdk/c/core/vis.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 
