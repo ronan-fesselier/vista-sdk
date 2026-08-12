@@ -10,12 +10,13 @@
  *          `timeseries::DataChannelId` (a discriminated union of LocalId/string), which
  *          gets its own `dnv_vista_sdk_tsd_*` wrapper in a later module.
  *
- *          `Format::validateValue`'s `Value&` out-parameter is not exposed here - `Value`
- *          (ISO19848.h) is not yet wrapped in the C API. Both `Restriction::validateValue`
- *          and `Format::validateValue` are exposed as plain int (1/0) plus the first error
- *          message via dnv_vista_sdk_last_error_message(), consistent with the rest of the
- *          C API's error handling convention - callers needing the full error list or the
- *          parsed Value must wait for a future ISO19848 primitives module
+ *          `Format::validateValue`'s `Value&` out-parameter is exposed as an optional
+ *          `dnv_vista_sdk_iso19848_value_t**` (see iso19848.h) - pass NULL if the parsed
+ *          Value is not needed. Both `Restriction::validateValue` and `Format::validateValue`
+ *          are exposed as plain int (1/0) plus the first error message via
+ *          dnv_vista_sdk_last_error_message(), consistent with the rest of the C API's error
+ *          handling convention - callers needing the full error list must inspect the
+ *          C++ ValidateResult directly (not exposed as a distinct C type)
  */
 
 #pragma once
@@ -24,6 +25,7 @@
 
 #include "dnv/vista/sdk/c/core/local_id.h"
 #include "dnv/vista/sdk/c/transport/serialization/json/serializable_document.h"
+#include "dnv/vista/sdk/c/transport/iso19848.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
 
@@ -209,11 +211,16 @@ extern "C"
 
     /**
      * @brief Validate a string value against this format (type and optional restriction)
+     * @param format Format to validate against, must not be NULL
+     * @param value String value to validate, must not be NULL
+     * @param parsedValue Optional out-param, set to the parsed Value on success (owned, must be
+     *                     released with dnv_vista_sdk_iso19848_value_free), may be NULL if the
+     *                     parsed value is not needed
      * @return 1 if valid, 0 otherwise (with the first validation error set via
-     *         dnv_vista_sdk_last_error_message()), or if any argument is NULL
+     *         dnv_vista_sdk_last_error_message()), or if `format`/`value` is NULL
      */
     DNV_VISTA_SDK_C_API int dnv_vista_sdk_dcl_format_validate_value(
-        const dnv_vista_sdk_dcl_format_t* format, const char* value);
+        const dnv_vista_sdk_dcl_format_t* format, const char* value, dnv_vista_sdk_iso19848_value_t** parsedValue);
 
     /*=====================================================================
      * DataChannelType - Table 17
