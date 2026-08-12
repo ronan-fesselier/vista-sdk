@@ -31,6 +31,7 @@
 #include "dnv/vista/sdk/c/transport/datachannel/data_channel.h"
 #include "dnv/vista/sdk/c/transport/timeseries/data_channel_id.h"
 #include "dnv/vista/sdk/c/transport/timeseries/time_series_data.h"
+#include "dnv/vista/sdk/c/transport/iso19848.h"
 #include "dnv/vista/sdk/c/transport/ship_id.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time.h"
 #include "dnv/vista/sdk/c/types/datetime/date_time_offset.h"
@@ -98,6 +99,15 @@ namespace dnv::vista::sdk::c
     static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Preserve) == DNV_VISTA_SDK_DCL_WHITE_SPACE_PRESERVE);
     static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Replace) == DNV_VISTA_SDK_DCL_WHITE_SPACE_REPLACE);
     static_assert(static_cast<int>(dcl::Restriction::WhiteSpace::Collapse) == DNV_VISTA_SDK_DCL_WHITE_SPACE_COLLAPSE);
+
+    static_assert(static_cast<int>(transport::ISO19848Version::v2018) == DNV_VISTA_SDK_ISO19848_VERSION_V2018);
+    static_assert(static_cast<int>(transport::ISO19848Version::v2024) == DNV_VISTA_SDK_ISO19848_VERSION_V2024);
+
+    static_assert(static_cast<int>(transport::Value::Type::Decimal) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_DECIMAL);
+    static_assert(static_cast<int>(transport::Value::Type::Integer) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_INTEGER);
+    static_assert(static_cast<int>(transport::Value::Type::Boolean) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_BOOLEAN);
+    static_assert(static_cast<int>(transport::Value::Type::String) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_STRING);
+    static_assert(static_cast<int>(transport::Value::Type::DateTime) == DNV_VISTA_SDK_ISO19848_VALUE_TYPE_DATE_TIME);
 
     inline char* toOwnedCString(const std::string& str)
     {
@@ -525,6 +535,79 @@ namespace dnv::vista::sdk::c
     inline Decimal::RoundingMode toRoundingMode(dnv_vista_sdk_decimal_rounding_mode_t mode)
     {
         return static_cast<Decimal::RoundingMode>(mode);
+    }
+
+    inline transport::ISO19848Version toIso19848Version(dnv_vista_sdk_iso19848_version_t version)
+    {
+        return static_cast<transport::ISO19848Version>(version);
+    }
+
+    inline dnv_vista_sdk_iso19848_version_t fromIso19848Version(transport::ISO19848Version version)
+    {
+        return static_cast<dnv_vista_sdk_iso19848_version_t>(version);
+    }
+
+    inline const transport::ISO19848* toIso19848(const dnv_vista_sdk_iso19848_t* iso19848)
+    {
+        return reinterpret_cast<const transport::ISO19848*>(iso19848);
+    }
+
+    inline const transport::DataChannelTypeName* toDataChannelTypeName(
+        const dnv_vista_sdk_iso19848_data_channel_type_name_t* typeName)
+    {
+        return reinterpret_cast<const transport::DataChannelTypeName*>(typeName);
+    }
+
+    inline dnv_vista_sdk_iso19848_data_channel_type_name_t* fromDataChannelTypeName(
+        transport::DataChannelTypeName&& typeName)
+    {
+        return reinterpret_cast<dnv_vista_sdk_iso19848_data_channel_type_name_t*>(
+            new transport::DataChannelTypeName{ std::move(typeName) });
+    }
+
+    inline const transport::DataChannelTypeNames* toDataChannelTypeNames(
+        const dnv_vista_sdk_iso19848_data_channel_type_names_t* typeNames)
+    {
+        return reinterpret_cast<const transport::DataChannelTypeNames*>(typeNames);
+    }
+
+    inline dnv_vista_sdk_iso19848_data_channel_type_names_t* fromDataChannelTypeNames(
+        transport::DataChannelTypeNames&& typeNames)
+    {
+        return reinterpret_cast<dnv_vista_sdk_iso19848_data_channel_type_names_t*>(
+            new transport::DataChannelTypeNames{ std::move(typeNames) });
+    }
+
+    inline const transport::FormatDataType* toFormatDataType(const dnv_vista_sdk_iso19848_format_data_type_t* fdt)
+    {
+        return reinterpret_cast<const transport::FormatDataType*>(fdt);
+    }
+
+    inline dnv_vista_sdk_iso19848_format_data_type_t* fromFormatDataType(transport::FormatDataType&& fdt)
+    {
+        return reinterpret_cast<dnv_vista_sdk_iso19848_format_data_type_t*>(
+            new transport::FormatDataType{ std::move(fdt) });
+    }
+
+    inline const transport::FormatDataTypes* toFormatDataTypes(const dnv_vista_sdk_iso19848_format_data_types_t* fdts)
+    {
+        return reinterpret_cast<const transport::FormatDataTypes*>(fdts);
+    }
+
+    inline dnv_vista_sdk_iso19848_format_data_types_t* fromFormatDataTypes(transport::FormatDataTypes&& fdts)
+    {
+        return reinterpret_cast<dnv_vista_sdk_iso19848_format_data_types_t*>(
+            new transport::FormatDataTypes{ std::move(fdts) });
+    }
+
+    inline const transport::Value* toIso19848Value(const dnv_vista_sdk_iso19848_value_t* value)
+    {
+        return reinterpret_cast<const transport::Value*>(value);
+    }
+
+    inline dnv_vista_sdk_iso19848_value_t* fromIso19848Value(transport::Value&& value)
+    {
+        return reinterpret_cast<dnv_vista_sdk_iso19848_value_t*>(new transport::Value{ std::move(value) });
     }
 
     inline const transport::ShipId* toShipId(const dnv_vista_sdk_ship_id_t* shipId)
