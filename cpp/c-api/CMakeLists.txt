@@ -79,6 +79,12 @@ generate_export_header(dnv-vista-sdk-c
 )
 
 #----------------------------------------------
+# Short-alias header
+#----------------------------------------------
+
+include(dnvVistaSdkCApiShortHeader)
+
+#----------------------------------------------
 # Shared library properties
 #----------------------------------------------
 
