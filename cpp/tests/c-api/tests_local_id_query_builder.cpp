@@ -1,16 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <dnv/vista/sdk/c/core/gmod.h>
-#include <dnv/vista/sdk/c/core/gmod_path.h>
-#include <dnv/vista/sdk/c/core/local_id.h>
-#include <dnv/vista/sdk/c/core/vis.h>
-#include <dnv/vista/sdk/c/query/gmod_path_query.h>
-#include <dnv/vista/sdk/c/query/gmod_path_query_builder.h>
-#include <dnv/vista/sdk/c/query/local_id_query.h>
-#include <dnv/vista/sdk/c/query/local_id_query_builder.h>
-#include <dnv/vista/sdk/c/query/metadata_tags_query.h>
-#include <dnv/vista/sdk/c/query/metadata_tags_query_builder.h>
-#include <dnv/vista/sdk/c/error.h>
+#include <dnv/VistaSDK_c_api.h>
 
 #include <string_view>
 
