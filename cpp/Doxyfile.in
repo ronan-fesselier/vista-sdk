@@ -5,6 +5,7 @@ PROJECT_BRIEF          = "C++ implementation of the DNV Vista SDK"
 OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
 
 INPUT                  = "@DNV_VISTA_SDK_INCLUDE_DIR@" \
+                         "@DNV_VISTA_SDK_C_API_INCLUDE_DIR@" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/README.md"
 USE_MDFILE_AS_MAINPAGE = "@CMAKE_CURRENT_SOURCE_DIR@/README.md"
 
@@ -13,9 +14,11 @@ EXCLUDE_PATTERNS       = */detail/* \
                          */generated/*
 
 EXCLUDE                = "@DNV_VISTA_SDK_INCLUDE_DIR@/dnv/vista/sdk/Export.h" \
-                         "@DNV_VISTA_SDK_INCLUDE_DIR@/dnv/vista/sdk/Version.h"
+                         "@DNV_VISTA_SDK_INCLUDE_DIR@/dnv/vista/sdk/Version.h" \
+                         "@DNV_VISTA_SDK_C_API_INCLUDE_DIR@/dnv/vista/sdk/c/Export.h"
 
-STRIP_FROM_PATH        = "@DNV_VISTA_SDK_INCLUDE_DIR@"
+STRIP_FROM_PATH        = "@DNV_VISTA_SDK_INCLUDE_DIR@" \
+                         "@DNV_VISTA_SDK_C_API_INCLUDE_DIR@"
 
 EXTRACT_ALL            = NO
 SHOW_NAMESPACES        = NO
