@@ -12,7 +12,7 @@ project(dnv-vista-sdk
     VERSION 0.3.3
     DESCRIPTION "C++ implementation of DNV Vista SDK for VIS and ISO 19848 standard"
     HOMEPAGE_URL "https://github.com/dnv-opensource/vista-sdk"
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
 
 #----------------------------------------------
