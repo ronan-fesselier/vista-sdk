@@ -264,6 +264,32 @@ High-precision `Decimal` type for exact decimal arithmetic without floating-poin
 ./build/bin/dnv-vista-sdk-sample-utils-stringbuilder
 ```
 
+## C API
+
+### `showcase`
+
+End-to-end walkthrough of the C API covering all major modules in sequence.
+
+- VIS: version management
+- Codebooks: accessing a codebook and its standard values
+- MetadataTag: creating a tag from a standard value
+- ImoNumber: parsing and validating an IMO ship number
+- Gmod: looking up a node and its hierarchy
+- GmodPath: parsing a short path
+- LocalId: parsing and inspecting a LocalId string
+- LocalId MQTT: MQTT-compatible topic formatting
+- UniversalId: globally unique sensor identifier
+- ISO 19848: validating a value against a FormatDataType
+- VIS versioning: converting a GmodPath and a LocalId between versions
+- GmodPathQuery: matching a base path while ignoring locations
+- LocalIdQuery: combining a primary-item path query with a tags query
+- DataChannelList: building a package and serializing to JSON
+- TimeSeriesData: building a package and cross-validating against the DataChannelList with business-rule callbacks (threshold alarm)
+
+```bash
+./build/bin/dnv-vista-sdk-sample-c-api-showcase
+```
+
 ## See Also
 
 - [Main SDK Documentation](../README.md)
