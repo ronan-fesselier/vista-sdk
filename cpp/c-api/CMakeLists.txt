@@ -62,6 +62,7 @@ target_include_directories(dnv-vista-sdk-c
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(dnv-vista-sdk-c
@@ -118,3 +119,37 @@ if(BUILD_SHARED_LIBS)
         )
     endif()
 endif()
+
+#----------------------------------------------
+# Install
+#----------------------------------------------
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS
+        dnv-vista-sdk-c
+    EXPORT
+        dnv-vista-sdkTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PATTERN     "*.in" EXCLUDE
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/include/dnv/vista/sdk/c/Export.h"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dnv/vista/sdk/c
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/include/dnv/VistaSDK_c_api_short.h"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dnv
+)
