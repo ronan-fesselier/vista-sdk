@@ -1052,6 +1052,7 @@ internally and requires no adaptation.
 ## 🔧 Build Options
 
 ```cmake
+option(DNV_VISTA_SDK_BUILD_C_API        "Build the C API"                                  OFF)
 option(DNV_VISTA_SDK_BUILD_TESTS        "Build tests"                                      OFF)
 option(DNV_VISTA_SDK_BUILD_SAMPLES      "Build samples"                                    OFF)
 option(DNV_VISTA_SDK_BUILD_BENCHMARKS   "Build benchmarks"                                 OFF)
@@ -1198,6 +1199,16 @@ cmake --build build -j$(nproc)
 ./build/bin/dnv-vista-sdk-sample-utils-stringbuilder
 ```
 
+The C API sample requires `-DDNV_VISTA_SDK_BUILD_C_API=ON` in addition to `-DDNV_VISTA_SDK_BUILD_SAMPLES=ON` - see [`c-api/README.md`](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/c-api/README.md#usage) for details:
+
+```bash
+cmake -B build -S cpp -DCMAKE_BUILD_TYPE=Release -DDNV_VISTA_SDK_BUILD_C_API=ON -DDNV_VISTA_SDK_BUILD_SAMPLES=ON
+cmake --build build -j$(nproc)
+
+# C API
+./build/bin/dnv-vista-sdk-sample-c-api-showcase
+```
+
 ## 📈 Performance
 
 The C++ implementation includes benchmarks covering all core operations. See [benchmarks/README.md](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/benchmarks/README.md) for details.
@@ -1256,13 +1267,14 @@ ctest --test-dir build
 
 ### Symbol Export
 
-New publicly consumable classes must be annotated with `DNV_VISTA_SDK_CPP_API` (shared-build symbol export), or they won't be linkable from a shared build.
+New publicly consumable classes must be annotated with `DNV_VISTA_SDK_CPP_API` (shared-build symbol export), or they won't be linkable from a shared build. The C API (`c-api/`) has its own equivalent macro, `DNV_VISTA_SDK_C_API`, applied to every function declared in `c-api/include/dnv/vista/sdk/c/` - see [`c-api/README.md`](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/c-api/README.md) for details.
 
 ### Project Structure
 
 ```
 cpp/
 ├── benchmarks/             # Performance benchmarks
+├── c-api/                  # C API (hourglass pattern)
 ├── cmake/                  # CMake modules and build configuration
 ├── include/
 │   └── dnv/
@@ -1275,6 +1287,11 @@ cpp/
 ├── CMakeLists.txt
 └── README.md
 ```
+
+### C API
+
+A C wrapper (hourglass pattern) covering the full public surface of the SDK
+is available under `c-api/`. See [`c-api/README.md`](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/c-api/README.md) for build instructions and usage.
 
 ## 🔖 For Maintainers
 
@@ -1331,3 +1348,4 @@ For questions and support:
 - Create an issue on [GitHub Issues](https://github.com/dnv-opensource/vista-sdk/issues)
 - Check the [documentation](https://docs.vista.dnv.com)
 - Review the [samples](samples/) directory for examples
+- See the [C API](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/c-api/README.md) for bindings to other languages
