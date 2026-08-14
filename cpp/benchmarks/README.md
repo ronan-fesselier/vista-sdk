@@ -145,6 +145,7 @@ Benchmark framework: [nanobench](https://github.com/martinus/nanobench) v4.3.11
 
 - [Main SDK Documentation](../README.md)
 - [Samples](../samples/README.md)
+- [C API](../c-api/README.md)
 
 ---
 

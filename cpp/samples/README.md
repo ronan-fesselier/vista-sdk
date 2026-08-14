@@ -291,3 +291,4 @@ End-to-end walkthrough of the C API covering all major modules in sequence.
 
 - [Main SDK Documentation](../README.md)
 - [Benchmark Results](../benchmarks/README.md)
+- [C API](../c-api/README.md)
