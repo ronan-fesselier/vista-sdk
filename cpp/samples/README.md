@@ -287,6 +287,7 @@ End-to-end walkthrough of the C API covering all major modules in sequence.
 - MetadataTag: creating a tag from a standard value
 - ImoNumber: parsing and validating an IMO ship number
 - Gmod: looking up a node and its hierarchy
+- Gmod: depth-first traversal
 - GmodPath: parsing a short path
 - LocalId: parsing and inspecting a LocalId string
 - LocalId MQTT: MQTT-compatible topic formatting
@@ -314,4 +315,5 @@ See [`wasm/README.md`](wasm/README.md) for build and run instructions.
 
 - [Main SDK Documentation](../README.md)
 - [Benchmark Results](../benchmarks/README.md)
+- [C API](../c-api/README.md)
 - [Command-Line Tools](../tools/README.md)
