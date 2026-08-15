@@ -1,0 +1,56 @@
+use std::ffi::CStr;
+use std::str::FromStr;
+
+use crate::core::vis_version::VisVersion;
+use crate::ffi::core::vis as ffi;
+
+/// Central entry point for the Vista SDK.
+///
+/// Wraps a borrowed pointer to the C++ singleton, valid for the lifetime of the program.
+pub struct Vis(*const ffi::dnv_vista_sdk_vis_t);
+
+// SAFETY: the wrapped pointer targets a C++ singleton with a lifetime that is `'static`
+// for the running program. All methods only read through it, so sharing across threads
+// is sound as long as the underlying VIS singleton is itself thread-safe (it is: it is
+// lazily initialized once via C++11 static-local magic statics, and every method below
+// is a read-only query into version-scoped, immutable data).
+unsafe impl Send for Vis {}
+unsafe impl Sync for Vis {}
+
+impl Vis {
+    /// Returns the VIS singleton instance.
+    pub fn instance() -> Vis {
+        // SAFETY: no arguments. Returns a non-null pointer valid for the program's lifetime.
+        Vis(unsafe { ffi::dnv_vista_sdk_vis_instance() })
+    }
+
+    /// Returns all available VIS versions, in ascending order.
+    pub fn versions(&self) -> Vec<VisVersion> {
+        // SAFETY: self.0 is non-null and valid for the program's lifetime.
+        let count = unsafe { ffi::dnv_vista_sdk_vis_version_count(self.0) };
+        (0..count)
+            .filter_map(|i| {
+                // SAFETY: self.0 is non-null and valid for the program's lifetime.
+                let ptr = unsafe { ffi::dnv_vista_sdk_vis_version_at(self.0, i) };
+                if ptr.is_null() {
+                    return None;
+                }
+                // SAFETY: ptr is non-null and owned by the library for the program's lifetime.
+                let s = unsafe { CStr::from_ptr(ptr) }.to_str().ok()?;
+                VisVersion::from_str(s).ok()
+            })
+            .collect()
+    }
+
+    /// Returns the latest VIS version.
+    pub fn latest(&self) -> VisVersion {
+        // SAFETY: self.0 is non-null and valid for the program's lifetime.
+        let ptr = unsafe { ffi::dnv_vista_sdk_vis_latest(self.0) };
+        assert!(!ptr.is_null(), "dnv_vista_sdk_vis_latest returned NULL");
+        // SAFETY: ptr is non-null and owned by the library for the program's lifetime.
+        let s = unsafe { CStr::from_ptr(ptr) }
+            .to_str()
+            .expect("invalid UTF-8 in latest version");
+        VisVersion::from_str(s).expect("unrecognized latest version string")
+    }
+}
