@@ -10,3 +10,7 @@ links = "dnv-vista-sdk-c"
 [features]
 default = ["vendored"]
 vendored = []
+
+[[example]]
+name = "core_codebooks"
+path = "examples/core/codebooks.rs"
