@@ -1,6 +1,7 @@
 use std::ffi::c_char;
 
 use super::codebooks::dnv_vista_sdk_codebooks_t;
+use super::locations::dnv_vista_sdk_locations_t;
 
 #[repr(C)]
 pub(crate) struct dnv_vista_sdk_vis_t {
@@ -19,4 +20,8 @@ extern "C" {
         vis: *const dnv_vista_sdk_vis_t,
         vis_version: *const c_char,
     ) -> *const dnv_vista_sdk_codebooks_t;
+    pub(crate) fn dnv_vista_sdk_vis_locations(
+        vis: *const dnv_vista_sdk_vis_t,
+        vis_version: *const c_char,
+    ) -> *const dnv_vista_sdk_locations_t;
 }
