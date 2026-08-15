@@ -1,6 +1,8 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::str::FromStr;
 
+use crate::core::codebooks::Codebooks;
+use crate::core::error::{last_error, VistaError};
 use crate::core::vis_version::VisVersion;
 use crate::ffi::core::vis as ffi;
 
@@ -41,5 +43,16 @@ impl Vis {
             .to_str()
             .expect("invalid UTF-8 in latest version");
         VisVersion::from_str(s).expect("unrecognized latest version string")
+    }
+
+    /// Returns the codebooks for `version`.
+    pub fn codebooks(&self, version: VisVersion) -> Result<&Codebooks, VistaError> {
+        let s = CString::new(version.as_str()).expect("invalid UTF-8 in VisVersion");
+        let ptr = unsafe { ffi::dnv_vista_sdk_vis_codebooks(self.0, s.as_ptr()) };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            Ok(Codebooks::from_ptr(ptr))
+        }
     }
 }

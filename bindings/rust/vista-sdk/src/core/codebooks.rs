@@ -14,6 +14,11 @@ use crate::ffi::core::codebooks as ffi;
 pub struct Codebooks(ffi::dnv_vista_sdk_codebooks_t);
 
 impl Codebooks {
+    pub(crate) fn from_ptr<'a>(ptr: *const ffi::dnv_vista_sdk_codebooks_t) -> &'a Self {
+        assert!(!ptr.is_null(), "dnv_vista_sdk_vis_codebooks returned NULL");
+        unsafe { &*(ptr as *const Codebooks) }
+    }
+
     /// Returns the VIS version these codebooks belong to.
     pub fn version(&self) -> VisVersion {
         let ptr = unsafe {
