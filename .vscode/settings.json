@@ -22,5 +22,6 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/cpp"
+    "cmake.sourceDirectory": "${workspaceFolder}/cpp",
+    "rust-analyzer.linkedProjects": ["bindings/rust/vista-sdk/Cargo.toml"]
 }
