@@ -75,6 +75,8 @@ fn main() {
     if !cfg!(windows) {
         println!("cargo:rustc-link-lib=stdc++");
     }
+
+    generate_vis_version(&vis_versions_h, &out_dir);
 }
 
 fn msvc_dev_env() -> HashMap<String, String> {
@@ -118,6 +120,103 @@ fn msvc_dev_env() -> HashMap<String, String> {
         .filter_map(|line| line.split_once('='))
         .map(|(k, v)| (k.to_string(), v.to_string()))
         .collect()
+}
+
+fn generate_vis_version(vis_versions_h: &std::path::Path, out_dir: &std::path::Path) {
+    let content = std::fs::read_to_string(vis_versions_h).expect("cannot read VisVersions.h");
+
+    let variants: Vec<String> = content
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim().trim_end_matches(',');
+            if trimmed.starts_with('v')
+                && trimmed.chars().nth(1).map_or(false, |c| c.is_ascii_digit())
+            {
+                Some(trimmed.to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    assert!(
+        !variants.is_empty(),
+        "no VisVersion variants found in VisVersions.h"
+    );
+
+    let last = variants.last().unwrap().clone();
+
+    let mut out = String::new();
+
+    out.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]\n");
+    out.push_str("pub enum VisVersion {\n");
+    for v in &variants {
+        out.push_str(&format!("    {},\n", to_pascal(v)));
+    }
+    out.push_str("}\n\n");
+
+    out.push_str("impl VisVersion {\n");
+    out.push_str("    pub fn all() -> &'static [VisVersion] {\n");
+    out.push_str("        &[\n");
+    for v in &variants {
+        out.push_str(&format!("            VisVersion::{},\n", to_pascal(v)));
+    }
+    out.push_str("        ]\n");
+    out.push_str("    }\n\n");
+
+    out.push_str(&format!(
+        "    pub fn latest() -> VisVersion {{\n        VisVersion::{}\n    }}\n\n",
+        to_pascal(&last)
+    ));
+
+    out.push_str("    pub fn as_str(self) -> &'static str {\n        match self {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            VisVersion::{} => \"{}\",\n",
+            to_pascal(v),
+            to_vis_str(v)
+        ));
+    }
+    out.push_str("        }\n    }\n}\n\n");
+
+    out.push_str("impl std::fmt::Display for VisVersion {\n");
+    out.push_str("    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n");
+    out.push_str("        f.write_str(self.as_str())\n");
+    out.push_str("    }\n}\n\n");
+
+    out.push_str("impl std::str::FromStr for VisVersion {\n");
+    out.push_str("    type Err = ();\n\n");
+    out.push_str("    fn from_str(s: &str) -> Result<Self, Self::Err> {\n");
+    out.push_str("        match s {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            \"{}\" => Ok(VisVersion::{}),\n",
+            to_vis_str(v),
+            to_pascal(v)
+        ));
+    }
+    out.push_str("            _ => Err(()),\n");
+    out.push_str("        }\n    }\n}\n");
+
+    std::fs::write(out_dir.join("vis_version.rs"), out).expect("cannot write vis_version.rs");
+}
+
+fn to_pascal(variant: &str) -> String {
+    let mut result = String::new();
+    let mut first = true;
+    for ch in variant.chars() {
+        if first && ch.is_alphabetic() {
+            result.extend(ch.to_uppercase());
+            first = false;
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+fn to_vis_str(variant: &str) -> String {
+    variant.trim_start_matches('v').replace('_', "-")
 }
 
 fn extract_version(cmake_lists: &std::path::Path) -> String {
