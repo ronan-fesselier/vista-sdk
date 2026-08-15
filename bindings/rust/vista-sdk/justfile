@@ -1,0 +1,22 @@
+sdk_version := `sed -n '/^project(/,/)/{ s/.*VERSION[[:space:]]\+\([0-9][^)[:space:]]*\).*/\1/p }' ../../../cpp/CMakeLists.txt | head -1`
+
+sync-version:
+    cargo set-version {{sdk_version}}
+
+fmt:
+    cargo fmt
+
+fmt-check:
+    cargo fmt --check
+
+check: sync-version fmt-check
+    cargo check
+
+test *args: sync-version
+    cargo test {{args}}
+
+build: sync-version
+    cargo build --release
+
+clippy: sync-version
+    cargo clippy -- -D warnings
