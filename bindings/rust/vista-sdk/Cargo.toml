@@ -6,3 +6,7 @@ description = "Rust bindings for the DNV Vista SDK - VIS and ISO 19848"
 license = "MIT"
 repository = "https://github.com/dnv-opensource/vista-sdk"
 links = "dnv-vista-sdk-c"
+
+[[example]]
+name = "core_codebooks"
+path = "examples/core/codebooks.rs"
