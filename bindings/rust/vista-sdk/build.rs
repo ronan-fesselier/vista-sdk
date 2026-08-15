@@ -1,9 +1,9 @@
+use std::path::Path;
 use std::path::PathBuf;
 
 fn main() {
     let out_dir_raw = std::env::var("OUT_DIR").unwrap();
     let out_dir = PathBuf::from(out_dir_raw.strip_prefix(r"\\?\").unwrap_or(&out_dir_raw));
-    let _ = out_dir;
 
     #[cfg(feature = "vendored")]
     {
@@ -30,11 +30,14 @@ fn main() {
             .join("target")
             .join("cmake-build");
 
+        emit_rerun_if_changed_dir(&cpp_dir.join("c-api"));
         println!(
             "cargo:rerun-if-changed={}",
             cpp_dir.join("CMakeLists.txt").display()
         );
-        emit_rerun_if_changed_dir(&cpp_dir.join("c-api"));
+
+        let vis_versions_h = cpp_dir.join("include/dnv/vista/sdk/core/VisVersions.h");
+        println!("cargo:rerun-if-changed={}", vis_versions_h.display());
 
         let msvc_env: Option<HashMap<String, String>> = if cfg!(windows) {
             Some(msvc_dev_env())
@@ -84,6 +87,8 @@ fn main() {
 
         let lib_dir = cmake_build_dir.join("lib");
         println!("cargo:rustc-link-search=native={}", lib_dir.display());
+
+        generate_vis_version(&vis_versions_h, &out_dir);
     }
 
     #[cfg(not(feature = "vendored"))]
@@ -100,6 +105,19 @@ fn main() {
         });
         println!("cargo:rerun-if-env-changed=VISTA_SDK_LIB_DIR");
         println!("cargo:rustc-link-search=native={lib_dir}");
+
+        let vis_versions_h =
+            PathBuf::from(std::env::var("VISTA_SDK_INCLUDE_DIR").unwrap_or_else(|_| {
+                panic!(
+                    "vista-sdk: VISTA_SDK_INCLUDE_DIR must point to the SDK include root \
+                     (the directory containing `dnv/vista/sdk/core/VisVersions.h`) \
+                     when building without the `vendored` feature"
+                )
+            }))
+            .join("dnv/vista/sdk/core/VisVersions.h");
+        println!("cargo:rerun-if-env-changed=VISTA_SDK_INCLUDE_DIR");
+
+        generate_vis_version(&vis_versions_h, &out_dir);
     }
 
     println!("cargo:rustc-link-lib=static=dnv-vista-sdk-c");
@@ -110,7 +128,7 @@ fn main() {
 }
 
 #[cfg(feature = "vendored")]
-fn emit_rerun_if_changed_dir(dir: &std::path::Path) {
+fn emit_rerun_if_changed_dir(dir: &Path) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
@@ -168,4 +186,104 @@ fn msvc_dev_env() -> std::collections::HashMap<String, String> {
         .filter_map(|line| line.split_once('='))
         .map(|(k, v)| (k.to_string(), v.to_string()))
         .collect()
+}
+
+fn generate_vis_version(vis_versions_h: &Path, out_dir: &Path) {
+    let content = std::fs::read_to_string(vis_versions_h).expect("cannot read VisVersions.h");
+
+    let variants: Vec<String> = content
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim().trim_end_matches(',');
+            if trimmed.starts_with('v')
+                && trimmed.chars().nth(1).is_some_and(|c| c.is_ascii_digit())
+            {
+                Some(trimmed.to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    assert!(
+        !variants.is_empty(),
+        "no VisVersion variants found in VisVersions.h"
+    );
+
+    let last = variants.last().unwrap().clone();
+
+    let mut out = String::new();
+
+    out.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]\n");
+    out.push_str("pub enum VisVersion {\n");
+    for v in &variants {
+        out.push_str(&format!("    {},\n", to_pascal(v)));
+    }
+    out.push_str("}\n\n");
+
+    out.push_str("impl VisVersion {\n");
+    out.push_str("    /// Returns all available VIS versions, in ascending order.\n");
+    out.push_str("    pub fn all() -> &'static [VisVersion] {\n");
+    out.push_str("        &[\n");
+    for v in &variants {
+        out.push_str(&format!("            VisVersion::{},\n", to_pascal(v)));
+    }
+    out.push_str("        ]\n");
+    out.push_str("    }\n\n");
+
+    out.push_str("    /// Returns the latest VIS version.\n");
+    out.push_str(&format!(
+        "    pub fn latest() -> VisVersion {{\n        VisVersion::{}\n    }}\n\n",
+        to_pascal(&last)
+    ));
+
+    out.push_str("    /// Returns the canonical string representation (e.g. `\"3-4a\"`).\n");
+    out.push_str("    pub fn as_str(self) -> &'static str {\n        match self {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            VisVersion::{} => \"{}\",\n",
+            to_pascal(v),
+            to_vis_str(v)
+        ));
+    }
+    out.push_str("        }\n    }\n}\n\n");
+
+    out.push_str("impl std::fmt::Display for VisVersion {\n");
+    out.push_str("    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n");
+    out.push_str("        f.write_str(self.as_str())\n");
+    out.push_str("    }\n}\n\n");
+
+    out.push_str("impl std::str::FromStr for VisVersion {\n");
+    out.push_str("    type Err = ();\n\n");
+    out.push_str("    fn from_str(s: &str) -> Result<Self, Self::Err> {\n");
+    out.push_str("        match s {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            \"{}\" => Ok(VisVersion::{}),\n",
+            to_vis_str(v),
+            to_pascal(v)
+        ));
+    }
+    out.push_str("            _ => Err(()),\n");
+    out.push_str("        }\n    }\n}\n");
+
+    std::fs::write(out_dir.join("vis_version.rs"), out).expect("cannot write vis_version.rs");
+}
+
+fn to_pascal(variant: &str) -> String {
+    let mut result = String::new();
+    let mut first = true;
+    for ch in variant.chars() {
+        if first && ch.is_alphabetic() {
+            result.extend(ch.to_uppercase());
+            first = false;
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+fn to_vis_str(variant: &str) -> String {
+    variant.trim_start_matches('v').replace('_', "-")
 }
