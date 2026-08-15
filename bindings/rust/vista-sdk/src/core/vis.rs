@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::core::codebooks::Codebooks;
 use crate::core::error::{last_error, VistaError};
+use crate::core::locations::Locations;
 use crate::core::vis_version::VisVersion;
 use crate::ffi::core::vis as ffi;
 
@@ -53,6 +54,17 @@ impl Vis {
             Err(last_error())
         } else {
             Ok(Codebooks::from_ptr(ptr))
+        }
+    }
+
+    /// Returns the locations for `version`.
+    pub fn locations(&self, version: VisVersion) -> Result<&Locations, VistaError> {
+        let s = CString::new(version.as_str()).expect("invalid UTF-8 in VisVersion");
+        let ptr = unsafe { ffi::dnv_vista_sdk_vis_locations(self.0, s.as_ptr()) };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            Ok(Locations::from_ptr(ptr))
         }
     }
 }
