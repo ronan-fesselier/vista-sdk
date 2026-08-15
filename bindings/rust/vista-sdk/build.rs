@@ -22,6 +22,9 @@ fn main() {
     );
     println!("cargo:rerun-if-changed={}", cpp_dir.join("c-api").display());
 
+    let vis_versions_h = cpp_dir.join("include/dnv/vista/sdk/core/VisVersions.h");
+    println!("cargo:rerun-if-changed={}", vis_versions_h.display());
+
     let version = extract_version(&cpp_dir.join("CMakeLists.txt"));
     println!("cargo:rustc-env=VISTA_SDK_VERSION={version}");
 
