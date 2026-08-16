@@ -10,3 +10,6 @@ links = "dnv-vista-sdk-c"
 [[example]]
 name = "core_codebooks"
 path = "examples/core/codebooks.rs"
+[[example]]
+name = "core_locations"
+path = "examples/core/locations.rs"
