@@ -4,6 +4,7 @@ pub(crate) mod codebooks;
 pub(crate) mod common;
 pub(crate) mod error;
 pub(crate) mod location;
+pub(crate) mod location_builder;
 pub(crate) mod location_group;
 pub(crate) mod locations;
 pub(crate) mod metadata_tag;
