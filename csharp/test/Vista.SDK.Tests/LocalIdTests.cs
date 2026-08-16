@@ -114,6 +114,32 @@ public class LocalIdTests
             },
         };
 
+    // Simulates any real-world function signature that accepts a LocalId parameter -- this is
+    // exactly what happens when an MqttLocalId is passed as an argument, since it IS-A LocalId.
+    static string DescribeLocalId(LocalId id) => id.ToString();
+
+    [Fact]
+    public void Test_LSP_Violation_MqttLocalId_Passed_As_LocalId_Parameter_Produces_Standard_Format()
+    {
+        var (_, vis) = VISTests.GetVis();
+        var visVersion = VisVersion.v3_4a;
+        var gmod = vis.GetGmod(visVersion);
+        var codebooks = vis.GetCodebooks(visVersion);
+
+        var primaryItem = gmod.ParsePath("411.1/C101.31-2");
+        var qtyTag = codebooks.TryCreateTag(CodebookName.Quantity, "temperature");
+
+        var builder = LocalIdBuilder.Create(visVersion).TryWithPrimaryItem(primaryItem).TryWithMetadataTag(qtyTag);
+
+        var mqttLocalId = builder.BuildMqtt();
+
+        // Compiles fine: mqttLocalId IS-A LocalId, no cast needed.
+        var described = DescribeLocalId(mqttLocalId);
+
+        // This assertion fails: DescribeLocalId returns the MQTT format, not the standard format.
+        described.Should().StartWith("/dnv-v2/");
+    }
+
     [Theory]
     [MemberData(nameof(Valid_Test_Data))]
     public void Test_LocalId_Build_Valid(Input input, string expectedOutput)
