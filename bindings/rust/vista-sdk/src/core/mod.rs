@@ -3,6 +3,7 @@ pub mod codebook_name;
 pub mod codebooks;
 pub mod error;
 pub mod location;
+pub mod location_builder;
 pub mod location_group;
 pub mod locations;
 pub mod metadata_tag;
