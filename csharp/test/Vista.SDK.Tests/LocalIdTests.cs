@@ -114,12 +114,82 @@ public class LocalIdTests
             },
         };
 
-    // Simulates any real-world function signature that accepts a LocalId parameter -- this is
-    // exactly what happens when an MqttLocalId is passed as an argument, since it IS-A LocalId.
-    static string DescribeLocalId(LocalId id) => id.ToString();
+    [Fact]
+    public void Test_MqttLocalId_Is_Not_A_LocalId_The_Former_LSP_Violation_Is_Now_Impossible_By_Construction()
+    {
+        // MqttLocalId must not inherit from LocalId
+        typeof(LocalId).IsAssignableFrom(typeof(MqttLocalId)).Should().BeFalse();
+    }
 
     [Fact]
-    public void Test_LSP_Violation_MqttLocalId_Passed_As_LocalId_Parameter_Produces_Standard_Format()
+    public void Test_MqttLocalId_Getters()
+    {
+        var (_, vis) = VISTests.GetVis();
+        var visVersion = VisVersion.v3_4a;
+        var gmod = vis.GetGmod(visVersion);
+        var codebooks = vis.GetCodebooks(visVersion);
+
+        var primaryItem = gmod.ParsePath("411.1/C101.31-2");
+        var secondaryItem = gmod.ParsePath("411.1/C101.31-5");
+        var qtyTag = codebooks.TryCreateTag(CodebookName.Quantity, "temperature");
+        var cntTag = codebooks.TryCreateTag(CodebookName.Content, "exhaust.gas");
+
+        var builder = LocalIdBuilder
+            .Create(visVersion)
+            .TryWithPrimaryItem(primaryItem)
+            .TryWithSecondaryItem(secondaryItem)
+            .TryWithMetadataTag(qtyTag)
+            .TryWithMetadataTag(cntTag);
+
+        var mqttLocalId = builder.BuildMqtt();
+
+        mqttLocalId.VisVersion.Should().Be(visVersion);
+        mqttLocalId.PrimaryItem.Should().Be(primaryItem);
+        mqttLocalId.SecondaryItem.Should().Be(secondaryItem);
+        mqttLocalId.Quantity.Should().Be(qtyTag);
+        mqttLocalId.Content.Should().Be(cntTag);
+        mqttLocalId.Calculation.Should().BeNull();
+        mqttLocalId.State.Should().BeNull();
+        mqttLocalId.Command.Should().BeNull();
+        mqttLocalId.Type.Should().BeNull();
+        mqttLocalId.Position.Should().BeNull();
+        mqttLocalId.Detail.Should().BeNull();
+    }
+
+    [Fact]
+    public void Test_MqttLocalId_Builder_Exposes_Members_Not_Reflected_In_The_Mqtt_Format()
+    {
+        // VerboseMode/HasCustomTag/MetadataTags have no effect on MqttLocalId.ToString() (the MQTT
+        // format never reads them), so MqttLocalId does not duplicate them as its own properties -
+        // they remain reachable via .Builder, same as any other LocalIdBuilder-derived information.
+        var (_, vis) = VISTests.GetVis();
+        var visVersion = VisVersion.v3_4a;
+        var gmod = vis.GetGmod(visVersion);
+        var codebooks = vis.GetCodebooks(visVersion);
+
+        var primaryItem = gmod.ParsePath("411.1/C101.63/S206");
+        var qtyTag = codebooks.TryCreateTag(CodebookName.Quantity, "temperature");
+
+        var builder = LocalIdBuilder
+            .Create(visVersion)
+            .WithVerboseMode(true)
+            .TryWithPrimaryItem(primaryItem)
+            .TryWithMetadataTag(qtyTag);
+
+        var mqttLocalId = builder.BuildMqtt();
+
+        mqttLocalId.Builder.VerboseMode.Should().BeTrue();
+        mqttLocalId.Builder.HasCustomTag.Should().BeFalse();
+        mqttLocalId.Builder.MetadataTags.Should().ContainSingle();
+
+        // Confirms VerboseMode has no effect on the MQTT format itself: no '~' common-name segments
+        // appear even though verbose mode is on and this same primary item DOES produce '~' segments
+        // in the standard LocalId format (see Valid_Test_Data's "411.1/C101.63/S206" verbose case).
+        mqttLocalId.ToString().Should().NotContain("~");
+    }
+
+    [Fact]
+    public void Test_MqttLocalId_Equality()
     {
         var (_, vis) = VISTests.GetVis();
         var visVersion = VisVersion.v3_4a;
@@ -131,13 +201,24 @@ public class LocalIdTests
 
         var builder = LocalIdBuilder.Create(visVersion).TryWithPrimaryItem(primaryItem).TryWithMetadataTag(qtyTag);
 
-        var mqttLocalId = builder.BuildMqtt();
+        var a = builder.BuildMqtt();
+        var b = builder.BuildMqtt();
 
-        // Compiles fine: mqttLocalId IS-A LocalId, no cast needed.
-        var described = DescribeLocalId(mqttLocalId);
+        var otherTag = codebooks.TryCreateTag(CodebookName.Quantity, "pressure");
+        var otherBuilder = LocalIdBuilder
+            .Create(visVersion)
+            .TryWithPrimaryItem(primaryItem)
+            .TryWithMetadataTag(otherTag);
+        var c = otherBuilder.BuildMqtt();
 
-        // This assertion fails: DescribeLocalId returns the MQTT format, not the standard format.
-        described.Should().StartWith("/dnv-v2/");
+        a.Should().Be(b);
+        (a == b).Should().BeTrue();
+        (a != b).Should().BeFalse();
+        a.GetHashCode().Should().Be(b.GetHashCode());
+
+        a.Should().NotBe(c);
+        (a == c).Should().BeFalse();
+        (a != c).Should().BeTrue();
     }
 
     [Theory]
