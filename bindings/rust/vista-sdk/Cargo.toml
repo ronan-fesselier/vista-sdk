@@ -7,6 +7,9 @@ license = "MIT"
 repository = "https://github.com/dnv-opensource/vista-sdk"
 links = "dnv-vista-sdk-c"
 
+[dev-dependencies]
+serde_json = "1"
+
 [[example]]
 name = "core_codebooks"
 path = "examples/core/codebooks.rs"
