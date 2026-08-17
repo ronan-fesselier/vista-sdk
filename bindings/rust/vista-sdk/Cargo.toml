@@ -15,6 +15,9 @@ vendored = []
 name = "core_codebooks"
 path = "examples/core/codebooks.rs"
 [[example]]
+name = "core_gmod"
+path = "examples/core/gmod.rs"
+[[example]]
 name = "core_imo_number"
 path = "examples/core/imo_number.rs"
 [[example]]
