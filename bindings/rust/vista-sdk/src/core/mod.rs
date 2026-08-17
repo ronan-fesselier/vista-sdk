@@ -2,6 +2,7 @@ pub mod codebook;
 pub mod codebook_name;
 pub mod codebooks;
 pub mod error;
+pub mod gmod;
 pub mod gmod_node;
 pub mod gmod_node_metadata;
 pub mod imo_number;
