@@ -235,6 +235,12 @@ impl std::fmt::Display for GmodNodeRef {
 /// An owned `GmodNodeRef` whose memory is managed by this binding.
 pub struct GmodNode(pub(crate) std::ptr::NonNull<ffi::dnv_vista_sdk_gmod_node_t>);
 
+impl GmodNode {
+    pub(crate) fn from_owned_ptr(ptr: *mut ffi::dnv_vista_sdk_gmod_node_t) -> Self {
+        GmodNode(std::ptr::NonNull::new(ptr).expect("gmod node pointer must not be NULL"))
+    }
+}
+
 impl Drop for GmodNode {
     fn drop(&mut self) {
         // SAFETY: self.0 is owned by this `GmodNode` and freed exactly once.
