@@ -233,12 +233,25 @@ impl std::fmt::Display for GmodNode {
 }
 
 /// An owned `GmodNode` whose memory is managed by this binding.
-pub struct OwnedGmodNode(pub(crate) *mut ffi::dnv_vista_sdk_gmod_node_t);
+pub struct OwnedGmodNode {
+    pub(crate) ptr: *mut ffi::dnv_vista_sdk_gmod_node_t,
+    drop_fn: unsafe extern "C" fn(*mut ffi::dnv_vista_sdk_gmod_node_t),
+}
+
+impl OwnedGmodNode {
+    pub(crate) fn with_drop(
+        ptr: *mut ffi::dnv_vista_sdk_gmod_node_t,
+        drop_fn: unsafe extern "C" fn(*mut ffi::dnv_vista_sdk_gmod_node_t),
+    ) -> Self {
+        Self { ptr, drop_fn }
+    }
+}
 
 impl Drop for OwnedGmodNode {
     fn drop(&mut self) {
-        // SAFETY: self.0 is owned by this `OwnedGmodNode` and freed exactly once.
-        unsafe { ffi::dnv_vista_sdk_gmod_node_free(self.0) }
+        // SAFETY: self.ptr is owned by this `OwnedGmodNode` and freed exactly once via
+        // the matching `drop_fn` supplied at construction.
+        unsafe { (self.drop_fn)(self.ptr) }
     }
 }
 
@@ -246,6 +259,6 @@ impl std::ops::Deref for OwnedGmodNode {
     type Target = GmodNode;
 
     fn deref(&self) -> &GmodNode {
-        GmodNode::from_ptr(self.0)
+        GmodNode::from_ptr(self.ptr)
     }
 }
