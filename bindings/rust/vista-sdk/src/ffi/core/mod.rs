@@ -3,6 +3,7 @@ pub(crate) mod codebook_name;
 pub(crate) mod codebooks;
 pub(crate) mod common;
 pub(crate) mod error;
+pub(crate) mod gmod;
 pub(crate) mod gmod_node;
 pub(crate) mod gmod_node_metadata;
 pub(crate) mod imo_number;

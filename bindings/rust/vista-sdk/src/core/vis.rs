@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::core::codebooks::Codebooks;
 use crate::core::error::{last_error, VistaError};
+use crate::core::gmod::Gmod;
 use crate::core::locations::Locations;
 use crate::core::vis_version::VisVersion;
 use crate::ffi::core::vis as ffi;
@@ -80,6 +81,19 @@ impl Vis {
         } else {
             // SAFETY: ptr is non-null (checked above) and valid for `self`'s lifetime.
             Ok(unsafe { Locations::from_ptr(ptr) })
+        }
+    }
+
+    /// Returns the Gmod for `version`.
+    pub fn gmod(&self, version: VisVersion) -> Result<&Gmod, VistaError> {
+        let s = CString::new(version.as_str()).expect("invalid UTF-8 in VisVersion");
+        // SAFETY: self.0 is non-null, and s is a valid NUL-terminated C string.
+        let ptr = unsafe { ffi::dnv_vista_sdk_vis_gmod(self.0, s.as_ptr()) };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            // SAFETY: ptr is non-null (checked above) and valid for `self`'s lifetime.
+            Ok(unsafe { Gmod::from_ptr(ptr) })
         }
     }
 }
