@@ -23,5 +23,8 @@ path = "examples/core/gmod.rs"
 name = "core_imo_number"
 path = "examples/core/imo_number.rs"
 [[example]]
+name = "core_local_id"
+path = "examples/core/local_id.rs"
+[[example]]
 name = "core_locations"
 path = "examples/core/locations.rs"
