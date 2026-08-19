@@ -19,4 +19,6 @@ pub(crate) mod locations;
 pub(crate) mod metadata_tag;
 pub(crate) mod parsing_errors;
 pub(crate) mod relative_location;
+pub(crate) mod universal_id;
+pub(crate) mod universal_id_builder;
 pub(crate) mod vis;
