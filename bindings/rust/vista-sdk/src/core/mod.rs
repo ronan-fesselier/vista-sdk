@@ -18,5 +18,7 @@ pub mod locations;
 pub mod metadata_tag;
 pub mod parsing_errors;
 pub mod relative_location;
+pub mod universal_id;
+pub mod universal_id_builder;
 pub mod vis;
 pub mod vis_version;
