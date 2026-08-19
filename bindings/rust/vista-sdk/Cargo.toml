@@ -28,3 +28,6 @@ path = "examples/core/local_id.rs"
 [[example]]
 name = "core_locations"
 path = "examples/core/locations.rs"
+[[example]]
+name = "core_universal_id"
+path = "examples/core/universal_id.rs"
