@@ -4,6 +4,10 @@ use std::str::FromStr;
 use crate::core::codebooks::Codebooks;
 use crate::core::error::{last_error, VistaError};
 use crate::core::gmod::Gmod;
+use crate::core::gmod_node::{GmodNode, GmodNodeRef};
+use crate::core::gmod_path::{GmodPath, GmodPathRef};
+use crate::core::local_id::{LocalId, LocalIdRef};
+use crate::core::local_id_builder::{LocalIdBuilder, LocalIdBuilderRef};
 use crate::core::locations::Locations;
 use crate::core::vis_version::VisVersion;
 use crate::ffi::core::vis as ffi;
@@ -94,6 +98,108 @@ impl Vis {
         } else {
             // SAFETY: ptr is non-null (checked above) and valid for `self`'s lifetime.
             Ok(unsafe { Gmod::from_ptr(ptr) })
+        }
+    }
+
+    /// Converts a Gmod node from `source_version` to `target_version`.
+    pub fn convert_node(
+        &self,
+        source_version: VisVersion,
+        source_node: &GmodNodeRef,
+        target_version: VisVersion,
+    ) -> Result<GmodNode, VistaError> {
+        let source_version_c =
+            CString::new(source_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        let target_version_c =
+            CString::new(target_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        // SAFETY: self.0 and source_node are non-null. Source_version_c and target_version_c
+        // are valid NUL-terminated C strings.
+        let ptr = unsafe {
+            ffi::dnv_vista_sdk_vis_convert_node(
+                self.0,
+                source_version_c.as_ptr(),
+                source_node.as_ffi_ptr(),
+                target_version_c.as_ptr(),
+            )
+        };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            Ok(GmodNode::from_owned_ptr(ptr))
+        }
+    }
+
+    /// Converts a Gmod path from `source_version` to `target_version`.
+    pub fn convert_path(
+        &self,
+        source_version: VisVersion,
+        source_path: &GmodPathRef,
+        target_version: VisVersion,
+    ) -> Result<GmodPath, VistaError> {
+        let source_version_c =
+            CString::new(source_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        let target_version_c =
+            CString::new(target_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        // SAFETY: self.0 and source_path are non-null. Source_version_c and target_version_c
+        // are valid NUL-terminated C strings.
+        let ptr = unsafe {
+            ffi::dnv_vista_sdk_vis_convert_path(
+                self.0,
+                source_version_c.as_ptr(),
+                source_path.as_ffi_ptr(),
+                target_version_c.as_ptr(),
+            )
+        };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            Ok(GmodPath::from_owned_ptr(ptr))
+        }
+    }
+
+    /// Converts a LocalIdBuilderRef to `target_version`.
+    pub fn convert_local_id_builder(
+        &self,
+        source_local_id: &LocalIdBuilderRef,
+        target_version: VisVersion,
+    ) -> Result<LocalIdBuilder, VistaError> {
+        let target_version_c =
+            CString::new(target_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        // SAFETY: self.0 and source_local_id are non-null, and target_version_c is a valid
+        // NUL-terminated C string.
+        let ptr = unsafe {
+            ffi::dnv_vista_sdk_vis_convert_local_id_builder(
+                self.0,
+                source_local_id.as_ffi_ptr(),
+                target_version_c.as_ptr(),
+            )
+        };
+        std::ptr::NonNull::new(ptr)
+            .map(LocalIdBuilder)
+            .ok_or_else(last_error)
+    }
+
+    /// Converts a LocalIdRef to `target_version`.
+    pub fn convert_local_id(
+        &self,
+        source_local_id: &LocalIdRef,
+        target_version: VisVersion,
+    ) -> Result<LocalId, VistaError> {
+        let target_version_c =
+            CString::new(target_version.as_str()).expect("invalid UTF-8 in VisVersion");
+        // SAFETY: self.0 and source_local_id are non-null, and target_version_c is a valid
+        // NUL-terminated C string.
+        let ptr = unsafe {
+            ffi::dnv_vista_sdk_vis_convert_local_id(
+                self.0,
+                source_local_id.as_ffi_ptr(),
+                target_version_c.as_ptr(),
+            )
+        };
+        if ptr.is_null() {
+            Err(last_error())
+        } else {
+            Ok(LocalId::from_owned_ptr(ptr))
         }
     }
 }
