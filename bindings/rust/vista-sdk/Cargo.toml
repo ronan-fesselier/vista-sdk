@@ -34,3 +34,6 @@ path = "examples/core/universal_id.rs"
 [[example]]
 name = "core_vis_versioning"
 path = "examples/core/vis_versioning.rs"
+[[example]]
+name = "query_metadata_tags_query"
+path = "examples/query/metadata_tags_query.rs"
