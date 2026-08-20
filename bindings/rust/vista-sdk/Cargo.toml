@@ -31,3 +31,6 @@ path = "examples/core/locations.rs"
 [[example]]
 name = "core_universal_id"
 path = "examples/core/universal_id.rs"
+[[example]]
+name = "core_vis_versioning"
+path = "examples/core/vis_versioning.rs"

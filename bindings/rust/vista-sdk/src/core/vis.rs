@@ -108,7 +108,7 @@ impl Vis {
         } else {
             Ok(OwnedGmodNode::with_drop(
                 ptr,
-                crate::ffi::gmod_node::dnv_vista_sdk_gmod_node_free,
+                crate::ffi::core::gmod_node::dnv_vista_sdk_gmod_node_free,
             ))
         }
     }
