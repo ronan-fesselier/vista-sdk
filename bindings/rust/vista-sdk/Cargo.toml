@@ -40,3 +40,6 @@ path = "examples/query/gmod_path_query.rs"
 [[example]]
 name = "query_metadata_tags_query"
 path = "examples/query/metadata_tags_query.rs"
+[[example]]
+name = "query_local_id_query"
+path = "examples/query/local_id_query.rs"
