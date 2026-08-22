@@ -44,5 +44,8 @@ path = "examples/query/metadata_tags_query.rs"
 name = "query_local_id_query"
 path = "examples/query/local_id_query.rs"
 [[example]]
+name = "types_decimal"
+path = "examples/types/decimal.rs"
+[[example]]
 name = "types_datetime"
 path = "examples/types/datetime.rs"
