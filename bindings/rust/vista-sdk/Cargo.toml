@@ -47,6 +47,9 @@ path = "examples/query/local_id_query.rs"
 name = "transport_iso19848"
 path = "examples/transport/iso19848.rs"
 [[example]]
+name = "transport_ship_id"
+path = "examples/transport/ship_id.rs"
+[[example]]
 name = "types_decimal"
 path = "examples/types/decimal.rs"
 [[example]]
