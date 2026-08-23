@@ -25,6 +25,9 @@ fn main() {
     let vis_versions_h = cpp_dir.join("include/dnv/vista/sdk/core/VisVersions.h");
     println!("cargo:rerun-if-changed={}", vis_versions_h.display());
 
+    let iso19848_versions_h = cpp_dir.join("include/dnv/vista/sdk/transport/ISO19848Versions.h");
+    println!("cargo:rerun-if-changed={}", iso19848_versions_h.display());
+
     let version = extract_version(&cpp_dir.join("CMakeLists.txt"));
     println!("cargo:rustc-env=VISTA_SDK_VERSION={version}");
 
@@ -77,6 +80,7 @@ fn main() {
     }
 
     generate_vis_version(&vis_versions_h, &out_dir);
+    generate_iso19848_version(&iso19848_versions_h, &out_dir);
 }
 
 fn msvc_dev_env() -> HashMap<String, String> {
@@ -217,6 +221,94 @@ fn to_pascal(variant: &str) -> String {
 
 fn to_vis_str(variant: &str) -> String {
     variant.trim_start_matches('v').replace('_', "-")
+}
+
+fn generate_iso19848_version(iso19848_versions_h: &std::path::Path, out_dir: &std::path::Path) {
+    let content =
+        std::fs::read_to_string(iso19848_versions_h).expect("cannot read ISO19848Versions.h");
+
+    let variants: Vec<String> = content
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            let token = trimmed
+                .split_whitespace()
+                .next()
+                .unwrap_or("")
+                .trim_end_matches(',');
+            if token.starts_with('v') && token.chars().nth(1).map_or(false, |c| c.is_ascii_digit())
+            {
+                Some(token.to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    assert!(
+        !variants.is_empty(),
+        "no ISO19848Version variants found in ISO19848Versions.h"
+    );
+
+    let last = variants.last().unwrap().clone();
+
+    let mut out = String::new();
+
+    out.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]\n");
+    out.push_str("pub enum Iso19848Version {\n");
+    for v in &variants {
+        out.push_str(&format!("    {},\n", to_pascal(v)));
+    }
+    out.push_str("}\n\n");
+
+    out.push_str("impl Iso19848Version {\n");
+    out.push_str("    /// Returns all available ISO 19848 versions, in ascending order.\n");
+    out.push_str("    pub fn all() -> &'static [Iso19848Version] {\n");
+    out.push_str("        &[\n");
+    for v in &variants {
+        out.push_str(&format!("            Iso19848Version::{},\n", to_pascal(v)));
+    }
+    out.push_str("        ]\n");
+    out.push_str("    }\n\n");
+
+    out.push_str("    /// Returns the latest ISO 19848 version.\n");
+    out.push_str(&format!(
+        "    pub fn latest() -> Iso19848Version {{\n        Iso19848Version::{}\n    }}\n\n",
+        to_pascal(&last)
+    ));
+
+    out.push_str("    /// Returns the canonical string representation (e.g. `\"v2018\"`).\n");
+    out.push_str("    pub fn as_str(self) -> &'static str {\n        match self {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            Iso19848Version::{} => \"{}\",\n",
+            to_pascal(v),
+            v
+        ));
+    }
+    out.push_str("        }\n    }\n}\n\n");
+
+    out.push_str("impl std::fmt::Display for Iso19848Version {\n");
+    out.push_str("    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n");
+    out.push_str("        f.write_str(self.as_str())\n");
+    out.push_str("    }\n}\n\n");
+
+    out.push_str("impl std::str::FromStr for Iso19848Version {\n");
+    out.push_str("    type Err = ();\n\n");
+    out.push_str("    fn from_str(s: &str) -> Result<Self, Self::Err> {\n");
+    out.push_str("        match s {\n");
+    for v in &variants {
+        out.push_str(&format!(
+            "            \"{}\" => Ok(Iso19848Version::{}),\n",
+            v,
+            to_pascal(v)
+        ));
+    }
+    out.push_str("            _ => Err(()),\n");
+    out.push_str("        }\n    }\n}\n");
+
+    std::fs::write(out_dir.join("iso19848_version.rs"), out)
+        .expect("cannot write iso19848_version.rs");
 }
 
 fn extract_version(cmake_lists: &std::path::Path) -> String {
