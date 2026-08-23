@@ -1,5 +1,39 @@
 use std::str::FromStr;
+use vista_sdk::transport::iso19848::Iso19848;
 use vista_sdk::transport::iso19848_version::Iso19848Version;
+
+#[test]
+fn all_is_non_empty() {
+    assert!(!Iso19848::instance().versions().is_empty());
+}
+
+#[test]
+fn all_contains_known_versions() {
+    let all = Iso19848::instance().versions();
+    assert!(all.contains(&Iso19848Version::V2018));
+    assert!(all.contains(&Iso19848Version::V2024));
+}
+
+#[test]
+fn latest_is_last_in_all() {
+    let all = Iso19848::instance().versions();
+    assert_eq!(*all.last().unwrap(), Iso19848::instance().latest());
+}
+
+#[test]
+fn as_str_roundtrips() {
+    for v in Iso19848::instance().versions() {
+        let s = v.as_str();
+        assert_eq!(Iso19848Version::from_str(s).unwrap(), v);
+    }
+}
+
+#[test]
+fn display_matches_as_str() {
+    for v in Iso19848::instance().versions() {
+        assert_eq!(format!("{v}"), v.as_str());
+    }
+}
 
 #[test]
 fn from_str_invalid_returns_err() {
