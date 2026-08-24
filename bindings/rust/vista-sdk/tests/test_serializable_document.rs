@@ -1,3 +1,4 @@
+use vista_sdk::transport::datachannel::data_channel_dto;
 use vista_sdk::transport::serializable_document::{DocumentKind, SerializableDocument};
 
 #[test]
@@ -292,4 +293,105 @@ fn nested_object() {
     assert!(inner_ref.is_object());
     let n = inner_ref.find("n").expect("n should exist");
     assert_eq!(n.as_i64(), Some(42));
+}
+
+static VALID_JSON: &str =
+    include_str!("../../../../cpp/tests/transport/_files/DataChannelList.json");
+
+fn with_custom_headers<
+    F: FnOnce(&mut vista_sdk::transport::serializable_document::SerializableDocumentRefMut<'_>),
+>(
+    f: F,
+) {
+    let mut dto = data_channel_dto::from_json(VALID_JSON).expect("parse should succeed");
+    let mut pkg = dto.pkg();
+    let mut header = pkg.header();
+    let mut custom = header.ensure_custom_headers();
+    f(&mut custom);
+}
+
+#[test]
+fn ref_mut_kind_is_object() {
+    with_custom_headers(|doc| {
+        assert!(doc.is_object());
+        assert_eq!(doc.kind(), DocumentKind::Object);
+        assert!(!doc.is_null());
+    });
+}
+
+#[test]
+fn ref_mut_set_then_contains() {
+    with_custom_headers(|doc| {
+        doc.set("probe", SerializableDocument::from_string("value"));
+        assert!(doc.contains("probe"));
+        assert!(!doc.contains("absent"));
+    });
+}
+
+#[test]
+fn ref_mut_set_various_kinds_are_readable_back() {
+    with_custom_headers(|doc| {
+        doc.set("b", SerializableDocument::from_bool(true));
+        doc.set("i", SerializableDocument::from_i64(-7));
+        doc.set("d", SerializableDocument::from_f64(3.5));
+        doc.set("s", SerializableDocument::from_string("text"));
+
+        assert_eq!(doc.find("b").expect("b").as_bool(), Some(true));
+        assert_eq!(doc.find("i").expect("i").as_i64(), Some(-7));
+        assert_eq!(doc.find("d").expect("d").as_f64(), Some(3.5));
+        assert_eq!(doc.find("s").expect("s").as_str(), Some("text"));
+    });
+}
+
+#[test]
+fn ref_mut_set_replaces_existing_key() {
+    with_custom_headers(|doc| {
+        doc.set("k", SerializableDocument::from_string("first"));
+        doc.set("k", SerializableDocument::from_string("second"));
+        assert_eq!(doc.find("k").expect("k").as_str(), Some("second"));
+    });
+}
+
+#[test]
+fn ref_mut_set_preserves_insertion_order() {
+    with_custom_headers(|doc| {
+        let base = doc.object_len();
+        doc.set("a", SerializableDocument::from_string("1"));
+        doc.set("b", SerializableDocument::from_string("2"));
+        doc.set("c", SerializableDocument::from_string("3"));
+        assert_eq!(doc.object_len(), base + 3);
+
+        let keys: Vec<&str> = (base..base + 3)
+            .filter_map(|i| doc.object_key_at(i))
+            .collect();
+        assert_eq!(keys, vec!["a", "b", "c"]);
+    });
+}
+
+#[test]
+fn ref_mut_write_persists_in_parent_document() {
+    {
+        let mut dto = data_channel_dto::from_json(VALID_JSON).expect("parse should succeed");
+        let mut pkg = dto.pkg();
+        let mut header = pkg.header();
+        let mut custom = header.ensure_custom_headers();
+        custom.set("persisted", SerializableDocument::from_string("yes"));
+    }
+
+    let mut dto = data_channel_dto::from_json(VALID_JSON).expect("parse should succeed");
+    {
+        let mut pkg = dto.pkg();
+        let mut header = pkg.header();
+        let mut custom = header.ensure_custom_headers();
+        custom.set(
+            "writtenBy",
+            SerializableDocument::from_string("ref-mut-test"),
+        );
+    }
+
+    let json = data_channel_dto::to_json(&dto, false);
+    assert!(
+        json.contains("writtenBy") && json.contains("ref-mut-test"),
+        "written value should be serialized: {json}"
+    );
 }
