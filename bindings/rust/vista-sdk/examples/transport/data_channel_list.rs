@@ -1,0 +1,956 @@
+use vista_sdk::core::codebook_name::CodebookName;
+use vista_sdk::core::gmod_path::GmodPath;
+use vista_sdk::core::imo_number::ImoNumber;
+use vista_sdk::core::local_id_builder::LocalIdBuilder;
+use vista_sdk::core::vis::Vis;
+use vista_sdk::transport::datachannel::data_channel::{
+    ConfigurationReference, DataChannel, DataChannelId, DataChannelList, DataChannelListPackage,
+    DataChannelType, Format, Header, NameObject, Package, Property, Range, Unit,
+    VersionInformation,
+};
+use vista_sdk::transport::datachannel::data_channel_dto;
+use vista_sdk::transport::datachannel::data_channel_json;
+use vista_sdk::transport::serializable_document::SerializableDocument;
+use vista_sdk::transport::ship_id::ShipId;
+use vista_sdk::types::date_time_offset::DateTimeOffset;
+
+fn main() {
+    println!("=== vista-sdk DataChannelList Sample ===\n");
+
+    {
+        println!("1. Header: Creating DataChannelList headers");
+        println!("----------------------------------------------");
+
+        let imo = "9074729".parse::<ImoNumber>().expect("valid IMO");
+        let ship_id = ShipId::from_imo_number(imo);
+
+        let ts = DateTimeOffset::utc_now();
+        let config_ref =
+            ConfigurationReference::new("vessel-config-2026-v1", ts).with_version("v1");
+
+        let version_info = VersionInformation::new()
+            .with_naming_rule("dnv-v2")
+            .with_naming_scheme_version("3.0a");
+
+        let mut custom_headers = SerializableDocument::object();
+        custom_headers.set(
+            "vesselType",
+            SerializableDocument::from_string("Container Ship"),
+        );
+        custom_headers.set("operator", SerializableDocument::from_string("DNV"));
+        custom_headers.set(
+            "lastModified",
+            SerializableDocument::from_string("2026-08-25T14:30:00Z"),
+        );
+
+        let header = Header::new(&ship_id, &config_ref)
+            .with_version_information(&version_info)
+            .with_author("Vista SDK Sample")
+            .with_date_created(DateTimeOffset::utc_now())
+            .with_custom_headers(custom_headers);
+
+        println!("Created header:");
+        println!("  Ship ID         : {}", ship_id);
+        println!("  Config Reference: vessel-config-2026-v1");
+        println!("  Version         : dnv-v2");
+        println!("  Author          : Vista SDK Sample");
+        println!(
+            "  Date Created    : {}",
+            header.date_created().expect("date set")
+        );
+        println!("  Custom Headers  : Present");
+        println!();
+    }
+
+    {
+        println!("2. DataChannelId: Creating channel identifiers");
+        println!("-------------------------------------------------");
+
+        let vis = Vis::instance();
+        let gmod = vis.gmod(vis.latest()).expect("gmod");
+        let locations = vis.locations(vis.latest()).expect("locations");
+        let codebooks = vis.codebooks(vis.latest()).expect("codebooks");
+
+        let primary_item =
+            GmodPath::from_short_path("411.1/C101.63-1", gmod, locations).expect("valid path");
+        let qty_tag = codebooks[CodebookName::Quantity]
+            .create_tag("angle")
+            .expect("valid tag");
+
+        let local_id = LocalIdBuilder::create(vis.latest())
+            .with_primary_item(&primary_item)
+            .with_metadata_tag(&qty_tag)
+            .build()
+            .expect("valid local id");
+
+        let name_object = NameObject::new().with_naming_rule("dnv-v2");
+        let channel_id = DataChannelId::new(&local_id)
+            .with_short_id("GPSLatitude")
+            .with_name_object(&name_object);
+
+        println!("Created DataChannelId:");
+        println!("  LocalId    : {}", local_id);
+        println!(
+            "  Short ID   : {}",
+            channel_id.short_id().unwrap_or_default()
+        );
+        println!(
+            "  Naming Rule: {}",
+            channel_id
+                .name_object()
+                .map(|n| n.naming_rule())
+                .unwrap_or_default()
+        );
+        println!();
+    }
+
+    {
+        println!("3. Property: Creating properties with custom fields");
+        println!("------------------------------------------------------");
+
+        let dct = DataChannelType::new("Inst");
+        let format = Format::new("Decimal");
+        let unit = Unit::new("deg");
+        let range = Range::new(-90.0, 90.0);
+
+        let mut custom_props = SerializableDocument::object();
+        custom_props.set(
+            "coordinateSystem",
+            SerializableDocument::from_string("WGS84"),
+        );
+        custom_props.set("range", SerializableDocument::from_string("-90 to 90"));
+
+        let property = Property::new(&dct, &format)
+            .with_range(&range)
+            .with_unit(&unit)
+            .with_custom_properties(custom_props);
+
+        println!("Created Property:");
+        println!(
+            "  Type             : {}",
+            property.data_channel_type().type_()
+        );
+        println!("  Format           : {}", property.format().type_());
+        println!(
+            "  Unit             : {}",
+            property.unit().map(|u| u.unit_symbol()).unwrap_or_default()
+        );
+        match property.custom_properties() {
+            None => println!("  Custom Properties: None"),
+            Some(doc) => {
+                let pairs: Vec<String> = (0..doc.object_len())
+                    .filter_map(|i| {
+                        let k = doc.object_key_at(i)?;
+                        let v = doc.object_value_at(i).and_then(|d| d.as_str())?;
+                        Some(format!("{}: {}", k, v))
+                    })
+                    .collect();
+                println!("  Custom Properties: {{ {} }}", pairs.join(", "));
+            }
+        }
+        println!();
+    }
+
+    {
+        println!("4. DataChannel: Creating complete data channels");
+        println!("--------------------------------------------------");
+
+        let vis = Vis::instance();
+        let gmod = vis.gmod(vis.latest()).expect("gmod");
+        let locations = vis.locations(vis.latest()).expect("locations");
+        let codebooks = vis.codebooks(vis.latest()).expect("codebooks");
+
+        let primary_item =
+            GmodPath::from_short_path("411.1/C101.63-1", gmod, locations).expect("valid path");
+        let qty_tag = codebooks[CodebookName::Quantity]
+            .create_tag("angle")
+            .expect("valid tag");
+        let local_id = LocalIdBuilder::create(vis.latest())
+            .with_primary_item(&primary_item)
+            .with_metadata_tag(&qty_tag)
+            .build()
+            .expect("valid local id");
+
+        let name_object = NameObject::new().with_naming_rule("dnv-v2");
+        let channel_id = DataChannelId::new(&local_id)
+            .with_short_id("GPSLatitude")
+            .with_name_object(&name_object);
+
+        let mut custom_props = SerializableDocument::object();
+        custom_props.set(
+            "coordinateSystem",
+            SerializableDocument::from_string("WGS84"),
+        );
+
+        let range = Range::new(-90.0, 90.0);
+        let unit = Unit::new("deg");
+        let dct = DataChannelType::new("Inst");
+        let format = Format::new("Decimal");
+        let property = Property::new(&dct, &format)
+            .with_range(&range)
+            .with_unit(&unit)
+            .with_custom_properties(custom_props);
+
+        drop(DataChannel::new(&channel_id, &property));
+
+        println!("Created DataChannel:");
+        println!("  Short ID: {}", channel_id.short_id().unwrap_or_default());
+        println!("  LocalId : {}", local_id);
+        println!("  Type    : Inst");
+        println!("  Format  : Decimal");
+        println!("  Unit    : deg");
+        println!();
+    }
+
+    {
+        println!("5. DataChannelList: Creating complete channel lists");
+        println!("------------------------------------------------------");
+
+        let vis = Vis::instance();
+        let gmod = vis.gmod(vis.latest()).expect("gmod");
+        let locations = vis.locations(vis.latest()).expect("locations");
+        let codebooks = vis.codebooks(vis.latest()).expect("codebooks");
+
+        let imo = "9074729".parse::<ImoNumber>().expect("valid IMO");
+        let ship_id = ShipId::from_imo_number(imo);
+        let ts = DateTimeOffset::utc_now();
+        let config_ref =
+            ConfigurationReference::new("vessel-config-2026-v1", ts).with_version("v1");
+
+        let mut custom_headers = SerializableDocument::object();
+        custom_headers.set(
+            "vesselType",
+            SerializableDocument::from_string("Container Ship"),
+        );
+
+        let version_info_5 = VersionInformation::new()
+            .with_naming_rule("dnv-v2")
+            .with_naming_scheme_version("3.0a");
+        let header = Header::new(&ship_id, &config_ref)
+            .with_version_information(&version_info_5)
+            .with_author("Vista SDK Sample")
+            .with_date_created(DateTimeOffset::utc_now())
+            .with_custom_headers(custom_headers);
+
+        let mut list = DataChannelList::new();
+
+        // Channel 1: GPS Latitude
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.63-1", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("angle")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("GPSLatitude")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set(
+                "coordinateSystem",
+                SerializableDocument::from_string("WGS84"),
+            );
+            let range = Range::new(-90.0, 90.0);
+            let unit = Unit::new("deg");
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 2: GPS Longitude
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.63-2", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("angle")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("GPSLongitude")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set(
+                "coordinateSystem",
+                SerializableDocument::from_string("WGS84"),
+            );
+            let range = Range::new(-180.0, 180.0);
+            let unit = Unit::new("deg");
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 3: Engine Temperature
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.31-2", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("temperature")
+                .expect("valid tag");
+            let cnt_tag = codebooks[CodebookName::Content]
+                .create_tag("exhaust.gas")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .with_metadata_tag(&cnt_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("EngineTemp")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set(
+                "sensor",
+                SerializableDocument::from_string("K-type thermocouple"),
+            );
+            let range = Range::new(-50.0, 1200.0);
+            let unit = Unit::new("°C");
+            let dct = DataChannelType::new("Average");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 4: Fuel Level
+        {
+            let primary =
+                GmodPath::from_short_path("621.21/S90", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("volume")
+                .expect("valid tag");
+            let cnt_tag = codebooks[CodebookName::Content]
+                .create_tag("fuel.oil")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .with_metadata_tag(&cnt_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("FuelLevel")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set("tankCapacity", SerializableDocument::from_string("5000.0"));
+            custom_props.set("alarmLevel", SerializableDocument::from_string("500.0"));
+            let range = Range::new(0.0, 5000.0);
+            let unit = Unit::new("m3");
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        let package = Package::new(&header, &list);
+
+        println!("Created Package with DataChannelList:");
+        println!("  Ship ID      : {}", ship_id);
+        println!("  Config Ref   : vessel-config-2026-v1");
+        println!("  Channel Count: {}", list.len());
+        println!();
+        let channel_types = ["Inst", "Inst", "Average", "Inst"];
+        let short_ids = ["GPSLatitude", "GPSLongitude", "EngineTemp", "FuelLevel"];
+        println!("Channels:");
+        for i in 0..list.len() {
+            println!(
+                "  [{}] {} ({}, Decimal)",
+                i + 1,
+                short_ids[i],
+                channel_types[i]
+            );
+        }
+        println!();
+
+        let _ = package;
+    }
+
+    {
+        println!("6. Value Types: Working with different data types");
+        println!("----------------------------------------------------");
+
+        use vista_sdk::transport::iso19848::Value;
+        use vista_sdk::types::decimal::Decimal;
+
+        let string_value = Value::String("test string".to_string());
+        let int_value = Value::Integer(42);
+        let decimal_value =
+            Value::Decimal("3.14159".parse::<Decimal>().expect("valid decimal string"));
+        let bool_value = Value::Boolean(true);
+        let date_time_value = Value::DateTime(DateTimeOffset::utc_now());
+
+        println!("Value type checks:");
+        println!(
+            "  String   value is string  : {}",
+            matches!(string_value, Value::String(_))
+        );
+        println!(
+            "  Integer  value is integer : {}",
+            matches!(int_value, Value::Integer(_))
+        );
+        println!(
+            "  Decimal  value is decimal : {}",
+            matches!(decimal_value, Value::Decimal(_))
+        );
+        println!(
+            "  Boolean  value is boolean : {}",
+            matches!(bool_value, Value::Boolean(_))
+        );
+        println!(
+            "  DateTime value is dateTime: {}",
+            matches!(date_time_value, Value::DateTime(_))
+        );
+
+        println!("\nExtracting values:");
+        if let Value::String(s) = &string_value {
+            println!("  String   : {}", s);
+        }
+        if let Value::Integer(i) = &int_value {
+            println!("  Integer  : {}", i);
+        }
+        if let Value::Decimal(d) = &decimal_value {
+            println!("  Decimal  : {}", d);
+        }
+        if let Value::Boolean(b) = &bool_value {
+            println!("  Boolean  : {}", b);
+        }
+        if let Value::DateTime(dt) = &date_time_value {
+            println!("  DateTime : {}", dt);
+        }
+        println!();
+    }
+
+    {
+        println!("7. Validation: ISO 19848 field validation");
+        println!("--------------------------------------------");
+
+        let valid_type = DataChannelType::new("Inst");
+        println!("[OK] Created valid DataChannelType: {}", valid_type.type_());
+
+        let invalid_type = DataChannelType::new("Inst");
+        if invalid_type.with_type("InvalidType").is_err() {
+            println!("[OK] Correctly rejected invalid DataChannelType: Invalid data channel type: InvalidType");
+        } else {
+            println!("[ERROR] Created invalid DataChannelType (should have failed)");
+        }
+
+        let valid_format = Format::new("Decimal");
+        println!("[OK] Created valid Format: {}", valid_format.type_());
+
+        let invalid_format = Format::new("Decimal");
+        if invalid_format.with_type("InvalidFormat").is_err() {
+            println!("[OK] Correctly rejected invalid Format: Invalid format type: InvalidFormat");
+        } else {
+            println!("[ERROR] Created invalid Format (should have failed)");
+        }
+
+        println!();
+    }
+
+    {
+        println!("8. JSON Serialization: Converting to/from JSON");
+        println!("------------------------------------------------");
+
+        let vis = Vis::instance();
+        let gmod = vis.gmod(vis.latest()).expect("gmod");
+        let locations = vis.locations(vis.latest()).expect("locations");
+        let codebooks = vis.codebooks(vis.latest()).expect("codebooks");
+
+        let ship_id = ShipId::from_string("IMO1234567").expect("valid IMO");
+        let ts = DateTimeOffset::utc_now();
+        let config_ref = ConfigurationReference::new("demo-config-v1", ts);
+        let header = Header::new(&ship_id, &config_ref);
+
+        let mut list = DataChannelList::new();
+
+        // GPS Latitude
+        {
+            let primary =
+                GmodPath::from_short_path("710.1/F211.11", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("latitude")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("GPSLatitude")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set(
+                "coordinateSystem",
+                SerializableDocument::from_string("WGS84"),
+            );
+            custom_props.set("geodeticDatum", SerializableDocument::from_string("WGS84"));
+            let range = Range::new(-90.0, 90.0);
+            let unit = Unit::new("deg");
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_name("GPS Latitude")
+                .with_remarks("Primary GPS latitude position")
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // GPS Longitude
+        {
+            let primary =
+                GmodPath::from_short_path("710.1/F211.12", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("longitude")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+            let name_object = NameObject::new().with_naming_rule("dnv-v2");
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("GPSLongitude")
+                .with_name_object(&name_object);
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set(
+                "coordinateSystem",
+                SerializableDocument::from_string("WGS84"),
+            );
+            custom_props.set("geodeticDatum", SerializableDocument::from_string("WGS84"));
+            let range = Range::new(-180.0, 180.0);
+            let unit = Unit::new("deg");
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_name("GPS Longitude")
+                .with_remarks("Primary GPS longitude position")
+                .with_custom_properties(custom_props);
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        let package = Package::new(&header, &list);
+        let lp = DataChannelListPackage::new(&package);
+        let json = data_channel_json::to_json(&lp, true);
+
+        println!("Serialization result: Success");
+        println!("\nJSON output (formatted):");
+        println!("{}", json);
+        println!();
+    }
+
+    {
+        println!("9. Advanced: Main Engine Monitoring System");
+        println!("--------------------------------------------");
+
+        let vis = Vis::instance();
+        let gmod = vis.gmod(vis.latest()).expect("gmod");
+        let locations = vis.locations(vis.latest()).expect("locations");
+        let codebooks = vis.codebooks(vis.latest()).expect("codebooks");
+
+        let imo = "9074729".parse::<ImoNumber>().expect("valid IMO");
+        let ship_id = ShipId::from_imo_number(imo);
+        let ts = DateTimeOffset::utc_now();
+        let config_ref =
+            ConfigurationReference::new("main-engine-monitor-v3", ts).with_version("3.0");
+
+        let version_info = VersionInformation::new()
+            .with_naming_rule("dnv-v2")
+            .with_naming_scheme_version("3.10a");
+
+        let mut custom_headers = SerializableDocument::object();
+        custom_headers.set(
+            "monitoringSystem",
+            SerializableDocument::from_string("Vista Engine Monitor"),
+        );
+        custom_headers.set(
+            "engineManufacturer",
+            SerializableDocument::from_string("MAN Energy Solutions"),
+        );
+        custom_headers.set(
+            "engineModel",
+            SerializableDocument::from_string("ME-C9.5-175"),
+        );
+        custom_headers.set("samplingRate", SerializableDocument::from_string("10"));
+
+        let header = Header::new(&ship_id, &config_ref)
+            .with_version_information(&version_info)
+            .with_author("Chief Engineer")
+            .with_date_created(DateTimeOffset::utc_now())
+            .with_custom_headers(custom_headers);
+
+        let mut list = DataChannelList::new();
+
+        // Channel 1: Engine Speed (RPM)
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.41", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("rotational.speed")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+
+            let mut custom_name_objects = SerializableDocument::object();
+            custom_name_objects.set(
+                "sensorType",
+                SerializableDocument::from_string("Magnetic pickup"),
+            );
+            custom_name_objects.set(
+                "sensorManufacturer",
+                SerializableDocument::from_string("Wärtsilä"),
+            );
+            custom_name_objects.set(
+                "calibrationDate",
+                SerializableDocument::from_string("2026-08-25T10:00:00Z"),
+            );
+            custom_name_objects.set("isRedundant", SerializableDocument::from_bool(true));
+
+            let name_object = NameObject::new()
+                .with_naming_rule("dnv-v2")
+                .with_custom_name_objects(custom_name_objects);
+
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("MainEngineRPM")
+                .with_name_object(&name_object);
+
+            let mut unit_custom = SerializableDocument::object();
+            unit_custom.set("siEquivalent", SerializableDocument::from_string("hertz"));
+            unit_custom.set("conversionFactor", SerializableDocument::from_string("60"));
+            let unit = Unit::new("rpm")
+                .with_quantity_name("rotational speed")
+                .with_custom_elements(unit_custom);
+
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set("nominalSpeed", SerializableDocument::from_string("150"));
+            custom_props.set("maxSpeed", SerializableDocument::from_string("175"));
+            custom_props.set("idleSpeed", SerializableDocument::from_string("60"));
+            custom_props.set("criticalAlarm", SerializableDocument::from_bool(true));
+
+            let range = Range::new(0.0, 200.0);
+            let dct = DataChannelType::new("Inst");
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_quality_coding("A")
+                .with_alert_priority("High")
+                .with_name("Main Engine Rotational Speed")
+                .with_remarks("Primary propulsion engine RPM")
+                .with_custom_properties(custom_props);
+
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 2: Lube Oil Pressure
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.663i", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("pressure")
+                .expect("valid tag");
+            let cnt_tag = codebooks[CodebookName::Content]
+                .create_tag("lubricating.oil")
+                .expect("valid tag");
+            let pos_tag = codebooks[CodebookName::Position]
+                .create_tag("inlet")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .with_metadata_tag(&cnt_tag)
+                .with_metadata_tag(&pos_tag)
+                .build()
+                .expect("valid local id");
+
+            let mut custom_name_objects = SerializableDocument::object();
+            custom_name_objects.set(
+                "sensorType",
+                SerializableDocument::from_string("Pressure transducer"),
+            );
+            custom_name_objects.set(
+                "sensorManufacturer",
+                SerializableDocument::from_string("WIKA"),
+            );
+            custom_name_objects.set("sensorModel", SerializableDocument::from_string("A-10"));
+            custom_name_objects.set("accuracy", SerializableDocument::from_string("0.5"));
+
+            let name_object = NameObject::new()
+                .with_naming_rule("dnv-v2")
+                .with_custom_name_objects(custom_name_objects);
+
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("LubeOilPressure")
+                .with_name_object(&name_object);
+
+            let mut unit_custom = SerializableDocument::object();
+            unit_custom.set("pressureType", SerializableDocument::from_string("Gauge"));
+            unit_custom.set("siEquivalent", SerializableDocument::from_string("pascal"));
+            unit_custom.set(
+                "conversionFactor",
+                SerializableDocument::from_string("100000"),
+            );
+            let unit = Unit::new("bar")
+                .with_quantity_name("pressure")
+                .with_custom_elements(unit_custom);
+
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set("normalPressure", SerializableDocument::from_string("4.2"));
+            custom_props.set("minPressure", SerializableDocument::from_string("2.5"));
+            custom_props.set("alarmThreshold", SerializableDocument::from_string("2"));
+            custom_props.set(
+                "shutdownThreshold",
+                SerializableDocument::from_string("1.5"),
+            );
+
+            let range = Range::new(0.0, 10.0);
+            let dct = DataChannelType::new("Average")
+                .with_update_cycle(5.0)
+                .with_calculation_period(1.0);
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_quality_coding("A")
+                .with_alert_priority("High")
+                .with_name("Lubricating Oil Inlet Pressure")
+                .with_remarks("Main engine lube oil system inlet pressure")
+                .with_custom_properties(custom_props);
+
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 3: Exhaust Gas Temperature
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101.31-2", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("temperature")
+                .expect("valid tag");
+            let cnt_tag = codebooks[CodebookName::Content]
+                .create_tag("exhaust.gas")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_metadata_tag(&qty_tag)
+                .with_metadata_tag(&cnt_tag)
+                .build()
+                .expect("valid local id");
+
+            let mut custom_name_objects = SerializableDocument::object();
+            custom_name_objects.set(
+                "sensorType",
+                SerializableDocument::from_string("K-type thermocouple"),
+            );
+            custom_name_objects.set("cylinderNumber", SerializableDocument::from_i64(2));
+            custom_name_objects.set("maxTemp", SerializableDocument::from_string("600"));
+            custom_name_objects.set("isCritical", SerializableDocument::from_bool(true));
+
+            let name_object = NameObject::new()
+                .with_naming_rule("dnv-v2")
+                .with_custom_name_objects(custom_name_objects);
+
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("ExhaustTemp_Cyl2")
+                .with_name_object(&name_object);
+
+            let mut unit_custom = SerializableDocument::object();
+            unit_custom.set("siEquivalent", SerializableDocument::from_string("kelvin"));
+            unit_custom.set(
+                "conversionOffset",
+                SerializableDocument::from_string("273.15"),
+            );
+            let unit = Unit::new("degC")
+                .with_quantity_name("temperature")
+                .with_custom_elements(unit_custom);
+
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set("normalTemp", SerializableDocument::from_string("380"));
+            custom_props.set("maxTemp", SerializableDocument::from_string("450"));
+            custom_props.set("alarmThreshold", SerializableDocument::from_string("420"));
+            custom_props.set("deviationAlarm", SerializableDocument::from_string("30"));
+
+            let range = Range::new(0.0, 600.0);
+            let dct = DataChannelType::new("Average")
+                .with_update_cycle(10.0)
+                .with_calculation_period(10.0);
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_quality_coding("A")
+                .with_alert_priority("High")
+                .with_name("Exhaust Gas Temperature Cylinder 2")
+                .with_remarks("Main engine cylinder 2 exhaust temperature")
+                .with_custom_properties(custom_props);
+
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        // Channel 4: Fuel Consumption
+        {
+            let primary =
+                GmodPath::from_short_path("411.1/C101", gmod, locations).expect("valid path");
+            let secondary =
+                GmodPath::from_short_path("620.1/M201.32", gmod, locations).expect("valid path");
+            let qty_tag = codebooks[CodebookName::Quantity]
+                .create_tag("volume.flow.rate")
+                .expect("valid tag");
+            let local_id = LocalIdBuilder::create(vis.latest())
+                .with_primary_item(&primary)
+                .with_secondary_item(&secondary)
+                .with_metadata_tag(&qty_tag)
+                .build()
+                .expect("valid local id");
+
+            let mut custom_name_objects = SerializableDocument::object();
+            custom_name_objects.set(
+                "meterType",
+                SerializableDocument::from_string("Coriolis flow meter"),
+            );
+            custom_name_objects.set(
+                "meterManufacturer",
+                SerializableDocument::from_string("Endress+Hauser"),
+            );
+            custom_name_objects.set(
+                "meterModel",
+                SerializableDocument::from_string("Promass 83F"),
+            );
+            custom_name_objects.set("accuracy", SerializableDocument::from_string("0.1"));
+
+            let name_object = NameObject::new()
+                .with_naming_rule("dnv-v2")
+                .with_custom_name_objects(custom_name_objects);
+
+            let channel_id = DataChannelId::new(&local_id)
+                .with_short_id("FuelConsumption")
+                .with_name_object(&name_object);
+
+            let mut unit_custom = SerializableDocument::object();
+            unit_custom.set("flowType", SerializableDocument::from_string("Volumetric"));
+            unit_custom.set("fluidType", SerializableDocument::from_string("HFO380"));
+            unit_custom.set("refTemperature", SerializableDocument::from_string("15"));
+            let unit = Unit::new("l/h")
+                .with_quantity_name("volume flow rate")
+                .with_custom_elements(unit_custom);
+
+            let mut custom_props = SerializableDocument::object();
+            custom_props.set("fuelGrade", SerializableDocument::from_string("IFO380"));
+            custom_props.set("fuelDensity", SerializableDocument::from_string("991"));
+            custom_props.set(
+                "nominalConsumption",
+                SerializableDocument::from_string("2800"),
+            );
+            custom_props.set("co2Factor", SerializableDocument::from_string("3.114"));
+
+            let range = Range::new(0.0, 5000.0);
+            let dct = DataChannelType::new("Average")
+                .with_update_cycle(60.0)
+                .with_calculation_period(60.0);
+            let format = Format::new("Decimal");
+            let property = Property::new(&dct, &format)
+                .with_range(&range)
+                .with_unit(&unit)
+                .with_quality_coding("A")
+                .with_alert_priority("Normal")
+                .with_name("Main Engine Fuel Consumption")
+                .with_remarks("Hourly fuel consumption monitoring")
+                .with_custom_properties(custom_props);
+
+            list.add(&DataChannel::new(&channel_id, &property));
+        }
+
+        let package = Package::new(&header, &list);
+        let lp = DataChannelListPackage::new(&package);
+
+        println!("Main Engine Monitoring System:");
+        println!("  Engine       : MAN Energy Solutions ME-C9.5-175");
+        println!("  Channels     : {}", list.len());
+        println!("  Custom fields: Present");
+        println!("\nMonitored parameters:");
+        for i in 0..list.len() {
+            let dc = list.at(i).expect("valid index");
+            let short_id = dc.channel_id().short_id().unwrap_or_default();
+            let name = dc.property().name().unwrap_or_default();
+            println!("  [{}] {} - {}", i + 1, short_id, name);
+        }
+
+        let json = data_channel_json::to_json(&lp, true);
+        println!("\nEngine Monitoring JSON:");
+        println!("{}", json);
+        println!();
+    }
+
+    {
+        println!("10. Advanced: DTO-level manipulation before serialization");
+        println!("---------------------------------------------------------");
+
+        // Build a minimal package
+        let ship_id = ShipId::from_string("IMO8027781").expect("valid IMO");
+        let ts = "2026-07-16T00:00:00Z"
+            .parse::<DateTimeOffset>()
+            .expect("valid timestamp");
+        let config_ref = ConfigurationReference::new("dto-patch-demo", ts).with_version("1.0");
+        let header = Header::new(&ship_id, &config_ref);
+        let package = Package::new(&header, &DataChannelList::new());
+        let domain_package = DataChannelListPackage::new(&package);
+
+        // Convert to the DTO (the serialization-facing representation) so the package can be
+        // patched and serialized directly, without rebuilding a validated domain package
+        let mut dto = data_channel_dto::to_dto(&domain_package).expect("to_dto");
+        {
+            let mut pkg = dto.pkg();
+            let mut dto_header = pkg.header();
+            dto_header.set_author("export-pipeline");
+
+            let mut custom_headers = dto_header.ensure_custom_headers();
+            custom_headers.set(
+                "exportedBy",
+                SerializableDocument::from_string("vista-sdk-sample"),
+            );
+            custom_headers.set(
+                "exportTimestamp",
+                SerializableDocument::from_string(&DateTimeOffset::utc_now().to_string()),
+            );
+        }
+
+        let patched_json = data_channel_dto::to_json(&dto, true);
+
+        println!("DTO patched with author and exportTimestamp custom header:");
+        println!("{}", patched_json);
+        println!();
+    }
+}
