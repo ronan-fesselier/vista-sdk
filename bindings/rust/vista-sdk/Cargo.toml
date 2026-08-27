@@ -57,6 +57,9 @@ path = "examples/transport/iso19848.rs"
 name = "transport_data_channel_list"
 path = "examples/transport/data_channel_list.rs"
 [[example]]
+name = "transport_time_series_data"
+path = "examples/transport/time_series_data.rs"
+[[example]]
 name = "transport_ship_id"
 path = "examples/transport/ship_id.rs"
 [[example]]
