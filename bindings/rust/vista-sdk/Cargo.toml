@@ -50,6 +50,9 @@ path = "examples/transport/iso19848.rs"
 name = "transport_datachannellist"
 path = "examples/transport/datachannellist.rs"
 [[example]]
+name = "transport_sensorsdataflow"
+path = "examples/transport/sensorsdataflow.rs"
+[[example]]
 name = "transport_timeseriesdata"
 path = "examples/transport/timeseriesdata.rs"
 [[example]]
