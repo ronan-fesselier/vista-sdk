@@ -27,6 +27,9 @@ path = "examples/core/gmod.rs"
 name = "core_gmod_traversal"
 path = "examples/core/gmod_traversal.rs"
 [[example]]
+name = "core_gmod_subset"
+path = "examples/core/gmod_subset.rs"
+[[example]]
 name = "core_imo_number"
 path = "examples/core/imo_number.rs"
 [[example]]
