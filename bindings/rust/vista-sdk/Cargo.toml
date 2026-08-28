@@ -20,6 +20,9 @@ path = "examples/core/gmod_path.rs"
 name = "core_gmod"
 path = "examples/core/gmod.rs"
 [[example]]
+name = "core_gmodsubset"
+path = "examples/core/gmodsubset.rs"
+[[example]]
 name = "core_imo_number"
 path = "examples/core/imo_number.rs"
 [[example]]
