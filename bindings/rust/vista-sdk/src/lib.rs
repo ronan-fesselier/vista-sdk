@@ -1,4 +1,5 @@
 pub mod core;
+pub mod features;
 pub(crate) mod ffi;
 pub mod query;
 pub mod transport;
