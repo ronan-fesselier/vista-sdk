@@ -1,5 +1,4 @@
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn version_matches_the_requested_version() {

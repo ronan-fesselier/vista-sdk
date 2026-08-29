@@ -1,6 +1,5 @@
 use std::str::FromStr;
-
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn to_string() {

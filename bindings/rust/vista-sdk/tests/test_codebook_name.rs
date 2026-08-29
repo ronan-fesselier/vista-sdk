@@ -1,4 +1,4 @@
-use vista_sdk::core::codebook_name::{codebook_names, CodebookName};
+use vista_sdk::*;
 
 #[test]
 fn enum_values_are_sequential() {

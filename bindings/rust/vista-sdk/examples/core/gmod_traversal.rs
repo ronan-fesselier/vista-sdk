@@ -1,5 +1,4 @@
-use vista_sdk::core::gmod::TraversalHandlerResult;
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk GmodTraversal Sample ===\n");

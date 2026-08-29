@@ -1,5 +1,4 @@
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk GmodPath Sample ===\n");

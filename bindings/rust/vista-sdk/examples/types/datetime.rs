@@ -1,6 +1,4 @@
-use vista_sdk::types::date_time::{DateTime, DateTimeFormat};
-use vista_sdk::types::date_time_offset::DateTimeOffset;
-use vista_sdk::types::time_span::TimeSpan;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk DateTime samples ===\n");

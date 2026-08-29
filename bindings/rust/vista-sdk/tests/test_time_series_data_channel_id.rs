@@ -1,4 +1,4 @@
-use vista_sdk::transport::timeseries::data_channel_id::TsdChannelId;
+use vista_sdk::*;
 
 const LOCAL_ID_STR: &str =
     "/dnv-v2/vis-3-4a/411.1/C101.62/S205/meta/qty-temperature/cnt-lubricating.oil/pos-inlet";

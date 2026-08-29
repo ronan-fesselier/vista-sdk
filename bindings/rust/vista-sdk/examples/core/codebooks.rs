@@ -1,6 +1,4 @@
-use vista_sdk::core::codebook::PositionValidationResult;
-use vista_sdk::core::codebook_name::{codebook_names, CodebookName};
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk Codebooks Sample ===\n");

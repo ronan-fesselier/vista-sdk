@@ -1,7 +1,4 @@
-use vista_sdk::core::location_builder::LocationBuilder;
-use vista_sdk::core::location_group::LocationGroup;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn create_returns_a_builder() {

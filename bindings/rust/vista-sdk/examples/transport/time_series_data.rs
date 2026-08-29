@@ -1,22 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::local_id_builder::LocalIdBuilder;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::transport::datachannel::data_channel::{
-    ConfigurationReference as DclConfigRef, DataChannel, DataChannelId as DclChannelId,
-    DataChannelList, DataChannelListPackage, DataChannelType, Format, Header as DclHeader,
-    Package as DclPackage, Property, Range, Restriction, Unit,
-};
-use vista_sdk::transport::serializable_document::SerializableDocument;
-use vista_sdk::transport::ship_id::ShipId;
-use vista_sdk::transport::timeseries::data_channel_id::TsdChannelId;
-use vista_sdk::transport::timeseries::time_series_data::{
-    EventData, EventDataSet, TabularData, TabularDataSet, TimeSeriesData, TimeSeriesDataPackage,
-    TsdConfigRef, TsdHeader, TsdPackage, TsdTimeSpan, ValidateCallback, ValidateResult,
-};
-use vista_sdk::transport::timeseries::time_series_data_dto;
-use vista_sdk::transport::timeseries::time_series_data_json;
-use vista_sdk::types::date_time_offset::DateTimeOffset;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk TimeSeriesData Sample ===\n");
@@ -357,7 +339,7 @@ fn main() {
         let codebooks = vis.codebooks(vis.latest()).expect("valid codebooks");
 
         let ship_id = ShipId::from_string("IMO9074729").expect("valid ship ID");
-        let config_ref = DclConfigRef::new(
+        let config_ref = ConfigurationReference::new(
             "DataChannelList.xml",
             "2026-08-27T00:00:00Z".parse::<DateTimeOffset>().unwrap(),
         );
@@ -374,7 +356,7 @@ fn main() {
             .build()
             .expect("valid local id");
 
-        let dcl_channel_id = DclChannelId::new(&local_id).with_short_id("TempSensor");
+        let dcl_channel_id = DataChannelId::new(&local_id).with_short_id("TempSensor");
 
         let restriction = Restriction::new().with_fraction_digits(1);
         let format = Format::new("Decimal").with_restriction(&restriction);
@@ -389,8 +371,8 @@ fn main() {
         let mut dcl = DataChannelList::new();
         dcl.add(&data_channel);
 
-        let dcl_header = DclHeader::new(&ship_id, &config_ref);
-        let dcl_pkg = DclPackage::new(&dcl_header, &dcl);
+        let dcl_header = Header::new(&ship_id, &config_ref);
+        let dcl_pkg = Package::new(&dcl_header, &dcl);
         let dcl_package = DataChannelListPackage::new(&dcl_pkg);
 
         let ts_config = TsdConfigRef::new(
@@ -452,7 +434,7 @@ fn main() {
         let codebooks = vis.codebooks(vis.latest()).expect("valid codebooks");
 
         let ship_id = ShipId::from_string("IMO1234567").expect("valid ship ID");
-        let config_ref = DclConfigRef::new(
+        let config_ref = ConfigurationReference::new(
             "DataChannelList.xml",
             "2026-08-27T00:00:00Z".parse::<DateTimeOffset>().unwrap(),
         );
@@ -469,7 +451,7 @@ fn main() {
             .build()
             .expect("valid local id");
 
-        let dcl_channel_id = DclChannelId::new(&local_id).with_short_id("ExhaustTemp");
+        let dcl_channel_id = DataChannelId::new(&local_id).with_short_id("ExhaustTemp");
 
         let dc_type = DataChannelType::new("Inst");
         let format = Format::new("Decimal");
@@ -484,8 +466,8 @@ fn main() {
         let mut dcl = DataChannelList::new();
         dcl.add(&data_channel);
 
-        let dcl_header = DclHeader::new(&ship_id, &config_ref);
-        let dcl_pkg = DclPackage::new(&dcl_header, &dcl);
+        let dcl_header = Header::new(&ship_id, &config_ref);
+        let dcl_pkg = Package::new(&dcl_header, &dcl);
         let dcl_package = DataChannelListPackage::new(&dcl_pkg);
 
         let ts_config = TsdConfigRef::new(
