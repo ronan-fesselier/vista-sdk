@@ -8,6 +8,7 @@ repository = "https://github.com/dnv-opensource/vista-sdk"
 links = "dnv-vista-sdk-c"
 
 [dev-dependencies]
+criterion = "0.8.2"
 serde_json = "1"
 
 [[example]]
@@ -67,3 +68,37 @@ path = "examples/types/decimal.rs"
 [[example]]
 name = "types_datetime"
 path = "examples/types/datetime.rs"
+
+[[bench]]
+name = "codebook_methods"
+harness = false
+[[bench]]
+name = "codebooks_lookup"
+harness = false
+[[bench]]
+name = "gmod_load"
+harness = false
+[[bench]]
+name = "gmod_lookup"
+harness = false
+[[bench]]
+name = "gmod_path_parse"
+harness = false
+[[bench]]
+name = "gmod_traversal"
+harness = false
+[[bench]]
+name = "gmod_versioning_convert_path"
+harness = false
+[[bench]]
+name = "datachannel_list_lookup"
+harness = false
+[[bench]]
+name = "local_id_parse"
+harness = false
+[[bench]]
+name = "datachannel_list_serialization"
+harness = false
+[[bench]]
+name = "timeseries_data_serialization"
+harness = false

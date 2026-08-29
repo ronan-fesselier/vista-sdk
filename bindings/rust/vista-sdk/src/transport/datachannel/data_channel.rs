@@ -1953,4 +1953,19 @@ impl<'a> DataChannelListRef<'a> {
             })
         }
     }
+
+    /// Returns a borrowed view of the data channel with the given Local ID, or `None` if not found.
+    pub fn from_local_id(&self, local_id: &LocalId) -> Option<DataChannelRef<'_>> {
+        let ptr = unsafe {
+            ffi::dnv_vista_sdk_dcl_data_channel_list_from_local_id(self.ptr, local_id.as_ffi_ptr())
+        };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(DataChannelRef {
+                ptr,
+                _marker: std::marker::PhantomData,
+            })
+        }
+    }
 }
