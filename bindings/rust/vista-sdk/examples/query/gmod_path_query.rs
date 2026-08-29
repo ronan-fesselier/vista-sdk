@@ -1,6 +1,4 @@
-use vista_sdk::core::gmod_path::OwnedGmodPath;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::query::gmod_path_query_builder::OwnedGmodPathQueryBuilder;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk GmodPathQuery Sample ===\n");

@@ -1,9 +1,6 @@
-use std::str::FromStr;
-
 use serde_json::Value;
-use vista_sdk::core::gmod_path::OwnedGmodPath;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use std::str::FromStr;
+use vista_sdk::*;
 
 static GMOD_PATHS_JSON: &str = include_str!("../../../../testdata/GmodPaths.json");
 static INDIVIDUALIZABLE_SETS_JSON: &str =

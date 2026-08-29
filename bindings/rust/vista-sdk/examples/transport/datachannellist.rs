@@ -1,17 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::gmod_path::OwnedGmodPath;
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::core::local_id_builder::OwnedLocalIdBuilder;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::transport::datachannel::data_channel::{
-    ConfigurationReference, DataChannel, DataChannelId, DataChannelList, DataChannelListPackage,
-    DataChannelType, Format, Header, NameObject, Package, Property, Range, Unit,
-    VersionInformation,
-};
-use vista_sdk::transport::datachannel::data_channel_json;
-use vista_sdk::transport::serializable_document::SerializableDocument;
-use vista_sdk::transport::ship_id::ShipId;
-use vista_sdk::types::date_time_offset::DateTimeOffset;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk DataChannelList Sample ===\n");

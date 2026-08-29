@@ -1,8 +1,4 @@
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::core::local_id::OwnedLocalId;
-use vista_sdk::core::universal_id::{OwnedUniversalId, UniversalId};
-use vista_sdk::core::universal_id_builder::{OwnedUniversalIdBuilder, UniversalIdBuilder};
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 const VALID_UNIVERSAL_ID_STR: &str =
     "data.dnv.com/IMO1234567/dnv-v2/vis-3-4a/621.21/S90/sec/411.1/C101/meta/qty-mass/cnt-fuel.oil/pos-inlet";

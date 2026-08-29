@@ -1,7 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 fn bench(c: &mut Criterion) {
     let vis = Vis::instance();

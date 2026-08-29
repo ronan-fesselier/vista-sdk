@@ -1,6 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use vista_sdk::core::local_id::OwnedLocalId;
-use vista_sdk::transport::datachannel::data_channel_json;
+use vista_sdk::*;
 
 static DCL_JSON: &str = include_str!("../../../../cpp/tests/transport/_files/DataChannelList.json");
 

@@ -1,6 +1,4 @@
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
-use vista_sdk::query::gmod_path_query_builder::OwnedGmodPathQueryBuilder;
+use vista_sdk::*;
 
 #[test]
 fn path_builder_always_matches_itself() {

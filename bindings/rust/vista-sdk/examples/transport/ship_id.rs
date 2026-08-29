@@ -3,8 +3,7 @@
 //! Shows how to construct, parse, and inspect ShipId values, which identify a vessel
 //! in ISO 19848 transport packages either by IMO number or by an alternative identifier.
 
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::transport::ship_id::ShipId;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk ShipId Sample ===\n");

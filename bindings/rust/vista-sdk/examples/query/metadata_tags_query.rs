@@ -1,6 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::local_id::OwnedLocalId;
-use vista_sdk::query::metadata_tags_query_builder::OwnedMetadataTagsQueryBuilder;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk MetadataTagsQuery Sample ===\n");

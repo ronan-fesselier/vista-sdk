@@ -1,4 +1,4 @@
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk Gmod Sample ===\n");

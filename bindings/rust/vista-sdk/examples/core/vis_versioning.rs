@@ -1,7 +1,4 @@
-use vista_sdk::core::gmod_path::OwnedGmodPath;
-use vista_sdk::core::local_id::OwnedLocalId;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk VIS Versioning Sample ===\n");

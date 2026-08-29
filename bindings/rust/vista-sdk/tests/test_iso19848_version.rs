@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use vista_sdk::transport::iso19848_version::Iso19848Version;
+use vista_sdk::*;
 
 #[test]
 fn all_is_non_empty() {
