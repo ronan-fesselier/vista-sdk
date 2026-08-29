@@ -1,4 +1,4 @@
-use vista_sdk::types::decimal::{Decimal, RoundingMode};
+use vista_sdk::*;
 
 #[test]
 fn zero() {

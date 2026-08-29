@@ -1,10 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::local_id::LocalId;
-use vista_sdk::core::local_id_builder::LocalIdBuilder;
-use vista_sdk::core::local_id_mqtt::MqttLocalId;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn build_with_primary_item_and_metadata_tag_succeeds() {

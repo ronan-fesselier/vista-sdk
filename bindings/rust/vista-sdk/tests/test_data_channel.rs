@@ -1,14 +1,4 @@
-use vista_sdk::core::error::last_error;
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::core::local_id::LocalId;
-use vista_sdk::transport::datachannel::data_channel::{
-    ConfigurationReference, DataChannel, DataChannelId, DataChannelList, DataChannelListPackage,
-    DataChannelType, Format, Header, NameObject, Package, Property, Range, Restriction, Unit,
-    VersionInformation, WhiteSpace,
-};
-use vista_sdk::transport::serializable_document::SerializableDocument;
-use vista_sdk::transport::ship_id::ShipId;
-use vista_sdk::types::date_time_offset::DateTimeOffset;
+use vista_sdk::*;
 
 const VALID_LOCAL_ID_STR: &str =
     "/dnv-v2/vis-3-4a/411.1/C101.31-2/meta/qty-temperature/cnt-exhaust.gas/pos-inlet";
