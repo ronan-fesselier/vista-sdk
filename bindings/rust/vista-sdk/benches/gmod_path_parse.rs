@@ -3,9 +3,7 @@ use std::hint::black_box;
 
 use std::cell::Cell;
 
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 const SHORT_PATHS: [&str; 6] = [
     "411.1/C101.72/I101",

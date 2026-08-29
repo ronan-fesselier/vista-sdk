@@ -1,5 +1,4 @@
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::transport::ship_id::ShipId;
+use vista_sdk::*;
 
 #[test]
 fn construction_from_imo_number() {

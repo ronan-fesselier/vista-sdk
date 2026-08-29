@@ -1,5 +1,4 @@
-use vista_sdk::transport::serializable_document::SerializableDocument;
-use vista_sdk::transport::timeseries::{time_series_data_dto, time_series_data_json};
+use vista_sdk::*;
 
 static VALID_JSON: &str =
     include_str!("../../../../cpp/tests/transport/_files/TimeSeriesData.json");

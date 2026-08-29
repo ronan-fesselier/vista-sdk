@@ -1,6 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn loads_all_versions() {

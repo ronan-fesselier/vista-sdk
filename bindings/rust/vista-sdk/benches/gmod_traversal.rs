@@ -1,9 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
-use vista_sdk::core::gmod::TraversalHandlerResult;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 fn bench(c: &mut Criterion) {
     let vis = Vis::instance();
