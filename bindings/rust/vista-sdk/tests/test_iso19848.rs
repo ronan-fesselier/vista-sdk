@@ -1,7 +1,4 @@
-use vista_sdk::transport::iso19848::{Iso19848, Value};
-use vista_sdk::transport::iso19848_version::Iso19848Version;
-use vista_sdk::types::date_time_offset::DateTimeOffset;
-use vista_sdk::types::decimal::Decimal;
+use vista_sdk::*;
 
 #[test]
 fn instance_is_stable() {

@@ -1,4 +1,4 @@
-use vista_sdk::core::imo_number::ImoNumber;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk ImoNumber Sample ===\n");

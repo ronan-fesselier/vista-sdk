@@ -1,20 +1,5 @@
 use std::collections::HashMap;
-
-use vista_sdk::core::local_id_builder::LocalIdBuilder;
-use vista_sdk::transport::datachannel::data_channel::{
-    ConfigurationReference, DataChannel, DataChannelId as DclChannelId, DataChannelList,
-    DataChannelListPackage, DataChannelType, Format, Header as DclHeader, Package as DclPackage,
-    Property, Range, Restriction, Unit, VersionInformation,
-};
-use vista_sdk::transport::datachannel::data_channel_json;
-use vista_sdk::transport::ship_id::ShipId;
-use vista_sdk::transport::timeseries::data_channel_id::TsdChannelId;
-use vista_sdk::transport::timeseries::time_series_data::{
-    TabularData, TabularDataSet, TimeSeriesData, TimeSeriesDataPackage, TsdConfigRef, TsdHeader,
-    TsdPackage, TsdTimeSpan, ValidateResult,
-};
-use vista_sdk::transport::timeseries::time_series_data_json;
-use vista_sdk::types::date_time_offset::DateTimeOffset;
+use vista_sdk::*;
 
 struct SensorReading {
     system_id: String,
@@ -35,7 +20,7 @@ fn create_data_channel_list() -> DataChannelListPackage {
     )
     .expect("valid local id 1");
 
-    let dc_id1 = DclChannelId::new(&local_id1)
+    let dc_id1 = DataChannelId::new(&local_id1)
         .with_short_id("TEMP001")
         .unwrap();
 
@@ -67,7 +52,7 @@ fn create_data_channel_list() -> DataChannelListPackage {
     let local_id2 = LocalIdBuilder::from_string("/dnv-v2/vis-3-4a/511.15-1/E32/meta/qty-power")
         .expect("valid local id 2");
 
-    let dc_id2 = DclChannelId::new(&local_id2)
+    let dc_id2 = DataChannelId::new(&local_id2)
         .with_short_id("PWR001")
         .unwrap();
 
@@ -91,7 +76,7 @@ fn create_data_channel_list() -> DataChannelListPackage {
         LocalIdBuilder::from_string("/dnv-v2/vis-3-4a/621.22i/S110/meta/cnt-diesel.oil/cmd-stop")
             .expect("valid local id 3");
 
-    let dc_id3 = DclChannelId::new(&local_id3)
+    let dc_id3 = DataChannelId::new(&local_id3)
         .with_short_id("ALT001")
         .unwrap();
 
@@ -115,12 +100,12 @@ fn create_data_channel_list() -> DataChannelListPackage {
         .with_reference_url("https://docs.vista.dnv.com")
         .unwrap();
 
-    let header = DclHeader::new(&ship_id, &config_ref)
+    let header = Header::new(&ship_id, &config_ref)
         .with_version_information(&version_info)
         .with_author("Vista SDK Sample")
         .unwrap()
         .with_date_created("2026-08-28T00:00:00Z".parse::<DateTimeOffset>().unwrap());
-    let package = DclPackage::new(&header, &dcl);
+    let package = Package::new(&header, &dcl);
     DataChannelListPackage::new(&package)
 }
 

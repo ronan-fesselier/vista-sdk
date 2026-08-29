@@ -1,6 +1,4 @@
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
-use vista_sdk::query::gmod_path_query_builder::GmodPathQueryBuilder;
+use vista_sdk::*;
 
 type Case<'a> = (&'a str, VisVersion, &'a [(&'a str, &'a [&'a str])], bool);
 

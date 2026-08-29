@@ -1,11 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::local_id::LocalId;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
-use vista_sdk::query::gmod_path_query_builder::GmodPathQueryBuilder;
-use vista_sdk::query::local_id_query_builder::LocalIdQueryBuilder;
-use vista_sdk::query::metadata_tags_query_builder::MetadataTagsQueryBuilder;
+use vista_sdk::*;
 
 #[test]
 fn empty_query_matches_all_local_ids() {

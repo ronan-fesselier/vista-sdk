@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
-use vista_sdk::core::local_id::LocalId;
+use vista_sdk::*;
 
 const SIMPLE: &str = "/dnv-v2/vis-3-4a/751/I101/meta/state-common.alarm";
 const COMPLEX: &str =
