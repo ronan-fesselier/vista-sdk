@@ -1,6 +1,4 @@
-use vista_sdk::core::location_builder::LocationBuilder;
-use vista_sdk::core::location_group::LocationGroup;
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk Locations Sample ===\n");

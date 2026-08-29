@@ -1,5 +1,4 @@
-use vista_sdk::types::date_time::{DateTime, DateTimeFormat};
-use vista_sdk::types::time_span::TimeSpan;
+use vista_sdk::*;
 
 #[test]
 fn time_span_from_ticks_roundtrips() {

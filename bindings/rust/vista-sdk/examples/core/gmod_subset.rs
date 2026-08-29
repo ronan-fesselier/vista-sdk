@@ -1,11 +1,5 @@
 use std::collections::BTreeMap;
-
-use vista_sdk::core::gmod::Gmod;
-use vista_sdk::core::gmod_path::{GmodPath, GmodPathRef};
-use vista_sdk::core::local_id::LocalId;
-use vista_sdk::core::locations::Locations;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 struct AssetNode {
     path: Option<String>,

@@ -1,21 +1,8 @@
-use vista_sdk::transport::datachannel::data_channel::{
-    ConfigurationReference as DclConfigRef, DataChannel, DataChannelId, DataChannelList,
-    DataChannelListPackage, DataChannelType, Format, Header as DclHeader, NameObject, Package,
-    Property, Range, Restriction, Unit, VersionInformation,
-};
-use vista_sdk::transport::serializable_document::SerializableDocument;
-use vista_sdk::transport::ship_id::ShipId;
-use vista_sdk::transport::timeseries::data_channel_id::TsdChannelId;
-use vista_sdk::transport::timeseries::time_series_data::{
-    EventData, EventDataSet, TabularData, TabularDataSet, TimeSeriesData, TimeSeriesDataPackage,
-    TsdConfigRef, TsdHeader, TsdPackage, TsdTimeSpan, ValidateCallback, ValidateResult,
-};
-
-use vista_sdk::types::date_time_offset::DateTimeOffset;
+use vista_sdk::*;
 
 fn create_valid_fully_custom_dcl() -> DataChannelListPackage {
     let timestamp = "2016-01-01T00:00:00Z".parse::<DateTimeOffset>().unwrap();
-    let dcl_id = DclConfigRef::new("DataChannelList.xml", timestamp).unwrap();
+    let dcl_id = ConfigurationReference::new("DataChannelList.xml", timestamp).unwrap();
 
     let version_info = VersionInformation::with_fields("some_naming_rule", "2.0")
         .unwrap()
@@ -23,7 +10,7 @@ fn create_valid_fully_custom_dcl() -> DataChannelListPackage {
         .unwrap();
 
     let ship_id = ShipId::from_string("IMO1234567").unwrap();
-    let header = DclHeader::new(&ship_id, &dcl_id)
+    let header = Header::new(&ship_id, &dcl_id)
         .with_version_information(&version_info)
         .with_author("Author1")
         .unwrap()

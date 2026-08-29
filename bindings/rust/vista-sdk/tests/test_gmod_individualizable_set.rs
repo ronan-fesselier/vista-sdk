@@ -1,7 +1,4 @@
-use vista_sdk::core::gmod_individualizable_set::GmodIndividualizableSet;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn node_count_and_node_at() {

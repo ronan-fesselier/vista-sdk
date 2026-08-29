@@ -1,7 +1,4 @@
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::local_id::LocalId;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn convert_path_across_versions() {
