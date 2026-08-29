@@ -1,8 +1,4 @@
-use vista_sdk::core::gmod_individualizable_set::GmodIndividualizableSet;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::location_builder::LocationBuilder;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 #[test]
 fn set_location_assigns_location_to_all_nodes() {

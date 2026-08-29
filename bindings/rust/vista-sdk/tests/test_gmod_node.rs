@@ -1,6 +1,4 @@
-use vista_sdk::core::gmod::Gmod;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 fn with_gmod<F: FnOnce(&Gmod)>(f: F) {
     let vis = Vis::instance();

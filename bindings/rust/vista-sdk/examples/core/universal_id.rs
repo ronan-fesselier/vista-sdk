@@ -1,10 +1,4 @@
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::gmod_path::GmodPath;
-use vista_sdk::core::imo_number::ImoNumber;
-use vista_sdk::core::local_id_builder::LocalIdBuilder;
-use vista_sdk::core::universal_id::UniversalIdRef;
-use vista_sdk::core::universal_id_builder::UniversalIdBuilder;
-use vista_sdk::core::vis::Vis;
+use vista_sdk::*;
 
 fn main() {
     println!("=== vista-sdk UniversalId Sample ===\n");

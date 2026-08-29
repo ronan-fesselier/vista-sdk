@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
-use vista_sdk::transport::timeseries::time_series_data_json;
+use vista_sdk::*;
 
 static TSD_JSON: &str = include_str!("../../../../cpp/tests/transport/_files/TimeSeriesData.json");
 

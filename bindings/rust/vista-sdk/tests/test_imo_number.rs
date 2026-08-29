@@ -1,4 +1,4 @@
-use vista_sdk::core::imo_number::ImoNumber;
+use vista_sdk::*;
 
 #[test]
 fn is_valid_accepts_valid_numbers() {
