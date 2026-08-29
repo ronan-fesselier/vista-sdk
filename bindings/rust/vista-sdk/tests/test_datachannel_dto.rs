@@ -1,7 +1,4 @@
-use vista_sdk::transport::datachannel::data_channel::DataChannelListPackage;
-use vista_sdk::transport::datachannel::data_channel_dto;
-use vista_sdk::transport::datachannel::data_channel_json;
-use vista_sdk::transport::serializable_document::SerializableDocument;
+use vista_sdk::*;
 
 static VALID_JSON: &str =
     include_str!("../../../../cpp/tests/transport/_files/DataChannelList.json");

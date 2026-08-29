@@ -3,9 +3,7 @@ use std::hint::black_box;
 
 use std::collections::{BTreeMap, HashMap};
 
-use vista_sdk::core::codebook_name::CodebookName;
-use vista_sdk::core::vis::Vis;
-use vista_sdk::core::vis_version::VisVersion;
+use vista_sdk::*;
 
 fn bench(c: &mut Criterion) {
     let vis = Vis::instance();
