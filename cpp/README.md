@@ -21,6 +21,7 @@ The C++ implementation of the Vista SDK. For an overview of the SDK and its conc
 - [Build Pipeline](#build-pipeline) - how the source tree is generated and assembled
 - [Testing](#testing) - running tests and samples
 - [Performance](#performance) - running the benchmark suite
+- [Tools](#tools) - JSON Schema validation
 - [Error Handling](#error-handling) - exceptions vs. optional-returning APIs
 - [Development](#development) - dev environment setup, symbol export, project structure, C API
 - [For Maintainers](#for-maintainers) - version numbering, creating a release
@@ -1075,6 +1076,7 @@ internally and requires no adaptation.
 
 ```cmake
 option(DNV_VISTA_SDK_BUILD_C_API        "Build the C API"                                  OFF)
+option(DNV_VISTA_SDK_BUILD_TOOLS        "Build CLI tools"                                  OFF)
 option(DNV_VISTA_SDK_BUILD_TESTS        "Build tests"                                      OFF)
 option(DNV_VISTA_SDK_BUILD_SAMPLES      "Build samples"                                    OFF)
 option(DNV_VISTA_SDK_BUILD_BENCHMARKS   "Build benchmarks"                                 OFF)
@@ -1111,6 +1113,7 @@ cmake -B build -S cpp \
     -DCMAKE_BUILD_TYPE=Release \
     -DDNV_VISTA_SDK_BUILD_SAMPLES=ON \
     -DDNV_VISTA_SDK_BUILD_TESTS=ON \
+    -DDNV_VISTA_SDK_BUILD_TOOLS=ON \
     -DDNV_VISTA_SDK_BUILD_BENCHMARKS=ON
 
 cmake --build build -j$(nproc)
@@ -1255,6 +1258,35 @@ cmake --build build -j$(nproc)
 ./build/bin/dnv-vista-sdk-benchmark-timeseriesdataserialization
 ```
 
+## 🔍 Tools {#tools}
+
+### JSON Schema Validator
+
+`dnv-vista-sdk-json-validator-cli` validates ISO 19848 `DataChannelList` and `TimeSeriesData` JSON files against their [JSON Schema Draft 2020-12](https://json-schema.org/specification) definitions.
+
+```bash
+cmake -B build -S cpp -DCMAKE_BUILD_TYPE=Release -DDNV_VISTA_SDK_BUILD_TOOLS=ON
+cmake --build build -j$(nproc)
+```
+
+Binary: `build/bin/dnv-vista-sdk-json-validator-cli`
+
+**Subcommands:**
+
+| Subcommand                    | Description                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `datachannel <file.json>`     | Validate a `DataChannelList` file against its schema                                                                          |
+| `timeseries <file.json>`      | Validate a `TimeSeriesData` file against its schema                                                                           |
+| `cross <dcl.json> <tsd.json>` | Cross-validate both: schema validation + referential integrity (every channel ID referenced in the TSD must exist in the DCL) |
+
+```bash
+./build/bin/dnv-vista-sdk-json-validator-cli datachannel path/to/DataChannelList.json
+./build/bin/dnv-vista-sdk-json-validator-cli timeseries  path/to/TimeSeriesData.json
+./build/bin/dnv-vista-sdk-json-validator-cli cross       path/to/DataChannelList.json path/to/TimeSeriesData.json
+```
+
+> For more details, see [tools/README.md](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/tools/README.md).
+
 ## ⚠️ Error Handling {#error-handling}
 
 The SDK uses three distinct conventions depending on the nature of the failure:
@@ -1305,7 +1337,7 @@ cpp/
 ├── samples/                # Usage examples
 ├── src/                    # Implementation files
 ├── tests/                  # Unit and integration tests
-├── tools/                  # Build tools (blob embedding)
+├── tools/                  # Build tools and CLI utilities
 ├── CMakeLists.txt
 └── README.md
 ```

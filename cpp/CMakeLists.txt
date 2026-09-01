@@ -67,6 +67,7 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
 endif()
 
 option(DNV_VISTA_SDK_BUILD_C_API        "Build dnv::vista::sdk::c C API"                             OFF)
+option(DNV_VISTA_SDK_BUILD_TOOLS        "Build dnv::vista::sdk tools"                                OFF)
 option(DNV_VISTA_SDK_BUILD_TESTS        "Build dnv::vista::sdk tests"                                OFF)
 option(DNV_VISTA_SDK_BUILD_SAMPLES      "Build dnv::vista::sdk samples"                              OFF)
 option(DNV_VISTA_SDK_BUILD_BENCHMARKS   "Build dnv::vista::sdk benchmarks"                           OFF)
@@ -100,6 +101,14 @@ if(DNV_VISTA_SDK_BUILD_C_API)
     set(DNV_VISTA_SDK_C_API_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/c-api/include")
 else()
     set(DNV_VISTA_SDK_C_API_INCLUDE_DIR "")
+endif()
+
+#----------------------------------------------
+# Tools
+#----------------------------------------------
+
+if(DNV_VISTA_SDK_BUILD_TOOLS)
+    add_subdirectory(tools)
 endif()
 
 #----------------------------------------------
