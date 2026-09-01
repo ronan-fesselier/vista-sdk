@@ -301,3 +301,4 @@ See [`wasm/README.md`](wasm/README.md) for build and run instructions.
 - [Main SDK Documentation](../README.md)
 - [Benchmark Results](../benchmarks/README.md)
 - [C API](../c-api/README.md)
+- [Command-Line Tools](../tools/README.md)
