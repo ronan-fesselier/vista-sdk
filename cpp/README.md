@@ -21,7 +21,7 @@ The C++ implementation of the Vista SDK. For an overview of the SDK and its conc
 - [Build Pipeline](#build-pipeline) - how the source tree is generated and assembled
 - [Testing](#testing) - running tests and samples
 - [Performance](#performance) - running the benchmark suite
-- [Tools](#tools) - JSON Schema validation
+- [Tools](#tools) - CLI utilities for codebooks, locations, LocalIds, Gmod, and JSON Schema validation
 - [Error Handling](#error-handling) - exceptions vs. optional-returning APIs
 - [Development](#development) - dev environment setup, symbol export, project structure, C API
 - [For Maintainers](#for-maintainers) - version numbering, creating a release
@@ -1260,32 +1260,22 @@ cmake --build build -j$(nproc)
 
 ## 🔍 Tools {#tools}
 
-### JSON Schema Validator
-
-`dnv-vista-sdk-json-validator-cli` validates ISO 19848 `DataChannelList` and `TimeSeriesData` JSON files against their [JSON Schema Draft 2020-12](https://json-schema.org/specification) definitions.
+Pass `-DDNV_VISTA_SDK_BUILD_TOOLS=ON` to build the CLI utilities:
 
 ```bash
 cmake -B build -S cpp -DCMAKE_BUILD_TYPE=Release -DDNV_VISTA_SDK_BUILD_TOOLS=ON
 cmake --build build -j$(nproc)
 ```
 
-Binary: `build/bin/dnv-vista-sdk-json-validator-cli`
+| Binary                             | Purpose                                                                                                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dnv-vista-sdk-codebooks-cli`      | Browse and search VIS codebook standard values                                                                                               |
+| `dnv-vista-sdk-locations-cli`      | Explore VIS location codes and definitions                                                                                                   |
+| `dnv-vista-sdk-localid-cli`        | Parse, validate, and query Local ID strings                                                                                                  |
+| `dnv-vista-sdk-gmod-cli`           | Navigate and search the Gmod tree, validate paths, export node map                                                                           |
+| `dnv-vista-sdk-json-validator-cli` | Validate ISO 19848 `DataChannelList` and `TimeSeriesData` files against JSON Schema Draft 2020-12 (with `cross` referential integrity check) |
 
-**Subcommands:**
-
-| Subcommand                    | Description                                                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `datachannel <file.json>`     | Validate a `DataChannelList` file against its schema                                                                          |
-| `timeseries <file.json>`      | Validate a `TimeSeriesData` file against its schema                                                                           |
-| `cross <dcl.json> <tsd.json>` | Cross-validate both: schema validation + referential integrity (every channel ID referenced in the TSD must exist in the DCL) |
-
-```bash
-./build/bin/dnv-vista-sdk-json-validator-cli datachannel path/to/DataChannelList.json
-./build/bin/dnv-vista-sdk-json-validator-cli timeseries  path/to/TimeSeriesData.json
-./build/bin/dnv-vista-sdk-json-validator-cli cross       path/to/DataChannelList.json path/to/TimeSeriesData.json
-```
-
-> For more details, see [tools/README.md](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/tools/README.md).
+> For usage details and examples, see [tools/README.md](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/tools/README.md).
 
 ## ⚠️ Error Handling {#error-handling}
 
