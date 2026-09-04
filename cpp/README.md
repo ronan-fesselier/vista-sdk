@@ -1234,6 +1234,8 @@ cmake --build build -j$(nproc)
 ./build/bin/dnv-vista-sdk-sample-c-api-showcase
 ```
 
+`samples/wasm/` is a standalone project (its own `CMakeLists.txt`, configured with `emcmake` instead of the commands above) - an interactive Gmod tree explorer compiled to WebAssembly with ImGui + GLFW. See [`samples/wasm/README.md`](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/samples/wasm/README.md) for build instructions.
+
 ## 📈 Performance {#performance}
 
 The C++ implementation includes benchmarks covering all core operations. See [benchmarks/README.md](https://github.com/dnv-opensource/vista-sdk/blob/main/cpp/benchmarks/README.md) for details.
@@ -1378,6 +1380,12 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 - **[doctest](https://github.com/doctest/doctest)**: Testing framework (MIT License) - Development only
 - **[nanobench](https://github.com/martinus/nanobench)**: Performance benchmarking framework (MIT License) - Development only
+
+### Sample dependencies licenses
+
+- **[Dear ImGui](https://github.com/ocornut/imgui)**: Immediate-mode GUI library (MIT License) - WASM sample only
+- **[emscripten-glfw](https://github.com/pongasoft/emscripten-glfw)**: Emscripten GLFW port by pongasoft (Apache License 2.0) - WASM sample only
+- **[GLFW](https://www.glfw.org)**: OpenGL windowing library, headers bundled in emscripten-glfw (zlib License) - WASM sample only
 
 ## 🔗 Links {#links}
 

@@ -290,6 +290,14 @@ End-to-end walkthrough of the C API covering all major modules in sequence.
 ./build/bin/dnv-vista-sdk-sample-c-api-showcase
 ```
 
+## WebAssembly
+
+### `wasm`
+
+Interactive Gmod tree explorer compiled to WebAssembly via Emscripten, running in the browser with ImGui + GLFW + WebGL 2.
+
+See [`wasm/README.md`](wasm/README.md) for build and run instructions.
+
 ## See Also
 
 - [Main SDK Documentation](../README.md)
