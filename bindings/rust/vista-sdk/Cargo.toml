@@ -2,14 +2,41 @@
 name = "vista-sdk"
 version = "0.3.3"
 edition = "2021"
+rust-version = "1.70"
 description = "Rust bindings for the DNV Vista SDK - VIS and ISO 19848"
 license = "MIT"
 repository = "https://github.com/dnv-opensource/vista-sdk"
+homepage = "https://github.com/dnv-opensource/vista-sdk"
+documentation = "https://docs.rs/vista-sdk"
+readme = "README.md"
+keywords = ["dnv", "iso19848", "iso-19848", "vis", "maritime"]
+categories = ["api-bindings", "science"]
 links = "dnv-vista-sdk-c"
+include = [
+    "src/**",
+    "examples/**",
+    "tests/**",
+    "benches/**",
+    "build.rs",
+    "Cargo.toml",
+    "README.md",
+    "justfile",
+    "cpp/c-api/**",
+    "cpp/include/**",
+    "cpp/src/**",
+    "cpp/CMakeLists.txt",
+    "cpp/cmake/**",
+    "cpp/tools/**",
+    "resources/**",
+    "schemas/**",
+]
 
 [features]
 default = ["vendored"]
 vendored = []
+
+[package.metadata.docs.rs]
+features = ["vendored"]
 
 [dev-dependencies]
 criterion = "0.8.2"
@@ -79,33 +106,44 @@ path = "examples/types/datetime.rs"
 [[bench]]
 name = "codebook_methods"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "codebooks_lookup"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "gmod_load"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "gmod_lookup"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "gmod_path_parse"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "gmod_traversal"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "gmod_versioning_convert_path"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "datachannel_list_lookup"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "local_id_parse"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "datachannel_list_serialization"
 harness = false
+required-features = ["vendored"]
 [[bench]]
 name = "timeseries_data_serialization"
 harness = false
+required-features = ["vendored"]
