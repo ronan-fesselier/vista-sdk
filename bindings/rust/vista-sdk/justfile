@@ -20,3 +20,6 @@ build: sync-version
 
 clippy: sync-version
     cargo clippy -- -D warnings
+
+publish: sync-version
+    cargo publish
