@@ -1,0 +1,270 @@
+name: Rust Build & Test
+
+on:
+  push:
+    branches: [ "main", "ci/**", "feat/**", "feature/**", "test/**", "fix/**" ]
+    paths: ["bindings/rust/**", "cpp/**", ".github/workflows/rust-build-and-test.yml"]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: ["bindings/rust/**", "cpp/**", ".github/workflows/rust-build-and-test.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  build-and-test:
+    name: Build and test (${{ matrix.os }})
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
+          - os: windows-2022
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/rust/vista-sdk
+
+      - name: Build
+        working-directory: bindings/rust/vista-sdk
+        run: cargo build --features serde --verbose
+
+      - name: Test
+        working-directory: bindings/rust/vista-sdk
+        run: cargo test --features serde --verbose
+
+  docs:
+    name: Docs (rustdoc)
+    needs: build-and-test
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/rust/vista-sdk
+
+      - name: Check docs
+        working-directory: bindings/rust/vista-sdk
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --no-deps --all-features
+
+  clippy:
+    name: Clippy
+    needs: build-and-test
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/rust/vista-sdk
+
+      - name: Clippy
+        working-directory: bindings/rust/vista-sdk
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  fmt:
+    name: Format check
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Format check
+        working-directory: bindings/rust/vista-sdk
+        run: cargo fmt --check
+
+  msrv:
+    name: MSRV (1.75)
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain (1.75)
+        uses: dtolnay/rust-toolchain@1.75
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/rust/vista-sdk
+
+      - name: Build (MSRV)
+        working-directory: bindings/rust/vista-sdk
+        run: cargo build --features serde
+
+  package:
+    name: Package (dry-run)
+    needs: build-and-test
+    if: ${{ success() && !startsWith(github.ref, 'refs/tags/') }}
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install just
+        uses: taiki-e/install-action@just
+
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked
+
+      - name: Sync crate version with C++ SDK
+        working-directory: bindings/rust/vista-sdk
+        run: just sync-version
+
+      - name: Package
+        working-directory: bindings/rust/vista-sdk
+        # --allow-dirty: just sync-version modifies Cargo.toml but does not commit it
+        # --no-verify: CMake generates VisVersions.h and ISO19848Versions.h inside cpp/ during build.
+        #              Cargo's post-build tarball check rejects files written outside OUT_DIR
+        run: cargo package --allow-dirty --no-verify --verbose
+
+      - name: Publish (dry-run)
+        working-directory: bindings/rust/vista-sdk
+        # --no-verify: same reason as above. Cargo package already ran, this step only validates compilation
+        run: cargo publish --dry-run --allow-dirty --no-verify --verbose
+
+      - name: Upload crate artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: vista-sdk-crate
+          path: bindings/rust/vista-sdk/target/package/*.crate
+          if-no-files-found: error
+
+  publish:
+    name: Publish to crates.io
+    needs: build-and-test
+    if: ${{ success() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install just
+        uses: taiki-e/install-action@just
+
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked
+
+      - name: Verify tag matches C++ SDK version
+        # The tag drives the release. Refuse to publish if it diverges from
+        # the C++ SDK version that `just sync-version` will propagate to Cargo.toml.
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          CPP_VERSION=$(sed -n '/^project(/,/)/{ s/.*VERSION[[:space:]]\+\([0-9][^)[:space:]]*\).*/\1/p }' cpp/CMakeLists.txt | head -1)
+          if [ "$TAG_VERSION" != "$CPP_VERSION" ]; then
+            echo "::error::Tag ($TAG_VERSION) does not match cpp/CMakeLists.txt ($CPP_VERSION)"
+            exit 1
+          fi
+          echo "Tag matches C++ SDK version: $TAG_VERSION"
+
+      - name: Sync crate version with C++ SDK
+        working-directory: bindings/rust/vista-sdk
+        run: just sync-version
+
+      - name: Publish
+        working-directory: bindings/rust/vista-sdk
+        # --allow-dirty: just sync-version modifies Cargo.toml but does not commit it
+        # --no-verify: CMake generates VisVersions.h and ISO19848Versions.h inside cpp/ during build.
+        #              Cargo's post-build tarball check rejects files written outside OUT_DIR
+        run: cargo publish --allow-dirty --no-verify
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Upload published crate artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vista-sdk-crate-published
+          path: bindings/rust/vista-sdk/target/package/*.crate
+          if-no-files-found: error
