@@ -1,3 +1,9 @@
+#![warn(missing_docs)]
+//! Vista SDK - Rust bindings over the C API.
+//!
+//! Provides idiomatic Rust wrappers over the Vista SDK C API, covering VIS identifiers,
+//! temporal types, transport DTOs, and query builders.
+
 pub mod core;
 pub mod features;
 pub(crate) mod ffi;
