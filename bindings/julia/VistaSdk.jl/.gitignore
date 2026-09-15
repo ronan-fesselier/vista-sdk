@@ -1,6 +1,7 @@
 deps/deps.jl
 deps/build.log
 deps/cmake-build/
+deps/generated/
 deps/lib/
 
 Manifest.toml
