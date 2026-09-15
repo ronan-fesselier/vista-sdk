@@ -1,0 +1,22 @@
+sdk_version := `sed -n '/^project(/,/)/{ s/.*VERSION[[:space:]]\+\([0-9][^)[:space:]]*\).*/\1/p }' ../../../cpp/CMakeLists.txt | head -1`
+
+sync-version:
+    sed -i 's/^version = .*/version = "{{sdk_version}}"/' Project.toml
+
+build: sync-version
+    julia --project=. -e 'import Pkg; Pkg.build(verbose=true)'
+
+docs:
+    julia --project=. -e 'import Pkg; Pkg.add("Documenter")'
+    julia --project=. docs/make.jl
+    xdg-open docs/build/index.html
+
+docs-live:
+    julia --project=. -e 'import Pkg; Pkg.add(["LiveServer", "Documenter"])'
+    julia --project=. -e 'using LiveServer; servedocs()'
+
+fmt:
+    julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".")'
+
+fmt-check:
+    julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".", overwrite=false) || exit(1)'
