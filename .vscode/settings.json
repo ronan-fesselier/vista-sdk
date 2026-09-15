@@ -23,5 +23,6 @@
         "source.organizeImports": "explicit"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/cpp",
-    "rust-analyzer.linkedProjects": ["bindings/rust/vista-sdk/Cargo.toml"]
+    "rust-analyzer.linkedProjects": ["bindings/rust/vista-sdk/Cargo.toml"],
+    "julia.environmentPath": "${workspaceFolder}/bindings/julia/VistaSdk.jl"
 }
