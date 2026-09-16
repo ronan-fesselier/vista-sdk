@@ -16,7 +16,7 @@ include("core/metadata_tag.jl")
 include("core/codebook.jl")
 include("core/codebooks.jl")
 
-export Vis, vis, versions, latest
+export Vis, vis, versions, latest, codebooks
 export codebook_name_from_prefix, codebook_name_to_prefix
 export MetadataTag, name, value, is_custom
 export Codebook,
