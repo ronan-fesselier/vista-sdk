@@ -24,5 +24,8 @@ test-only *args:
 fmt:
     julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".")'
 
+example path: build
+    julia --project=. examples/{{path}}.jl
+
 fmt-check:
     julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".", overwrite=false) || exit(1)'
