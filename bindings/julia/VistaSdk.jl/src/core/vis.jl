@@ -50,3 +50,17 @@ function latest(v::Vis)
     ptr == C_NULL && error("dnv_vista_sdk_vis_latest returned NULL")
     parse(VisVersion, unsafe_string(ptr))
 end
+
+function _vis_get(v::Vis, version::VisVersion, ffi_fn::Function, wrap)
+    s = string(version)
+    ptr = GC.@preserve s ffi_fn(v._ptr, Base.unsafe_convert(Cstring, s))
+    ptr == C_NULL && throw(last_error())
+    wrap(ptr)
+end
+
+"""
+    codebooks(vis::Vis, version::VisVersion) -> Codebooks
+
+Return the [`Codebooks`](@ref) for `version`. Throws [`VistaError`](@ref) if the version is not recognized.
+"""
+codebooks(v::Vis, version::VisVersion) = _vis_get(v, version, ffi_vis_codebooks, Codebooks)
