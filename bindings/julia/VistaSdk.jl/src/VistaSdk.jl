@@ -7,6 +7,8 @@ include("ffi/core/vis.jl")
 include("core/vis.jl")
 include("ffi/core/codebook_name.jl")
 include("core/codebook_name.jl")
+include("ffi/core/error.jl")
+include("core/error.jl")
 include("ffi/core/metadata_tag.jl")
 include("ffi/core/codebook.jl")
 include("ffi/core/codebooks.jl")
@@ -20,5 +22,6 @@ export MetadataTag, name, value, is_custom
 export Codebook,
     standard_values, groups, has_group, has_standard_value, validate_position, create_tag
 export Codebooks, version
+export VistaError, last_error, clear_error
 
 end
