@@ -26,3 +26,6 @@ fmt:
 
 fmt-check:
     julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".", overwrite=false) || exit(1)'
+
+example path: build
+    julia --project=. examples/{{path}}.jl
