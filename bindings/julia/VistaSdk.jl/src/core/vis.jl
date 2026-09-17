@@ -64,3 +64,10 @@ end
 Return the [`Codebooks`](@ref) for `version`. Throws [`VistaError`](@ref) if the version is not recognized.
 """
 codebooks(v::Vis, version::VisVersion) = _vis_get(v, version, ffi_vis_codebooks, Codebooks)
+
+"""
+    locations(vis::Vis, version::VisVersion) -> Locations
+
+Return the [`Locations`](@ref) for `version`. Throws [`VistaError`](@ref) if the version is not recognized.
+"""
+locations(v::Vis, version::VisVersion) = _vis_get(v, version, ffi_vis_locations, Locations)
