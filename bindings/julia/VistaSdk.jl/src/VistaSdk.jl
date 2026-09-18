@@ -13,6 +13,7 @@ include("ffi/core/parsing_errors.jl")
 include("ffi/core/metadata_tag.jl")
 include("ffi/core/codebook.jl")
 include("ffi/core/codebooks.jl")
+include("ffi/core/imo_number.jl")
 include("ffi/core/location.jl")
 include("ffi/core/location_group.jl")
 include("ffi/core/relative_location.jl")
@@ -22,6 +23,7 @@ include("core/parsing_errors.jl")
 include("core/metadata_tag.jl")
 include("core/codebook.jl")
 include("core/codebooks.jl")
+include("core/imo_number.jl")
 include("core/location.jl")
 include("core/relative_location.jl")
 include("core/locations.jl")
@@ -35,6 +37,7 @@ export Codebook,
 export Codebooks, version
 export ParsingErrors, has_errors, has_error_type
 export VistaError, last_error, clear_error
+export ImoNumber, is_valid
 export Location, LocationGroup
 export RelativeLocation, code, definition, location_value
 export Locations, group, parse_with_errors
