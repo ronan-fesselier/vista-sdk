@@ -39,3 +39,13 @@ function ffi_vis_codebooks(vis::Ptr{Cvoid}, version::Cstring)
         version,
     )
 end
+
+function ffi_vis_gmod(vis::Ptr{Cvoid}, version::Cstring)
+    ccall(
+        (:dnv_vista_sdk_vis_gmod, VISTA_LIB),
+        Ptr{Cvoid},
+        (Ptr{Cvoid}, Cstring),
+        vis,
+        version,
+    )
+end
