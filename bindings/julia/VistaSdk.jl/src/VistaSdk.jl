@@ -22,6 +22,8 @@ include("ffi/core/location_group.jl")
 include("ffi/core/relative_location.jl")
 include("ffi/core/locations.jl")
 include("ffi/core/location_builder.jl")
+include("ffi/core/gmod_path.jl")
+include("ffi/core/gmod_individualizable_set.jl")
 include("core/parsing_errors.jl")
 include("core/metadata_tag.jl")
 include("core/codebook.jl")
@@ -34,6 +36,8 @@ include("core/location.jl")
 include("core/relative_location.jl")
 include("core/locations.jl")
 include("core/location_builder.jl")
+include("core/gmod_path.jl")
+include("core/gmod_individualizable_set.jl")
 
 export Vis, vis, versions, latest, codebooks, locations, gmod
 export codebook_name_from_prefix, codebook_name_to_prefix
@@ -54,7 +58,32 @@ export GmodNodeMetadata,
     normal_assignment_name_count,
     normal_assignment_name_at,
     normal_assignment_names
-export Gmod, root_node, get_node, node_count, node_at
+export Gmod,
+    root_node,
+    get_node,
+    node_count,
+    node_at,
+    traverse,
+    TraversalHandlerResult,
+    TraversalStop,
+    TraversalSkipSubtree,
+    TraversalContinue
+export GmodPath,
+    from_short_path,
+    from_short_path_with_errors,
+    from_full_path,
+    from_full_path_with_errors,
+    node,
+    is_individualizable,
+    without_locations,
+    normal_assignment_name,
+    individualizable_set_count,
+    individualizable_set_at,
+    common_name_count,
+    common_names,
+    to_full_path_string,
+    to_string_dump
+export GmodIndividualizableSet, index_count, index_at, set_location, build
 export GmodNodeRef,
     GmodNode,
     metadata,

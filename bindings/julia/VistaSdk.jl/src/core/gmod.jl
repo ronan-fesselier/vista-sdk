@@ -66,3 +66,43 @@ function Base.iterate(g::Gmod, i::Int = 1)
     i > node_count(g) && return nothing
     (node_at(g, i), i + 1)
 end
+
+"""
+    TraversalHandlerResult
+
+Return value for the callback passed to [`traverse`](@ref).
+
+- `TraversalStop` - stop the traversal immediately.
+- `TraversalSkipSubtree` - skip all children of the current node.
+- `TraversalContinue` - continue normally.
+"""
+@enum TraversalHandlerResult::Int32 begin
+    TraversalStop = 0
+    TraversalSkipSubtree = 1
+    TraversalContinue = 2
+end
+
+"""
+    traverse(g::Gmod, handler::Function, max_occurrence::Int = 1) -> Bool
+
+Traverse every node in the product model depth-first. `handler` receives
+`(parents::Vector{GmodNodeRef}, node::GmodNodeRef)` and must return a
+[`TraversalHandlerResult`](@ref). `max_occurrence` caps how many times a node
+is visited when it appears in multiple paths. Returns `true` on success.
+"""
+function traverse(g::Gmod, handler::Function, max_occurrence::Int = 1)
+    cb = @cfunction(
+        (parents_ptr, parent_count, node_ptr, userdata) -> begin
+            f = unsafe_pointer_to_objref(userdata)[]::Function
+            parents = [GmodNodeRef(unsafe_load(parents_ptr, i)) for i = 1:parent_count]
+            result = f(parents, GmodNodeRef(node_ptr))::TraversalHandlerResult
+            Cint(Integer(result))
+        end,
+        Cint,
+        (Ptr{Ptr{Cvoid}}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid})
+    )
+    box = Ref{Function}(handler)
+    GC.@preserve box begin
+        ffi_gmod_traverse(g._ptr, cb, Cint(max_occurrence), pointer_from_objref(box)) != 0
+    end
+end

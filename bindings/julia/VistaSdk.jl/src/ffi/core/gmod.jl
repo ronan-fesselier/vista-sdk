@@ -29,3 +29,20 @@ function ffi_gmod_node_at(gmod::Ptr{Cvoid}, index::Csize_t)
         index,
     )
 end
+
+function ffi_gmod_traverse(
+    gmod::Ptr{Cvoid},
+    handler::Ptr{Cvoid},
+    max_occurrence::Cint,
+    userdata::Ptr{Cvoid},
+)
+    ccall(
+        (:dnv_vista_sdk_gmod_traverse, VISTA_LIB),
+        Cint,
+        (Ptr{Cvoid}, Ptr{Cvoid}, Cint, Ptr{Cvoid}),
+        gmod,
+        handler,
+        max_occurrence,
+        userdata,
+    )
+end
