@@ -40,4 +40,48 @@ using VistaSdk
     @testset "length equals node_count" begin
         @test length(g) == node_count(g)
     end
+
+    @testset "traverse visits root then stops early" begin
+        visited = String[]
+        completed = traverse(
+            g,
+            (parents, node) -> begin
+                push!(visited, code(node))
+                length(visited) >= 20 ? TraversalStop : TraversalContinue
+            end,
+        )
+        @test !completed
+        @test "VE" in visited
+        @test length(visited) == 20
+    end
+
+    @testset "traverse skips subtree when handler returns TraversalSkipSubtree" begin
+        visited_with_skip = String[]
+        traverse(
+            g,
+            (parents, node) -> begin
+                c = code(node)
+                push!(visited_with_skip, c)
+                c == "400a" ? TraversalSkipSubtree : TraversalContinue
+            end,
+        )
+
+        @test !("410" in visited_with_skip)
+        @test "VE" in visited_with_skip
+        @test "500a" in visited_with_skip
+    end
+
+    @testset "traverse survives GC pressure during the callback (GC.@preserve regression)" begin
+        count = 0
+        completed = traverse(
+            g,
+            (parents, node) -> begin
+                count += 1
+                count % 20 == 0 && GC.gc()
+                count >= 100 ? TraversalStop : TraversalContinue
+            end,
+        )
+        @test !completed
+        @test count == 100
+    end
 end
