@@ -14,6 +14,8 @@ include("ffi/core/metadata_tag.jl")
 include("ffi/core/codebook.jl")
 include("ffi/core/codebooks.jl")
 include("ffi/core/imo_number.jl")
+include("ffi/core/gmod_node_metadata.jl")
+include("ffi/core/gmod_node.jl")
 include("ffi/core/location.jl")
 include("ffi/core/location_group.jl")
 include("ffi/core/relative_location.jl")
@@ -24,6 +26,8 @@ include("core/metadata_tag.jl")
 include("core/codebook.jl")
 include("core/codebooks.jl")
 include("core/imo_number.jl")
+include("core/gmod_node_metadata.jl")
+include("core/gmod_node.jl")
 include("core/location.jl")
 include("core/relative_location.jl")
 include("core/locations.jl")
@@ -38,6 +42,39 @@ export Codebooks, version
 export ParsingErrors, has_errors, has_error_type
 export VistaError, last_error, clear_error
 export ImoNumber, is_valid
+export GmodNodeMetadata,
+    category,
+    node_type,
+    full_type,
+    common_name,
+    common_definition,
+    install_substructure,
+    normal_assignment_name_count,
+    normal_assignment_name_at,
+    normal_assignment_names
+export GmodNodeRef,
+    GmodNode,
+    metadata,
+    location,
+    children,
+    child_count,
+    child_at,
+    parents,
+    parent_count,
+    parent_at,
+    product_type,
+    product_selection,
+    is_function_composition,
+    is_mappable,
+    is_product_selection,
+    is_product_type,
+    is_asset,
+    is_leaf_node,
+    is_function_node,
+    is_asset_function_node,
+    is_root,
+    is_child,
+    is_child_code
 export Location, LocationGroup
 export RelativeLocation, code, definition, location_value
 export Locations, group, parse_with_errors
