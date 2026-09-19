@@ -59,6 +59,13 @@ function _vis_get(v::Vis, version::VisVersion, ffi_fn::Function, wrap)
 end
 
 """
+    gmod(vis::Vis, version::VisVersion) -> Gmod
+
+Return the [`Gmod`](@ref) for `version`. Throws [`VistaError`](@ref) if the version is not recognized.
+"""
+gmod(v::Vis, version::VisVersion) = _vis_get(v, version, ffi_vis_gmod, Gmod)
+
+"""
     codebooks(vis::Vis, version::VisVersion) -> Codebooks
 
 Return the [`Codebooks`](@ref) for `version`. Throws [`VistaError`](@ref) if the version is not recognized.
