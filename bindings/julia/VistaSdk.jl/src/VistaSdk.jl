@@ -16,6 +16,7 @@ include("ffi/core/codebooks.jl")
 include("ffi/core/imo_number.jl")
 include("ffi/core/gmod_node_metadata.jl")
 include("ffi/core/gmod_node.jl")
+include("ffi/core/gmod.jl")
 include("ffi/core/location.jl")
 include("ffi/core/location_group.jl")
 include("ffi/core/relative_location.jl")
@@ -28,12 +29,13 @@ include("core/codebooks.jl")
 include("core/imo_number.jl")
 include("core/gmod_node_metadata.jl")
 include("core/gmod_node.jl")
+include("core/gmod.jl")
 include("core/location.jl")
 include("core/relative_location.jl")
 include("core/locations.jl")
 include("core/location_builder.jl")
 
-export Vis, vis, versions, latest, codebooks, locations
+export Vis, vis, versions, latest, codebooks, locations, gmod
 export codebook_name_from_prefix, codebook_name_to_prefix
 export MetadataTag, name, value, is_custom
 export Codebook,
@@ -52,6 +54,7 @@ export GmodNodeMetadata,
     normal_assignment_name_count,
     normal_assignment_name_at,
     normal_assignment_names
+export Gmod, root_node, get_node, node_count, node_at
 export GmodNodeRef,
     GmodNode,
     metadata,
