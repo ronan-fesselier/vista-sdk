@@ -27,6 +27,8 @@ include("ffi/core/gmod_individualizable_set.jl")
 include("ffi/core/local_id.jl")
 include("ffi/core/local_id_builder.jl")
 include("ffi/core/local_id_mqtt.jl")
+include("ffi/core/universal_id.jl")
+include("ffi/core/universal_id_builder.jl")
 include("core/parsing_errors.jl")
 include("core/metadata_tag.jl")
 include("core/codebook.jl")
@@ -44,6 +46,8 @@ include("core/gmod_individualizable_set.jl")
 include("core/local_id.jl")
 include("core/local_id_builder.jl")
 include("core/local_id_mqtt.jl")
+include("core/universal_id_builder.jl")
+include("core/universal_id.jl")
 
 export Vis, vis, versions, latest, codebooks, locations, gmod
 export codebook_name_from_prefix, codebook_name_to_prefix
@@ -83,6 +87,17 @@ export LocalIdRef,
     without_metadata_tag,
     with_verbose_mode,
     create
+export UniversalIdRef,
+    UniversalId,
+    UniversalIdBuilderRef,
+    UniversalIdBuilder,
+    naming_entity,
+    imo_number,
+    local_id,
+    with_imo_number,
+    without_imo_number,
+    with_local_id,
+    without_local_id
 export Codebook,
     standard_values, groups, has_group, has_standard_value, validate_position, create_tag
 export Codebooks, version
