@@ -49,7 +49,17 @@ include("core/local_id_mqtt.jl")
 include("core/universal_id_builder.jl")
 include("core/universal_id.jl")
 
-export Vis, vis, versions, latest, codebooks, locations, gmod
+export Vis,
+    vis,
+    versions,
+    latest,
+    codebooks,
+    locations,
+    gmod,
+    convert_node,
+    convert_path,
+    convert_local_id_builder,
+    convert_local_id
 export codebook_name_from_prefix, codebook_name_to_prefix
 export MetadataTagRef, MetadataTag, name, value, is_custom
 export LocalIdRef,
