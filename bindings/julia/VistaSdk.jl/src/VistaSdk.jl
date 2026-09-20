@@ -24,6 +24,9 @@ include("ffi/core/locations.jl")
 include("ffi/core/location_builder.jl")
 include("ffi/core/gmod_path.jl")
 include("ffi/core/gmod_individualizable_set.jl")
+include("ffi/core/local_id.jl")
+include("ffi/core/local_id_builder.jl")
+include("ffi/core/local_id_mqtt.jl")
 include("core/parsing_errors.jl")
 include("core/metadata_tag.jl")
 include("core/codebook.jl")
@@ -38,10 +41,48 @@ include("core/locations.jl")
 include("core/location_builder.jl")
 include("core/gmod_path.jl")
 include("core/gmod_individualizable_set.jl")
+include("core/local_id.jl")
+include("core/local_id_builder.jl")
+include("core/local_id_mqtt.jl")
 
 export Vis, vis, versions, latest, codebooks, locations, gmod
 export codebook_name_from_prefix, codebook_name_to_prefix
-export MetadataTag, name, value, is_custom
+export MetadataTagRef, MetadataTag, name, value, is_custom
+export LocalIdRef,
+    LocalId,
+    LocalIdBuilderRef,
+    LocalIdBuilder,
+    MqttLocalId,
+    naming_rule,
+    from_string,
+    from_string_with_errors,
+    primary_item,
+    secondary_item,
+    is_verbose_mode,
+    has_custom_tag,
+    metadata_tag,
+    metadata_tags,
+    builder,
+    quantity,
+    content,
+    calculation,
+    state,
+    command,
+    tag_type,
+    detail,
+    is_valid,
+    is_empty,
+    is_empty_metadata,
+    with_vis_version,
+    without_vis_version,
+    with_primary_item,
+    without_primary_item,
+    with_secondary_item,
+    without_secondary_item,
+    with_metadata_tag,
+    without_metadata_tag,
+    with_verbose_mode,
+    create
 export Codebook,
     standard_values, groups, has_group, has_standard_value, validate_position, create_tag
 export Codebooks, version
@@ -69,6 +110,7 @@ export Gmod,
     TraversalSkipSubtree,
     TraversalContinue
 export GmodPath,
+    GmodPathRef,
     from_short_path,
     from_short_path_with_errors,
     from_full_path,
