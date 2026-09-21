@@ -48,6 +48,9 @@ include("core/local_id_builder.jl")
 include("core/local_id_mqtt.jl")
 include("core/universal_id_builder.jl")
 include("core/universal_id.jl")
+include("ffi/query/metadata_tags_query.jl")
+include("ffi/query/metadata_tags_query_builder.jl")
+include("query/metadata_tags_query.jl")
 
 export Vis,
     vis,
@@ -93,6 +96,7 @@ export LocalIdRef,
     without_primary_item,
     with_secondary_item,
     without_secondary_item,
+    with_tag,
     with_metadata_tag,
     without_metadata_tag,
     with_verbose_mode,
@@ -174,6 +178,12 @@ export GmodNodeRef,
     is_root,
     is_child,
     is_child_code
+export MetadataTagsQuery,
+    MetadataTagsQueryBuilderRef,
+    MetadataTagsQueryBuilder,
+    from_local_id,
+    with_allow_other_tags,
+    is_match
 export Location, LocationGroup
 export RelativeLocation, code, definition, location_value
 export Locations, group, parse_with_errors
