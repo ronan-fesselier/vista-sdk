@@ -52,8 +52,11 @@ include("ffi/query/metadata_tags_query.jl")
 include("ffi/query/metadata_tags_query_builder.jl")
 include("ffi/query/gmod_path_query.jl")
 include("ffi/query/gmod_path_query_builder.jl")
+include("ffi/query/local_id_query.jl")
+include("ffi/query/local_id_query_builder.jl")
 include("query/metadata_tags_query.jl")
 include("query/gmod_path_query.jl")
+include("query/local_id_query.jl")
 
 export Vis,
     vis,
@@ -197,6 +200,20 @@ export GmodPathQuery,
     with_any_node_after,
     with_node_all_locations,
     with_node_locations
+export LocalIdQuery,
+    LocalIdQueryBuilderRef,
+    LocalIdQueryBuilder,
+    with_primary_item_query,
+    with_secondary_item_query,
+    with_primary_item_nodes_builder,
+    with_primary_item_path_builder,
+    with_any_secondary_item,
+    without_secondary_item,
+    with_secondary_item_nodes_builder,
+    with_secondary_item_path_builder,
+    with_tags,
+    tags_builder,
+    is_match_str
 export Location, LocationGroup
 export RelativeLocation, code, definition, location_value
 export Locations, group, parse_with_errors
