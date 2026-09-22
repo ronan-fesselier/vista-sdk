@@ -50,7 +50,10 @@ include("core/universal_id_builder.jl")
 include("core/universal_id.jl")
 include("ffi/query/metadata_tags_query.jl")
 include("ffi/query/metadata_tags_query_builder.jl")
+include("ffi/query/gmod_path_query.jl")
+include("ffi/query/gmod_path_query_builder.jl")
 include("query/metadata_tags_query.jl")
+include("query/gmod_path_query.jl")
 
 export Vis,
     vis,
@@ -184,6 +187,16 @@ export MetadataTagsQuery,
     from_local_id,
     with_allow_other_tags,
     is_match
+export GmodPathQuery,
+    GmodPathQueryBuilderRef,
+    GmodPathQueryBuilder,
+    from_path,
+    path_with_node_all_locations,
+    path_with_node_locations,
+    with_any_node_before,
+    with_any_node_after,
+    with_node_all_locations,
+    with_node_locations
 export Location, LocationGroup
 export RelativeLocation, code, definition, location_value
 export Locations, group, parse_with_errors
