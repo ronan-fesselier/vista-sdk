@@ -59,8 +59,10 @@ include("query/gmod_path_query.jl")
 include("query/local_id_query.jl")
 include("ffi/types/time_span.jl")
 include("ffi/types/date_time.jl")
+include("ffi/types/decimal.jl")
 include("types/time_span.jl")
 include("types/date_time.jl")
+include("types/decimal.jl")
 
 export Vis,
     vis,
@@ -316,5 +318,8 @@ export DateTimeOffset,
     equals_exact,
     date_time,
     offset
+export RoundingMode,
+    ToNearest, ToNearestTiesAway, ToZero, ToPositiveInfinity, ToNegativeInfinity
+export Decimal, lowest, scale, decimal_places_count, total_digits_count, to_f64, to_bits
 
 end
