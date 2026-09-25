@@ -64,6 +64,8 @@ include("ffi/types/decimal.jl")
 include("types/time_span.jl")
 include("types/date_time.jl")
 include("types/decimal.jl")
+include("ffi/transport/iso19848.jl")
+include("transport/iso19848.jl")
 
 export Vis,
     vis,
@@ -322,5 +324,25 @@ export DateTimeOffset,
 export RoundingMode,
     ToNearest, ToNearestTiesAway, ToZero, ToPositiveInfinity, ToNegativeInfinity
 export Decimal, lowest, scale, decimal_places_count, total_digits_count, to_f64, to_bits
+export Iso19848,
+    ISO19848,
+    Iso19848Value,
+    DataChannelTypeName,
+    DataChannelTypeNames,
+    FormatDataType,
+    FormatDataTypeRef,
+    FormatDataTypes,
+    data_channel_type_names,
+    format_data_types,
+    find,
+    type_,
+    description,
+    validate,
+    iso19848_value_from_string,
+    iso19848_value_from_integer,
+    iso19848_value_from_boolean,
+    iso19848_value_from_decimal,
+    iso19848_value_from_date_time,
+    iso19848_value_to_string
 
 end
