@@ -47,7 +47,7 @@ function generate_vis_version(vis_versions_h::String, out_dir::String)
         println(io, "Base.show(io::IO, v::VisVersion) = print(io, _VIS_VERSION_STRINGS[v])")
         println(io, "Base.string(v::VisVersion) = _VIS_VERSION_STRINGS[v]")
         println(io)
-        println(io, "function Base.parse(::Type{VisVersion}, s::AbstractString)")
+        println(io, "function Base.parse(::Core.Type{VisVersion}, s::AbstractString)")
         println(io, "    for (k, str) in _VIS_VERSION_STRINGS")
         println(io, "        str == s && return k")
         println(io, "    end")
@@ -82,6 +82,62 @@ open(joinpath(PACKAGE_DIR, "deps", "deps.jl"), "w") do io
     println(io, "const VISTA_LIB = " * repr(lib_path))
 end
 
+function generate_iso19848_version(iso19848_versions_h::String, out_dir::String)
+    src = read(iso19848_versions_h, String)
+    versions = unique([m[1] for m in eachmatch(r"\bv(\d{4})\b", src)])
+
+    mkpath(out_dir)
+    open(joinpath(out_dir, "iso19848_version_generated.jl"), "w") do io
+        println(io, "# generated - do not edit")
+        print(
+            io,
+            "\"\"\"\n    Iso19848Version\n\nA released version of the ISO 19848 standard.\n\n# Variants\n",
+        )
+        for v in versions
+            id = "V" * uppercase(v)
+            println(io, "- `" * id * "` : `\"v" * v * "\"`")
+        end
+        println(io, "\"\"\"")
+        println(io, "@enum Iso19848Version begin")
+        for v in versions
+            println(io, "    V" * uppercase(v))
+        end
+        println(io, "end")
+        println(io)
+        print(io, "export Iso19848Version")
+        for v in versions
+            print(io, ", V" * uppercase(v))
+        end
+        println(io)
+        println(io)
+        println(io, "const _ISO19848_VERSION_STRINGS = Dict{Iso19848Version,String}(")
+        for v in versions
+            println(io, "    V" * uppercase(v) * " => " * repr("v" * v) * ",")
+        end
+        println(io, ")")
+        println(io)
+        println(
+            io,
+            "Base.show(io::IO, v::Iso19848Version) = print(io, _ISO19848_VERSION_STRINGS[v])",
+        )
+        println(io, "Base.string(v::Iso19848Version) = _ISO19848_VERSION_STRINGS[v]")
+        println(io)
+        println(io, "function Base.parse(::Core.Type{Iso19848Version}, s::AbstractString)")
+        println(io, "    for (k, str) in _ISO19848_VERSION_STRINGS")
+        println(io, "        str == s && return k")
+        println(io, "    end")
+        println(
+            io,
+            "    throw(ArgumentError(\"unknown Iso19848Version: \\\"\" * s * \"\\\"\"))",
+        )
+        println(io, "end")
+    end
+end
+
 vis_versions_h =
     joinpath(CPP_DIR, "include", "dnv", "vista", "sdk", "core", "VisVersions.h")
 generate_vis_version(vis_versions_h, joinpath(PACKAGE_DIR, "deps", "generated"))
+
+iso19848_versions_h =
+    joinpath(CPP_DIR, "include", "dnv", "vista", "sdk", "transport", "ISO19848Versions.h")
+generate_iso19848_version(iso19848_versions_h, joinpath(PACKAGE_DIR, "deps", "generated"))
