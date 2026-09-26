@@ -66,6 +66,8 @@ include("types/date_time.jl")
 include("types/decimal.jl")
 include("ffi/transport/iso19848.jl")
 include("transport/iso19848.jl")
+include("ffi/transport/ship_id.jl")
+include("transport/ship_id.jl")
 
 export Vis,
     vis,
@@ -324,6 +326,14 @@ export DateTimeOffset,
 export RoundingMode,
     ToNearest, ToNearestTiesAway, ToZero, ToPositiveInfinity, ToNegativeInfinity
 export Decimal, lowest, scale, decimal_places_count, total_digits_count, to_f64, to_bits
+export ShipId,
+    ShipIdImo,
+    ShipIdOther,
+    from_imo_number,
+    from_other_id,
+    is_imo_number,
+    is_other_id,
+    other_id
 export Iso19848,
     ISO19848,
     Iso19848Value,
