@@ -68,6 +68,8 @@ include("ffi/transport/iso19848.jl")
 include("transport/iso19848.jl")
 include("ffi/transport/ship_id.jl")
 include("transport/ship_id.jl")
+include("ffi/transport/serializable_document.jl")
+include("transport/serializable_document.jl")
 
 export Vis,
     vis,
@@ -334,6 +336,32 @@ export ShipId,
     is_imo_number,
     is_other_id,
     other_id
+export DocumentKind,
+    DocNull, DocBoolean, DocInteger, DocDouble, DocString, DocArray, DocObject
+export SerializableDocument,
+    SerializableDocumentRef,
+    sd_array,
+    sd_object,
+    kind,
+    is_null,
+    is_boolean,
+    is_integer,
+    is_double,
+    is_string,
+    is_array,
+    is_object,
+    as_boolean,
+    as_integer,
+    as_double,
+    as_string,
+    array_size,
+    array_at,
+    push_back!,
+    object_size,
+    object_key_at,
+    object_value_at,
+    has_key,
+    set!
 export Iso19848,
     ISO19848,
     Iso19848Value,
