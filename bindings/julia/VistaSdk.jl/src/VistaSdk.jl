@@ -75,6 +75,8 @@ include("ffi/transport/datachannel/data_channel.jl")
 include("transport/datachannel/data_channel_dto.jl")
 include("transport/datachannel/data_channel_json.jl")
 include("transport/datachannel/data_channel.jl")
+include("ffi/transport/timeseries/data_channel_id.jl")
+include("transport/timeseries/data_channel_id.jl")
 
 export Vis,
     vis,
@@ -514,6 +516,7 @@ export DclDataChannelList,
 export DclPackage,
     DclPackageRef, header, set_header!, data_channel_list, set_data_channel_list!
 export DclListPackage, set_package!, package, dcl_from_json, dcl_to_json
+export TsdChannelId, TsdChannelIdRef, is_local_id, is_short_id
 export Iso19848,
     ISO19848,
     Iso19848Value,
