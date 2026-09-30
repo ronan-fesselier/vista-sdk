@@ -77,6 +77,8 @@ include("transport/datachannel/data_channel_json.jl")
 include("transport/datachannel/data_channel.jl")
 include("ffi/transport/timeseries/data_channel_id.jl")
 include("transport/timeseries/data_channel_id.jl")
+include("ffi/transport/timeseries/time_series_data.jl")
+include("transport/timeseries/time_series_data.jl")
 
 export Vis,
     vis,
@@ -517,6 +519,61 @@ export DclPackage,
     DclPackageRef, header, set_header!, data_channel_list, set_data_channel_list!
 export DclListPackage, set_package!, package, dcl_from_json, dcl_to_json
 export TsdChannelId, TsdChannelIdRef, is_local_id, is_short_id
+export TsdTimeSpan, TsdTimeSpanRef, start_time, end_time, set_start!, set_end!
+export TsdConfigRef, TsdConfigRefRef, config_id, set_config_id!, time_stamp, set_time_stamp!
+export TsdHeader,
+    ship_id,
+    set_ship_id!,
+    time_span,
+    set_time_span!,
+    clear_time_span!,
+    date_created,
+    set_date_created!,
+    clear_date_created!,
+    date_modified,
+    set_date_modified!,
+    clear_date_modified!,
+    author,
+    set_author!,
+    clear_author!,
+    system_configuration_count,
+    system_configuration_at,
+    set_system_configuration!,
+    clear_system_configuration!,
+    custom_headers,
+    set_custom_headers!,
+    clear_custom_headers!
+export TabularDataSet,
+    TabularDataSetRef, values, set_values!, quality, set_quality!, clear_quality!
+export TabularData,
+    TabularDataRef, channel_id_count, channel_id_at, data_set_count, data_set_at
+export EventDataSet, EventDataSetRef, channel_id, value, set_quality!, clear_quality!
+export EventData,
+    EventDataRef, data_set_count, data_set_at, set_data_sets!, clear_data_sets!
+export TimeSeriesData,
+    TimeSeriesDataRef,
+    data_configuration,
+    set_data_configuration!,
+    clear_data_configuration!,
+    tabular_data_count,
+    tabular_data_at,
+    set_tabular_data!,
+    clear_tabular_data!,
+    event_data,
+    set_event_data!,
+    clear_event_data!,
+    custom_data_kinds,
+    set_custom_data_kinds!,
+    clear_custom_data_kinds!,
+    validate
+export ValidationResult, is_valid, errors
+export TsdPackage,
+    has_header,
+    set_header!,
+    time_series_data_count,
+    time_series_data_is_empty,
+    time_series_data_at
+export TimeSeriesDataPackage, is_empty
 export Iso19848,
     ISO19848,
     Iso19848Value,
