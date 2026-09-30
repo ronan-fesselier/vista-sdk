@@ -79,6 +79,9 @@ include("ffi/transport/timeseries/data_channel_id.jl")
 include("transport/timeseries/data_channel_id.jl")
 include("ffi/transport/timeseries/time_series_data.jl")
 include("transport/timeseries/time_series_data.jl")
+include("ffi/transport/timeseries/time_series_data_dto.jl")
+include("transport/timeseries/time_series_data_dto.jl")
+include("transport/timeseries/time_series_data_json.jl")
 
 export Vis,
     vis,
@@ -574,6 +577,83 @@ export TsdPackage,
     time_series_data_is_empty,
     time_series_data_at
 export TimeSeriesDataPackage, is_empty
+export tsd_from_json, tsd_to_json
+export tsd_dto_from_json, tsd_dto_to_json, tsd_to_dto, tsd_to_domain
+export TsdDtoPackage, pkg
+export TsdDtoPkgRef,
+    header, ensure_header!, clear_header!, tsd_count, tsd_at, tsd_push!, tsd_remove!
+export TsdDtoHeaderRef,
+    ship_id,
+    set_ship_id!,
+    time_span,
+    ensure_time_span!,
+    clear_time_span!,
+    date_created,
+    set_date_created!,
+    clear_date_created!,
+    date_modified,
+    set_date_modified!,
+    clear_date_modified!,
+    author,
+    set_author!,
+    clear_author!,
+    system_cfg_count,
+    system_cfg_at,
+    system_cfg_push!,
+    system_cfg_remove!,
+    custom_headers,
+    ensure_custom_headers!,
+    clear_custom_headers!
+export TsdDtoTimeSpanRef, start_time, set_start_time!, end_time, set_end_time!
+export TsdDtoCfgRefRef, cfg_id, set_cfg_id!, timestamp, set_timestamp!
+export TsdDtoTsdRef,
+    data_cfg,
+    ensure_data_cfg!,
+    clear_data_cfg!,
+    tabular_count,
+    tabular_at,
+    tabular_push!,
+    tabular_remove!,
+    event,
+    ensure_event!,
+    clear_event!,
+    custom_data_kinds,
+    ensure_custom_data_kinds!,
+    clear_custom_data_kinds!
+export TsdDtoTabularRef,
+    number_of_data_set,
+    set_number_of_data_set!,
+    clear_number_of_data_set!,
+    number_of_data_channel,
+    set_number_of_data_channel!,
+    clear_number_of_data_channel!,
+    channel_ids,
+    set_channel_ids!,
+    clear_channel_ids!,
+    data_set_count,
+    data_set_at,
+    data_set_push!,
+    data_set_remove!
+export TsdDtoTabSetRef,
+    timestamp, set_timestamp!, values, set_values!, quality, set_quality!, clear_quality!
+export TsdDtoEventRef,
+    number_of_data_set,
+    set_number_of_data_set!,
+    clear_number_of_data_set!,
+    data_set_count,
+    data_set_at,
+    data_set_push!,
+    data_set_remove!
+export TsdDtoEventSetRef,
+    timestamp,
+    set_timestamp!,
+    channel_id,
+    set_channel_id!,
+    value,
+    set_value!,
+    quality,
+    set_quality!,
+    clear_quality!
 export Iso19848,
     ISO19848,
     Iso19848Value,
