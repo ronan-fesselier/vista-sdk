@@ -1,0 +1,205 @@
+name: Julia Build & Test
+
+on:
+  push:
+    branches: [ "main", "ci/**", "feat/**", "feature/**", "test/**", "fix/**" ]
+    paths: ["bindings/julia/**", "cpp/**", ".github/workflows/julia-build-and-test.yml"]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: ["bindings/julia/**", "cpp/**", ".github/workflows/julia-build-and-test.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test (${{ matrix.os }})
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
+          - os: windows-2022
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - name: Sync version with C++ SDK (Linux)
+        if: runner.os == 'Linux'
+        working-directory: bindings/julia/VistaSdk.jl
+        run: |
+          SDK_VERSION=$(sed -n '/^project(/,/)/{ s/.*VERSION[[:space:]]\+\([0-9][^)[:space:]]*\).*/\1/p }' ../../../cpp/CMakeLists.txt | head -1)
+          sed -i "s/^version = .*/version = \"${SDK_VERSION}\"/" Project.toml
+
+      - name: Sync version with C++ SDK (Windows)
+        if: runner.os == 'Windows'
+        working-directory: bindings/julia/VistaSdk.jl
+        shell: pwsh
+        run: |
+          $content = Get-Content ../../../cpp/CMakeLists.txt -Raw
+          if ($content -match 'project\(.*?VERSION\s+([\d.]+)') {
+            $version = $Matches[1]
+            (Get-Content Project.toml) -replace '^version = .*', "version = `"$version`"" | Set-Content Project.toml
+          }
+
+      - name: Build
+        working-directory: bindings/julia/VistaSdk.jl
+        shell: bash
+        run: julia --project=. -e 'import Pkg; Pkg.build(verbose=true)'
+
+      - name: Test
+        working-directory: bindings/julia/VistaSdk.jl
+        shell: bash
+        run: julia --project=. -e 'import Pkg; Pkg.test()'
+
+  docs:
+    name: Docs (Documenter.jl)
+    needs: build-and-test
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - name: Build
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. -e 'import Pkg; Pkg.build(verbose=true)'
+
+      - name: Check docs
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. docs/make.jl
+
+  fmt:
+    name: Format check
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - name: Install JuliaFormatter
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. -e 'import Pkg; Pkg.add("JuliaFormatter")'
+
+      - name: Format check
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".", overwrite=false) || exit(1)'
+
+  package:
+    name: Package (dry-run)
+    needs: build-and-test
+    if: ${{ success() && !startsWith(github.ref, 'refs/tags/') }}
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - name: Install just
+        uses: taiki-e/install-action@just
+
+      - name: Sync version with C++ SDK
+        working-directory: bindings/julia/VistaSdk.jl
+        run: just sync-version
+
+      - name: Build
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. -e 'import Pkg; Pkg.build(verbose=true)'
+
+      - name: Test
+        working-directory: bindings/julia/VistaSdk.jl
+        run: julia --project=. -e 'import Pkg; Pkg.test()'
+
+  publish:
+    name: Publish to General Registry
+    needs: build-and-test
+    if: ${{ success() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - name: Install just
+        uses: taiki-e/install-action@just
+
+      - name: Verify tag matches C++ SDK version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          CPP_VERSION=$(sed -n '/^project(/,/)/{ s/.*VERSION[[:space:]]\+\([0-9][^)[:space:]]*\).*/\1/p }' cpp/CMakeLists.txt | head -1)
+          if [ "$TAG_VERSION" != "$CPP_VERSION" ]; then
+            echo "::error::Tag ($TAG_VERSION) does not match cpp/CMakeLists.txt ($CPP_VERSION)"
+            exit 1
+          fi
+          echo "Tag matches C++ SDK version: $TAG_VERSION"
+
+      - name: Sync version with C++ SDK
+        working-directory: bindings/julia/VistaSdk.jl
+        run: just sync-version
+
+      - name: Register package via JuliaRegistrator
+        uses: julia-actions/RegisterAction@v1
+        with:
+          token: ${{ secrets.JULIA_REGISTRATOR_TOKEN }}
+          working-directory: bindings/julia/VistaSdk.jl
