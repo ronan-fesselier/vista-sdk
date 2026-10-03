@@ -27,5 +27,9 @@ fmt:
 example path: build
     julia --project=. examples/{{path}}.jl
 
+bench path: build
+    julia --project=. -e 'import Pkg; Pkg.add("BenchmarkTools")'
+    julia --project=. benches/{{path}}.jl
+
 fmt-check:
     julia --project=. -e 'import JuliaFormatter; JuliaFormatter.format(".", overwrite=false) || exit(1)'
