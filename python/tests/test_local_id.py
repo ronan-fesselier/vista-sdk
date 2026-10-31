@@ -271,6 +271,40 @@ class TestLocalId:
         local_id_str = str(mqtt_local_id)
         assert expected_output == local_id_str
 
+    def test_lsp_violation_mqtt_local_id_passed_as_local_id_parameter_produces_standard_format(
+        self,
+    ) -> None:
+        """Simulates any real-world function signature that accepts a LocalId parameter.
+
+        This is exactly what happens when an MqttLocalId is passed as an argument, since
+        MqttLocalId is a subclass of LocalId.
+        """
+
+        def describe_local_id(local_id: LocalId) -> str:
+            return str(local_id)
+
+        vis = VIS()
+        vis_version = VisVersion.v3_4a
+        gmod = vis.get_gmod(vis_version)
+        codebooks = vis.get_codebooks(vis_version)
+
+        primary_item = gmod.parse_path("411.1/C101.31-2")
+        qty_tag = codebooks.try_create_tag(CodebookName.Quantity, "temperature")
+
+        builder = (
+            LocalIdBuilder.create(vis_version)
+            .try_with_primary_item(primary_item)
+            .try_with_metadata_tag(qty_tag)
+        )
+
+        mqtt_local_id = MqttLocalId(builder)
+
+        # No cast needed: mqtt_local_id is a LocalId instance.
+        described = describe_local_id(mqtt_local_id)
+
+        # This assertion fails: describe_local_id returns the MQTT format, not the standard format.
+        assert described.startswith("/dnv-v2/")
+
     @pytest.mark.parametrize(
         "input_data",
         [
