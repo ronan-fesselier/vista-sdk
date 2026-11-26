@@ -1,7 +1,12 @@
+> [!WARNING]
+> This is an unofficial fork of [dnv-opensource/vista-sdk](https://github.com/dnv-opensource/vista-sdk) adding a C++ extension, a C API, Rust bindings, and Julia bindings. Not affiliated with DNV.
+
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/build-csharp.yml?branch=main&label=C%23)](https://github.com/dnv-opensource/vista-sdk/actions)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/build-js.yml?branch=main&label=JS)](https://github.com/dnv-opensource/vista-sdk/actions)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/build-python.yml?branch=main&label=Python)](https://github.com/dnv-opensource/vista-sdk/actions)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/cpp-build-and-test.yml?branch=main&label=C%2B%2B)](https://github.com/dnv-opensource/vista-sdk/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ronan-fesselier/vista-sdk/cpp-build-and-test.yml?branch=extended&label=C%2B%2B+%2F+C+API)](https://github.com/ronan-fesselier/vista-sdk/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ronan-fesselier/vista-sdk/rust-build-and-test.yml?branch=extended&label=Rust+Bindings)](https://github.com/ronan-fesselier/vista-sdk/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ronan-fesselier/vista-sdk/julia-build-and-test.yml?branch=extended&label=Julia+Bindings)](https://github.com/ronan-fesselier/vista-sdk/actions)
 [![GitHub](https://img.shields.io/github/license/dnv-opensource/vista-sdk?style=flat-square)](https://github.com/dnv-opensource/vista-sdk/blob/main/LICENSE)<br/>
 [![SDK NuGet current](https://img.shields.io/nuget/v/DNV.Vista.SDK?label=NuGet%20DNV.Vista.SDK)](https://www.nuget.org/packages/DNV.Vista.SDK)
 [![SDK NuGet prerelease](https://img.shields.io/nuget/vpre/DNV.Vista.SDK?label=NuGet%20DNV.Vista.SDK)](https://www.nuget.org/packages/DNV.Vista.SDK)<br/>
@@ -66,12 +71,15 @@ In real-world scenarios, you may receive data using older VIS versions that need
 
 We provide SDKs for the most common platforms. Each implementation has its own detailed README with installation instructions, quick start guides, and API documentation:
 
-| Platform                  | Package                                                                                                            | Implementation     |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| **C#/.NET**               | [![NuGet](https://img.shields.io/nuget/v/DNV.Vista.SDK?label=NuGet)](https://www.nuget.org/packages/DNV.Vista.SDK) | [csharp/](csharp/) |
-| **JavaScript/TypeScript** | [![NPM](https://img.shields.io/npm/v/dnv-vista-sdk?label=NPM)](https://www.npmjs.com/package/dnv-vista-sdk)        | [js/](js/)         |
-| **Python**                | [![PyPI](https://img.shields.io/pypi/v/vista-sdk?label=PyPI)](https://pypi.org/project/vista-sdk/)                 | [python/](python/) |
-| **C++**                   | *Not published to a package registry yet. Consume from source via CMake `find_package` / `FetchContent`*           | [cpp/](cpp/)       |
+| Platform                  | Package                                                                                                            | Implementation                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| **C#/.NET**               | [![NuGet](https://img.shields.io/nuget/v/DNV.Vista.SDK?label=NuGet)](https://www.nuget.org/packages/DNV.Vista.SDK) | [csharp/](csharp/)                                         |
+| **JavaScript/TypeScript** | [![NPM](https://img.shields.io/npm/v/dnv-vista-sdk?label=NPM)](https://www.npmjs.com/package/dnv-vista-sdk)        | [js/](js/)                                                 |
+| **Python**                | [![PyPI](https://img.shields.io/pypi/v/vista-sdk?label=PyPI)](https://pypi.org/project/vista-sdk/)                 | [python/](python/)                                         |
+| **C++**                   | *Not published to a package registry yet. Consume from source via CMake `find_package` / `FetchContent`*           | [cpp/](cpp/)                                               |
+| **C API**                 | *C hourglass wrapper around the C++ SDK*                                                                           | [cpp/c-api/](cpp/c-api/)                                   |
+| **Rust Bindings**         | *Not published to a registry yet*                                                                                  | [bindings/rust/vista-sdk/](bindings/rust/vista-sdk/)       |
+| **Julia Bindings**        | *Not published to a registry yet*                                                                                  | [bindings/julia/VistaSdk.jl/](bindings/julia/VistaSdk.jl/) |
 
 ### Quick Installation
 
@@ -102,7 +110,11 @@ cmake -B build -S cpp -DCMAKE_BUILD_TYPE=Release && cmake --build build --parall
  ┃ ┃ ┣ 📜DataChannelList.schema.json
  ┃ ┃ ┗ 📜TimeSeriesData.schema.json
  ┃ ┗ 📂xml
- ┣ 📂cpp                # C++ SDK
+ ┣ 📂cpp                # C++ SDK and C API
+ ┃ ┗ 📂c-api            # C hourglass wrapper
+ ┣ 📂bindings           # Language bindings built on the C API
+ ┃ ┣ 📂rust             # Rust bindings
+ ┃ ┗ 📂julia            # Julia bindings
  ┣ 📂csharp             # C#/.NET SDK
  ┣ 📂js                 # JavaScript/TypeScript SDK
  ┣ 📂python             # Python SDK
@@ -115,23 +127,23 @@ cmake -B build -S cpp -DCMAKE_BUILD_TYPE=Release && cmake --build build --parall
 
 This section outlines the various components and modules in our SDKs.
 
-| Component                  | Description                                       |  C#   |  JS   | Python |  C++  |
-| -------------------------- | ------------------------------------------------- | :---: | :---: | :----: | :---: |
-| **Gmod**                   | Generic product model (traversal, node lookup)    |   ✓   |   ✓   |   ✓    |   ✓   |
-| **GmodPath**               | Path parsing, full-path support, serialization    |   ✓   |   ✓   |   ✓    |   ✓   |
-| **Pmod**\*                 | Asset-specific product model                      |       |   ✓   |        |       |
-| **Codebooks**              | Metadata tag lookup and validation                |   ✓   |   ✓   |   ✓    |   ✓   |
-| **Locations**              | Physical positioning and location parsing         |   ✓   |   ✓   |   ✓    |   ✓   |
-| **Local ID**               | Parsing, building, and serialization              |   ✓   |   ✓   |   ✓    |   ✓   |
-| **Universal ID**           | Parsing, building, and serialization              |   ✓   |   ✓   |   ✓    |   ✓   |
-| **GmodPath Versioning**    | Path/node/LocalId conversion between VIS versions |   ✓   |   ✓   |   ✓    |   ✓   |
-| **ImoNumber**              | IMO number validation                             |   ✓   |   ✓   |   ✓    |   ✓   |
-| **LocalIdQuery**           | Programmatic filtering of Local IDs               |   ✓   |   ✓   |   ✓    |   ✓   |
-| **GmodPathQuery**          | Querying and filtering GmodPaths                  |   ✓   |   ✓   |   ✓    |   ✓   |
-| **MetadataTagsQuery**      | Querying and filtering metadata tags              |   ✓   |   ✓   |   ✓    |   ✓   |
-| **DataChannelList (JSON)** | ISO 19848 data channel definitions                |   ✓   |   ✓   |   ✓    |   ✓   |
-| **TimeSeriesData (JSON)**  | ISO 19848 timeseries and event data               |   ✓   |   ✓   |   ✓    |   ✓   |
-| **MQTT Transport**         | MQTT-specific Local ID support                    |   ✓   |       |   ✓    |   ✓   |
+| Component                  | Description                                       |  C#   |  JS   | Python |  C++  | C API | Rust  | Julia |
+| -------------------------- | ------------------------------------------------- | :---: | :---: | :----: | :---: | :---: | :---: | :---: |
+| **Gmod**                   | Generic product model (traversal, node lookup)    |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **GmodPath**               | Path parsing, full-path support, serialization    |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **Pmod**\*                 | Asset-specific product model                      |       |   ✓   |        |       |       |       |       |
+| **Codebooks**              | Metadata tag lookup and validation                |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **Locations**              | Physical positioning and location parsing         |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **Local ID**               | Parsing, building, and serialization              |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **Universal ID**           | Parsing, building, and serialization              |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **GmodPath Versioning**    | Path/node/LocalId conversion between VIS versions |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **ImoNumber**              | IMO number validation                             |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **LocalIdQuery**           | Programmatic filtering of Local IDs               |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **GmodPathQuery**          | Querying and filtering GmodPaths                  |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **MetadataTagsQuery**      | Querying and filtering metadata tags              |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **DataChannelList (JSON)** | ISO 19848 data channel definitions                |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **TimeSeriesData (JSON)**  | ISO 19848 timeseries and event data               |   ✓   |   ✓   |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
+| **MQTT Transport**         | MQTT-specific Local ID support                    |   ✓   |       |   ✓    |   ✓   |   ✓   |   ✓   |   ✓   |
 
 > \* The naming "Pmod" (Product Model) is inspired by DNV class terminology where it refers to asset-specific class information model. In the Vista SDK, Pmod represents a subset of Gmod built from GmodPaths or LocalIds, which can originate from any source—not limited to class-specific data.
 

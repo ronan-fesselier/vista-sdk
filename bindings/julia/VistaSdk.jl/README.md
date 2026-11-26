@@ -1,6 +1,6 @@
 # Vista SDK - Julia Bindings
 
-[![Julia Build & Test Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/julia-build-and-test.yml?branch=main&label=Julia+Build+%26+Test)](https://github.com/dnv-opensource/vista-sdk/actions)
+[![Julia Build & Test Status](https://img.shields.io/github/actions/workflow/status/ronan-fesselier/vista-sdk/julia-build-and-test.yml?branch=extended&label=Julia+Build+%26+Test)](https://github.com/ronan-fesselier/vista-sdk/actions)
 [![GitHub](https://img.shields.io/github/license/dnv-opensource/vista-sdk?style=flat-square)](../../../LICENSE)
 
 The Julia bindings for the Vista SDK, built on top of the C++ SDK and its C API. For an overview

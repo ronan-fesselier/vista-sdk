@@ -1,6 +1,6 @@
 # Vista SDK - C++ Implementation
 
-[![C++ Workflow Status](https://img.shields.io/github/actions/workflow/status/dnv-opensource/vista-sdk/cpp-build-and-test.yml?branch=main&label=C%2B%2B+Build+%26+Test)](https://github.com/dnv-opensource/vista-sdk/actions)
+[![C++ Workflow Status](https://img.shields.io/github/actions/workflow/status/ronan-fesselier/vista-sdk/cpp-build-and-test.yml?branch=extended&label=C%2B%2B+%2F+C+API+Build+%26+Test)](https://github.com/ronan-fesselier/vista-sdk/actions)
 [![GitHub](https://img.shields.io/github/license/dnv-opensource/vista-sdk?style=flat-square)](../LICENSE)
 
 The C++ implementation of the Vista SDK. For an overview of the SDK and its concepts, see the [main README](https://github.com/dnv-opensource/vista-sdk/blob/main/README.md).
