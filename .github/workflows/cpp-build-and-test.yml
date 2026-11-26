@@ -2,7 +2,7 @@ name: C++ Build & Test
 
 on:
   push:
-    branches: [ "main", "ci/**", "feat/**", "feature/**", "test/**", "fix/**" ]
+    branches: [ "main", "extended", "ci/**", "feat/**", "feature/**", "test/**", "fix/**" ]
     paths: ["cpp/**", ".github/workflows/cpp-build-and-test.yml"]
   pull_request:
     branches: [ "main" ]
